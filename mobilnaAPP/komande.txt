@@ -1,0 +1,9 @@
+gradlew installDebug
+
+gradlew build
+
+gradlew connectedDebugAndroidTest
+
+adb devices
+
+adb shell am start -n com.example.mobilnaapp/.MainActivity

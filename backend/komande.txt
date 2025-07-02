@@ -13,5 +13,3 @@ uvicorn main:app --reload
 alembic revision --autogenerate -m "dodao novi model"
 
 alembic upgrade head
-
-vercel .

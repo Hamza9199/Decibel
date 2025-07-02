@@ -17,3 +17,6 @@ engine = create_engine(SYNC_DATABASE_URL)
 
 def create_tables():
     Base.metadata.create_all(engine)
+
+def delete_tables():
+    Base.metadata.drop_all(engine)

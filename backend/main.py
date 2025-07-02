@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from modeli.Korisnik import Korisnik
 from modeli.KorisnikRole import KorisnikRole as Role
-from servisi.Baza import database, create_tables  
+from servisi.Baza import database, create_tables, delete_tables  
 from rute.KorisnikRuta import router as korisnik_router
 from rute.PjesmaRuta import router as pjesma_router
 

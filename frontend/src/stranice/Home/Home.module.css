@@ -1,0 +1,113 @@
+.container {
+  max-width: 900px;
+  margin: 48px auto 80px auto;
+  padding: 32px;
+  background: #181818;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+.title {
+  text-align: left;
+  margin-bottom: 32px;
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.songGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 28px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.songCard {
+  background: #232323;
+  border-radius: 16px;
+  padding: 20px 18px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+.songCard:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  transform: translateY(-4px) scale(1.03);
+}
+
+.songImageWrap {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 18px;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.songImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.playButton {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: #1db954;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30,185,84,0.18);
+  transition: background 0.15s;
+  z-index: 2;
+}
+
+.playButton:hover {
+  background: #1ed760;
+}
+
+.songTitle {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.songDesc {
+  color: #b3b3b3;
+  font-size: 0.97rem;
+  margin-bottom: 10px;
+  text-align: center;
+  min-height: 32px;
+}
+
+.audioPlayer {
+  width: 100%;
+  margin-top: 10px;
+  outline: none;
+  background: transparent;
+}
+
+.activeCard {
+  border: 2px solid #1db954;
+  box-shadow: 0 4px 24px rgba(30,185,84,0.18);
+}

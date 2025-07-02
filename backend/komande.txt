@@ -9,3 +9,7 @@ venv\Scripts\activate
 uvicorn main:app --reload
 
 /docs /redoc
+
+alembic revision --autogenerate -m "dodao novi model"
+
+alembic upgrade head

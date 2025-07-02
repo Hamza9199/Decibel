@@ -1,0 +1,179 @@
+from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
+import os
+from dotenv import load_dotenv
+import tempfile
+
+from modeli.Pjesma import Pjesma, PjesmaCreate
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+
+from kontroleri.PjesmaKontroler import (
+    get_all_pjesme,
+    get_pjesma_by_id,
+    create_pjesma,
+    update_pjesma,
+    delete_pjesma
+)
+from servisi.FirebaseStorage import upload_file
+
+router = APIRouter(prefix="/api/pjesme", tags=["Pjesme"])
+
+load_dotenv()
+ASYNC_DATABASE_URL = os.getenv("DATABASE_URL_ASYNC")
+
+engine = create_async_engine(
+    ASYNC_DATABASE_URL, echo=True, future=True
+)
+AsyncSessionLocal = sessionmaker(
+    bind=engine, class_=AsyncSession, expire_on_commit=False
+)
+
+from typing import AsyncGenerator
+
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+
+@router.get("/", response_model=List[Pjesma])
+async def sve_pjesme(session: AsyncSession = Depends(get_session)):
+    pjesme = await get_all_pjesme(session)
+    return pjesme
+
+@router.get("/{pjesma_id}", response_model=Pjesma)
+async def get_pjesma(pjesma_id: int, session: AsyncSession = Depends(get_session)):
+    pjesma = await get_pjesma_by_id(session, pjesma_id)
+    if not pjesma:
+        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+    return pjesma
+
+@router.post("/", response_model=Pjesma)
+async def nova_pjesma(
+    korisnikID: str = Form(...),
+    naziv: str = Form(...),
+    opis: str = Form(None),
+    datumObjave: str = Form(...),
+    trajanjeSekunde: int = Form(...),
+    javno: bool = Form(False),
+    odobreno: bool = Form(False),
+    jezikPjesme: str = Form(None),
+    licenca: str = Form(None),
+    eksplicitniSadrzaj: bool = Form(False),
+    zanr: str = Form(...),
+    file_audio: UploadFile = File(None),
+    file_slika: UploadFile = File(None),
+    file_gif: UploadFile = File(None),
+    session: AsyncSession = Depends(get_session)
+):
+    putanjaAudio = putanjaSlika = putanjaGif = None
+
+    if file_audio:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(await file_audio.read())
+            temp_path = tmp.name
+        putanjaAudio = upload_file(temp_path, f"pjesme/audio/{file_audio.filename}")
+        os.remove(temp_path)
+
+    if file_slika:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(await file_slika.read())
+            temp_path = tmp.name
+        putanjaSlika = upload_file(temp_path, f"pjesme/slike/{file_slika.filename}")
+        os.remove(temp_path)
+
+    if file_gif:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(await file_gif.read())
+            temp_path = tmp.name
+        putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
+        os.remove(temp_path)
+
+    pjesma_data = PjesmaCreate(
+        korisnikID=korisnikID,
+        naziv=naziv,
+        opis=opis,
+        datumObjave=datumObjave,
+        trajanjeSekunde=trajanjeSekunde,
+        javno=javno,
+        odobreno=odobreno,
+        putanjaAudio=putanjaAudio,
+        putanjaSlika=putanjaSlika,
+        putanjaGif=putanjaGif,
+        jezikPjesme=jezikPjesme,
+        licenca=licenca,
+        eksplicitniSadrzaj=eksplicitniSadrzaj,
+        zanr=zanr
+    )
+    db_pjesma = await create_pjesma(session, pjesma_data)
+    return db_pjesma
+
+@router.put("/{pjesma_id}", response_model=Pjesma)
+async def izmeni_pjesmu(
+    pjesma_id: int,
+    korisnikID: str = Form(...),
+    naziv: str = Form(...),
+    opis: str = Form(None),
+    datumObjave: str = Form(...),
+    trajanjeSekunde: int = Form(...),
+    javno: bool = Form(False),
+    odobreno: bool = Form(False),
+    jezikPjesme: str = Form(None),
+    licenca: str = Form(None),
+    eksplicitniSadrzaj: bool = Form(False),
+    zanr: str = Form(...),
+    file_audio: UploadFile = File(None),
+    file_slika: UploadFile = File(None),
+    file_gif: UploadFile = File(None),
+    session: AsyncSession = Depends(get_session)
+):
+    putanjaAudio = putanjaSlika = putanjaGif = None
+
+    if file_audio:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(await file_audio.read())
+            temp_path = tmp.name
+        putanjaAudio = upload_file(temp_path, f"pjesme/audio/{file_audio.filename}")
+        os.remove(temp_path)
+
+    if file_slika:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(await file_slika.read())
+            temp_path = tmp.name
+        putanjaSlika = upload_file(temp_path, f"pjesme/slike/{file_slika.filename}")
+        os.remove(temp_path)
+
+    if file_gif:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmp.write(await file_gif.read())
+            temp_path = tmp.name
+        putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
+        os.remove(temp_path)
+
+    pjesma_data = PjesmaCreate(
+        korisnikID=korisnikID,
+        naziv=naziv,
+        opis=opis,
+        datumObjave=datumObjave,
+        trajanjeSekunde=trajanjeSekunde,
+        javno=javno,
+        odobreno=odobreno,
+        putanjaAudio=putanjaAudio,
+        putanjaSlika=putanjaSlika,
+        putanjaGif=putanjaGif,
+        jezikPjesme=jezikPjesme,
+        licenca=licenca,
+        eksplicitniSadrzaj=eksplicitniSadrzaj,
+        zanr=zanr
+    )
+    db_pjesma = await update_pjesma(session, pjesma_id, pjesma_data)
+    if not db_pjesma:
+        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+    return db_pjesma
+
+@router.delete("/{pjesma_id}", response_model=Pjesma)
+async def obrisi_pjesmu(pjesma_id: int, session: AsyncSession = Depends(get_session)):
+    db_pjesma = await delete_pjesma(session, pjesma_id)
+    if not db_pjesma:
+        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+    return db_pjesma

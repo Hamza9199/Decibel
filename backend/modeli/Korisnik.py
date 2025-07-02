@@ -31,3 +31,7 @@ class Korisnik(KorisnikCreate):
 
     class Config:
         orm_mode = True
+
+class KorisnikLogin(BaseModel):
+    email: str
+    lozinka: str

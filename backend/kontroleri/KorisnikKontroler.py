@@ -2,8 +2,17 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import NoResultFound
 from uuid import uuid4
+from passlib.context import CryptContext
 
 from modeli.Korisnik import KorisnikORM, Korisnik, KorisnikCreate
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 
 async def get_all_korisnici(session: AsyncSession):
     result = await session.execute(select(KorisnikORM))
@@ -21,7 +30,7 @@ async def register_korisnik(session: AsyncSession, korisnik: KorisnikCreate):
         prezime=korisnik.prezime,
         korisnicko_ime=korisnik.korisnicko_ime,
         email=korisnik.email,
-        lozinka=korisnik.lozinka,
+        lozinka=hash_password(korisnik.lozinka),  # Hesiraj lozinku
         rola=korisnik.rola
     )
     session.add(db_korisnik)
@@ -31,10 +40,12 @@ async def register_korisnik(session: AsyncSession, korisnik: KorisnikCreate):
 
 async def login_korisnik(session: AsyncSession, email: str, lozinka: str):
     result = await session.execute(
-        select(KorisnikORM).where(KorisnikORM.email == email, KorisnikORM.lozinka == lozinka)
+        select(KorisnikORM).where(KorisnikORM.email == email)
     )
     korisnik = result.scalar_one_or_none()
-    return korisnik
+    if korisnik and verify_password(lozinka, korisnik.lozinka):
+        return korisnik
+    return None
 
 async def update_korisnik(session: AsyncSession, korisnik_id: str, korisnik: KorisnikCreate):
     db_korisnik = await get_korisnik_by_id(session, korisnik_id)

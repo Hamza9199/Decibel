@@ -18,7 +18,7 @@ const Home: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/pjesme/")
+    fetch("https://aggregate-ajay-decibel1234-bdb02db8.koyeb.app/api/pjesme/")
       .then((res) => res.json())
       .then((data) => {
         setPjesme(data);

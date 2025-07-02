@@ -14,10 +14,4 @@ alembic revision --autogenerate -m "dodao novi model"
 
 alembic upgrade head
 
-space login
-
-space new
-
-space push
-
-space-cli login
+vercel .

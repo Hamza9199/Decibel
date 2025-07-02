@@ -1,5 +1,5 @@
 import './App.css';
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './stranice/Home/Home';
 

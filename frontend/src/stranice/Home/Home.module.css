@@ -1,10 +1,61 @@
+.spotifyBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+
 .container {
-  max-width: 1200px;
-  margin: 64px auto 80px auto;
-  padding: 32px;
-  background: #181818;
+  max-width: 1400px;
+  width: 100%;
+  min-height: 80vh;
+  margin: 0 auto;
+  padding: 32px 24px 80px 24px;
+  background: rgba(24,24,24,0.93);
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  /* Sada je centrirano i rasteže se do 1400px, a na manjim ekranima je full width sa paddingom */
+}
+
+@media (max-width: 900px) {
+  .container {
+    max-width: 100vw;
+    padding: 16px 4vw 60px 4vw;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .gridRow {
+    gap: 16px;
+  }
+  .card {
+    min-width: 160px;
+    max-width: 160px;
+    padding: 14px 8px 12px 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 8px 0 40px 0;
+  }
+  .gridRow {
+    gap: 8px;
+  }
+  .card {
+    min-width: 120px;
+    max-width: 120px;
+    padding: 8px 4px 8px 4px;
+  }
+  .cardImageWrap {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 8px;
+  }
+  .cardTitle {
+    font-size: 0.95rem;
+  }
+  .cardDesc {
+    font-size: 0.8rem;
+  }
 }
 
 .title {
@@ -22,8 +73,29 @@
   font-weight: 700;
   margin-bottom: 24px;
   letter-spacing: 1px;
-  border-left: 5px solid #1db954;
+  border-left: 5px solid #b91d95;
   padding-left: 16px;
+}
+
+.gridRow {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 28px;
+  padding-bottom: 8px;
+  margin-bottom: 32px;
+  scrollbar-width: thin;
+  scrollbar-color: #b91d95 #232323;
+}
+.gridRow::-webkit-scrollbar {
+  height: 8px;
+}
+.gridRow::-webkit-scrollbar-thumb {
+  background: #b91d95;
+  border-radius: 8px;
+}
+.gridRow::-webkit-scrollbar-track {
+  background: #232323;
 }
 
 .songGrid {
@@ -42,10 +114,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 210px;
+  max-width: 210px;
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
   min-height: 260px;
+  cursor: pointer;
 }
 
 .card:hover {
@@ -53,7 +128,7 @@
   transform: translateY(-4px) scale(1.03);
 }
 
-.songImageWrap {
+.cardImageWrap {
   width: 110px;
   height: 110px;
   border-radius: 12px;
@@ -66,7 +141,7 @@
   position: relative;
 }
 
-.image {
+.cardImage {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -77,25 +152,27 @@
   position: absolute;
   bottom: 10px;
   right: 10px;
-  background: #1db954;
+  background: #b91d95;
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(30,185,84,0.18);
-  transition: background 0.15s;
+  transition: background 0.15s, transform 0.1s;
   z-index: 2;
+  padding: 0;
 }
 
 .playButton:hover {
-  background: #1ed760;
+  background: #590846;
+  transform: scale(1.08);
 }
 
-.songTitle {
+.cardTitle {
   color: #fff;
   font-size: 1.08rem;
   font-weight: 600;
@@ -119,7 +196,7 @@
 }
 
 .activeCard {
-  border: 2px solid #1db954;
+  border: 2px solid #b91d95;
   box-shadow: 0 4px 24px rgba(30,185,84,0.18);
 }
 

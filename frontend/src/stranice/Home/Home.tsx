@@ -1,40 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./Home.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import axios from "axios";
+import { Pjesma, Album, Playlista, Korisnik } from "../../types";
+import AudioPlayer from "../../komponente/AudioPlayer/AudioPlayer";
 
-type Pjesma = {
-  id: number;
-  naziv: string;
-  opis?: string;
-  putanjaAudio?: string;
-  putanjaSlika?: string;
-};
-
-type Album = {
-  id: number;
-  naziv: string;
-  opis?: string;
-  putanjaSlika?: string;
-};
-
-type Playlista = {
-  id: number;
-  naziv: string;
-  opis?: string;
-  putanjaSlika?: string;
-};
-
-type Korisnik = {
-  id: string;
-  korisnicko_ime: string;
-  ime?: string;
-  prezime?: string;
-  putanjaProfilneSlike?: string;
-};
-
-const API_BASE = "https://aggregate-ajay-decibel1234-bdb02db8.koyeb.app/api";
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Home: React.FC = () => {
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
@@ -43,7 +15,7 @@ const Home: React.FC = () => {
   const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeSong, setActiveSong] = useState<Pjesma | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -62,12 +34,8 @@ const Home: React.FC = () => {
 
   const handlePlay = (id: number, audioUrl?: string) => {
     setActiveSongId(id);
-    setTimeout(() => {
-      if (audioRef.current && audioUrl) {
-        audioRef.current.src = audioUrl;
-        audioRef.current.play();
-      }
-    }, 0);
+    const song = pjesme.find((p) => p.id === id);
+    setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
   };
 
   if (loading) return <div className={styles.loading}>Učitavanje...</div>;
@@ -75,96 +43,103 @@ const Home: React.FC = () => {
   return (
     <>
       <Header />
-      <div className={styles.container}>
-        <Section title="Pjesme">
-          <div className={styles.grid}>
-            {pjesme.map((p) => (
-              <div
-                key={p.id}
-                className={`${styles.card} ${activeSongId === p.id ? styles.activeCard : ""}`}
-              >
-                <div className={styles.imageWrap}>
-                  {p.putanjaSlika ? (
-                    <img src={p.putanjaSlika} alt={p.naziv} className={styles.image} />
-                  ) : (
-                    <div className={styles.image} style={{ background: "#222" }} />
-                  )}
-                  {p.putanjaAudio && (
-                    <button
-                      className={styles.playButton}
-                      onClick={() => handlePlay(p.id, p.putanjaAudio)}
-                      title="Play"
-                    >
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff">
-                        <polygon points="6,4 20,12 6,20" />
-                      </svg>
-                    </button>
-                  )}
+      <div className={styles.spotifyBg}>
+        <div className={styles.container}>
+          <Section title="Pjesme">
+            <div className={styles.gridRow}>
+              {pjesme.map((p) => (
+                <div
+                  key={p.id}
+                  className={`${styles.card} ${activeSongId === p.id ? styles.activeCard : ""}`}
+                >
+                  <div className={styles.cardImageWrap}>
+                    {p.putanjaSlika ? (
+                      <img src={p.putanjaSlika} alt={p.naziv} className={styles.cardImage} />
+                    ) : (
+                      <div className={styles.cardImage} style={{ background: "#222" }} />
+                    )}
+                    {p.putanjaAudio && (
+                      <button
+                        className={styles.playButton}
+                        onClick={() => handlePlay(p.id, p.putanjaAudio)}
+                        title="Play"
+                      >
+                        <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
+                          <polygon points="12,8 36,22 12,36" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                  <div className={styles.cardTitle}>{p.naziv}</div>
+                  <div className={styles.cardDesc}>{p.opis || <span>&nbsp;</span>}</div>
                 </div>
-                <div className={styles.cardTitle}>{p.naziv}</div>
-                <div className={styles.cardDesc}>{p.opis || <span>&nbsp;</span>}</div>
-              </div>
-            ))}
-          </div>
-          <audio ref={audioRef} className={styles.audioPlayer} controls style={{ width: "100%", marginTop: 24 }} />
-        </Section>
+              ))}
+            </div>
+          </Section>
 
-        <Section title="Albumi">
-          <div className={styles.grid}>
-            {albumi.map((a) => (
-              <div key={a.id} className={styles.card}>
-                <div className={styles.imageWrap}>
-                  {a.putanjaSlika ? (
-                    <img src={a.putanjaSlika} alt={a.naziv} className={styles.image} />
-                  ) : (
-                    <div className={styles.image} style={{ background: "#222" }} />
-                  )}
+          <Section title="Albumi">
+            <div className={styles.gridRow}>
+              {albumi.map((a) => (
+                <div key={a.id} className={styles.card}>
+                  <div className={styles.cardImageWrap}>
+                    {a.putanjaSlika ? (
+                      <img src={a.putanjaSlika} alt={a.naziv} className={styles.cardImage} />
+                    ) : (
+                      <div className={styles.cardImage} style={{ background: "#222" }} />
+                    )}
+                  </div>
+                  <div className={styles.cardTitle}>{a.naziv}</div>
+                  <div className={styles.cardDesc}>{a.opis || <span>&nbsp;</span>}</div>
                 </div>
-                <div className={styles.cardTitle}>{a.naziv}</div>
-                <div className={styles.cardDesc}>{a.opis || <span>&nbsp;</span>}</div>
-              </div>
-            ))}
-          </div>
-        </Section>
+              ))}
+            </div>
+          </Section>
 
-        <Section title="Playliste">
-          <div className={styles.grid}>
-            {playliste.map((pl) => (
-              <div key={pl.id} className={styles.card}>
-                <div className={styles.imageWrap}>
-                  {pl.putanjaSlika ? (
-                    <img src={pl.putanjaSlika} alt={pl.naziv} className={styles.image} />
-                  ) : (
-                    <div className={styles.image} style={{ background: "#222" }} />
-                  )}
+          <Section title="Playliste">
+            <div className={styles.gridRow}>
+              {playliste.map((pl) => (
+                <div key={pl.id} className={styles.card}>
+                  <div className={styles.cardImageWrap}>
+                    {pl.putanjaSlika ? (
+                      <img src={pl.putanjaSlika} alt={pl.naziv} className={styles.cardImage} />
+                    ) : (
+                      <div className={styles.cardImage} style={{ background: "#222" }} />
+                    )}
+                  </div>
+                  <div className={styles.cardTitle}>{pl.naziv}</div>
+                  <div className={styles.cardDesc}>{pl.opis || <span>&nbsp;</span>}</div>
                 </div>
-                <div className={styles.cardTitle}>{pl.naziv}</div>
-                <div className={styles.cardDesc}>{pl.opis || <span>&nbsp;</span>}</div>
-              </div>
-            ))}
-          </div>
-        </Section>
+              ))}
+            </div>
+          </Section>
 
-        <Section title="Korisnici">
-          <div className={styles.grid}>
-            {korisnici.map((k) => (
-              <div key={k.id} className={styles.card}>
-                <div className={styles.imageWrap}>
-                  {k.putanjaProfilneSlike ? (
-                    <img src={k.putanjaProfilneSlike} alt={k.korisnicko_ime} className={styles.image} />
-                  ) : (
-                    <div className={styles.image} style={{ background: "#222" }} />
-                  )}
+          <Section title="Korisnici">
+            <div className={styles.gridRow}>
+              {korisnici.map((k) => (
+                <div key={k.id} className={styles.card}>
+                  <div className={styles.cardImageWrap}>
+                    {k.putanjaProfilneSlike ? (
+                      <img src={k.putanjaProfilneSlike} alt={k.korisnicko_ime} className={styles.cardImage} />
+                    ) : (
+                      <div className={styles.cardImage} style={{ background: "#222" }} />
+                    )}
+                  </div>
+                  <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
+                  <div className={styles.cardDesc}>
+                    {k.ime} {k.prezime}
+                  </div>
                 </div>
-                <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
-                <div className={styles.cardDesc}>
-                  {k.ime} {k.prezime}
-                </div>
-              </div>
-            ))}
-          </div>
-        </Section>
+              ))}
+            </div>
+          </Section>
+        </div>
       </div>
+      <AudioPlayer
+        src={activeSong?.putanjaAudio}
+        title={activeSong?.naziv}
+        visible={!!activeSong}
+        onEnded={() => setActiveSongId(null)}
+      />
       <Footer />
     </>
   );
@@ -176,5 +151,6 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
     {children}
   </section>
 );
+
 
 export default Home;

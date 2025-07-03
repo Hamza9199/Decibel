@@ -1,9 +1,15 @@
-gradlew installDebug
+./gradlew installDebug
 
-gradlew build
+./gradlew build
 
-gradlew connectedDebugAndroidTest
+./gradlew clean build
+
+./gradlew connectedDebugAndroidTest
 
 adb devices
 
 adb shell am start -n com.example.mobilnaapp/.MainActivity
+
+./gradlew assembleDebug --stacktrace
+
+adb logcat

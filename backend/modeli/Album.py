@@ -20,7 +20,7 @@ class AlbumORM(Base):
     putanjaGif = Column(String(255), nullable=True)
 
     korisnik = relationship("KorisnikORM", backref="albumi")
-    pjesme = relationship("PjesmaORM", backref="album_obj")  
+    pjesme = relationship("PjesmaORM", back_populates="album")  # ispravi: koristi back_populates  
 
 # Pydantic modeli
 

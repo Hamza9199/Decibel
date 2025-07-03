@@ -14,7 +14,7 @@ class PjesmaORM(Base):
     __tablename__ = "pjesme"
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     korisnikID = Column(CHAR(36), ForeignKey("korisnici.id"), nullable=True)
-    albumID = Column(BigInteger, ForeignKey("albumi.id"), nullable=True)  # Dodaj ovo
+    albumID = Column(BigInteger, ForeignKey("albumi.id"), nullable=True)
     naziv = Column(String(255), nullable=False)
     opis = Column(String(1024), nullable=True)
     datumObjave = Column(Date, nullable=False)
@@ -32,7 +32,7 @@ class PjesmaORM(Base):
     zanr = Column(SQLEnum(PjesmaZanr), nullable=False)  # Ispravno korišćenje Enum-a
     # Relationships
     korisnik = relationship("KorisnikORM", backref="pjesme")
-    album = relationship("AlbumORM", backref="pjesme")
+    album = relationship("AlbumORM", back_populates="pjesme")  # ispravi: koristi back_populates
 
 # Pydantic modeli
 

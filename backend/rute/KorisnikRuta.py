@@ -9,6 +9,9 @@ from modeli.Korisnik import Korisnik, KorisnikCreate, KorisnikLogin
 from servisi.Baza import database
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from fastapi import File, UploadFile
+import tempfile
+from servisi.FirebaseStorage import upload_file
 
 from kontroleri.KorisnikKontroler import (
     get_all_korisnici,
@@ -78,3 +81,37 @@ async def login(login_data: KorisnikLogin, session: AsyncSession = Depends(get_s
     return korisnik
 
 
+@router.put("/slika/{korisnik_id}", response_model=Korisnik)
+async def promijeni_sliku(
+    korisnik_id: str,
+    file_profilna: UploadFile = File(...),
+    session: AsyncSession = Depends(get_session)
+):
+    korisnik = await get_korisnik_by_id(session, korisnik_id)
+    if not korisnik:
+        raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
+
+    putanjaProfilneSlike = None
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        tmp.write(await file_profilna.read())
+        temp_path = tmp.name
+    putanjaProfilneSlike = upload_file(temp_path, f"korisnici/profilne/{file_profilna.filename}")
+    os.remove(temp_path)
+
+    # Ažuriraj samo putanjaProfilneSlike, ostalo ostaje isto
+    korisnik_data = KorisnikCreate(
+        ime=korisnik.ime,
+        prezime=korisnik.prezime,
+        korisnicko_ime=korisnik.korisnicko_ime,
+        email=korisnik.email,
+        lozinka=korisnik.lozinka,
+        rola=korisnik.rola,
+        bio=korisnik.bio,
+        statusKorisnika=korisnik.statusKorisnika,
+        putanjaProfilneSlike=putanjaProfilneSlike,
+        datumRegistracije=korisnik.datumRegistracije,
+        brojPratilaca=korisnik.brojPratilaca,
+        obrisan=korisnik.obrisan
+    )
+    db_korisnik = await update_korisnik(session, korisnik_id, korisnik_data)
+    return db_korisnik

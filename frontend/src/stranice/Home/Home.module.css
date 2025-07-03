@@ -1,6 +1,6 @@
 .container {
-  max-width: 900px;
-  margin: 48px auto 80px auto;
+  max-width: 1200px;
+  margin: 64px auto 80px auto;
   padding: 32px;
   background: #181818;
   border-radius: 18px;
@@ -16,16 +16,26 @@
   letter-spacing: 1px;
 }
 
+.sectionTitle {
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
+  border-left: 5px solid #1db954;
+  padding-left: 16px;
+}
+
 .songGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 28px;
   padding: 0;
-  margin: 0;
+  margin: 0 0 24px 0;
   list-style: none;
 }
 
-.songCard {
+.card {
   background: #232323;
   border-radius: 16px;
   padding: 20px 18px 18px 18px;
@@ -35,19 +45,20 @@
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
   box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  min-height: 260px;
 }
 
-.songCard:hover {
+.card:hover {
   box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   transform: translateY(-4px) scale(1.03);
 }
 
 .songImageWrap {
-  width: 120px;
-  height: 120px;
+  width: 110px;
+  height: 110px;
   border-radius: 12px;
   overflow: hidden;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   background: #333;
   display: flex;
   align-items: center;
@@ -55,7 +66,7 @@
   position: relative;
 }
 
-.songImage {
+.image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -64,13 +75,13 @@
 
 .playButton {
   position: absolute;
-  bottom: 12px;
-  right: 12px;
+  bottom: 10px;
+  right: 10px;
   background: #1db954;
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -86,18 +97,18 @@
 
 .songTitle {
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   text-align: center;
 }
 
-.songDesc {
+.cardDesc {
   color: #b3b3b3;
   font-size: 0.97rem;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   text-align: center;
-  min-height: 32px;
+  min-height: 24px;
 }
 
 .audioPlayer {
@@ -110,4 +121,11 @@
 .activeCard {
   border: 2px solid #1db954;
   box-shadow: 0 4px 24px rgba(30,185,84,0.18);
+}
+
+.loading {
+  color: #fff;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: 80px;
 }

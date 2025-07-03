@@ -14,6 +14,7 @@ class PjesmaORM(Base):
     __tablename__ = "pjesme"
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     korisnikID = Column(CHAR(36), ForeignKey("korisnici.id"), nullable=True)
+    albumID = Column(BigInteger, ForeignKey("albumi.id"), nullable=True)  # Dodaj ovo
     naziv = Column(String(255), nullable=False)
     opis = Column(String(1024), nullable=True)
     datumObjave = Column(Date, nullable=False)
@@ -29,14 +30,15 @@ class PjesmaORM(Base):
     licenca = Column(String(100), nullable=True)
     eksplicitniSadrzaj = Column(Boolean, default=False)
     zanr = Column(SQLEnum(PjesmaZanr), nullable=False)  # Ispravno korišćenje Enum-a
-
-
+    # Relationships
     korisnik = relationship("KorisnikORM", backref="pjesme")
+    album = relationship("AlbumORM", backref="pjesme")  # Dodaj ovo
 
 # Pydantic modeli
 
 class PjesmaBase(BaseModel):
     korisnikID: Optional[str]
+    albumID: Optional[int]  # Dodaj ovo
     naziv: str
     opis: Optional[str]
     datumObjave: datetime.date  # umesto: str  # ISO format (YYYY-MM-DD)

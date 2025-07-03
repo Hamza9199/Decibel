@@ -11,6 +11,21 @@ from modeli.KorisnikRole import KorisnikRole as Role
 from servisi.Baza import database, create_tables, delete_tables  
 from rute.KorisnikRuta import router as korisnik_router
 from rute.PjesmaRuta import router as pjesma_router
+from rute.HistorijaSlusanjaRuta import router as historija_router
+from rute.KomentarRuta import router as komentar_router
+from rute.IzvodjacPjesmaRuta import router as izvodjac_pjesma_router
+from rute.KorisnikAlbumRuta import router as korisnik_album_router
+from rute.KorisnikPjesmaRuta import router as korisnik_pjesma_router
+from rute.KorisnikPlaylistaRuta import router as korisnik_playlista_router
+from rute.PjesmaPlaylistaRuta import router as pjesma_playlista_router
+from rute.RedoslijedPjesamaRuta import router as redoslijed_pjesama_router
+from rute.StatistikaReprodukcijeRuta import router as statistika_reprodukcije_router
+from rute.PretplataRuta import router as pretplata_router
+from rute.KorisnikPretplataRuta import router as korisnik_pretplata_router
+from rute.ObnovaPretplateRuta import router as obnova_pretplate_router
+from rute.AlbumRuta import router as album_router
+from rute.PlaylistaRuta import router as playlista_router
+from rute.PratilacKorisnikRuta import router as pratilac_korisnik_router
 
 app = FastAPI()
 
@@ -39,6 +54,21 @@ async def root():
 
 app.include_router(korisnik_router)
 app.include_router(pjesma_router)
+app.include_router(album_router)
+app.include_router(playlista_router)
+app.include_router(historija_router)
+app.include_router(komentar_router)
+app.include_router(izvodjac_pjesma_router)
+app.include_router(korisnik_album_router)
+app.include_router(korisnik_pjesma_router)
+app.include_router(korisnik_playlista_router)
+app.include_router(pjesma_playlista_router)
+app.include_router(redoslijed_pjesama_router)
+app.include_router(statistika_reprodukcije_router)
+app.include_router(pretplata_router)
+app.include_router(korisnik_pretplata_router)
+app.include_router(obnova_pretplate_router)
+app.include_router(pratilac_korisnik_router)
 
 
 

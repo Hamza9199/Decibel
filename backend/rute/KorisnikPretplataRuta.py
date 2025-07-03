@@ -1,0 +1,57 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
+import os
+from dotenv import load_dotenv
+
+from modeli.KorisnikPretplata import KorisnikPretplata, KorisnikPretplataCreate
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+
+from kontroleri.KorisnikPretplataKontroler import (
+    get_all_korisnik_pretplata,
+    get_korisnik_pretplata_by_id,
+    create_korisnik_pretplata,
+    delete_korisnik_pretplata
+)
+
+router = APIRouter(prefix="/api/korisnik_pretplata", tags=["KorisnikPretplata"])
+
+load_dotenv()
+ASYNC_DATABASE_URL = os.getenv("DATABASE_URL_ASYNC")
+
+engine = create_async_engine(
+    ASYNC_DATABASE_URL, echo=True, future=True
+)
+AsyncSessionLocal = sessionmaker(
+    bind=engine, class_=AsyncSession, expire_on_commit=False
+)
+
+from typing import AsyncGenerator
+
+async def get_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+
+@router.get("/", response_model=List[KorisnikPretplata])
+async def sve_korisnik_pretplate(session: AsyncSession = Depends(get_session)):
+    return await get_all_korisnik_pretplata(session)
+
+@router.get("/{korisnik_pretplata_id}", response_model=KorisnikPretplata)
+async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):
+    obj = await get_korisnik_pretplata_by_id(session, korisnik_pretplata_id)
+    if not obj:
+        raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena")
+    return obj
+
+@router.post("/", response_model=KorisnikPretplata)
+async def nova_korisnik_pretplata(data: KorisnikPretplataCreate, session: AsyncSession = Depends(get_session)):
+    db_obj = await create_korisnik_pretplata(session, data)
+    return db_obj
+
+@router.delete("/{korisnik_pretplata_id}", response_model=KorisnikPretplata)
+async def obrisi_korisnik_pretplatu(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):
+    db_obj = await delete_korisnik_pretplata(session, korisnik_pretplata_id)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena")
+    return db_obj

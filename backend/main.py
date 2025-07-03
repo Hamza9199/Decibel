@@ -14,10 +14,9 @@ from rute.PjesmaRuta import router as pjesma_router
 
 app = FastAPI()
 
-# Dodaj CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ili npr. ["http://localhost:5173"] za veću sigurnost
+    allow_origins=["http://localhost:5173", "https://decibel-three.vercel.app"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -47,10 +47,10 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     Promise.all([
-      axios.get(`${API_BASE}/pjesme/`).then((res) => res.data),
-      axios.get(`${API_BASE}/albumi/`).then((res) => res.data),
-      axios.get(`${API_BASE}/playliste/`).then((res) => res.data),
-      axios.get(`${API_BASE}/korisnici/`).then((res) => res.data),
+      axios.get(`${API_BASE}/pjesme/`).then((res) => res.data).catch(() => []),
+      axios.get(`${API_BASE}/albumi/`).then((res) => res.data).catch(() => []),
+      axios.get(`${API_BASE}/playliste/`).then((res) => res.data).catch(() => []),
+      axios.get(`${API_BASE}/korisnici/`).then((res) => res.data).catch(() => []),
     ]).then(([pjesmeData, albumiData, playlisteData, korisniciData]) => {
       setPjesme(pjesmeData);
       setAlbumi(albumiData);

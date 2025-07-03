@@ -1,0 +1,59 @@
+.loadingWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  width: 100%;
+}
+
+.notes {
+  position: relative;
+  width: 120px;
+  height: 80px;
+  margin-bottom: 18px;
+}
+
+.note {
+  position: absolute;
+  bottom: 0;
+  width: 32px;
+  height: 32px;
+  background: none;
+  animation: note-bounce 1.2s infinite;
+  opacity: 0.85;
+}
+.note:nth-child(1) {
+  animation-delay: 0s;
+}
+.note:nth-child(2) {
+  animation-delay: 0.25s;
+}
+.note:nth-child(3) {
+  animation-delay: 0.5s;
+}
+
+/* SVG kao background-image za notu */
+.note::before {
+  content: "";
+  display: block;
+  width: 32px;
+  height: 32px;
+  background-image: url('data:image/svg+xml;utf8,<svg width="32" height="32" viewBox="0 0 32 32" fill="pink" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="20" width="8" height="8"/><path d="M8,20 v-12 h12 v12 h-2 v-10 h-8 v10 z"/></svg>');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+@keyframes note-bounce {
+  0%   { transform: translateY(0) scale(1); opacity: 0.85;}
+  30%  { transform: translateY(-24px) scale(1.1); opacity: 1;}
+  60%  { transform: translateY(0) scale(1); opacity: 0.85;}
+  100% { transform: translateY(0) scale(1); opacity: 0.85;}
+}
+
+.text {
+  color: #ffe6ec;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}

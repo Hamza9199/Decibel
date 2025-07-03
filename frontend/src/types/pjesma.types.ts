@@ -4,4 +4,5 @@ export type Pjesma = {
   opis?: string;
   putanjaAudio?: string;
   putanjaSlika?: string;
+  putanjaGif?: string;
 };

@@ -31,7 +31,7 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val root = inflater.inflate(R.layout.fragment_home_spotify, container, false)
+        val root = inflater.inflate(R.layout.fragment_home, container, false)
         // Dodaj AudioPlayerBar na dno ekrana
         val frame = FrameLayout(requireContext())
         frame.layoutParams = ViewGroup.LayoutParams(

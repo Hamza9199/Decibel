@@ -5,6 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import axios from "axios";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import AudioPlayer from "../../komponente/AudioPlayer/AudioPlayer";
+import Loading from "../../komponente/Loading/Loading";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -16,6 +17,19 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [activeSong, setActiveSong] = useState<Pjesma | null>(null);
+
+  // Emit event for background image when song changes
+  useEffect(() => {
+    if (activeSong) {
+      const bgGif = activeSong.putanjaGif;
+      const bgSlika = activeSong.putanjaSlika;
+      window.dispatchEvent(
+        new CustomEvent("activeSongBg", { detail: { gif: bgGif, slika: bgSlika } })
+      );
+    } else {
+      window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
+    }
+  }, [activeSong]);
 
   useEffect(() => {
     Promise.all([
@@ -38,7 +52,7 @@ const Home: React.FC = () => {
     setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
   };
 
-  if (loading) return <div className={styles.loading}>Učitavanje...</div>;
+  if (loading) return <Loading />;
 
   return (
     <>

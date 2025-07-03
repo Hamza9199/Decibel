@@ -6,7 +6,7 @@
   margin: 0 auto;
   background: linear-gradient(90deg, #0d0d0d 0%, #5a0d48 100%);
   box-shadow: 0 -2px 24px rgba(185, 29, 149, 0.13);
-  padding: 0 24px 8px 24px;
+  padding: 50px 24px 40px 24px;
   display: flex;
   align-items: center;
   z-index: 2000;

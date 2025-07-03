@@ -61,52 +61,60 @@ async def nova_pjesma(
     licenca: str = Form(None),
     eksplicitniSadrzaj: bool = Form(False),
     zanr: str = Form(...),
+    albumID: int = Form(None),  # <--- dodaj ovo!
     file_audio: UploadFile = File(None),
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
     session: AsyncSession = Depends(get_session)
 ):
-    putanjaAudio = putanjaSlika = putanjaGif = None
+    try:
+        putanjaAudio = putanjaSlika = putanjaGif = None
 
-    if file_audio:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(await file_audio.read())
-            temp_path = tmp.name
-        putanjaAudio = upload_file(temp_path, f"pjesme/audio/{file_audio.filename}")
-        os.remove(temp_path)
+        if file_audio:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                tmp.write(await file_audio.read())
+                temp_path = tmp.name
+            putanjaAudio = upload_file(temp_path, f"pjesme/audio/{file_audio.filename}")
+            os.remove(temp_path)
 
-    if file_slika:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(await file_slika.read())
-            temp_path = tmp.name
-        putanjaSlika = upload_file(temp_path, f"pjesme/slike/{file_slika.filename}")
-        os.remove(temp_path)
+        if file_slika:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                tmp.write(await file_slika.read())
+                temp_path = tmp.name
+            putanjaSlika = upload_file(temp_path, f"pjesme/slike/{file_slika.filename}")
+            os.remove(temp_path)
 
-    if file_gif:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(await file_gif.read())
-            temp_path = tmp.name
-        putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
-        os.remove(temp_path)
+        if file_gif:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+                tmp.write(await file_gif.read())
+                temp_path = tmp.name
+            putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
+            os.remove(temp_path)
 
-    pjesma_data = PjesmaCreate(
-        korisnikID=korisnikID,
-        naziv=naziv,
-        opis=opis,
-        datumObjave=datumObjave,
-        trajanjeSekunde=trajanjeSekunde,
-        javno=javno,
-        odobreno=odobreno,
-        putanjaAudio=putanjaAudio,
-        putanjaSlika=putanjaSlika,
-        putanjaGif=putanjaGif,
-        jezikPjesme=jezikPjesme,
-        licenca=licenca,
-        eksplicitniSadrzaj=eksplicitniSadrzaj,
-        zanr=zanr
-    )
-    db_pjesma = await create_pjesma(session, pjesma_data)
-    return db_pjesma
+        pjesma_data = PjesmaCreate(
+            korisnikID=korisnikID,
+            albumID=albumID,  # <--- prosledi albumID
+            naziv=naziv,
+            opis=opis,
+            datumObjave=datumObjave,
+            trajanjeSekunde=trajanjeSekunde,
+            javno=javno,
+            odobreno=odobreno,
+            putanjaAudio=putanjaAudio,
+            putanjaSlika=putanjaSlika,
+            putanjaGif=putanjaGif,
+            jezikPjesme=jezikPjesme,
+            licenca=licenca,
+            eksplicitniSadrzaj=eksplicitniSadrzaj,
+            zanr=zanr
+        )
+        db_pjesma = await create_pjesma(session, pjesma_data)
+        return db_pjesma
+    except Exception as e:
+        import traceback
+        print("GRESKA PRI KREIRANJU PJESME:", e)
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{pjesma_id}", response_model=Pjesma)
 async def izmeni_pjesmu(

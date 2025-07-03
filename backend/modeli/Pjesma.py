@@ -32,7 +32,7 @@ class PjesmaORM(Base):
     zanr = Column(SQLEnum(PjesmaZanr), nullable=False)  # Ispravno korišćenje Enum-a
     # Relationships
     korisnik = relationship("KorisnikORM", backref="pjesme")
-    album = relationship("AlbumORM", backref="pjesme")  # Dodaj ovo
+    album = relationship("AlbumORM", backref="pjesme")
 
 # Pydantic modeli
 

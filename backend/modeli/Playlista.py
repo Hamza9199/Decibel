@@ -5,6 +5,7 @@ from servisi.Baza import Base
 from typing import Optional
 from pydantic import BaseModel
 import datetime
+from .Korisnik import Korisnik  # dodaj na kraj fajla zbog kružnog importa
 
 class PlaylistaORM(Base):
     __tablename__ = "playliste"
@@ -37,6 +38,9 @@ class PlaylistaCreate(PlaylistaBase):
 
 class Playlista(PlaylistaBase):
     id: int
+    korisnik: Optional["Korisnik"] = None  # Dodaj ovo polje
 
     class Config:
         orm_mode = True
+
+Playlista.model_rebuild()  # Dodaj na kraj fajla

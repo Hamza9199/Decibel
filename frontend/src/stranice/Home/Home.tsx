@@ -121,7 +121,7 @@ const Home: React.FC = () => {
                     )}
                   </div>
                   <div className={styles.cardTitle}>{a.naziv}</div>
-                  <div className={styles.cardDesc}>{a.opis || <span>&nbsp;</span>}</div>
+                  <div className={styles.cardDesc}>{a.korisnik?.korisnicko_ime|| <span>&nbsp;</span>}</div>
                 </div>
               ))}
             </div>
@@ -139,7 +139,7 @@ const Home: React.FC = () => {
                     )}
                   </div>
                   <div className={styles.cardTitle}>{pl.naziv}</div>
-                  <div className={styles.cardDesc}>{pl.opis || <span>&nbsp;</span>}</div>
+                  <div className={styles.cardDesc}>{pl.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                 </div>
               ))}
             </div>

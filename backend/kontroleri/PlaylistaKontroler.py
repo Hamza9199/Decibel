@@ -1,14 +1,19 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from modeli.Playlista import PlaylistaORM, Playlista, PlaylistaCreate
 
 async def get_all_playliste(session: AsyncSession):
-    result = await session.execute(select(PlaylistaORM))
+    result = await session.execute(
+        select(PlaylistaORM).options(selectinload(PlaylistaORM.korisnik))
+    )
     return result.scalars().all()
 
 async def get_playlista_by_id(session: AsyncSession, playlista_id: int):
-    result = await session.execute(select(PlaylistaORM).where(PlaylistaORM.id == playlista_id))
+    result = await session.execute(
+        select(PlaylistaORM).options(selectinload(PlaylistaORM.korisnik)).where(PlaylistaORM.id == playlista_id)
+    )
     return result.scalar_one_or_none()
 
 async def create_playlista(session: AsyncSession, playlista: PlaylistaCreate):
@@ -16,6 +21,8 @@ async def create_playlista(session: AsyncSession, playlista: PlaylistaCreate):
     session.add(db_playlista)
     await session.commit()
     await session.refresh(db_playlista)
+    # Učitaj korisnika
+    await session.refresh(db_playlista, attribute_names=["korisnik"])
     return db_playlista
 
 async def update_playlista(session: AsyncSession, playlista_id: int, playlista: PlaylistaCreate):
@@ -27,6 +34,7 @@ async def update_playlista(session: AsyncSession, playlista_id: int, playlista: 
     session.add(db_playlista)
     await session.commit()
     await session.refresh(db_playlista)
+    await session.refresh(db_playlista, attribute_names=["korisnik"])
     return db_playlista
 
 async def delete_playlista(session: AsyncSession, playlista_id: int):

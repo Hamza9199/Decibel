@@ -40,6 +40,7 @@ const AudioPlayer: React.FC<Props> = ({
   const [korisnik, setKorisnik] = useState<Korisnik>();
   const [lastSrc, setLastSrc] = useState<string | undefined>(undefined);
   const [wasMinimized, setWasMinimized] = useState(false);
+  const [repeatOne, setRepeatOne] = useState(false);
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -163,6 +164,11 @@ const AudioPlayer: React.FC<Props> = ({
 
   const handleMuteToggle = () => {
     setMuted((m) => !m);
+  };
+
+  // Handler for repeat toggle
+  const handleRepeatToggle = () => {
+    setRepeatOne((prev) => !prev);
   };
 
   useEffect(() => {
@@ -318,7 +324,41 @@ const AudioPlayer: React.FC<Props> = ({
             <option value={2}>2x</option>
           </select>
         </label>
-        <label className={styles.labelSmall} style={{ marginLeft: 18 }}>
+        {/* Repeat button */}
+        <button
+          type="button"
+          className={styles.muteBtn}
+          onClick={handleRepeatToggle}
+          aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi sve"}
+          style={{ marginLeft: 16, marginRight: 8 }}
+        >
+          {repeatOne ? (
+            // Repeat one icon
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <g>
+                <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <text x="13" y="19" fontSize="10" fill="#ffe6ec" fontWeight="bold">
+                  1
+                </text>
+              </g>
+            </svg>
+          ) : (
+            // Normal repeat icon
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+              <g>
+                <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              </g>
+            </svg>
+          )}
+        </button>
+        {/* ...existing code... */}
+        <label className={styles.labelSmall} style={{ marginLeft: 8 }}>
           <button
             type="button"
             className={styles.muteBtn}
@@ -369,6 +409,7 @@ const AudioPlayer: React.FC<Props> = ({
         src={src}
         autoPlay={playing}
         controls={false}
+        loop={repeatOne}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
         onEnded={() => {

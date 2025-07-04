@@ -1,7 +1,7 @@
 .spotifyBg {
   min-height: 100vh;
   padding-top: 80px;
-  padding-bottom: 80px;
+  padding-bottom: 60px;
 }
 
 .container {
@@ -9,7 +9,8 @@
   width: 100%;
   min-height: 80vh;
   margin: 0 auto;
-  padding: 32px 24px 80px 24px;
+  margin-left: 250px;
+  padding: 32px 115px 50px 50px;
   background: rgba(24,24,24,0.93);
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);

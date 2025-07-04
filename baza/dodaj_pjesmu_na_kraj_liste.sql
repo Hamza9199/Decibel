@@ -1,21 +1,14 @@
-DELIMITER $$
 
-CREATE PROCEDURE dodaj_pjesmu_na_kraj_liste (IN pjesmaID INT, IN playlistaID INT)
+
+CREATE PROCEDURE dodaj_pjesmu_na_kraj_liste (IN pjesmaID BIGINT, IN playlistaID BIGINT)
 BEGIN
-    DECLARE velicinaListe INT;
-    DECLARE prvaPjesmaID INT;
-    DECLARE zadnjaPjesmaID INT;
+    DECLARE velicinaListe INT DEFAULT 0;
+    DECLARE prvaPjesmaID BIGINT DEFAULT NULL;
+    DECLARE zadnjaPjesmaID BIGINT DEFAULT NULL;
 
-    SET NOCOUNT ON;
-
-    CALL prebroj_pjesme(playlistaID, @velicinaListe);
-    SET velicinaListe = @velicinaListe;
-
-    CALL pronadji_prvu_pjesmu(playlistaID, @prvaPjesmaID);
-    SET prvaPjesmaID = @prvaPjesmaID;
-
-    CALL pronadji_zadnju_pjesmu(playlistaID, prvaPjesmaID, @zadnjaPjesmaID);
-    SET zadnjaPjesmaID = @zadnjaPjesmaID;
+    CALL prebroj_pjesme(playlistaID, velicinaListe);
+    CALL pronadji_prvu_pjesmu(playlistaID, prvaPjesmaID);
+    CALL pronadji_zadnju_pjesmu(playlistaID, prvaPjesmaID, zadnjaPjesmaID);
 
     IF velicinaListe = 0 THEN
         INSERT INTO PjesmaPlayLista (pjesmaID, playlistaID, pokazivacNaSljedecuPjesmuID, pokazivacNaPrethodnuPjesmuID)
@@ -26,13 +19,5 @@ BEGIN
 
         UPDATE PjesmaPlayLista
         SET pokazivacNaSljedecuPjesmuID = pjesmaID
-        WHERE pjesmaID = zadnjaPjesmaID;
+        WHERE pjesmaID = zadnjaPjesmaID AND playlistaID = playlistaID;
     END IF;
-
-    SET NOCOUNT OFF;
-END$$
-
-DELIMITER ;
-END;
-go
-

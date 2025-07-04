@@ -13,15 +13,15 @@
   box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
   position: relative;
   bottom: 0;
-  left: -50px;
-  right: 0px;
+  left: 40px;
+  right: 0;
   z-index: 1000;
-  margin-bottom: -30px;
+  margin-bottom: -33px;
 }
 
 .footerLogo {
   height: 38px;
-  margin-left: 32px;
+  margin-left: 202px;
   margin-right: 10px;
   border-radius: 40%;
   background: #fff;

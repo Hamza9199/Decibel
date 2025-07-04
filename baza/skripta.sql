@@ -1,3 +1,4 @@
+
 CREATE DATABASE IF NOT EXISTS decibel;
 USE decibel;
 
@@ -67,7 +68,7 @@ CREATE TABLE IF NOT EXISTS playliste (
     FOREIGN KEY (korisnikID) REFERENCES korisnici(id)
 );
 
-CREATE TABLE IF NOT EXISTS komentar (
+CREATE TABLE IF NOT EXISTS komentari (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     korisnikID CHAR(36) NOT NULL,
     pjesmaID BIGINT NOT NULL,
@@ -184,11 +185,6 @@ CREATE TABLE IF NOT EXISTS pretplate (
     cijena DECIMAL(10,2) NOT NULL,
     dostupno BOOL DEFAULT TRUE,
     kreiranDatumVrijeme DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS pretplata_status (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    naziv ENUM('aktivna','neaktivna','pauzirana','istekla') NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS korisnik_pretplata (

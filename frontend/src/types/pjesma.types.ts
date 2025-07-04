@@ -5,4 +5,12 @@ export type Pjesma = {
   putanjaAudio?: string;
   putanjaSlika?: string;
   putanjaGif?: string;
+  korisnikID?: string;
+  korisnik?: {
+    id: string;
+    korisnicko_ime: string;
+    ime?: string;
+    prezime?: string;
+    putanjaProfilneSlike?: string;
+  };
 };

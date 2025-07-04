@@ -4,8 +4,8 @@ import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import axios from "axios";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
-import AudioPlayer from "../../komponente/AudioPlayer/AudioPlayer";
 import Loading from "../../komponente/Loading/Loading";
+import Sidebar from "../../komponente/Sidebar/Sidebar";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -43,6 +43,10 @@ const Home: React.FC = () => {
       setPlayliste(playlisteData);
       setKorisnici(korisniciData);
       setLoading(false);
+      console.log("Data loaded successfully", {
+        pjesme: pjesmeData
+        
+      });
     });
   }, []);
 
@@ -50,6 +54,19 @@ const Home: React.FC = () => {
     setActiveSongId(id);
     const song = pjesme.find((p) => p.id === id);
     setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
+    if (song && audioUrl) {
+      window.dispatchEvent(
+        new CustomEvent("globalAudioPlay", {
+          detail: {
+            src: audioUrl,
+            title: song.naziv,
+            putanjaGif: song.putanjaGif,
+            putanjaSlika: song.putanjaSlika,
+            korisnikID: song.korisnikID,
+          },
+        })
+      );
+    }
   };
 
   if (loading) return <Loading />;
@@ -57,6 +74,7 @@ const Home: React.FC = () => {
   return (
     <>
       <Header />
+      <Sidebar/>
       <div className={styles.spotifyBg}>
         <div className={styles.container}>
           <Section title="Pjesme">
@@ -85,7 +103,7 @@ const Home: React.FC = () => {
                     )}
                   </div>
                   <div className={styles.cardTitle}>{p.naziv}</div>
-                  <div className={styles.cardDesc}>{p.opis || <span>&nbsp;</span>}</div>
+                  <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                 </div>
               ))}
             </div>
@@ -148,12 +166,6 @@ const Home: React.FC = () => {
           </Section>
         </div>
       </div>
-      <AudioPlayer
-        src={activeSong?.putanjaAudio}
-        title={activeSong?.naziv}
-        visible={!!activeSong}
-        onEnded={() => setActiveSongId(null)}
-      />
       <Footer />
     </>
   );

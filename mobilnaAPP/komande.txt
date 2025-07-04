@@ -10,6 +10,6 @@ adb devices
 
 adb shell am start -n com.example.mobilnaapp/.MainActivity
 
-./gradlew assembleDebug --stacktrace
+./gradlew assembleDebug
 
 adb logcat

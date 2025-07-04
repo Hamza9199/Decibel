@@ -1,86 +1,86 @@
-DELIMITER $$
+DELIMITER //
 
-CREATE PROCEDURE premjesti_na_pocetak (IN playlistaID INT, IN pjesmaID INT)
+CREATE PROCEDURE premjesti_na_pocetak(IN playlistaID INT, IN pjesmaID INT)
 BEGIN
-    DECLARE brojPjesama INT;
+    DECLARE brojPjesama INT DEFAULT 0;
+    DECLARE prvaPjesmaID INT DEFAULT NULL;
+    DECLARE postoji INT DEFAULT 0;
+    DECLARE ogPrethodnikID INT DEFAULT NULL;
+    DECLARE ogSljedbenikID INT DEFAULT NULL;
+    DECLARE ogZadnjaID INT DEFAULT NULL;
 
-    CALL prebroj_pjesme(playlistaID, @brojPjesama);
-    SELECT @brojPjesama INTO brojPjesama;
+    -- Prebroj pjesme
+    CALL prebroj_pjesme(playlistaID, brojPjesama);
 
     IF brojPjesama <= 1 THEN
         LEAVE premjesti_na_pocetak;
     END IF;
 
-    DECLARE prvaPjesmaID INT;
-
-    CALL pronadji_prvu_pjesmu(playlistaID, @prvaPjesmaID);
-    SELECT @prvaPjesmaID INTO prvaPjesmaID;
+    -- Prva pjesma
+    CALL pronadji_prvu_pjesmu(playlistaID, prvaPjesmaID);
 
     IF prvaPjesmaID = pjesmaID THEN
         LEAVE premjesti_na_pocetak;
     END IF;
 
-    DECLARE postoji INT;
+    -- Provjeri postoji li pjesma
+    CALL postoji_pjesma_u_playlisti(playlistaID, pjesmaID, postoji);
 
-    CALL postoji_pjesma_u_playlisti(playlistaID, pjesmaID, @postoji);
-    SELECT @postoji INTO postoji;
-
-    IF postoji = -1 THEN
+    IF postoji = 0 THEN
         LEAVE premjesti_na_pocetak;
     END IF;
 
-    DECLARE ogPrethodnikID INT;
-    DECLARE ogSljedbenikID INT;
-    DECLARE ogZadnjaID INT;
+    -- Zadnja pjesma
+    CALL pronadji_zadnju_pjesmu(playlistaID, prvaPjesmaID, ogZadnjaID);
 
-    CALL pronadji_zadnju_pjesmu(playlistaID, prvaPjesmaID, @ogZadnjaID);
-    SELECT @ogZadnjaID INTO ogZadnjaID;
-
+    -- Dohvati originalne susjede
     SELECT pokazivacNaPrethodnuPjesmuID, pokazivacNaSljedecuPjesmuID
     INTO ogPrethodnikID, ogSljedbenikID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = pjesmaID;
+    WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
 
-
+    -- Postavi pjesmu na početak
     UPDATE PjesmaPlayLista
-    SET pokazivacNaSljedecuPjesmuID  = prvaPjesmaID,
+    SET pokazivacNaSljedecuPjesmuID = prvaPjesmaID,
         pokazivacNaPrethodnuPjesmuID = NULL
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = pjesmaID;
-
+    WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
 
     UPDATE PjesmaPlayLista
     SET pokazivacNaPrethodnuPjesmuID = pjesmaID
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = prvaPjesmaID;
-
+    WHERE playlistaID = playlistaID AND pjesmaID = prvaPjesmaID;
 
     IF ogSljedbenikID != prvaPjesmaID THEN
-        BEGIN
-            UPDATE PjesmaPlayLista
-            SET pokazivacNaSljedecuPjesmuID = ogSljedbenikID
-            WHERE playlistaID = playlistaID
-              AND pjesmaID = ogPrethodnikID;
+        UPDATE PjesmaPlayLista
+        SET pokazivacNaSljedecuPjesmuID = ogSljedbenikID
+        WHERE playlistaID = playlistaID AND pjesmaID = ogPrethodnikID;
 
-            UPDATE PjesmaPlayLista
-            SET pokazivacNaPrethodnuPjesmuID = ogPrethodnikID
-            WHERE playlistaID = playlistaID
-              AND pjesmaID = ogSljedbenikID;
-        END;
+        UPDATE PjesmaPlayLista
+        SET pokazivacNaPrethodnuPjesmuID = ogPrethodnikID
+        WHERE playlistaID = playlistaID AND pjesmaID = ogSljedbenikID;
     ELSE
-        BEGIN
-            UPDATE PjesmaPlayLista
-            SET pokazivacNaPrethodnuPjesmuID = pjesmaID
-            WHERE playlistaID = playlistaID
-              AND pjesmaID = ogSljedbenikID;
-        END;
+        UPDATE PjesmaPlayLista
+        SET pokazivacNaPrethodnuPjesmuID = pjesmaID
+        WHERE playlistaID = playlistaID AND pjesmaID = ogSljedbenikID;
+    END IF;
 
     IF ogZadnjaID != pjesmaID THEN
-        BEGIN
-            UPDATE PjesmaPlayLista
-            SET pokazivacNaSljedecuPjesmuID = pjesmaID
-            WHERE playlistaID = playlistaID
+        UPDATE PjesmaPlayLista
+        SET pokazivacNaSljedecuPjesmuID = pjesmaID
+        WHERE playlistaID = playlistaID AND pjesmaID = ogZadnjaID;
+    END IF;
+
+    IF brojPjesama = 2 THEN
+        UPDATE PjesmaPlayLista
+        SET pokazivacNaPrethodnuPjesmuID = pjesmaID
+        WHERE playlistaID = playlistaID AND pjesmaID = prvaPjesmaID;
+
+        UPDATE PjesmaPlayLista
+        SET pokazivacNaPrethodnuPjesmuID = NULL
+        WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
+    END IF;
+END //
+
+DELIMITER ;
               AND pjesmaID = ogZadnjaID;
         END;
 
@@ -100,5 +100,4 @@ END$$
 
 DELIMITER ;
 END;
-go
 

@@ -1,9 +1,11 @@
 import './App.css';
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import Home from './stranice/Home/Home';
 import Login from './stranice/Login/Login';
 import Register from './stranice/Register/Register';
+import AudioPlayer from './komponente/AudioPlayer/AudioPlayer';
+import NovaPjesma from './stranice/NovaPjesma/NovaPjesma';
 
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -52,6 +54,7 @@ const AppContent: FC = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/add-song" element={<NovaPjesma />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </RequireAuth>
@@ -59,9 +62,67 @@ const AppContent: FC = () => {
 };
 
 const App: FC = () => {
+  const [audioState, setAudioState] = useState<{
+    src?: string;
+    title?: string;
+    putanjaGif?: string;
+    putanjaSlika?: string;
+    visible: boolean;
+    korisnikID?: string;
+    minimized?: boolean;
+  }>({ visible: false, minimized: false });
+
+  // Slušaj event iz Home i drugih stranica za promjenu pjesme
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const { src, title, putanjaGif, putanjaSlika, korisnikID } = (customEvent.detail || {});
+      if (src) {
+        setAudioState({
+          src,
+          title,
+          putanjaGif,
+          putanjaSlika,
+          visible: true,
+          korisnikID,
+          minimized: false,
+        });
+      } else {
+        setAudioState((prev) => ({ ...prev, visible: false, minimized: false }));
+      }
+    };
+    window.addEventListener("globalAudioPlay", handler);
+    return () => window.removeEventListener("globalAudioPlay", handler);
+  }, []);
+
   return (
     <Router>
       <AppContent />
+      <AudioPlayer
+        src={audioState.src}
+        title={audioState.title}
+        putanjaGif={audioState.putanjaGif}
+        putanjaSlika={audioState.putanjaSlika}
+        korisnikID={audioState.korisnikID}
+        visible={audioState.visible}
+        minimized={audioState.minimized}
+        onEnded={() => {/* ne gasi player automatski */}
+        }
+        onClose={() =>
+          setAudioState((prev) =>
+            prev.visible
+              ? { ...prev, visible: false, minimized: true }
+              : prev
+          )
+        }
+        onExpand={() =>
+          setAudioState((prev) =>
+            prev.minimized
+              ? { ...prev, visible: true, minimized: false }
+              : prev
+          )
+        }
+      />
     </Router>
   );
 };

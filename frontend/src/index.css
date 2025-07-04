@@ -52,7 +52,7 @@ body::before {
   background-repeat: no-repeat;
   filter: blur(32px) brightness(0.7);
   opacity: 1;
-  transition: background-image 0.3s, filter 0.3s;
+  transition: background-image 0.3s, filter 0.4s;
 }
 
 h1 {

@@ -1,0 +1,158 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 100vh;
+  background: #292929;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  z-index: 1200;
+}
+
+.logoWrap {
+  display: flex;
+  align-items: center;
+  padding: 28px 18px 18px 18px;
+  margin-bottom: 18px;
+}
+
+.logoImg {
+  height: 38px;
+  margin-right: 12px;
+  border-radius: 40%;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: 0 2px 8px #b91d9533;
+}
+
+.logoText {
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #ffe6ec;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 18px;
+  align-items: flex-start; /* Dodaj ovo za levo poravnanje svih dugmadi */
+}
+
+.navBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.08rem;
+  text-align: left;
+  padding: 10px 0 10px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.13s, color 0.13s;
+  font-weight: 500;
+  width: 100%; /* Dodaj ovo da dugme bude celom širinom menija */
+  justify-content: flex-start; /* Za flex konteks */
+  display: flex; /* Dodaj za bolju kontrolu poravnanja */
+  align-items: center;
+}
+
+.navBtn:hover,
+.navBtn:focus {
+  background: #b91d9533;
+  color: #e754a2;
+}
+
+.sectionTitle {
+  margin-top: 18px;
+  margin-bottom: 4px;
+  color: #b91d95;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding-left: 2px;
+  text-align: center;
+  width: 100%;
+  display: block;
+}
+
+/* Novi stilovi za sub-meni */
+.profileMenu {
+  position: relative;
+  width: 100%;
+}
+
+.subMenu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: #292929;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px #00000022;
+  margin-left: 16px;
+  margin-top: 2px;
+  padding: 6px 0 6px 0;
+  min-width: 150px;
+  z-index: 10;
+}
+
+.subNavBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  text-align: left;
+  padding: 8px 18px 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.13s, color 0.13s;
+  font-weight: 400;
+}
+
+.subNavBtn:hover,
+.subNavBtn:focus {
+  background: #b91d9533;
+  color: #e754a2;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 70px;
+    min-width: 70px;
+    padding: 0;
+  }
+  .logoText {
+    display: none;
+  }
+  .nav {
+    align-items: stretch;
+    padding: 0 2px;
+  }
+  .navBtn {
+    font-size: 0.95rem;
+    padding-left: 0;
+    text-align: left;
+    width: 100%;
+  }
+  .logoWrap {
+    justify-content: center;
+    padding: 18px 0 10px 0;
+  }
+  .sectionTitle {
+    display: none;
+  }
+  .subMenu {
+    min-width: 100px;
+    margin-left: 0;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 2px 0;
+  }
+  .subNavBtn {
+    font-size: 0.92rem;
+    padding: 7px 8px 7px 8px;
+  }
+}

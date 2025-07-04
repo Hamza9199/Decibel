@@ -16,6 +16,8 @@ from kontroleri.PjesmaKontroler import (
     update_pjesma,
     delete_pjesma
 )
+from kontroleri.IzvodjacPjesmaKontroler import create_izvodjac_pjesma
+from modeli.IzvodjacPjesma import IzvodjacPjesmaCreate
 from servisi.FirebaseStorage import upload_file
 
 router = APIRouter(prefix="/api/pjesme", tags=["Pjesme"])
@@ -61,7 +63,7 @@ async def nova_pjesma(
     licenca: str = Form(None),
     eksplicitniSadrzaj: bool = Form(False),
     zanr: str = Form(...),
-    albumID: int = Form(None),  # <--- dodaj ovo!
+    albumID: int = Form(None),
     file_audio: UploadFile = File(None),
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
@@ -93,7 +95,7 @@ async def nova_pjesma(
 
         pjesma_data = PjesmaCreate(
             korisnikID=korisnikID,
-            albumID=albumID,  # <--- prosledi albumID
+            albumID=albumID,
             naziv=naziv,
             opis=opis,
             datumObjave=datumObjave,
@@ -109,6 +111,13 @@ async def nova_pjesma(
             zanr=zanr
         )
         db_pjesma = await create_pjesma(session, pjesma_data)
+
+        izvodjac_pjesma_data = IzvodjacPjesmaCreate(
+            izvodjacID=korisnikID,
+            pjesmaID=db_pjesma.id
+        )
+        await create_izvodjac_pjesma(session, izvodjac_pjesma_data)
+
         return db_pjesma
     except Exception as e:
         import traceback

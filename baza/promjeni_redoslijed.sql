@@ -1,157 +1,152 @@
--- Ova skripta koristi T-SQL (SQL Server) sintaksu (go, EXEC, SET NOCOUNT ON, itd.)
--- MySQL koristi DELIMITER, nema go, koristi drugačiju sintaksu za promenljive i procedure.
--- Preporuka: Prepiši u MySQL sintaksu.
 
--- Ova skripta neće raditi na MySQL-u bez konverzije!
+DELIMITER //
 
-CREATE PROCEDURE promjeni_redoslijed (IN playlistaID INT,
-                                     IN pjesmaID INT,
-                                     IN pocetnaPjesmaID INT)
+CREATE PROCEDURE promjeni_redoslijed (
+    IN playlistaID INT,
+    IN pjesmaID INT,
+    IN pocetnaPjesmaID INT
+)
 BEGIN
-    --===========================================================================--
--- Provjere (Validacija)
-    DECLARE brojPjesama INT;
+    DECLARE brojPjesama INT DEFAULT 0;
+    DECLARE postoji_target INT DEFAULT 0;
+    DECLARE postoji_pocetna INT DEFAULT 0;
+    DECLARE ogPrethodnikID INT DEFAULT NULL;
+    DECLARE ogSljedbenikID INT DEFAULT NULL;
+    DECLARE ogPrvaID INT DEFAULT NULL;
+    DECLARE sljedbenikID INT DEFAULT NULL;
+    DECLARE ogZadnjaID INT DEFAULT NULL;
+    DECLARE novaSljedIDOdPjesmaID INT DEFAULT NULL;
+    DECLARE novaPretIDOdPjesmaID INT DEFAULT NULL;
+    DECLARE noviOgSljedID INT DEFAULT NULL;
+    DECLARE noviOgPretID INT DEFAULT NULL;
+    DECLARE noviSljedID INT DEFAULT NULL;
+    DECLARE noviPretID INT DEFAULT NULL;
+    DECLARE drugaPjesmaID INT DEFAULT NULL;
 
-    CALL dbo.prebroj_pjesme (playlistaID, @brojPjesama);
--- Ako playlista sadrzi manje od dvije pjesme, onda je nepotrebno ovako premjestati pjesme
+    -- Provjere (Validacija)
+    CALL prebroj_pjesme(playlistaID, brojPjesama);
     IF brojPjesama <= 1 THEN
-        LEAVE proc;
+        LEAVE promjeni_redoslijed;
     END IF;
 
-    DECLARE postoji_target INT;
-    DECLARE postoji_pocetna INT;
-
-    CALL dbo.postoji_pjesma_u_playlisti (playlistaID, pjesmaID, @postoji_target);
-
-    CALL dbo.postoji_pjesma_u_playlisti (playlistaID, pocetnaPjesmaID, @postoji_pocetna);
--- Ako ne postoje target pjesma (pjesma koju zelimo premjesiti) ili pocetna pjesma RETURN
-    IF postoji_target = -1 OR postoji_pocetna = -1 THEN
-        LEAVE proc;
+    CALL postoji_pjesma_u_playlisti(playlistaID, pjesmaID, postoji_target);
+    CALL postoji_pjesma_u_playlisti(playlistaID, pocetnaPjesmaID, postoji_pocetna);
+    IF postoji_target = 0 OR postoji_pocetna = 0 THEN
+        LEAVE promjeni_redoslijed;
     END IF;
 
-    --===========================================================================--
--- Bitne varijable radi pozicioniranja pjesama
-    DECLARE
-        ogPrethodnikID INT, -- Originalni prethodnik target pjesme
-        ogSljedbenikID INT, -- Originalni sljebenik target pjesme
-        ogPrvaID INT, -- Originalna prva pjesma playliste
-        sljedbenikID INT, -- Sljedbenik prve pjesme u playlisti
-        ogZadnjaID INT; -- Originalna zadnja pjesma playliste
+    -- Bitne varijable radi pozicioniranja pjesama
+    CALL pronadji_prvu_pjesmu(playlistaID, ogPrvaID);
+    CALL pronadji_zadnju_pjesmu(playlistaID, ogPrvaID, ogZadnjaID);
 
-    CALL dbo.pronadji_prvu_pjesmu (playlistaID, @ogPrvaID);
-
-    CALL dbo.pronadji_zadnju_pjesmu (playlistaID, ogPrvaID, @ogZadnjaID);
-
--- Postavlja sljedbenika originalne prve pjesme u playlisti
-    SELECT pokazivacNaSljedecuPjesmuID
-    INTO sljedbenikID
+    SELECT pokazivacNaSljedecuPjesmuID INTO sljedbenikID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = pocetnaPjesmaID;
+    WHERE playlistaID = playlistaID AND pjesmaID = pocetnaPjesmaID;
 
--- Postavlja originalne susjede target pjesme
-    SELECT pokazivacNaPrethodnuPjesmuID,
-           pokazivacNaSljedecuPjesmuID
+    SELECT pokazivacNaPrethodnuPjesmuID, pokazivacNaSljedecuPjesmuID
     INTO ogPrethodnikID, ogSljedbenikID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = pjesmaID;
+    WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
 
-    --===========================================================================--
--- Varijable koje sadrze promijenjene pokazivace u odnosu na slucajeve, one se mijenjaju
-    DECLARE
-        -- Odnose se na pokazivace target pjesme (pjesmaID)
-        novaSljedIDOdPjesmaID INT DEFAULT NULL, -- @pjesmaID.pokazivacNaSljedecuPjesmuID
-        novaPretIDOdPjesmaID INT DEFAULT NULL, -- @pjesmaID.pokazivacNaPrethodnuPjesmuID
--- Odnose se na pokazivace originalnih susjeda target pjesme
-        noviOgSljedID INT DEFAULT NULL, -- @ogPrethodnikID.pokazivacNaSljedecuPjesmuID
-        noviOgPretID INT DEFAULT NULL, -- @ogSljedbenikID.pokazivacNaPrethodnuPjesmuID
--- Odnose se na pokazivace novih susjeda target pjesme
-        noviSljedID INT DEFAULT NULL, -- @pocetnaPjesmaID.pokazivacNaSljedecuPjesmuID
-        noviPretID INT DEFAULT NULL; -- @sljedbenikID.pokazivacNaPrethodnuPjesmuID
-
---===========================================================================--
--- Default vrijednosti pokazivaca, tj, kada bi se izvrsile oparcije UPDATE, tabela bi ostala ista
-    SELECT pokazivacNaSljedecuPjesmuID,
-           pokazivacNaPrethodnuPjesmuID
+    -- Default vrijednosti pokazivaca
+    SELECT pokazivacNaSljedecuPjesmuID, pokazivacNaPrethodnuPjesmuID
     INTO novaSljedIDOdPjesmaID, novaPretIDOdPjesmaID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = pjesmaID;
+    WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
 
-    SELECT pokazivacNaSljedecuPjesmuID
-    INTO noviOgSljedID
+    SELECT pokazivacNaSljedecuPjesmuID INTO noviOgSljedID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = ogPrethodnikID;
+    WHERE playlistaID = playlistaID AND pjesmaID = ogPrethodnikID;
 
-    SELECT pokazivacNaPrethodnuPjesmuID
-    INTO noviOgPretID
+    SELECT pokazivacNaPrethodnuPjesmuID INTO noviOgPretID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = ogSljedbenikID;
+    WHERE playlistaID = playlistaID AND pjesmaID = ogSljedbenikID;
 
-    SELECT pokazivacNaSljedecuPjesmuID
-    INTO noviSljedID
+    SELECT pokazivacNaSljedecuPjesmuID INTO noviSljedID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = pocetnaPjesmaID;
+    WHERE playlistaID = playlistaID AND pjesmaID = pocetnaPjesmaID;
 
-    SELECT pokazivacNaPrethodnuPjesmuID
-    INTO noviPretID
+    SELECT pokazivacNaPrethodnuPjesmuID INTO noviPretID
     FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID
-      AND pjesmaID = sljedbenikID;
+    WHERE playlistaID = playlistaID AND pjesmaID = sljedbenikID;
 
-    --===========================================================================--
--- Logika promjene varijabli pokazivaca
-
--- Ako je sljedbenik pocetne pjesme prva pjesma, to znaci da je pocetna pjesma zadnja pjesma,
--- i da je slucaj gdje se nova pjesma dodaje na kraj liste
+    -- Logika promjene varijabli pokazivaca
     IF pocetnaPjesmaID = ogZadnjaID THEN
-        BEGIN
-            DECLARE drugaPjesmaID INT;
-            -- Pribavlja originalnu drugu pjesmu u playlisti
-            SELECT pokazivacNaSljedecuPjesmuID
-            INTO drugaPjesmaID
-            FROM PjesmaPlayLista
-            WHERE playlistaID = playlistaID
-              AND pjesmaID = ogPrvaID;
+        SELECT pokazivacNaSljedecuPjesmuID INTO drugaPjesmaID
+        FROM PjesmaPlayLista
+        WHERE playlistaID = playlistaID AND pjesmaID = ogPrvaID;
 
-            -- Ako je trenutna prva pjesma u playlisti ta koju zelimo staviti na kraj
-            IF pjesmaID = ogPrvaID THEN
-                BEGIN
-                    select 'in here 1';
-                    SELECT NULL,
-                           pocetnaPjesmaID
-                    INTO noviOgPretID, noviPretID;
-                END;
+        IF pjesmaID = ogPrvaID THEN
+            SET noviOgPretID = NULL;
+            SET noviPretID = pocetnaPjesmaID;
+        ELSE
+            SET novaSljedIDOdPjesmaID = ogPrvaID;
+            SET noviOgSljedID = ogSljedbenikID;
+            SET noviOgPretID = ogPrethodnikID;
+            SET noviSljedID = pjesmaID;
+            SET noviPretID = pocetnaPjesmaID;
+        END IF;
+    ELSE
+        IF pocetnaPjesmaID = ogPrvaID THEN
+            IF ogZadnjaID = pjesmaID THEN
+                SET novaSljedIDOdPjesmaID = sljedbenikID;
+                SET novaPretIDOdPjesmaID = pocetnaPjesmaID;
+                SET noviSljedID = pjesmaID;
+                SET noviPretID = pjesmaID;
+                SET noviOgSljedID = ogPrvaID;
             ELSE
-                BEGIN
-                    select 'in here 2';
-                    SELECT ogPrvaID,
-                           ogSljedbenikID,
-                           ogPrethodnikID,
-                           pjesmaID
-                    INTO novaSljedIDOdPjesmaID, noviOgSljedID, noviOgPretID, noviSljedID;
-                END;
-            SELECT pocetnaPjesmaID
-        END;
-    ELSE -- Ako pocetna nije zadnja
-        IF pocetnaPjesmaID = ogPrvaID -- Ako pocetna nije zadnja + Ako je pocetna pjesma prva u playlisti
-            BEGIN
-                IF ogZadnjaID = pjesmaID -- Ako pocetna nije zadnja + Ako je pocetna pjesma prvu u playlisti + ako je target pjesma zadnja
-                    BEGIN
-                        SELECT 'in here 3';
+                SET novaSljedIDOdPjesmaID = sljedbenikID;
+                SET novaPretIDOdPjesmaID = ogPrvaID;
+                SET noviOgPretID = ogPrethodnikID;
+                SET noviOgSljedID = ogSljedbenikID;
+                SET noviPretID = pjesmaID;
+                SET noviSljedID = pjesmaID;
+            END IF;
+        ELSE
+            IF pjesmaID = ogPrvaID THEN
+                SELECT pokazivacNaSljedecuPjesmuID INTO drugaPjesmaID
+                FROM PjesmaPlayLista
+                WHERE playlistaID = playlistaID AND pjesmaID = ogPrvaID;
 
-                        SELECT sljedbenikID,
-                               pocetnaPjesmaID,
-                               pjesmaID,
-                               pjesmaID,
-                               ogPrvaID
-                        INTO novaSljedIDOdPjesmaID, novaPretIDOdPjesmaID, noviSljedID, noviPretID, noviOgSljedID;
-                    END;
-                ELSE -- Ako pocetna nije zadnja + Ako je pocetna pjesma prvu u playlisti + ako je target pjesma u sredini
+                SET novaSljedIDOdPjesmaID = sljedbenikID;
+                SET novaPretIDOdPjesmaID = pocetnaPjesmaID;
+                SET noviPretID = pjesmaID;
+                SET noviSljedID = pjesmaID;
+                SET noviOgPretID = NULL;
+
+                UPDATE PjesmaPlayLista
+                SET pokazivacNaSljedecuPjesmuID = ogSljedbenikID
+                WHERE playlistaID = playlistaID AND pjesmaID = ogZadnjaID;
+            ELSE
+                IF pjesmaID = ogZadnjaID THEN
+                    SET noviOgSljedID = ogPrvaID;
+                    SET novaSljedIDOdPjesmaID = sljedbenikID;
+                    SET novaPretIDOdPjesmaID = pocetnaPjesmaID;
+                    SET noviSljedID = pjesmaID;
+                    SET noviPretID = pjesmaID;
+                ELSE
+                    SET noviSljedID = pjesmaID;
+                    SET noviPretID = pjesmaID;
+                    SET novaSljedIDOdPjesmaID = sljedbenikID;
+                    SET novaPretIDOdPjesmaID = pocetnaPjesmaID;
+                    SET noviOgSljedID = ogSljedbenikID;
+                    SET noviOgPretID = ogPrethodnikID;
+                END IF;
+            END IF;
+        END IF;
+    END IF;
+
+    -- Promjene Pokazivaca
+    CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, novaSljedIDOdPjesmaID, pjesmaID);
+    CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, novaPretIDOdPjesmaID, pjesmaID);
+    CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, noviOgSljedID, ogPrethodnikID);
+    CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, noviOgPretID, ogSljedbenikID);
+    CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, noviSljedID, pocetnaPjesmaID);
+    CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, noviPretID, sljedbenikID);
+
+END //
+
+DELIMITER ;
                     BEGIN
                         SELECT 'in here 4';
 

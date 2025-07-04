@@ -1,142 +1,117 @@
 DELIMITER //
-CREATE PROCEDURE NEW_SHIFT_SHORT (IN playlistaID INT,
-                                 IN pocetnaPjesmaID INT,
-                                 IN pjesmaID INT)
-BEGIN
-    DECLARE brojPjesama INT;
 
-    CALL dbo.prebroj_pjesme(playlistaID, brojPjesama);
+CREATE PROCEDURE NEW_SHIFT_SHORT (
+    IN playlistaID INT,
+    IN pocetnaPjesmaID INT,
+    IN pjesmaID INT
+)
+BEGIN
+    DECLARE brojPjesama INT DEFAULT 0;
+    DECLARE prvaPjesmaID INT DEFAULT NULL;
+    DECLARE postoji_target INT DEFAULT 0;
+    DECLARE postoji_pocetna INT DEFAULT 0;
+    DECLARE ogPrethodnikID INT DEFAULT NULL;
+    DECLARE ogSljedbenikID INT DEFAULT NULL;
+    DECLARE ogZadnjaID INT DEFAULT NULL;
+    DECLARE sljedbenikID INT DEFAULT NULL;
+    DECLARE predzadnjaPjesmaID INT DEFAULT NULL;
+    DECLARE drugaPjesmaID INT DEFAULT NULL;
+
+    CALL prebroj_pjesme(playlistaID, brojPjesama);
 
     IF brojPjesama <= 1 THEN
-        LEAVE proc;
+        LEAVE NEW_SHIFT_SHORT;
     END IF;
 
-    DECLARE prvaPjesmaID INT;
+    CALL pronadji_prvu_pjesmu(playlistaID, prvaPjesmaID);
 
-    CALL dbo.pronadji_prvu_pjesmu(playlistaID, prvaPjesmaID);
+    CALL postoji_pjesma_u_playlisti(playlistaID, pjesmaID, postoji_target);
+    CALL postoji_pjesma_u_playlisti(playlistaID, pocetnaPjesmaID, postoji_pocetna);
 
-    DECLARE postoji_target INT;
-    DECLARE postoji_pocetna INT;
-
-    CALL dbo.postoji_pjesma_u_playlisti(playlistaID, pjesmaID, postoji_target);
-    CALL dbo.postoji_pjesma_u_playlisti(playlistaID, pocetnaPjesmaID, postoji_pocetna);
-
-    IF postoji_target = -1 OR postoji_pocetna = -1 THEN
-        LEAVE proc;
+    IF postoji_target = 0 OR postoji_pocetna = 0 THEN
+        LEAVE NEW_SHIFT_SHORT;
     END IF;
 
-    DECLARE ogPrethodnikID INT;
-    DECLARE ogSljedbenikID INT;
-    DECLARE ogZadnjaID INT;
+    CALL pronadji_zadnju_pjesmu(playlistaID, prvaPjesmaID, ogZadnjaID);
 
-    CALL dbo.pronadji_zadnju_pjesmu(playlistaID, prvaPjesmaID, ogZadnjaID);
+    SELECT pokazivacNaPrethodnuPjesmuID, pokazivacNaSljedecuPjesmuID
+      INTO ogPrethodnikID, ogSljedbenikID
+      FROM PjesmaPlayLista
+     WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
 
-    SELECT pokazivacNaPrethodnuPjesmuID, pokazivacNaSljedecuPjesmuID INTO ogPrethodnikID, ogSljedbenikID
-    FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID AND pjesmaID = pjesmaID;
+    SELECT pokazivacNaSljedecuPjesmuID
+      INTO sljedbenikID
+      FROM PjesmaPlayLista
+     WHERE playlistaID = playlistaID AND pjesmaID = pocetnaPjesmaID;
 
-    DECLARE sljedbenikID INT;
-
-    SELECT pokazivacNaSljedecuPjesmuID INTO sljedbenikID
-    FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID AND pjesmaID = pocetnaPjesmaID;
-
-    -- Ako je nova dodana pjesma vec sljedbenik pocetnoj pjesmi
     IF sljedbenikID = pjesmaID AND sljedbenikID != prvaPjesmaID THEN
-        LEAVE proc;
+        LEAVE NEW_SHIFT_SHORT;
     END IF;
 
     IF pocetnaPjesmaID = pjesmaID THEN
-        LEAVE proc;
+        LEAVE NEW_SHIFT_SHORT;
     END IF;
 
-    DECLARE predzadnjaPjesmaID INT;
-
-    SELECT @predzadnjaPjesmaID = @pjesmaID
-    FROM PjesmaPlayLista
-    WHERE playlistaID = playlistaID AND pokazivacNaSljedecuPjesmuID = ogZadnjaID;
-
-    -- Ako je sljedbenik pocetne pjesme prva pjesma, to znaci da je pocetna pjesma zadnja pjesma,
-    -- to je slucaj gdje se nova pjesma dodaje na kraj liste
+    -- Ako je sljedbenik pocetne pjesme prva pjesma, to znaci da je pocetna pjesma zadnja pjesma
     IF sljedbenikID = prvaPjesmaID THEN
-        BEGIN
-            DECLARE drugaPjesmaID INT;
-            -- Pribavlja drugu pjesmu u playlisti
-            SELECT pokazivacNaSljedecuPjesmuID INTO drugaPjesmaID
-            FROM PjesmaPlayLista
-            WHERE playlistaID = playlistaID AND pjesmaID = prvaPjesmaID;
+        -- Pribavlja drugu pjesmu u playlisti
+        SELECT pokazivacNaSljedecuPjesmuID INTO drugaPjesmaID
+        FROM PjesmaPlayLista
+        WHERE playlistaID = playlistaID AND pjesmaID = prvaPjesmaID;
 
-            -- Ako je trenutna prva pjesma u playlisti ta koju zelimo staviti na kraj
-            IF pjesmaID = prvaPjesmaID THEN
-                BEGIN
-                    CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, NULL, drugaPjesmaID);
-                    CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, drugaPjesmaID, pjesmaID);
-                END;
-            ELSE
-                BEGIN
-                    CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, prvaPjesmaID, pjesmaID);
-                    CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, ogSljedbenikID, ogPrethodnikID);
-                    CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, pocetnaPjesmaID);
-                    CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, ogPrethodnikID, ogSljedbenikID);
-                END;
-        END;
+        -- Ako je trenutna prva pjesma u playlisti ta koju zelimo staviti na kraj
+        IF pjesmaID = prvaPjesmaID THEN
+            CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, NULL, drugaPjesmaID);
+            CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, drugaPjesmaID, pjesmaID);
+        ELSE
+            CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, prvaPjesmaID, pjesmaID);
+            CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, ogSljedbenikID, ogPrethodnikID);
+            CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, pocetnaPjesmaID);
+            CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, ogPrethodnikID, ogSljedbenikID);
+        END IF;
     ELSE
         -- Ako je pocetna pjesma prva u listi
         IF pocetnaPjesmaID = prvaPjesmaID THEN
-            BEGIN
-                -- Ako je pjesma koju zelimo da promijenimo poziciju originalna zadnja u playlisti
-                IF ogZadnjaID = pjesmaID THEN
-                    BEGIN
-                        CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, pocetnaPjesmaID);
-                        CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, pocetnaPjesmaID, pjesmaID);
-                        CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, prvaPjesmaID, ogPrethodnikID);
-                    END;
+            -- Ako je pjesma koju zelimo da promijenimo poziciju originalna zadnja u playlisti
+            IF ogZadnjaID = pjesmaID THEN
+                CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, pocetnaPjesmaID);
+                CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, pocetnaPjesmaID, pjesmaID);
+                CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, prvaPjesmaID, ogPrethodnikID);
+            ELSE
+                CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, prvaPjesmaID);
+                CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, ogPrethodnikID, ogSljedbenikID);
+                CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, ogSljedbenikID, ogPrethodnikID);
+                CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, prvaPjesmaID, pjesmaID);
+            END IF;
+        ELSE
+            -- Pocetna pjesme je u sredini
+            IF pjesmaID = prvaPjesmaID THEN
+                SELECT pokazivacNaSljedecuPjesmuID INTO drugaPjesmaID
+                FROM PjesmaPlayLista
+                WHERE playlistaID = playlistaID AND pjesmaID = prvaPjesmaID;
+
+                CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, NULL, drugaPjesmaID);
+                CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, drugaPjesmaID, ogZadnjaID);
+            ELSE
+                IF pjesmaID = ogZadnjaID THEN
+                    -- Zelimo prebaciti zadnju pjesmu negdje u sredinu
+                    UPDATE PjesmaPlayLista
+                    SET pokazivacNaSljedecuPjesmuID = prvaPjesmaID
+                    WHERE playlistaID = playlistaID AND pokazivacNaSljedecuPjesmuID = ogZadnjaID;
                 ELSE
-                    BEGIN
-                        CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, prvaPjesmaID);
-                        CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, ogPrethodnikID, ogSljedbenikID);
-                        CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, ogSljedbenikID, ogPrethodnikID);
-                        CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, prvaPjesmaID, pjesmaID);
-                    END;
-            END;
-        ELSE -- Pocetna pjesme je u sredini
-            BEGIN
-                IF pjesmaID = prvaPjesmaID THEN
-                    BEGIN
-                        SELECT pokazivacNaSljedecuPjesmuID INTO drugaPjesmaID
-                        FROM PjesmaPlayLista
-                        WHERE playlistaID = playlistaID AND pjesmaID = prvaPjesmaID;
+                    -- Ako je pocetna pjesma && pjesma koju zelimo da premjestimo u sredini
+                    CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, ogSljedbenikID, ogPrethodnikID);
+                    CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, ogPrethodnikID, ogSljedbenikID);
+                END IF;
+            END IF;
+            CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, pjesmaID, sljedbenikID);
+            CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, pocetnaPjesmaID);
+            CALL premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, sljedbenikID, pjesmaID);
+        END IF;
+    END IF;
 
-                        CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, NULL, drugaPjesmaID);
-                        CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, drugaPjesmaID, ogZadnjaID);
-                    END;
-                ELSE
-                    BEGIN
-                        IF pjesmaID = ogZadnjaID THEN
-                            BEGIN
-                                -- Zelimo prebaciti zadnju pjesmu negdje u sredinu
+    CALL premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, pocetnaPjesmaID, pjesmaID);
 
-
-                                UPDATE PjesmaPlayLista
-                                SET pokazivacNaSljedecuPjesmuID = prvaPjesmaID
-                                WHERE playlistaID = playlistaID AND pokazivacNaSljedecuPjesmuID = ogZadnjaID;
-
-                            END;
-                        ELSE -- Ako je pocetna pjesma && pjesma koju zelimo da premjestimo u sredini
-                            BEGIN
-                                CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, ogSljedbenikID, ogPrethodnikID);
-                                CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, ogPrethodnikID, ogSljedbenikID);
-                            END;
-                    END;
-                CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, pjesmaID, sljedbenikID);
-                CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, pjesmaID, pocetnaPjesmaID);
-                CALL dbo.premjesti_pokazivac_na_sljedecu_pjesmu(playlistaID, sljedbenikID, pjesmaID);
-            END;
-
-
-
-    CALL dbo.premjesti_pokazivac_na_prethodnu_pjesmu(playlistaID, pocetnaPjesmaID, pjesmaID);
-
-    LEAVE proc;
 END //
+
 DELIMITER ;

@@ -23,7 +23,7 @@ const Register: React.FC = () => {
     setSuccess(null);
     setLoading(true);
     try {
-      await axios.post(`${API_BASE}/korisnici/register`, {
+      const res = await axios.post(`${API_BASE}/korisnici/register`, {
         ime,
         prezime,
         korisnicko_ime,
@@ -33,7 +33,9 @@ const Register: React.FC = () => {
       });
       setSuccess("Registracija uspješna! Možete se prijaviti.");
       setLoading(false);
-      setTimeout(() => navigate("/login"), 1200);
+      localStorage.setItem("korisnik", JSON.stringify(res.data));
+
+      setTimeout(() => navigate("/"), 1200);
     } catch {
       setError("Greška pri registraciji. Provjerite podatke.");
       setLoading(false);

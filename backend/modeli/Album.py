@@ -34,13 +34,13 @@ class AlbumBase(BaseModel):
     brojLajkova: Optional[int] = 0
     putanjaSlika: Optional[str]
     putanjaGif: Optional[str]
-    PjesmeIDs: Optional[List[int]] = None  
 
 class AlbumCreate(AlbumBase):
     pass
 
 class Album(AlbumBase):
     id: int
+    PjesmeIDs: Optional[List[int]] = None  # Samo u response modelu
 
     class Config:
         orm_mode = True

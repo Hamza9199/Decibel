@@ -95,6 +95,9 @@ const App: FC = () => {
     return () => window.removeEventListener("globalAudioPlay", handler);
   }, []);
 
+ 
+ 
+
   return (
     <Router>
       <AppContent />

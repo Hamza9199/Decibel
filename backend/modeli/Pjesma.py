@@ -9,6 +9,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 from uuid import UUID
 import datetime
+from .Korisnik import Korisnik  # Dodaj na kraj fajla zbog kružnog importa
 
 class PjesmaORM(Base):
     __tablename__ = "pjesme"
@@ -60,6 +61,9 @@ class PjesmaCreate(PjesmaBase):
 
 class Pjesma(PjesmaBase):
     id: int
+    korisnik: Optional["Korisnik"] = None  # Dodaj ovo polje
 
     class Config:
         orm_mode = True
+
+Pjesma.model_rebuild()  # Dodaj na kraj fajla

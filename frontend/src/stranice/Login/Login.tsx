@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Login.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +30,32 @@ const Login: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // Resetuj background i sakrij player/muziku na login stranici
+    window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
+    resetBodyBackground();
+    // Sakrij player i mutiraj muziku
+    window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: {} }));
+    const audio = document.querySelector('audio');
+    if (audio) {
+      audio.muted = true;
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    return () => {
+      resetBodyBackground();
+    };
+  }, []);
+  
+   const resetBodyBackground = () => {
+    const body = document.body;
+    if (body) {
+      body.style.background = 'radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)';
+    }
+  };
+
+ 
 
   return (
     <div className={styles.loginBg}>

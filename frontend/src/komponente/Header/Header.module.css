@@ -27,3 +27,12 @@
   letter-spacing: 2px;
   margin-left: 0;
 }
+
+.welcomeMessage{
+  margin-right:15px;
+  text-align: right;
+  flex-grow: 1;
+  font-size: 20px;
+  color: #b91d95;
+  font-weight: 600;
+}

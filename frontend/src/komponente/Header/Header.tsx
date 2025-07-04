@@ -6,6 +6,17 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("korisnik");
 
+
+  let korisnickoIme = "";
+  if (isLoggedIn) {
+    try {
+      const user = JSON.parse(localStorage.getItem("korisnik") || "");
+      korisnickoIme = user.korisnicko_ime || "";
+    } catch {
+      korisnickoIme = "";
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem("korisnik");
     navigate("/login");
@@ -19,8 +30,16 @@ const Header: React.FC = () => {
         className={styles.logoImg}
         style={{ height: "45px", marginRight: "14px", marginLeft: "18px" }}
       />
+
       <div className={styles.logo}>Decibel</div>
+
+      <span className={styles.welcomeMessage}>
+        Dobrodošli {korisnickoIme} !
+      </span>
+
+
       {isLoggedIn && (
+      
         <button
           className={styles.logoutBtn}
           onClick={handleLogout}

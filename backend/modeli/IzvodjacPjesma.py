@@ -22,7 +22,7 @@ class IzvodjacPjesmaORM(Base):
 class IzvodjacPjesmaBase(BaseModel):
     izvodjacID: str
     pjesmaID: int
-    kreiranDatumVrijeme: Optional[datetime.datetime]
+    kreiranDatumVrijeme: Optional[datetime.datetime] = None  # Dodaj default None
     potvrdjeno: Optional[bool] = False
     udio: Optional[float] = 0.0
 

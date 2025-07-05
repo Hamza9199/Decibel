@@ -43,16 +43,17 @@ const NovaPjesma: React.FC = () => {
       if (slika) formData.append("file_slika", slika);
       if (gif) formData.append("file_gif", gif);
 
-      await axios.post<{ id: number }>(`${API_BASE}/pjesme/`, formData, {
+      const rest = await axios.post<{ id: number }>(`${API_BASE}/pjesme/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-
+      console.log(rest);
       setSuccess("Pjesma je uspješno dodana!");
       setLoading(false);
       setTimeout(() => navigate("/"), 1200);
-    } catch {
+    } catch (error) {
       setError("Greška pri dodavanju pjesme.");
+      console.log(error);
       setLoading(false);
     }
   };

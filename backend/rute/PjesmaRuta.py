@@ -112,11 +112,14 @@ async def nova_pjesma(
         )
         db_pjesma = await create_pjesma(session, pjesma_data)
 
-        izvodjac_pjesma_data = IzvodjacPjesmaCreate(
-            izvodjacID=korisnikID,
-            pjesmaID=db_pjesma.id
-        )
-        await create_izvodjac_pjesma(session, izvodjac_pjesma_data)
+        if db_pjesma and db_pjesma.id and korisnikID:
+            izvodjac_pjesma_data = IzvodjacPjesmaCreate(
+                izvodjacID=korisnikID,
+                pjesmaID=db_pjesma.id
+            )
+            await create_izvodjac_pjesma(session, izvodjac_pjesma_data)
+        else:
+            print("Ne može se kreirati izvodjac_pjesma: nedostaje korisnikID ili pjesmaID")
 
         return db_pjesma
     except Exception as e:

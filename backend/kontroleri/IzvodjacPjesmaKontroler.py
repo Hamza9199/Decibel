@@ -16,6 +16,8 @@ async def get_izvodjac_pjesma(session: AsyncSession, izvodjacID: str, pjesmaID: 
     )
     return result.scalar_one_or_none()
 
+
+
 async def create_izvodjac_pjesma(session: AsyncSession, data: IzvodjacPjesmaCreate):
     db_obj = IzvodjacPjesmaORM(**data.dict())
     session.add(db_obj)

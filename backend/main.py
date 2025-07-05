@@ -53,9 +53,10 @@ async def startup():
         while True:
             try:
                 requests.get(url, timeout=10)
+                print(f"Keep-alive request sent to {url}")
             except Exception:
                 pass
-            time.sleep(120)  # 2 minute
+            time.sleep(60)  
 
     threading.Thread(target=keep_alive, daemon=True).start()
 

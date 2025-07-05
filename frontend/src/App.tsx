@@ -6,6 +6,14 @@ import Login from './stranice/Login/Login';
 import Register from './stranice/Register/Register';
 import AudioPlayer from './komponente/AudioPlayer/AudioPlayer';
 import NovaPjesma from './stranice/NovaPjesma/NovaPjesma';
+import SvePjesme from './stranice/SvePjesme/SvePjesme';
+import SvePlayliste from './stranice/SvePlayliste/SvePlayliste';
+import SviAlbumi from './stranice/SviAlbumi/SviAlbumi';
+import NovaPlaylista from './stranice/NovaPlaylista/NovaPlaylista';
+import NoviAlbum from './stranice/NoviAlbum/NoviAlbum';
+import Postavke from './stranice/Postavke/Postavke';
+import UrediProfil from './stranice/UrediProfil/UrediProfil';
+import Pretplata from './stranice/Pretplata/Pretplata';
 
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,6 +63,18 @@ const AppContent: FC = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/add-song" element={<NovaPjesma />} />
+        <Route path="/songs" element={<SvePjesme />} />
+        <Route path="/playlists" element={<SvePlayliste />} />
+        <Route path="/playlists/add" element={<NovaPlaylista />} />
+        <Route path="/albums" element={<SviAlbumi />} />
+        <Route path="/add-album" element={<NoviAlbum />} />
+        <Route path="/profile/settings" element={<Postavke />} />
+        <Route path="/profile/edit" element={<UrediProfil />} />
+        <Route path="/profile/subscription" element={<Pretplata />} />
+
+        {/* Add other routes as needed */}
+
+
         <Route path="*" element={<Home />} />
       </Routes>
     </RequireAuth>

@@ -145,7 +145,7 @@ const Home: React.FC = () => {
             </div>
           </Section>
 
-          <Section title="Korisnici">
+          <Section title="Izvođači">
             <div className={styles.gridRow}>
               {korisnici.map((k) => (
                 <div key={k.id} className={styles.card}>
@@ -157,9 +157,7 @@ const Home: React.FC = () => {
                     )}
                   </div>
                   <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
-                  <div className={styles.cardDesc}>
-                    {k.ime} {k.prezime}
-                  </div>
+                 
                 </div>
               ))}
             </div>

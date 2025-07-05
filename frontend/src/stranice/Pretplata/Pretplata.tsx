@@ -1,0 +1,114 @@
+import React, { useEffect, useState } from "react";
+import styles from "./Pretplata.module.css";
+import Header from "../../komponente/Header/Header";
+import Footer from "../../komponente/Footer/Footer";
+import Sidebar from "../../komponente/Sidebar/Sidebar";
+import axios from "axios";
+import Loading from "../../komponente/Loading/Loading";
+import type { KorisnikPretplata, Pretplata } from "../../types";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+
+const Pretplata: React.FC = () => {
+  const [loading, setLoading] = useState(true);
+  const [korisnikPretplata, setKorisnikPretplata] = useState<KorisnikPretplata | null>(null);
+  const [ponude, setPonude] = useState<Pretplata[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  let korisnikID = "";
+  try {
+    const user = JSON.parse(localStorage.getItem("korisnik") || "");
+    korisnikID = user?.id || "";
+  } catch {
+    korisnikID = "";
+  }
+
+  useEffect(() => {
+    if (!korisnikID) {
+      setLoading(false);
+      setError("Morate biti prijavljeni.");
+      return;
+    }
+    setLoading(true);
+    // Prvo dohvati korisnikovu pretplatu (ispravan endpoint je /korisnik-pretplata/ umjesto /korisnik-pretplate/)
+    axios
+      .get(`${API_BASE}/korisnik_pretplata/`)
+      .then((res) => {
+        const pretplate: KorisnikPretplata[] = res.data || [];
+        const moja = pretplate.find((p) => p.korisnikID === korisnikID);
+        setKorisnikPretplata(moja || null);
+        if (!moja) {
+          // Ako nema pretplatu, dohvati sve dostupne ponude
+          axios
+            .get(`${API_BASE}/pretplate/`)
+            .then((r) => setPonude((r.data || []).filter((p: Pretplata) => p.dostupno)))
+            .catch(() => setPonude([]));
+        }
+      })
+      .catch((error) => setError("Greška pri dohvatu podataka. " + (error?.response?.status === 404 ? "Nema podataka." : error)))
+      .finally(() => setLoading(false));
+  }, [korisnikID]);
+
+  return (
+    <>
+      <Header />
+      <Sidebar />
+      <div className={styles.pretplataBg}>
+        <div className={styles.container}>
+          <h2 className={styles.title}>Pretplata</h2>
+          {loading ? (
+            <Loading />
+          ) : error ? (
+            <div className={styles.error}>{error}</div>
+          ) : korisnikPretplata ? (
+            <div className={styles.infoBox}>
+              <div className={styles.status}>
+                Status: <b>{korisnikPretplata.pretplataStatus}</b>
+              </div>
+              <div className={styles.naziv}>
+                Paket: <b>{korisnikPretplata.pretplata?.naziv || "Nepoznato"}</b>
+              </div>
+              <div className={styles.opis}>
+                {korisnikPretplata.pretplata?.opis}
+              </div>
+              <div className={styles.cijena}>
+                Cijena: <b>{korisnikPretplata.pretplata?.cijena} KM / mj</b>
+              </div>
+              {korisnikPretplata.datumIsteka && (
+                <div className={styles.istice}>
+                  Ističe: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()}</b>
+                </div>
+              )}
+              <div className={styles.success}>Imate aktivnu pretplatu.</div>
+            </div>
+          ) : (
+            <div className={styles.noSub}>
+              <div className={styles.warning}>
+                Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:
+              </div>
+              <div className={styles.ponudeGrid}>
+                {ponude.length === 0 ? (
+                  <div className={styles.error}>Nema dostupnih pretplata.</div>
+                ) : (
+                  ponude.map((p) => (
+                    <div key={p.id} className={styles.ponudaCard}>
+                      <div className={styles.ponudaNaziv}>{p.naziv}</div>
+                      <div className={styles.ponudaOpis}>{p.opis}</div>
+                      <div className={styles.ponudaCijena}>{p.cijena} KM / mj</div>
+                      <button className={styles.kupiBtn} disabled>
+                        Kupi (uskoro)
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+};
+
+export default Pretplata;

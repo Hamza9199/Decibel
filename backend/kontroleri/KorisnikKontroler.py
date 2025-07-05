@@ -19,7 +19,12 @@ async def get_all_korisnici(session: AsyncSession):
     return result.scalars().all()
 
 async def get_korisnik_by_id(session: AsyncSession, korisnik_id: str):
-    result = await session.execute(select(KorisnikORM).where(KorisnikORM.id == korisnik_id))
+    # Provjeri da li je korisnik_id string (UUID) i koristi .str ako je UUID objekat
+    if not isinstance(korisnik_id, str):
+        korisnik_id = str(korisnik_id)
+    result = await session.execute(
+        select(KorisnikORM).where(KorisnikORM.id == korisnik_id)
+    )
     korisnik = result.scalar_one_or_none()
     return korisnik
 
@@ -57,6 +62,12 @@ async def update_korisnik(session: AsyncSession, korisnik_id: str, korisnik: Kor
     db_korisnik.email = korisnik.email
     db_korisnik.lozinka = korisnik.lozinka
     db_korisnik.rola = korisnik.rola
+    db_korisnik.bio = korisnik.bio
+    db_korisnik.statusKorisnika = korisnik.statusKorisnika
+    db_korisnik.putanjaProfilneSlike = korisnik.putanjaProfilneSlike  # Dodaj ovu liniju!
+    db_korisnik.datumRegistracije = korisnik.datumRegistracije
+    db_korisnik.brojPratilaca = korisnik.brojPratilaca
+    db_korisnik.obrisan = korisnik.obrisan
     session.add(db_korisnik)
     await session.commit()
     await session.refresh(db_korisnik)

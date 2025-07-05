@@ -1,0 +1,131 @@
+.editProfileBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: rgba(24,24,24,0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 32px 24px;
+  background: rgba(24,24,24,0.97);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+}
+
+.title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.subtitle {
+  color: #ffe6ec;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  margin-top: 24px;
+  text-align: center;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.label {
+  color: #ffe6ec;
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input, .textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #b91d95;
+  background: #181818;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.input:focus, .textarea:focus {
+  border: 1.5px solid #e754a2;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 180px;
+}
+
+.button {
+  width: 100%;
+  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+.button:hover {
+  background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
+}
+
+.profileImageSection {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.profileImageWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.profileImage {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 2px 8px #b91d9533;
+}
+
+.error {
+  color: #ffb3c6;
+  background: #3a0d2e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.98rem;
+}
+
+.success {
+  color: #baffc9;
+  background: #1e3a2e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.98rem;
+}

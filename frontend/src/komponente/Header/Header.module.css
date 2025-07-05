@@ -29,10 +29,18 @@
 }
 
 .welcomeMessage{
-  margin-right:15px;
+  margin-right:17px;
   text-align: right;
   flex-grow: 1;
   font-size: 20px;
   color: #b91d95;
   font-weight: 600;
+}
+
+.profileImg{
+  width: 50px;
+  border-radius: 50%;
+  margin-right: 30px;
+  object-fit: cover;
+
 }

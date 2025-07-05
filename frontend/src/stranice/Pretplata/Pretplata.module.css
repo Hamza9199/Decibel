@@ -1,0 +1,130 @@
+.pretplataBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: rgba(24,24,24,0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 32px 24px;
+  background: rgba(24,24,24,0.97);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+}
+
+.title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.infoBox {
+  background: #181818;
+  border-radius: 12px;
+  padding: 22px 18px;
+  margin-bottom: 18px;
+  color: #fff;
+  box-shadow: 0 2px 8px #b91d9533;
+  text-align: center;
+}
+
+.status, .naziv, .cijena, .istice {
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+}
+
+.opis {
+  color: #b3b3b3;
+  font-size: 0.98rem;
+  margin-bottom: 10px;
+}
+
+.success {
+  color: #baffc9;
+  background: #1e3a2e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  font-size: 0.98rem;
+}
+
+.noSub {
+  text-align: center;
+}
+
+.warning {
+  color: #ffe6ec;
+  background: #3a0d2e;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 1.05rem;
+}
+
+.ponudeGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.ponudaCard {
+  background: #232323;
+  border-radius: 12px;
+  padding: 18px 14px;
+  color: #fff;
+  box-shadow: 0 2px 8px #b91d9533;
+  text-align: center;
+}
+
+.ponudaNaziv {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #ffe6ec;
+}
+
+.ponudaOpis {
+  color: #b3b3b3;
+  font-size: 0.98rem;
+  margin-bottom: 8px;
+}
+
+.ponudaCijena {
+  color: #b91d95;
+  font-size: 1.08rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.kupiBtn {
+  width: 100%;
+  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  margin-top: 4px;
+  opacity: 0.7;
+}
+
+.error {
+  color: #ffb3c6;
+  background: #3a0d2e;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-size: 0.98rem;
+}

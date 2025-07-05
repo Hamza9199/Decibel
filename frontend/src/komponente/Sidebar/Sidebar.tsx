@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./Sidebar.module.css";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type Role = "korisnik" | "izvodac" | "admin";
 
@@ -25,8 +25,15 @@ const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
   return (
     <aside className={styles.sidebar}>
       <div className={styles.logoWrap}>
+        <Link to="/">
+
         <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
+        </Link>
+                <Link to="/">
+
         <span className={styles.logoText}>Decibel</span>
+                </Link>
+
       </div>
       <nav className={styles.nav}>
 

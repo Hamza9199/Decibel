@@ -142,13 +142,21 @@ async def izmeni_pjesmu(
     licenca: str = Form(None),
     eksplicitniSadrzaj: bool = Form(False),
     zanr: str = Form(...),
-    albumID: int = Form(None),  # <--- DODAJ OVO
+    albumID: int = Form(None),
     file_audio: UploadFile = File(None),
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
     session: AsyncSession = Depends(get_session)
 ):
-    putanjaAudio = putanjaSlika = putanjaGif = None
+    # Dohvati postojeću pjesmu iz baze
+    db_pjesma = await get_pjesma_by_id(session, pjesma_id)
+    if not db_pjesma:
+        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+
+    # Zadrži postojeće vrijednosti ako nije uploadovan novi fajl
+    putanjaAudio = db_pjesma.putanjaAudio
+    putanjaSlika = db_pjesma.putanjaSlika
+    putanjaGif = db_pjesma.putanjaGif
 
     if file_audio:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -173,7 +181,7 @@ async def izmeni_pjesmu(
 
     pjesma_data = PjesmaCreate(
         korisnikID=korisnikID,
-        albumID=albumID,  # <--- DODAJ OVO
+        albumID=albumID,
         naziv=naziv,
         opis=opis,
         datumObjave=datumObjave,

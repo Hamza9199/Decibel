@@ -4,4 +4,8 @@ export type Korisnik = {
   ime?: string;
   prezime?: string;
   putanjaProfilneSlike?: string;
+  statusKorisnika?: string;
+  rola?: string;
+  email?: string;
+  brojPratilaca?: number;
 };

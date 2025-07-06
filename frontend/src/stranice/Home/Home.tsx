@@ -6,6 +6,7 @@ import axios from "axios";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
+import { Link } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -102,8 +103,8 @@ const Home: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  <div className={styles.cardTitle}>{p.naziv}</div>
-                  <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
+                  <Link to={`/pjesma/${p.id}`}><div className={styles.cardTitle}>{p.naziv}</div></Link>
+                   <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                 </div>
               ))}
             </div>
@@ -120,7 +121,7 @@ const Home: React.FC = () => {
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
                   </div>
-                  <div className={styles.cardTitle}>{a.naziv}</div>
+                  <Link to={`/album/${a.id}`}><div className={styles.cardTitle}>{a.naziv}</div></Link>
                   <div className={styles.cardDesc}>{a.korisnik?.korisnicko_ime|| <span>&nbsp;</span>}</div>
                 </div>
               ))}
@@ -138,7 +139,9 @@ const Home: React.FC = () => {
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
                   </div>
-                  <div className={styles.cardTitle}>{pl.naziv}</div>
+                  <Link to={`/playlista/${pl.id}`}>
+                    <div className={styles.cardTitle}>{pl.naziv}</div>
+                  </Link>
                   <div className={styles.cardDesc}>{pl.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                 </div>
               ))}

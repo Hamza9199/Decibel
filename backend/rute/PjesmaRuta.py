@@ -142,6 +142,7 @@ async def izmeni_pjesmu(
     licenca: str = Form(None),
     eksplicitniSadrzaj: bool = Form(False),
     zanr: str = Form(...),
+    albumID: int = Form(None),  # <--- DODAJ OVO
     file_audio: UploadFile = File(None),
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
@@ -172,6 +173,7 @@ async def izmeni_pjesmu(
 
     pjesma_data = PjesmaCreate(
         korisnikID=korisnikID,
+        albumID=albumID,  # <--- DODAJ OVO
         naziv=naziv,
         opis=opis,
         datumObjave=datumObjave,

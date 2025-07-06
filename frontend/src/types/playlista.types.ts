@@ -4,6 +4,7 @@ export type Playlista = {
   opis?: string;
   putanjaSlika?: string;
   korisnikID?: string;
+  brojLajkova?: number;
   korisnik?: {
     id: string;
     korisnicko_ime: string;

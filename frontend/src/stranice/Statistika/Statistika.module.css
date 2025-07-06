@@ -1,0 +1,94 @@
+.statsBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: rgba(24,24,24,0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 50px 24px;
+  background: rgba(24,24,24,0.97);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+.title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 32px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 32px;
+  margin-bottom: 38px;
+}
+
+.chartCard {
+  background: #232323;
+  border-radius: 16px;
+  padding: 24px 18px 18px 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.infoBox {
+  background: #181818;
+  border-radius: 12px;
+  padding: 22px 18px;
+  margin-bottom: 18px;
+  color: #fff;
+  box-shadow: 0 2px 8px #b91d9533;
+  text-align: center;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.izvodjacCard {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.izvodjacImg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 2px 8px #b91d9533;
+}
+
+.izvodjacIme {
+  color: #ffe6ec;
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.izvodjacPratioci {
+  color: #b3b3b3;
+  font-size: 0.98rem;
+}
+
+.loading {
+  color: #fff;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-top: 80px;
+}

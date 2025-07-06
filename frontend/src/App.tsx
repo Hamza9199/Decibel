@@ -14,6 +14,12 @@ import NoviAlbum from './stranice/NoviAlbum/NoviAlbum';
 import Postavke from './stranice/Postavke/Postavke';
 import UrediProfil from './stranice/UrediProfil/UrediProfil';
 import Pretplata from './stranice/Pretplata/Pretplata';
+import SviKorisnici from './stranice/SviKorisnici/SviKorisnici';
+import AdminPanel from './stranice/AdminPanel/AdminPanel';
+import Statistika from './stranice/Statistika/Statisitka';
+import Pjesma from './stranice/Pjesma/Pjesma';
+import Album from './stranice/Album/Album';
+import Playlista from './stranice/Playlista/Playlista';
 
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -71,8 +77,14 @@ const AppContent: FC = () => {
         <Route path="/profile/settings" element={<Postavke />} />
         <Route path="/profile/edit" element={<UrediProfil />} />
         <Route path="/profile/subscription" element={<Pretplata />} />
+        <Route path="/korisnici" element={<SviKorisnici />} />
+        <Route path="/admin-panel" element={<AdminPanel />} />
+        <Route path="/statistika" element={<Statistika />} />
+        <Route path="/pjesma/:pjesmaId" element={<Pjesma />} />
+        <Route path="/album/:albumId" element={<Album />} />
+        <Route path="/playlista/:playlistaId" element={<Playlista />} />
 
-        {/* Add other routes as needed */}
+
 
 
         <Route path="*" element={<Home />} />

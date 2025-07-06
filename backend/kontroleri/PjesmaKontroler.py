@@ -32,6 +32,7 @@ async def update_pjesma(session: AsyncSession, pjesma_id: int, pjesma: PjesmaCre
     if not db_pjesma:
         return None
     for key, value in pjesma.dict().items():
+        # Ispravi: dozvoli update svih polja, uključujući 'odobreno'
         setattr(db_pjesma, key, value)
     session.add(db_pjesma)
     await session.commit()

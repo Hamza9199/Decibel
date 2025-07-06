@@ -1,0 +1,175 @@
+.playlistaBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: rgba(24,24,24,0.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 50px 24px;
+  background: rgba(24,24,24,0.97);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+.playlistaMain {
+  display: flex;
+  gap: 38px;
+  align-items: flex-start;
+  margin-bottom: 38px;
+}
+
+.playlistaSlikaWrap {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #232323;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.playlistaSlika {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 18px;
+}
+
+.playBtn, .likeBtn, .repeatBtn {
+  position: absolute;
+  bottom: 18px;
+  background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30,185,84,0.18);
+  transition: background 0.15s, transform 0.1s;
+  z-index: 2;
+  padding: 0;
+}
+
+.playBtn { left: 10px; }
+.likeBtn { left: 80px; }
+.repeatBtn { right: 5px; }
+
+.likeBtn.liked {
+  background: #e754a2;
+}
+
+.playlistaInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.playlistaNaziv {
+  color: #fff;
+  font-size: 2.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.playlistaOpis {
+  color: #b3b3b3;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+}
+
+.playlistaMeta {
+  color: #ffe6ec;
+  font-size: 1.05rem;
+  font-weight: 500;
+  display: flex;
+  gap: 22px;
+  margin-bottom: 8px;
+}
+
+.pjesmeSection {
+  margin-top: 38px;
+}
+
+.pjesmeTitle {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 18px;
+  letter-spacing: 1px;
+  border-left: 5px solid #b91d95;
+  padding-left: 12px;
+}
+
+.noSongs {
+  color: #b3b3b3;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+}
+
+.pjesmeTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #232323;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.pjesmeTable th, .pjesmeTable td {
+  padding: 12px 8px;
+  text-align: center;
+  color: #fff;
+  border-bottom: 1px solid #333;
+}
+
+.pjesmeTable th {
+  background: #b91d95;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+.pjesmeTable tr:last-child td {
+  border-bottom: none;
+}
+
+.songPlayBtn {
+  background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+.songPlayBtn:hover {
+  background: #e754a2;
+  transform: scale(1.08);
+}
+
+.notFound {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(24,24,24,0.97);
+}

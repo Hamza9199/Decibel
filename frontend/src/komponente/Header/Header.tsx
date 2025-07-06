@@ -1,22 +1,42 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./Header.module.css";
 import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Korisnik } from "../../types";
+const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("korisnik");
   const user = JSON.parse(localStorage.getItem("korisnik") || "");
+  const [korisnik, setKorisnik] = useState<Korisnik>();
+  let korisnikID = "";
 
 
-  let korisnickoIme = "";
   if (isLoggedIn) {
     try {
-      korisnickoIme = user.korisnicko_ime || "";
+      korisnikID = user?.id || "";
+
     } catch {
-      korisnickoIme = "";
+      korisnikID = "";
     }
   }
 
+
+    useEffect(() => {
+      if (!korisnikID) return;
+          axios.get(`${API_BASE}/korisnici/${korisnikID}`)
+        .then((res) => {
+          setKorisnik(res.data);
+        })
+        .catch(() => {
+          setKorisnik(undefined);
+        });
+         
+        }, [korisnikID]);
+  
+
+ 
   const handleLogout = () => {
     localStorage.removeItem("korisnik");
     navigate("/login");
@@ -40,14 +60,14 @@ const Header: React.FC = () => {
                 <Link className={styles.welcomeMessage} to="/profile/edit">
 
       <span >
-        Dobrodošli {korisnickoIme} !
+        Dobrodošli {korisnik?.korisnicko_ime} !
       </span>
             </Link>
 
 
                       <Link to="/profile/edit">
 
-          <img src={user.putanjaProfilneSlike} className={styles.profileImg} />
+          <img src={korisnik?.putanjaProfilneSlike} className={styles.profileImg} />
       </Link>
 
 

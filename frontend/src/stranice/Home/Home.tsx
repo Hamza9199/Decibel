@@ -70,6 +70,80 @@ const Home: React.FC = () => {
     }
   };
 
+  // Dodaj play funkciju za album
+  const handlePlayAlbum = (albumId: number) => {
+    const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
+    if (albumSongs.length === 0) return;
+    let idx = 0;
+    const playNext = () => {
+      if (idx >= albumSongs.length) return;
+      const p = albumSongs[idx];
+      window.dispatchEvent(
+        new CustomEvent("globalAudioPlay", {
+          detail: {
+            src: p.putanjaAudio,
+            title: p.naziv,
+            putanjaGif: p.putanjaGif,
+            putanjaSlika: p.putanjaSlika,
+            korisnikID: p.korisnikID,
+          },
+        })
+      );
+      idx++;
+      const handler = () => {
+        playNext();
+        window.removeEventListener("audioSongEnded", handler);
+      };
+      window.addEventListener("audioSongEnded", handler);
+    };
+    playNext();
+  };
+
+  // Dodaj play funkciju za playlistu
+  const handlePlayPlaylist = (playlistaId: number) => {
+    // Prvo dohvati redoslijed pjesama iz playliste (ako koristiš redoslijed_pjesama endpoint)
+    axios
+      .get(`${API_BASE}/redoslijed_pjesama/?playlistaID=${playlistaId}`)
+      .then((res) => {
+        const redoslijed = res.data || [];
+        // Dohvati detalje pjesama po ID-u
+        Promise.all(
+          redoslijed.map((r: { pjesmaID: number }) =>
+            axios
+              .get(`${API_BASE}/pjesme/${r.pjesmaID}`)
+              .then((r) => r.data)
+              .catch(() => null)
+          )
+        ).then((pjesmeArr) => {
+          const pjesmeZaPustanje = pjesmeArr.filter(Boolean).filter((p: Pjesma) => p.putanjaAudio);
+          if (pjesmeZaPustanje.length === 0) return;
+          let idx = 0;
+          const playNext = () => {
+            if (idx >= pjesmeZaPustanje.length) return;
+            const p = pjesmeZaPustanje[idx];
+            window.dispatchEvent(
+              new CustomEvent("globalAudioPlay", {
+                detail: {
+                  src: p.putanjaAudio,
+                  title: p.naziv,
+                  putanjaGif: p.putanjaGif,
+                  putanjaSlika: p.putanjaSlika,
+                  korisnikID: p.korisnikID,
+                },
+              })
+            );
+            idx++;
+            const handler = () => {
+              playNext();
+              window.removeEventListener("audioSongEnded", handler);
+            };
+            window.addEventListener("audioSongEnded", handler);
+          };
+          playNext();
+        });
+      });
+  };
+
   if (loading) return <Loading />;
 
   return (
@@ -120,6 +194,17 @@ const Home: React.FC = () => {
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
+                    {/* Play dugme za album */}
+                    <button
+                      className={styles.playButton}
+                      onClick={() => handlePlayAlbum(a.id)}
+                      title="Pusti album"
+                      style={{ left: 50 }}
+                    >
+                      <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
+                        <polygon points="12,8 36,22 12,36" />
+                      </svg>
+                    </button>
                   </div>
                   <Link to={`/album/${a.id}`}><div className={styles.cardTitle}>{a.naziv}</div></Link>
                   <div className={styles.cardDesc}>{a.korisnik?.korisnicko_ime|| <span>&nbsp;</span>}</div>
@@ -138,6 +223,17 @@ const Home: React.FC = () => {
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
+                    {/* Play dugme za playlistu */}
+                    <button
+                      className={styles.playButton}
+                      onClick={() => handlePlayPlaylist(pl.id)}
+                      title="Pusti playlistu"
+                      style={{ left: 50 }}
+                    >
+                      <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
+                        <polygon points="12,8 36,22 12,36" />
+                      </svg>
+                    </button>
                   </div>
                   <Link to={`/playlista/${pl.id}`}>
                     <div className={styles.cardTitle}>{pl.naziv}</div>
@@ -159,8 +255,9 @@ const Home: React.FC = () => {
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
                   </div>
-                  <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
-                 
+                  <Link to={`/izvodjac/${k.id}`}>
+                    <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
+                  </Link>
                 </div>
               ))}
             </div>

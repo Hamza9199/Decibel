@@ -20,6 +20,7 @@ import Statistika from './stranice/Statistika/Statisitka';
 import Pjesma from './stranice/Pjesma/Pjesma';
 import Album from './stranice/Album/Album';
 import Playlista from './stranice/Playlista/Playlista';
+import Izvodjac from './stranice/Izvodjac/Izvodjac';
 
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -83,7 +84,7 @@ const AppContent: FC = () => {
         <Route path="/pjesma/:pjesmaId" element={<Pjesma />} />
         <Route path="/album/:albumId" element={<Album />} />
         <Route path="/playlista/:playlistaId" element={<Playlista />} />
-
+        <Route path="/izvodjac/:izvodjacId" element={<Izvodjac />} />
 
 
 

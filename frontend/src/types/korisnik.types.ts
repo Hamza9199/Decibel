@@ -8,4 +8,5 @@ export type Korisnik = {
   rola?: string;
   email?: string;
   brojPratilaca?: number;
+  bio?: string;
 };

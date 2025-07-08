@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
-import { Korisnik } from "../../types";
+import { Korisnik, Playlista, Pjesma } from "../../types";
 
 type Props = {
   src?: string;
@@ -41,6 +41,8 @@ const AudioPlayer: React.FC<Props> = ({
   const [lastSrc, setLastSrc] = useState<string | undefined>(undefined);
   const [wasMinimized, setWasMinimized] = useState(false);
   const [repeatOne, setRepeatOne] = useState(false);
+  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlista[]>([]);
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -171,6 +173,7 @@ const AudioPlayer: React.FC<Props> = ({
     setRepeatOne((prev) => !prev);
   };
 
+  // Dohvati korisnika
   useEffect(() => {
     async function fetchKorisnik() {
       if (!korisnikID) {
@@ -185,6 +188,34 @@ const AudioPlayer: React.FC<Props> = ({
     }
     fetchKorisnik();
   }, [korisnikID]);
+
+  // Dohvati playliste korisnika za modal
+  useEffect(() => {
+    if (!korisnikID) return;
+    axios
+      .get(`${API_BASE}/playliste/`)
+      .then((res) => setPlaylists(res.data || []))
+      .catch(() => setPlaylists([]));
+  }, [korisnikID]);
+
+
+  // Dodavanje pjesme u playlistu
+  const handleAddToPlaylist = async (playlistaID: number) => {
+    if (!src || !korisnikID) return;
+    // Pronađi pjesmu po src (putanjaAudio)
+    const pjesmaRes = await axios
+      .get(`${API_BASE}/pjesme/`)
+      .then((res) => (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src));
+    if (!pjesmaRes) return;
+    await axios.post(`${API_BASE}/pjesma_playlista/`, {
+      pjesmaID: pjesmaRes.id,
+      playlistaID,
+      pokazivacNaSljedecuPjesmuID: null,
+      pokazivacNaPrethodnuPjesmuID: null,
+    });
+    setShowPlaylistModal(false);
+    alert("Pjesma dodana u playlistu!");
+  };
 
   if (!visible && !minimized) return null;
 
@@ -357,7 +388,18 @@ const AudioPlayer: React.FC<Props> = ({
             </svg>
           )}
         </button>
-        {/* ...existing code... */}
+        <button
+          type="button"
+          className={styles.muteBtn}
+          onClick={() => setShowPlaylistModal(true)}
+          aria-label="Dodaj u playlistu"
+          style={{ marginLeft: 8 }}
+        >
+          <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
+            <rect x="18" y="8" width="8" height="28" />
+            <rect x="8" y="18" width="28" height="8" />
+          </svg>
+        </button>
         <label className={styles.labelSmall} style={{ marginLeft: 8 }}>
           <button
             type="button"
@@ -404,6 +446,75 @@ const AudioPlayer: React.FC<Props> = ({
           />
         </label>
       </div>
+      {/* Modal za dodavanje u playlistu */}
+      {showPlaylistModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(24,24,24,0.85)",
+            zIndex: 3000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setShowPlaylistModal(false)}
+        >
+          <div
+            style={{
+              background: "#232323",
+              borderRadius: 14,
+              padding: "32px 24px 24px 24px",
+              minWidth: 320,
+              boxShadow: "0 4px 24px #b91d9533",
+              textAlign: "center",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 style={{ color: "#fff", marginBottom: 18 }}>Dodaj pjesmu u playlistu</h4>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 18 }}>
+              {playlists.map((pl) => (
+                <li key={pl.id} style={{ marginBottom: 8 }}>
+                  <button
+                    style={{
+                      background: "#b91d95",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "10px 0",
+                      fontSize: "1.08rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      width: "100%",
+                      transition: "background 0.18s",
+                    }}
+                    onClick={() => handleAddToPlaylist(pl.id)}
+                  >
+                    {pl.naziv}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              style={{
+                background: "#232323",
+                color: "#ffe6ec",
+                border: "1px solid #b91d95",
+                borderRadius: 8,
+                padding: "10px 0",
+                fontSize: "1rem",
+                fontWeight: 500,
+                cursor: "pointer",
+                width: "100%",
+                transition: "background 0.18s, color 0.18s",
+              }}
+              onClick={() => setShowPlaylistModal(false)}
+            >
+              Zatvori
+            </button>
+          </div>
+        </div>
+      )}
       <audio
         ref={audioRef}
         src={src}

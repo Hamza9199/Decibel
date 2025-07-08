@@ -5,3 +5,4 @@ export * from "./korisnik.types";
 export * from "./audiostate.types";
 export * from "./korisnikpretplata.types";
 export * from "./pretplata.types";
+export * from "./vezapjesmaplaylista.types";

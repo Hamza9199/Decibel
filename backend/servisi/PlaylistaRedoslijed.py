@@ -41,7 +41,6 @@ async def dodaj_pjesmu_na_kraj(session: AsyncSession, playlistaID: int, pjesmaID
         prva = next((v for v in veze if v.pokazivacNaPrethodnuPjesmuID == v.pjesmaID), None)
         zadnja = next((v for v in veze if v.pokazivacNaSljedecuPjesmuID == v.pjesmaID), None)
         if not prva or not zadnja:
-            # Fallback: uzmi bilo koju kao prvu/zadnju
             prva = veze[0]
             zadnja = veze[-1]
         # Nova pjesma
@@ -204,4 +203,5 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
                 sljed_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
                 session.add(sljed_obj)
         await session.commit()
+        return nova
         return nova

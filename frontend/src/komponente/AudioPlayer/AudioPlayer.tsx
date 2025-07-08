@@ -231,11 +231,9 @@ const AudioPlayer: React.FC<Props> = ({
       pokazivacNaSljedecuPjesmuID = pjesmaRes.id;
     } else {
       // Prva: ona kojoj je pokazivacNaPrethodnuPjesmuID == pjesmaID
-      prva = vezeZaPlaylistu.find((v) => v.pokazivacNaPrethodnuPjesmuID === v.pjesmaID);
+      prva = vezeZaPlaylistu.find((v) => v.pokazivacNaPrethodnuPjesmuID === v.pjesmaID) || vezeZaPlaylistu[0];
       // Zadnja: ona kojoj je pokazivacNaSljedecuPjesmuID == pjesmaID
-      zadnja = vezeZaPlaylistu.find((v) => v.pokazivacNaSljedecuPjesmuID === v.pjesmaID);
-      if (!prva) prva = vezeZaPlaylistu[0];
-      if (!zadnja) zadnja = vezeZaPlaylistu[vezeZaPlaylistu.length - 1];
+      zadnja = vezeZaPlaylistu.find((v) => v.pokazivacNaSljedecuPjesmuID === v.pjesmaID) || vezeZaPlaylistu[vezeZaPlaylistu.length - 1];
       pokazivacNaPrethodnuPjesmuID = zadnja.pjesmaID;
       pokazivacNaSljedecuPjesmuID = prva.pjesmaID;
     }
@@ -606,3 +604,4 @@ function formatTime(sec: number) {
 }
 
 export default AudioPlayer;
+

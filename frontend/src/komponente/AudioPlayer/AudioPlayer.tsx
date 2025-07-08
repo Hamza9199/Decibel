@@ -205,6 +205,7 @@ const AudioPlayer: React.FC<Props> = ({
       .then((res) => (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src));
     if (!pjesmaRes) return;
 
+    // Dohvati sve veze za playlistu
     const veze: VezaPjesmaPlaylista[] = await axios
       .get(`${API_BASE}/pjesma_playlista/`)
       .then((res) => res.data as VezaPjesmaPlaylista[])
@@ -220,25 +221,26 @@ const AudioPlayer: React.FC<Props> = ({
     }
 
     const vezeZaPlaylistu = veze.filter((v) => v.playlistaID === playlistaID);
-    let pokazivacNaPrethodnuPjesmuID = null;
-    let pokazivacNaSljedecuPjesmuID = null;
-    let prva = null;
-    let zadnja = null;
+
+    let pokazivacNaPrethodnuPjesmuID: number | null = null;
+    let pokazivacNaSljedecuPjesmuID: number | null = null;
+    let prva: VezaPjesmaPlaylista | null = null;
+    let zadnja: VezaPjesmaPlaylista | null = null;
 
     if (vezeZaPlaylistu.length === 0) {
-      // Prva pjesma, pokazivači na samu sebe
+      // Prva pjesma, pokazivači na samu sebe (kružna lista)
       pokazivacNaPrethodnuPjesmuID = pjesmaRes.id;
       pokazivacNaSljedecuPjesmuID = pjesmaRes.id;
     } else {
-      // Prva: ona kojoj je pokazivacNaPrethodnuPjesmuID == pjesmaID
+      // Prva: ona kojoj je pokazivacNaPrethodnuPjesmuID === pjesmaID
       prva = vezeZaPlaylistu.find((v) => v.pokazivacNaPrethodnuPjesmuID === v.pjesmaID) || vezeZaPlaylistu[0];
-      // Zadnja: ona kojoj je pokazivacNaSljedecuPjesmuID == pjesmaID
+      // Zadnja: ona kojoj je pokazivacNaSljedecuPjesmuID === pjesmaID
       zadnja = vezeZaPlaylistu.find((v) => v.pokazivacNaSljedecuPjesmuID === v.pjesmaID) || vezeZaPlaylistu[vezeZaPlaylistu.length - 1];
       pokazivacNaPrethodnuPjesmuID = zadnja.pjesmaID;
       pokazivacNaSljedecuPjesmuID = prva.pjesmaID;
     }
 
-    // Dodaj novu pjesmu
+    // Dodaj novu pjesmu (kružna lista)
     await axios.post(
       `${API_BASE}/pjesma_playlista/`,
       {
@@ -254,10 +256,10 @@ const AudioPlayer: React.FC<Props> = ({
     );
 
     // Ako nije prva, ažuriraj pokazivače prvoj i zadnjoj pjesmi
-    if (vezeZaPlaylistu.length > 0) {
+    if (vezeZaPlaylistu.length > 0 && zadnja && prva) {
       // Update zadnja.pokazivacNaSljedecuPjesmuID na novu pjesmu
       await axios.put(
-        `${API_BASE}/pjesma_playlista/${zadnja?.pjesmaID}/${playlistaID}`,
+        `${API_BASE}/pjesma_playlista/${zadnja.pjesmaID}/${playlistaID}`,
         {
           ...zadnja,
           pokazivacNaSljedecuPjesmuID: pjesmaRes.id,
@@ -266,7 +268,7 @@ const AudioPlayer: React.FC<Props> = ({
       );
       // Update prva.pokazivacNaPrethodnuPjesmuID na novu pjesmu
       await axios.put(
-        `${API_BASE}/pjesma_playlista/${prva?.pjesmaID}/${playlistaID}`,
+        `${API_BASE}/pjesma_playlista/${prva.pjesmaID}/${playlistaID}`,
         {
           ...prva,
           pokazivacNaPrethodnuPjesmuID: pjesmaRes.id,

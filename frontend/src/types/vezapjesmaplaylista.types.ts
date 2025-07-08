@@ -2,6 +2,6 @@
       id: number;
       pjesmaID: number;
       playlistaID: number;
-      pokazivacNaPrethodnuPjesmuID: number | null;
-      pokazivacNaSljedecuPjesmuID: number | null;
+      pokazivacNaPrethodnuPjesmuID: number;
+      pokazivacNaSljedecuPjesmuID: number;
     };

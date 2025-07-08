@@ -20,56 +20,73 @@ async def postoji_pjesma_u_playlisti(session: AsyncSession, playlistaID: int, pj
     )
     return result.scalar_one_or_none() is not None
 
+async def dodaj_pjesmu_na_kraj(session: AsyncSession, playlistaID: int, pjesmaID: int):
+    veze = await session.execute(
+        select(PjesmaPlaylistaORM).where(PjesmaPlaylistaORM.playlistaID == playlistaID)
+    )
+    veze = veze.scalars().all()
+    if not veze:
+        # Prva pjesma, pokazivači na samu sebe (kružna lista)
+        nova = PjesmaPlaylistaORM(
+            pjesmaID=pjesmaID,
+            playlistaID=playlistaID,
+            pokazivacNaPrethodnuPjesmuID=pjesmaID,
+            pokazivacNaSljedecuPjesmuID=pjesmaID
+        )
+        session.add(nova)
+        await session.commit()
+        return nova
+    else:
+        # Pronađi prvu i zadnju pjesmu
+        prva = next((v for v in veze if v.pokazivacNaPrethodnuPjesmuID == v.pjesmaID), None)
+        zadnja = next((v for v in veze if v.pokazivacNaSljedecuPjesmuID == v.pjesmaID), None)
+        if not prva or not zadnja:
+            # Fallback: uzmi bilo koju kao prvu/zadnju
+            prva = veze[0]
+            zadnja = veze[-1]
+        # Nova pjesma
+        nova = PjesmaPlaylistaORM(
+            pjesmaID=pjesmaID,
+            playlistaID=playlistaID,
+            pokazivacNaPrethodnuPjesmuID=zadnja.pjesmaID,
+            pokazivacNaSljedecuPjesmuID=prva.pjesmaID
+        )
+        session.add(nova)
+        # Ažuriraj pokazivače
+        zadnja.pokazivacNaSljedecuPjesmuID = pjesmaID
+        prva.pokazivacNaPrethodnuPjesmuID = pjesmaID
+        session.add(zadnja)
+        session.add(prva)
+        await session.commit()
+        return nova
+
 async def pronadji_prvu_pjesmu(session: AsyncSession, playlistaID: int):
     result = await session.execute(
-        select(PjesmaPlaylistaORM).where(
-            and_(
-                PjesmaPlaylistaORM.playlistaID == playlistaID,
-                PjesmaPlaylistaORM.pokazivacNaPrethodnuPjesmuID == None
-            )
-        )
+        select(PjesmaPlaylistaORM).where(PjesmaPlaylistaORM.playlistaID == playlistaID)
     )
-    obj = result.scalar_one_or_none()
-    return obj.pjesmaID if obj else None
+    veze = result.scalars().all()
+    if not veze:
+        return None
+    # Prva je ona kojoj je pokazivacNaPrethodnuPjesmuID == pjesmaID
+    for v in veze:
+        if v.pokazivacNaPrethodnuPjesmuID == v.pjesmaID:
+            return v.pjesmaID
+    # fallback
+    return veze[0].pjesmaID
 
 async def pronadji_zadnju_pjesmu(session: AsyncSession, playlistaID: int):
     result = await session.execute(
-        select(PjesmaPlaylistaORM).where(
-            and_(
-                PjesmaPlaylistaORM.playlistaID == playlistaID,
-                PjesmaPlaylistaORM.pokazivacNaSljedecuPjesmuID == None
-            )
-        )
+        select(PjesmaPlaylistaORM).where(PjesmaPlaylistaORM.playlistaID == playlistaID)
     )
-    obj = result.scalar_one_or_none()
-    return obj.pjesmaID if obj else None
-
-async def dodaj_pjesmu_na_kraj(session: AsyncSession, playlistaID: int, pjesmaID: int):
-    # Pronađi zadnju pjesmu
-    zadnja = await pronadji_zadnju_pjesmu(session, playlistaID)
-    nova = PjesmaPlaylistaORM(
-        pjesmaID=pjesmaID,
-        playlistaID=playlistaID,
-        pokazivacNaPrethodnuPjesmuID=zadnja,
-        pokazivacNaSljedecuPjesmuID=None
-    )
-    session.add(nova)
-    if zadnja:
-        # Update prethodne zadnje pjesme
-        result = await session.execute(
-            select(PjesmaPlaylistaORM).where(
-                and_(
-                    PjesmaPlaylistaORM.playlistaID == playlistaID,
-                    PjesmaPlaylistaORM.pjesmaID == zadnja
-                )
-            )
-        )
-        zadnja_obj = result.scalar_one_or_none()
-        if zadnja_obj:
-            zadnja_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
-            session.add(zadnja_obj)
-    await session.commit()
-    return nova
+    veze = result.scalars().all()
+    if not veze:
+        return None
+    # Zadnja je ona kojoj je pokazivacNaSljedecuPjesmuID == pjesmaID
+    for v in veze:
+        if v.pokazivacNaSljedecuPjesmuID == v.pjesmaID:
+            return v.pjesmaID
+    # fallback
+    return veze[-1].pjesmaID
 
 async def obrisi_pjesmu(session: AsyncSession, playlistaID: int, pjesmaID: int):
     # Pronađi pjesmu

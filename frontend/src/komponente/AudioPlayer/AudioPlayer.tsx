@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
-import { Korisnik, Playlista, Pjesma } from "../../types";
+import { Korisnik, Playlista, Pjesma, VezaPjesmaPlaylista } from "../../types";
 
 type Props = {
   src?: string;
@@ -131,7 +131,6 @@ const AudioPlayer: React.FC<Props> = ({
       setProgress(0);
       setLastSrc(src);
     }
-    // eslint-disable-next-line
   }, [src, playing]);
 
   const handlePlayPause = () => {
@@ -198,21 +197,86 @@ const AudioPlayer: React.FC<Props> = ({
       .catch(() => setPlaylists([]));
   }, [korisnikID]);
 
-
   // Dodavanje pjesme u playlistu
   const handleAddToPlaylist = async (playlistaID: number) => {
     if (!src || !korisnikID) return;
-    // Pronađi pjesmu po src (putanjaAudio)
     const pjesmaRes = await axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) => (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src));
     if (!pjesmaRes) return;
-    await axios.post(`${API_BASE}/pjesma_playlista/`, {
-      pjesmaID: pjesmaRes.id,
-      playlistaID,
-      pokazivacNaSljedecuPjesmuID: null,
-      pokazivacNaPrethodnuPjesmuID: null,
-    });
+
+    const veze: VezaPjesmaPlaylista[] = await axios
+      .get(`${API_BASE}/pjesma_playlista/`)
+      .then((res) => res.data as VezaPjesmaPlaylista[])
+      .catch(() => []);
+
+    const postoji = veze.find(
+      (v) => v.pjesmaID === pjesmaRes.id && v.playlistaID === playlistaID
+    );
+    if (postoji) {
+      alert("Pjesma je već u playlisti!");
+      setShowPlaylistModal(false);
+      return;
+    }
+
+    const vezeZaPlaylistu = veze.filter((v) => v.playlistaID === playlistaID);
+    let pokazivacNaPrethodnuPjesmuID = null;
+    let pokazivacNaSljedecuPjesmuID = null;
+    let prva = null;
+    let zadnja = null;
+
+    if (vezeZaPlaylistu.length === 0) {
+      // Prva pjesma, pokazivači na samu sebe
+      pokazivacNaPrethodnuPjesmuID = pjesmaRes.id;
+      pokazivacNaSljedecuPjesmuID = pjesmaRes.id;
+    } else {
+      // Prva: ona kojoj je pokazivacNaPrethodnuPjesmuID == pjesmaID
+      prva = vezeZaPlaylistu.find((v) => v.pokazivacNaPrethodnuPjesmuID === v.pjesmaID);
+      // Zadnja: ona kojoj je pokazivacNaSljedecuPjesmuID == pjesmaID
+      zadnja = vezeZaPlaylistu.find((v) => v.pokazivacNaSljedecuPjesmuID === v.pjesmaID);
+      if (!prva) prva = vezeZaPlaylistu[0];
+      if (!zadnja) zadnja = vezeZaPlaylistu[vezeZaPlaylistu.length - 1];
+      pokazivacNaPrethodnuPjesmuID = zadnja.pjesmaID;
+      pokazivacNaSljedecuPjesmuID = prva.pjesmaID;
+    }
+
+    // Dodaj novu pjesmu
+    await axios.post(
+      `${API_BASE}/pjesma_playlista/`,
+      {
+        pjesmaID: pjesmaRes.id,
+        playlistaID: playlistaID,
+        pokazivacNaSljedecuPjesmuID,
+        pokazivacNaPrethodnuPjesmuID,
+        kreiranDatumVrijeme: null,
+      },
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    // Ako nije prva, ažuriraj pokazivače prvoj i zadnjoj pjesmi
+    if (vezeZaPlaylistu.length > 0) {
+      // Update zadnja.pokazivacNaSljedecuPjesmuID na novu pjesmu
+      await axios.put(
+        `${API_BASE}/pjesma_playlista/${zadnja?.pjesmaID}/${playlistaID}`,
+        {
+          ...zadnja,
+          pokazivacNaSljedecuPjesmuID: pjesmaRes.id,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      // Update prva.pokazivacNaPrethodnuPjesmuID na novu pjesmu
+      await axios.put(
+        `${API_BASE}/pjesma_playlista/${prva?.pjesmaID}/${playlistaID}`,
+        {
+          ...prva,
+          pokazivacNaPrethodnuPjesmuID: pjesmaRes.id,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     setShowPlaylistModal(false);
     alert("Pjesma dodana u playlistu!");
   };

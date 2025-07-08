@@ -22,7 +22,6 @@ from rute.KorisnikAlbumRuta import router as korisnik_album_router
 from rute.KorisnikPjesmaRuta import router as korisnik_pjesma_router
 from rute.KorisnikPlaylistaRuta import router as korisnik_playlista_router
 from rute.PjesmaPlaylistaRuta import router as pjesma_playlista_router
-from rute.RedoslijedPjesamaRuta import router as redoslijed_pjesama_router
 from rute.StatistikaReprodukcijeRuta import router as statistika_reprodukcije_router
 from rute.PretplataRuta import router as pretplata_router
 from rute.KorisnikPretplataRuta import router as korisnik_pretplata_router
@@ -80,7 +79,6 @@ app.include_router(korisnik_album_router)
 app.include_router(korisnik_pjesma_router)
 app.include_router(korisnik_playlista_router)
 app.include_router(pjesma_playlista_router)
-app.include_router(redoslijed_pjesama_router)
 app.include_router(statistika_reprodukcije_router)
 app.include_router(pretplata_router)
 app.include_router(korisnik_pretplata_router)

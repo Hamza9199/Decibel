@@ -12,7 +12,6 @@ from .KorisnikPlaylista import *
 from .KorisnikPjesma import *
 from .KorisnikAlbum import *
 from .PratilacKorisnik import *
-from .RedoslijedPjesama import *
 from .StatistikaReprodukcije import *
 from .HistorijaSlusanja import *
 from .KontekstPustanja import *

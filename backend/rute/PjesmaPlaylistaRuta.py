@@ -1,22 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-import os
-from dotenv import load_dotenv
-
 from modeli.PjesmaPlaylista import PjesmaPlaylista, PjesmaPlaylistaCreate
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
 from kontroleri.PjesmaPlaylistaKontroler import (
     get_all_pjesma_playlista,
     get_pjesma_playlista,
     create_pjesma_playlista,
     delete_pjesma_playlista
 )
+from servisi.PlaylistaRedoslijed import promjeni_redoslijed
 
 router = APIRouter(prefix="/api/pjesma_playlista", tags=["PjesmaPlaylista"])
 
+import os
+from dotenv import load_dotenv
 load_dotenv()
 ASYNC_DATABASE_URL = os.getenv("DATABASE_URL_ASYNC")
 
@@ -55,3 +54,17 @@ async def obrisi_vezu(pjesmaID: int, playlistaID: int, session: AsyncSession = D
     if not db_obj:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
+
+@router.post("/promjeni-redoslijed/", response_model=dict)
+async def promjeni_redoslijed_pjesme(
+    playlistaID: int,
+    pjesmaID: int,
+    nova_pozicija_iza_pjesmeID: int = None,
+    session: AsyncSession = Depends(get_session)
+):
+    rezultat = await promjeni_redoslijed(session, playlistaID, pjesmaID, nova_pozicija_iza_pjesmeID)
+    if rezultat is None:
+        raise HTTPException(status_code=400, detail="Neuspješna promjena redoslijeda")
+        
+    return {"success": True}
+    

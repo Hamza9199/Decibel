@@ -68,7 +68,7 @@ const UrediPjesmu: React.FC = () => {
     formData.append("korisnikID", korisnikID);
     formData.append("naziv", naziv);
     formData.append("opis", opis);
-    formData.append("datumObjave", pjesma.datumObjave); // datum ne mijenjaj
+    formData.append("datumObjave", pjesma.datumObjave || ""); // datum ne mijenjaj
     formData.append("trajanjeSekunde", String(pjesma.trajanjeSekunde));
     formData.append("javno", String(pjesma.javno || false));
     formData.append("odobreno", String(pjesma.odobreno || false));

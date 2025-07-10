@@ -13,6 +13,9 @@ export type Pjesma = {
   trajanjeSekunde?: number;
   jezikPjesme?: string;
   albumID?: number;
+  licenca?: string;
+  eksplicitniSadrzaj?: boolean;
+  datumObjave?: string;
   korisnik?: {
     id: string;
     korisnicko_ime: string;

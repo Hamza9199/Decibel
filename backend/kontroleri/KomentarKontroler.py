@@ -31,10 +31,9 @@ async def update_komentar(session: AsyncSession, komentar_id: int, data: Komenta
     db_komentar = await get_komentar_by_id(session, komentar_id)
     if not db_komentar:
         return None
-    
-    for key, value in data.dict().items():
-        setattr(db_komentar, key, value)
-    
+
+    # Ažuriraj samo tekst (ostala polja ne diraj)
+    db_komentar.tekst = data.tekst
     session.add(db_komentar)
     await session.commit()
     await session.refresh(db_komentar)

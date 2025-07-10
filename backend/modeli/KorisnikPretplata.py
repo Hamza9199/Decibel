@@ -31,9 +31,9 @@ class KorisnikPretplataBase(BaseModel):
     korisnikID: str
     pretplataID: int
     pretplataStatus: PretplataStatusEnum
-    kreiranDatumVrijeme: Optional[datetime.datetime]
-    datumVrijemeObnove: Optional[datetime.datetime]
-    datumIsteka: Optional[datetime.datetime]
+    kreiranDatumVrijeme: Optional[datetime.datetime] = None
+    datumVrijemeObnove: Optional[datetime.datetime] = None
+    datumIsteka: Optional[datetime.datetime] = None
 
 class KorisnikPretplataCreate(KorisnikPretplataBase):
     pass

@@ -47,8 +47,14 @@ async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSessi
 @router.post("/", response_model=KorisnikPretplata)
 async def nova_korisnik_pretplata(data: KorisnikPretplataCreate, session: AsyncSession = Depends(get_session)):
     print("Primljen payload:", data)
-    db_obj = await create_korisnik_pretplata(session, data)
-    return db_obj
+    try:
+        db_obj = await create_korisnik_pretplata(session, data)
+        return db_obj
+    except Exception as e:
+        import traceback
+        print("GRESKA:", e)
+        traceback.print_exc()
+        raise
 
 @router.delete("/{korisnik_pretplata_id}", response_model=KorisnikPretplata)
 async def obrisi_korisnik_pretplatu(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):

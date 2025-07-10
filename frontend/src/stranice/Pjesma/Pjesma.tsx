@@ -5,7 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
-import type { Pjesma, Korisnik } from "../../types";
+import type { Pjesma, Korisnik, Komentar } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
@@ -16,7 +16,21 @@ const Pjesma: React.FC = () => {
   const [izvodjaci, setIzvodjaci] = useState<Korisnik[]>([]);
   const [topPjesme, setTopPjesme] = useState<Pjesma[]>([]);
   const [loading, setLoading] = useState(true);
+  const [komentari, setKomentari] = useState<Komentar[]>([]);
+  const [korisniciKomentara, setKorisniciKomentara] = useState<{ [id: string]: Korisnik }>({});
+  const [noviKomentar, setNoviKomentar] = useState("");
+  const [editKomentarId, setEditKomentarId] = useState<number | null>(null);
+  const [editKomentarTekst, setEditKomentarTekst] = useState("");
+  const [komentarError, setKomentarError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  let mojID = "";
+  try {
+    const user = JSON.parse(localStorage.getItem("korisnik") || "");
+    mojID = user?.id || "";
+  } catch {
+    mojID = "";
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -87,6 +101,34 @@ const Pjesma: React.FC = () => {
     };
   }, [pjesmaId]);
 
+  useEffect(() => {
+    if (!pjesmaId) return;
+    // Dohvati komentare za pjesmu
+    axios
+      .get(`${API_BASE}/komentari/`)
+      .then(async (res) => {
+        const svi: Komentar[] = res.data || [];
+        const zaPjesmu = svi.filter((k) => String(k.pjesmaID) === String(pjesmaId));
+        setKomentari(zaPjesmu);
+
+        // Dohvati korisnike za komentare
+        const korisnikIds = Array.from(new Set(zaPjesmu.map((k) => k.korisnikID)));
+        const korisniciObj: { [id: string]: Korisnik } = {};
+        await Promise.all(
+          korisnikIds.map((kid) =>
+            axios
+              .get(`${API_BASE}/korisnici/${kid}`)
+              .then((r) => {
+                korisniciObj[kid] = r.data;
+              })
+              .catch(() => {})
+            )
+        );
+        setKorisniciKomentara(korisniciObj);
+      })
+      .catch(() => setKomentari([]));
+  }, [pjesmaId]);
+
   const handlePlay = (p: Pjesma) => {
     window.dispatchEvent(
       new CustomEvent("globalAudioPlay", {
@@ -100,6 +142,62 @@ const Pjesma: React.FC = () => {
       })
     );
   };
+
+  // Dodaj komentar
+  const handleDodajKomentar = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setKomentarError(null);
+    if (!mojID || !pjesmaId || !noviKomentar.trim()) {
+      setKomentarError("Komentar ne smije biti prazan.");
+      return;
+    }
+    try {
+      await axios.post(`${API_BASE}/komentari/`, {
+        korisnikID: mojID,
+        pjesmaID: Number(pjesmaId),
+        tekst: noviKomentar,
+        vrijemePjesmeSekunde: 0,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      });
+      setNoviKomentar("");
+      // Osvježi komentare
+      const res = await axios.get(`${API_BASE}/komentari/`);
+      const svi: Komentar[] = res.data || [];
+      setKomentari(svi.filter((k) => String(k.pjesmaID) === String(pjesmaId)));
+    } catch {
+      setKomentarError("Greška pri dodavanju komentara.");
+    }
+  };
+
+  // Uredi komentar
+  const handleUrediKomentar = async (id: number) => {
+    setKomentarError(null);
+    if (!editKomentarTekst.trim()) {
+      setKomentarError("Komentar ne smije biti prazan.");
+      return;
+    }
+    try {
+      await axios.put(`${API_BASE}/komentari/${id}`, {
+        tekst: editKomentarTekst,
+      });
+      setEditKomentarId(null);
+      setEditKomentarTekst("");
+      // Osvježi komentare
+      const res = await axios.get(`${API_BASE}/komentari/`);
+      const svi: Komentar[] = res.data || [];
+      setKomentari(svi.filter((k) => String(k.pjesmaID) === String(pjesmaId)));
+    } catch {
+      setKomentarError("Greška pri uređivanju komentara.");
+    }
+  };
+
+  // Prikaz komentara: vlasnikov komentar uvijek prvi
+  const komentariSortirani = (() => {
+    if (!mojID) return komentari;
+    const vlasnikKomentar = komentari.find((k) => k.korisnikID === mojID);
+    const ostali = komentari.filter((k) => k.korisnikID !== mojID);
+    return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
+  })();
 
   if (loading) return <Loading />;
 
@@ -208,6 +306,166 @@ const Pjesma: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+          {/* Komentari sekcija */}
+          <div style={{ marginTop: 60 }}>
+            <h3 className={styles.topPjesmeTitle}>Komentari</h3>
+            <form onSubmit={handleDodajKomentar} style={{ marginBottom: 24 }}>
+              <textarea
+                value={noviKomentar}
+                onChange={e => setNoviKomentar(e.target.value)}
+                placeholder="Dodaj komentar..."
+                rows={3}
+                style={{
+                  width: "100%",
+                  borderRadius: 8,
+                  border: "1px solid #b91d95",
+                  padding: 10,
+                  fontSize: "1.08rem",
+                  background: "#181818",
+                  color: "#fff",
+                  marginBottom: 8,
+                  resize: "vertical"
+                }}
+              />
+              <div className={styles.kom}>
+              {komentarError && <div style={{ color: "#ff4d4f", marginBottom: 8 }}>{komentarError}</div>}
+              <button
+                type="submit"
+                style={{
+                  background: "#b91d95",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "10px 24px",
+                  fontWeight: 700,
+                  fontSize: "1.08rem",
+                  cursor: "pointer"
+                }}
+              >
+                Dodaj komentar
+              </button>
+              </div>
+            </form>
+            <div>
+              {komentariSortirani.length === 0 ? (
+                <div style={{ color: "#b3b3b3" }}>Nema komentara.</div>
+              ) : (
+                komentariSortirani.map((k) => (
+                  <div
+                    key={k.id}
+                    style={{
+                      background: k.korisnikID === mojID ? "#2a182a" : "#232323",
+                      borderRadius: 8,
+                      padding: 14,
+                      marginBottom: 12,
+                      position: "relative"
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
+                      <img
+                        src={korisniciKomentara[k.korisnikID]?.putanjaProfilneSlike || "/logo.gif"}
+                        alt={korisniciKomentara[k.korisnikID]?.korisnicko_ime || ""}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          marginRight: 10,
+                          border: k.korisnikID === mojID ? "2px solid #b91d95" : "none"
+                        }}
+                      />
+                      <span style={{ color: "#ffe6ec", fontWeight: 600 }}>
+                        {korisniciKomentara[k.korisnikID]?.korisnicko_ime || "Korisnik"}
+                        {k.korisnikID === mojID && " (Vi)"}
+                      </span>
+                      <span style={{ color: "#b3b3b3", fontSize: "0.98rem", marginLeft: 12 }}>
+                        {k.kreiranDatumVrijeme ? new Date(k.kreiranDatumVrijeme).toLocaleString() : ""}
+                      </span>
+                    </div>
+                    {editKomentarId === k.id ? (
+                      <div>
+                        <textarea
+                          value={editKomentarTekst}
+                          onChange={e => setEditKomentarTekst(e.target.value)}
+                          rows={2}
+                          style={{
+                            width: "100%",
+                            borderRadius: 6,
+                            border: "1px solid #b91d95",
+                            padding: 8,
+                            fontSize: "1.05rem",
+                            background: "#181818",
+                            color: "#fff",
+                            marginBottom: 8,
+                            resize: "vertical"
+                          }}
+                        />
+                        <button
+                          style={{
+                            background: "#b91d95",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 6,
+                            padding: "7px 18px",
+                            fontWeight: 600,
+                            fontSize: "1.02rem",
+                            marginRight: 8,
+                            cursor: "pointer"
+                          }}
+                          onClick={() => handleUrediKomentar(k.id)}
+                        >
+                          Sačuvaj
+                        </button>
+                        <button
+                          style={{
+                            background: "#232323",
+                            color: "#ffe6ec",
+                            border: "1px solid #b91d95",
+                            borderRadius: 6,
+                            padding: "7px 18px",
+                            fontWeight: 600,
+                            fontSize: "1.02rem",
+                            cursor: "pointer"
+                          }}
+                          onClick={() => {
+                            setEditKomentarId(null);
+                            setEditKomentarTekst("");
+                          }}
+                        >
+                          Odustani
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ color: "#fff", fontSize: "1.08rem", marginBottom: 2 }}>
+                        {k.tekst}
+                        {k.korisnikID === mojID && (
+                          <button
+                            style={{
+                              marginLeft: 18,
+                              background: "#232323",
+                              color: "#b91d95",
+                              border: "1px solid #b91d95",
+                              borderRadius: 6,
+                              padding: "4px 12px",
+                              fontWeight: 600,
+                              fontSize: "0.98rem",
+                              cursor: "pointer"
+                            }}
+                            onClick={() => {
+                              setEditKomentarId(k.id);
+                              setEditKomentarTekst(k.tekst);
+                            }}
+                          >
+                            Uredi
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>

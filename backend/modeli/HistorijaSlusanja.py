@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, ForeignKey, DateTime, Integer, Boolean, String
+from sqlalchemy import Column, BigInteger, ForeignKey, DateTime, Integer, Boolean, String, UniqueConstraint
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy.orm import relationship
 from servisi.Baza import Base
@@ -23,6 +23,10 @@ class HistorijaSlusanjaORM(Base):
     korisnik = relationship("KorisnikORM", foreign_keys=[korisnikID])
     pjesma = relationship("PjesmaORM", foreign_keys=[pjesmaID])
     playlista = relationship("PlaylistaORM", foreign_keys=[playlistaID])
+
+    __table_args__ = (
+        UniqueConstraint('korisnikID', 'pjesmaID', name='uq_historija_korisnik_pjesma'),
+    )
 
 # Pydantic modeli
 

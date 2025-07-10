@@ -33,16 +33,37 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
 
-@router.get("/", response_model=List[StatistikaReprodukcije])
+@router.get("/", response_model=List[dict])
 async def sve_statistike(session: AsyncSession = Depends(get_session)):
-    return await get_all_statistika(session)
+    statistike = await get_all_statistika(session)
+    # Vrati i pjesmu za svaku statistiku
+    result = []
+    for s in statistike:
+        pjesma = None
+        if hasattr(s, "pjesmaID"):
+            pjesma_res = await session.execute(
+                "SELECT * FROM pjesme WHERE id = :pid", {"pid": s.pjesmaID}
+            )
+            pjesma_row = pjesma_res.first()
+            if pjesma_row:
+                pjesma = dict(pjesma_row)
+        result.append({**s.__dict__, "pjesma": pjesma})
+    return result
 
-@router.get("/{statistika_id}", response_model=StatistikaReprodukcije)
+@router.get("/{statistika_id}", response_model=dict)
 async def get_statistika(statistika_id: int, session: AsyncSession = Depends(get_session)):
-    obj = await get_statistika_by_id(session, statistika_id)
-    if not obj:
+    s = await get_statistika_by_id(session, statistika_id)
+    if not s:
         raise HTTPException(status_code=404, detail="Statistika nije pronađena")
-    return obj
+    pjesma = None
+    if hasattr(s, "pjesmaID"):
+        pjesma_res = await session.execute(
+            "SELECT * FROM pjesme WHERE id = :pid", {"pid": s.pjesmaID}
+        )
+        pjesma_row = pjesma_res.first()
+        if pjesma_row:
+            pjesma = dict(pjesma_row)
+    return {**s.__dict__, "pjesma": pjesma}
 
 @router.post("/", response_model=StatistikaReprodukcije)
 async def nova_statistika(data: StatistikaReprodukcijeCreate, session: AsyncSession = Depends(get_session)):

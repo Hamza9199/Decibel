@@ -25,3 +25,17 @@ async def delete_komentar(session: AsyncSession, komentar_id: int):
     await session.delete(db_komentar)
     await session.commit()
     return db_komentar
+
+
+async def update_komentar(session: AsyncSession, komentar_id: int, data: KomentarCreate):
+    db_komentar = await get_komentar_by_id(session, komentar_id)
+    if not db_komentar:
+        return None
+    
+    for key, value in data.dict().items():
+        setattr(db_komentar, key, value)
+    
+    session.add(db_komentar)
+    await session.commit()
+    await session.refresh(db_komentar)
+    return db_komentar

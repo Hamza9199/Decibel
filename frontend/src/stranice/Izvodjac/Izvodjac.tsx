@@ -18,6 +18,7 @@ const Izvodjac: React.FC = () => {
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
   const [pratim, setPratim] = useState(false);
   const [loading, setLoading] = useState(true);
+  const repeatAll = false;
 
   let mojID = "";
   try {
@@ -89,6 +90,72 @@ const Izvodjac: React.FC = () => {
       })
     );
   };
+
+  // Dodaj play funkciju za album
+  const handlePlayAlbum = (albumId: number) => {
+    const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
+    if (albumSongs.length === 0) return;
+    let idx = 0;
+    const playNext = () => {
+      if (idx >= albumSongs.length) return;
+      const p = albumSongs[idx];
+      window.dispatchEvent(
+        new CustomEvent("globalAudioPlay", {
+          detail: {
+            src: p.putanjaAudio,
+            title: p.naziv,
+            putanjaGif: p.putanjaGif,
+            putanjaSlika: p.putanjaSlika,
+            korisnikID: p.korisnikID,
+          },
+        })
+      );
+      idx++;
+      const handler = () => {
+        playNext();
+        window.removeEventListener("audioSongEnded", handler);
+      };
+      window.addEventListener("audioSongEnded", handler);
+    };
+    playNext();
+  };
+
+  // Dodaj play funkciju za playlistu
+  const handlePlayPlaylist = (playlistId: number) => {
+    const playlistSongs = pjesme.filter((p) => p.id === playlistId && p.putanjaAudio);
+    if (playlistSongs.length === 0) return;
+    let idx = 0;
+    const playNext = () => {
+      if (idx >= playlistSongs.length) {
+        if (repeatAll) {
+           idx = 0;
+         } else {
+           return;
+         }
+       }
+       const p = pjesme[idx];
+       window.dispatchEvent(
+         new CustomEvent("globalAudioPlay", {
+           detail:
+             {
+               src: p.putanjaAudio,
+               title: p.naziv,
+               putanjaGif: p.putanjaGif,
+               putanjaSlika: p.putanjaSlika,
+               korisnikID: p.korisnikID,
+             },
+         })
+       );
+       idx++;
+       // Slušaj završetak pjesme i pusti sljedeću
+       const handler = () => {
+         playNext();
+         window.removeEventListener("audioSongEnded", handler);
+       };
+       window.addEventListener("audioSongEnded", handler);
+     };
+     playNext();
+   };
 
   if (loading) return <Loading />;
   if (!izvodjac)
@@ -165,6 +232,7 @@ const Izvodjac: React.FC = () => {
                   </div>
                 ))
               )}
+            
             </div>
           </div>
           <div className={styles.section}>
@@ -181,6 +249,16 @@ const Izvodjac: React.FC = () => {
                         alt={a.naziv}
                         className={styles.cardImage}
                       />
+                      {/* Play dugme za album */}
+                      <button
+                        className={styles.playBtn}
+                        onClick={() => handlePlayAlbum(a.id)}
+                        title="Pusti album"
+                      >
+                        <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
+                          <polygon points="12,8 36,22 12,36" />
+                        </svg>
+                      </button>
                     </div>
                     <Link to={`/album/${a.id}`} className={styles.cardTitle}>
                       {a.naziv}
@@ -204,6 +282,16 @@ const Izvodjac: React.FC = () => {
                         alt={pl.naziv}
                         className={styles.cardImage}
                       />
+                      {/* Play dugme za playlistu */}
+                      <button
+                        className={styles.playBtn}
+                        onClick={() => handlePlayPlaylist(pl.id)}
+                        title="Pusti playlistu"
+                      >
+                        <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
+                          <polygon points="12,8 36,22 12,36" />
+                        </svg>
+                      </button>
                     </div>
                     <Link to={`/playlista/${pl.id}`} className={styles.cardTitle}>
                       {pl.naziv}

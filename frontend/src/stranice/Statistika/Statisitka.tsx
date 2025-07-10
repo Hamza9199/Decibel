@@ -14,6 +14,7 @@ import {
   Legend,
   ArcElement,
 } from "chart.js";
+import type { Statistika } from "../../types";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement);
@@ -25,6 +26,7 @@ const Statistika: React.FC = () => {
   const [albumi, setAlbumi] = useState<Album[]>([]);
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
   const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
+  const [statistika, setStatistika] = useState<Statistika[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -34,11 +36,13 @@ const Statistika: React.FC = () => {
       axios.get(`${API_BASE}/albumi/`).then((res) => res.data).catch(() => []),
       axios.get(`${API_BASE}/playliste/`).then((res) => res.data).catch(() => []),
       axios.get(`${API_BASE}/korisnici/`).then((res) => res.data).catch(() => []),
-    ]).then(([pjesmeData, albumiData, playlisteData, korisniciData]) => {
+      axios.get(`${API_BASE}/statistika/`).then((res) => res.data).catch(() => []),
+    ]).then(([pjesmeData, albumiData, playlisteData, korisniciData, statistikaData]) => {
       setPjesme(pjesmeData);
       setAlbumi(albumiData);
       setPlayliste(playlisteData);
       setKorisnici(korisniciData);
+      setStatistika(statistikaData);
       setLoading(false);
     });
   }, []);
@@ -79,6 +83,16 @@ const Statistika: React.FC = () => {
   // Pie chart: omjer javnih i privatnih pjesama
   const javne = pjesme.filter(p => p.javno).length;
   const privatne = pjesme.length - javne;
+
+  // Top 10 najslušanijih pjesama (po broju reprodukcija)
+  const topSlusane = statistika
+    .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0))
+    .slice(0, 10)
+    .map((s) => ({
+      ...s,
+      pjesma: pjesme.find((p) => p.id === s.pjesmaID),
+    }))
+    .filter((s) => s.pjesma);
 
   return (
     <>
@@ -206,6 +220,25 @@ const Statistika: React.FC = () => {
                     options={{
                       responsive: true,
                       plugins: { legend: { position: "bottom" } },
+                    }}
+                  />
+                </div>
+                <div className={styles.chartCard}>
+                  <h3>Top 10 najslušanijih pjesama</h3>
+                  <Bar
+                    data={{
+                      labels: topSlusane.map((s) => s.pjesma?.naziv),
+                      datasets: [
+                        {
+                          label: "Broj slušanja",
+                          data: topSlusane.map((s) => s.brojReprodukcija),
+                          backgroundColor: "#1e90ff",
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      plugins: { legend: { display: false } },
                     }}
                   />
                 </div>

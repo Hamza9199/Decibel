@@ -28,6 +28,7 @@ AsyncSessionLocal = sessionmaker(
 )
 
 from typing import AsyncGenerator
+from kontroleri.KomentarKontroler import update_komentar
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
@@ -47,6 +48,17 @@ async def get_komentar(komentar_id: int, session: AsyncSession = Depends(get_ses
 @router.post("/", response_model=Komentar)
 async def novi_komentar(data: KomentarCreate, session: AsyncSession = Depends(get_session)):
     db_obj = await create_komentar(session, data)
+    return db_obj
+
+@router.put("/{komentar_id}", response_model=Komentar)
+async def azuriraj_komentar(
+    komentar_id: int,
+    data: KomentarCreate,
+    session: AsyncSession = Depends(get_session)
+):
+    db_obj = await update_komentar(session, komentar_id, data)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Komentar nije pronađen")
     return db_obj
 
 @router.delete("/{komentar_id}", response_model=Komentar)

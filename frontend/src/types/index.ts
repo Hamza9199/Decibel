@@ -6,3 +6,6 @@ export * from "./audiostate.types";
 export * from "./korisnikpretplata.types";
 export * from "./pretplata.types";
 export * from "./vezapjesmaplaylista.types";
+export * from "./historijaslusanja.types";
+export * from "./statistika.types";
+export * from "./komentar.types";

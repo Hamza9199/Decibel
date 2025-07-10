@@ -1,13 +1,16 @@
 .pjesmaBg {
   min-height: 100vh;
-  padding-top: 10px;
+  padding-top: 30px;
   padding-bottom: 60px;
   background: rgba(24,24,24,0.97);
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: center;
 }
-
+.kom{
+  display: flex;
+  
+}
 .container {
   max-width: 1100px;
   width: 100%;

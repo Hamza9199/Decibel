@@ -3,8 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import os
 from dotenv import load_dotenv
+from sqlalchemy.future import select
 
-from modeli.HistorijaSlusanja import HistorijaSlusanja, HistorijaSlusanjaCreate
+from modeli.HistorijaSlusanja import HistorijaSlusanja, HistorijaSlusanjaCreate, HistorijaSlusanjaORM
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
@@ -46,6 +47,19 @@ async def get_historija(historija_id: int, session: AsyncSession = Depends(get_s
 
 @router.post("/", response_model=HistorijaSlusanja)
 async def nova_historija(data: HistorijaSlusanjaCreate, session: AsyncSession = Depends(get_session)):
+    # Provjeri postoji li već zapis za korisnikID + pjesmaID
+    result = await session.execute(
+        select(HistorijaSlusanjaORM).where(
+            HistorijaSlusanjaORM.korisnikID == data.korisnikID,
+            HistorijaSlusanjaORM.pjesmaID == data.pjesmaID
+        )
+    )
+    postoji = result.scalar_one_or_none()
+    if postoji:
+        # Možeš vratiti postojeći zapis ili HTTP 409
+        # from fastapi import status
+        # raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Već postoji zapis za ovu pjesmu u historiji.")
+        return postoji
     db_obj = await create_historija(session, data)
     return db_obj
 

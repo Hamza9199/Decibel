@@ -17,6 +17,7 @@
    - [Sigurnost i autentikacija](#sigurnost-i-autentikacija)
    - [Testiranje](#testiranje-backenda)
    - [Primjeri API poziva](#primjeri-api-poziva)
+   - [Napredne funkcionalnosti](#napredne-funkcionalnosti)
 4. [Frontend](#frontend)
    - [Tehnologije](#tehnologije-frontenda)
    - [Struktura direktorijuma](#struktura-direktorijuma-frontend)
@@ -25,6 +26,7 @@
    - [Deploy](#deploy-frontend)
    - [Testiranje](#testiranje-frontenda)
    - [Primjeri UI/UX](#primjeri-ui-ux)
+   - [Napredne funkcionalnosti](#napredne-funkcionalnosti-frontend)
 5. [Mobilna aplikacija](#mobilna-aplikacija)
    - [Tehnologije](#tehnologije-mobilne-aplikacije)
    - [Struktura direktorijuma](#struktura-direktorijuma-mobilna)
@@ -38,6 +40,9 @@
    - [CI/CD](#ci-cd)
    - [Monitoring i logovanje](#monitoring-i-logovanje)
    - [SEO i PWA](#seo-i-pwa)
+   - [Pravila i migracije baze](#pravila-i-migracije-baze)
+   - [Pravila za testiranje mobilne aplikacije](#pravila-za-testiranje-mobilne-aplikacije)
+   - [Pravila za komentare, historiju i pretplate](#pravila-za-komentare-historiju-i-pretplate)
 7. [Reference](#reference)
 
 ---
@@ -45,6 +50,16 @@
 ## 1. Uvod
 
 Decibel je moderna muzička platforma (web + mobilna aplikacija) za upravljanje, prikaz i slušanje pjesama, albuma, plejlista i korisnika. Projekat je razvijen kao diplomski rad i koristi moderne tehnologije za backend, frontend i mobilni deo. Platforma omogućava korisnicima da otkrivaju novu muziku, prate izvođače, kreiraju i uređuju playliste, komentarišu pjesme, prate statistiku slušanja i još mnogo toga.
+
+**Nove funkcionalnosti:**
+- Historija slušanja sa mogućnošću lajka, dodavanja pjesme u playlistu i puštanja direktno iz historije.
+- Komentari na pjesmama sa uređivanjem i isticanjem komentara vlasnika.
+- Napredna statistika: top 10 najslušanijih pjesama, najlajkovaniji albumi, izvođači sa najviše pratilaca, žanrovi, omjer javnih/privatnih pjesama.
+- Pretplate i obnova pretplate, sa podrškom za više statusa i automatsko ažuriranje.
+- Prava uređivanja i brisanja sadržaja (albuma, plejlista, pjesama) samo za vlasnika.
+- Drag & drop redoslijed pjesama u playlisti.
+- Prikaz preporučenih pjesama na detalju pjesme.
+- Prikaz i uređivanje profilne slike korisnika.
 
 ---
 
@@ -111,6 +126,9 @@ backend/
 │   ├── AlbumKontroler.py
 │   ├── PlaylistaKontroler.py
 │   ├── PratilacKorisnikKontroler.py
+│   ├── KomentarKontroler.py
+│   ├── StatistikaReprodukcijeKontroler.py
+│   ├── HistorijaSlusanjaKontroler.py
 │   └── __init__.py
 ├── rute/
 │   ├── KorisnikRuta.py
@@ -118,10 +136,17 @@ backend/
 │   ├── AlbumRuta.py
 │   ├── PlaylistaRuta.py
 │   ├── PratilacKorisnikRuta.py
+│   ├── KomentarRuta.py
+│   ├── StatistikaReprodukcijeRuta.py
+│   ├── HistorijaSlusanjaRuta.py
+│   ├── PretplataRuta.py
+│   ├── KorisnikPretplataRuta.py
+│   ├── ObnovaPretplateRuta.py
 │   └── __init__.py
 ├── servisi/
 │   ├── Baza.py
 │   ├── FirebaseStorage.py
+│   ├── PlaylistaRedoslijed.py
 │   └── __init__.py
 └── ...
 ```
@@ -141,9 +166,9 @@ backend/
 - **PratilacKorisnikORM**: Veza korisnik-pratilac
 - **RedoslijedPjesamaORM**: Redoslijed pjesama u playlisti
 - **StatistikaReprodukcijeORM**: Statistika slušanja pjesama (broj reprodukcija, ukupno trajanje, zadnje puštanje)
-- **HistorijaSlusanjaORM**: Historija slušanja korisnika (kontekst, offline, trajanje)
+- **HistorijaSlusanjaORM**: Historija slušanja korisnika (kontekst, offline, trajanje, jedinstvenost po korisnikID+pjesmaID)
 - **PretplataORM**: Model pretplate (naziv, opis, cijena, dostupnost)
-- **KorisnikPretplataORM**: Veza korisnik-pretplata (status, datumi)
+- **KorisnikPretplataORM**: Veza korisnik-pretplata (status, datumi, jedinstvenost po korisnikID)
 - **ObnovaPretplateORM**: Evidencija obnova pretplate
 
 ### Rute
@@ -154,25 +179,26 @@ backend/
 - `/api/playliste/` – CRUD operacije nad playlistama
 - `/api/pratioci/` – praćenje korisnika
 - `/api/izvodjac_pjesma/` – izvođači za pjesmu
-- `/api/pjesma_playlista/` – pjesme u playlisti (redoslijed)
-- `/api/komentari/` – komentari na pjesme
-- `/api/statistika_reprodukcije/` – statistika slušanja
-- `/api/historija_slusanja/` – historija slušanja korisnika
+- `/api/pjesma_playlista/` – pjesme u playlisti (redoslijed, drag & drop)
+- `/api/komentari/` – komentari na pjesme (dodavanje, uređivanje, brisanje, vlasnički komentar na vrhu)
+- `/api/statistika/` – statistika slušanja (embed pjesma objekat u odgovoru)
+- `/api/historija/` – historija slušanja korisnika (sprečava duplikate, najnovije prvo)
 - `/api/pretplate/` – ponude pretplata
-- `/api/korisnik_pretplata/` – korisničke pretplate
+- `/api/korisnik_pretplata/` – korisničke pretplate (status, obnova, otkazivanje)
 - `/api/obnove_pretplate/` – obnove pretplate
 - `/api/redoslijed_pjesama/` – redoslijed pjesama u playlisti
 - ...i ostale rute za sve modele
 
 ### Kontroleri
 
-- **KorisnikKontroler.py**: Poslovna logika za korisnike (heširanje lozinki, login, CRUD)
-- **PjesmaKontroler.py**: Poslovna logika za pjesme (CRUD, odobravanje, filtriranje)
+- **KorisnikKontroler.py**: Poslovna logika za korisnike (heširanje lozinki, login, CRUD, promjena profilne slike)
+- **PjesmaKontroler.py**: Poslovna logika za pjesme (CRUD, odobravanje, filtriranje, embed korisnik)
 - **AlbumKontroler.py**: CRUD za albume
 - **PlaylistaKontroler.py**: CRUD za playliste
 - **PratilacKorisnikKontroler.py**: Praćenje korisnika
-- **StatistikaReprodukcijeKontroler.py**: Statistika slušanja
-- **HistorijaSlusanjaKontroler.py**: Historija slušanja korisnika
+- **KomentarKontroler.py**: Komentari (dodavanje, uređivanje samo teksta, brisanje)
+- **StatistikaReprodukcijeKontroler.py**: Statistika slušanja (embed pjesma)
+- **HistorijaSlusanjaKontroler.py**: Historija slušanja korisnika (sprečava duplikate, vraća najnovije prvo)
 
 ### Baza podataka
 
@@ -181,6 +207,7 @@ backend/
 - Migracije se rade Alembic-om (`alembic revision --autogenerate -m "opis"`)
 - Svi modeli su pokriveni u `skripta.sql` i migracijama
 - Složenije procedure za redoslijed pjesama u playlisti (SQL stored procedures)
+- **Napomena:** Prije dodavanja unique constraint-a na historiju slušanja, očistiti duplikate!
 
 ### Firebase Storage
 
@@ -219,12 +246,14 @@ backend/
 - CORS je omogućen za frontend i mobilnu aplikaciju.
 - Za produkciju koristi HTTPS i ograniči CORS.
 - JWT autentikacija se može lako dodati (FastAPI ima podršku).
+- Svi podaci o korisniku (osim lozinke) dostupni su kroz API.
 
 ### Testiranje (backend)
 
 - Testiraj API rute pomoću Postman-a ili Swagger UI (`/docs`).
 - Piši unit testove za kontrolere i modele.
 - Testiraj upload fajlova i integraciju sa Firebase Storage-om.
+- Testiraj unique constraint-e i validaciju podataka.
 
 ### Primjeri API poziva
 
@@ -250,6 +279,49 @@ backend/
   ```http
   GET /api/pjesme/
   ```
+- **Dodaj komentar**:
+  ```http
+  POST /api/komentari/
+  {
+    "korisnikID": "uuid",
+    "pjesmaID": 123,
+    "tekst": "Odlična pjesma!",
+    "vrijemePjesmeSekunde": 0,
+    "kreiranDatumVrijeme": "2024-06-01T12:00:00"
+  }
+  ```
+- **Dodaj u historiju slušanja**:
+  ```http
+  POST /api/historija/
+  {
+    "korisnikID": "uuid",
+    "pjesmaID": 123,
+    "playlistaID": null,
+    "kreiranDatumVrijeme": "2024-06-01T12:00:00",
+    "trajanje": 210,
+    "kontekstPustanjaURL": null,
+    "offline": false,
+    "kontekstPustanja": null
+  }
+  ```
+- **Kupovina pretplate**:
+  ```http
+  POST /api/korisnik_pretplata/
+  {
+    "korisnikID": "uuid",
+    "pretplataID": 1,
+    "pretplataStatus": "aktivna"
+  }
+  ```
+
+### Napredne funkcionalnosti
+
+- **Historija slušanja**: Sprečava duplikate, prikazuje najnovije prvo, omogućava play, like i dodavanje u playlistu.
+- **Komentari**: Vlasnikov komentar uvijek na vrhu, uređivanje komentara, prikaz korisničke slike.
+- **Statistika**: Top 10 najslušanijih pjesama, embed pjesma objekat u odgovoru, grafovi za frontend.
+- **Pretplate**: Status pretplate, obnova, otkazivanje, prikaz paketa, validacija kupovine.
+- **Redoslijed pjesama u playlisti**: Drag & drop, backend logika za pokazivače, automatsko ažuriranje.
+- **Prava pristupa**: Samo vlasnik može uređivati/brisati svoj sadržaj (album, playlistu, pjesmu).
 
 ---
 
@@ -295,6 +367,8 @@ frontend/
 │   │   ├── Postavke/
 │   │   ├── Login/
 │   │   ├── Register/
+│   │   ├── NovaPretplata/
+│   │   ├── Historija/
 │   │   └── ...
 │   └── komponente/
 │       ├── Header/
@@ -313,6 +387,7 @@ frontend/
 - Prikaz podataka iz API-ja (`.env` koristi VITE_API_BASE_URL)
 - Detaljan prikaz pjesme, albuma, playliste sa svim metapodacima i akcijama (lajk, play, repeat, dodavanje u playlistu, komentari, izvođači, preporučene pjesme)
 - Admin panel za upravljanje sadržajem i korisnicima
+- Prikaz i uređivanje profilne slike korisnika
 
 ### Audio player
 
@@ -339,9 +414,19 @@ frontend/
 - Home stranica sa horizontalnim scrollom za pjesme, albume, plejlistu i izvođače
 - Detaljna stranica pjesme sa izvođačima, play dugmetom, komentarima i preporukama
 - Stranica albuma sa svim pjesmama, play all, repeat, lajk, dodavanje pjesme u playlistu
-- Stranica playliste sa redoslijedom pjesama, play, repeat, lajk
+- Stranica playliste sa redoslijedom pjesama, play, repeat, lajk, drag & drop
 - Statistika sa grafovima (top pjesme, albumi, plejlistu, izvođači, žanrovi)
 - Admin panel za odobravanje pjesama/albuma, uređivanje korisnika
+- Historija slušanja sa akcijama (play, like, dodaj u playlistu)
+
+### Napredne funkcionalnosti (frontend)
+
+- **Historija slušanja**: Prikaz najnovijih pjesama, mogućnost lajka, dodavanja u playlistu, play direktno iz historije.
+- **Komentari**: Dodavanje, uređivanje, prikaz komentara, vlasnikov komentar uvijek na vrhu.
+- **Statistika**: Grafovi za top 10 najslušanijih pjesama, najlajkovanije albume, plejliste, izvođače, žanrove, omjer javnih/privatnih pjesama.
+- **Pretplate**: Prikaz statusa, kupovina, obnova, otkazivanje, validacija kartice.
+- **Drag & drop**: Promjena redoslijeda pjesama u playlisti.
+- **Prava pristupa**: Samo vlasnik može uređivati/brisati svoj sadržaj (album, playlistu, pjesmu).
 
 ---
 
@@ -405,6 +490,7 @@ mobilnaAPP/
 - Testiraj UI sa Espresso
 - Testiraj MediaPlayer i lifecycle
 - Testiraj offline režim (ako koristiš Room)
+- Testiraj upload i prikaz profilne slike
 
 ### Distribucija APK
 
@@ -446,6 +532,25 @@ mobilnaAPP/
 
 - Frontend je optimizovan za SEO (React Helmet, meta tagovi)
 - Može se proširiti u PWA (Progressive Web App) za offline podršku
+
+### Pravila i migracije baze
+
+- Prije dodavanja unique constraint-a (npr. na historiju slušanja), očistiti duplikate!
+- Svi modeli imaju migracije kroz Alembic.
+- Prava pristupa i validacija podataka su implementirani na backendu.
+
+### Pravila za testiranje mobilne aplikacije
+
+- APK se može dijeliti putem Google Drive, WeTransfer, direktno.
+- Instalacija na Android: dozvoliti "Unknown sources".
+- Za iOS nije moguće bez TestFlight-a.
+
+### Pravila za komentare, historiju i pretplate
+
+- Komentar vlasnika pjesme uvijek na vrhu.
+- Historija slušanja ne dozvoljava duplikate (ista pjesma za istog korisnika).
+- Pretplate: samo jedna aktivna po korisniku, statusi: aktivna, neaktivna, pauzirana, istekla.
+- Prava uređivanja i brisanja sadržaja samo za vlasnika.
 
 ---
 

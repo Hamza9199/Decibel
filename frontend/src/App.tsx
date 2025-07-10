@@ -21,6 +21,13 @@ import Pjesma from './stranice/Pjesma/Pjesma';
 import Album from './stranice/Album/Album';
 import Playlista from './stranice/Playlista/Playlista';
 import Izvodjac from './stranice/Izvodjac/Izvodjac';
+import UrediPjesmu from './stranice/UrediPjesmu/UrediPjesmu';
+import UrediAlbum from './stranice/UrediAlbum/UrediAlbum';
+import UrediPlaylistu from './stranice/UrediPlaylistu/UrediPlaylistu';
+import Header from './komponente/Header/Header';
+import Footer from './komponente/Footer/Footer';
+import Sidebar from './komponente/Sidebar/Sidebar';
+import NovaPretplata from './stranice/NovaPretplata/NovaPretplata';
 
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -85,6 +92,21 @@ const AppContent: FC = () => {
         <Route path="/album/:albumId" element={<Album />} />
         <Route path="/playlista/:playlistaId" element={<Playlista />} />
         <Route path="/izvodjac/:izvodjacId" element={<Izvodjac />} />
+        <Route path="/uredi-pjesmu/:pjesmaId" element={<UrediPjesmu />} />
+        <Route path="/uredi-album/:albumId" element={<UrediAlbum />} />
+        <Route path="/uredi-playlistu/:playlistaId" element={<UrediPlaylistu />} />
+        <Route path='/nova-pretplata/:pretplataId' element={<NovaPretplata />} />
+        {/* Fallback route */}
+        <Route path="/404" element={
+          <>
+            <Header/>
+            <Sidebar/>
+            <div>Stranica nije pronađena</div>
+            <Footer/>
+          </>
+        } 
+        />
+      
 
 
 
@@ -96,6 +118,7 @@ const AppContent: FC = () => {
 
 const App: FC = () => {
   const [audioState, setAudioState] = useState<{
+    id?: number;
     src?: string;
     title?: string;
     putanjaGif?: string;
@@ -109,9 +132,10 @@ const App: FC = () => {
   useEffect(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
-      const { src, title, putanjaGif, putanjaSlika, korisnikID } = (customEvent.detail || {});
+      const { id, src, title, putanjaGif, putanjaSlika, korisnikID } = (customEvent.detail || {});
       if (src) {
         setAudioState({
+          id, // <-- proslijedi id pjesme
           src,
           title,
           putanjaGif,
@@ -135,6 +159,7 @@ const App: FC = () => {
     <Router>
       <AppContent />
       <AudioPlayer
+        id={audioState.id} // <-- proslijedi id kao prop
         src={audioState.src}
         title={audioState.title}
         putanjaGif={audioState.putanjaGif}

@@ -46,6 +46,7 @@ async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSessi
 
 @router.post("/", response_model=KorisnikPretplata)
 async def nova_korisnik_pretplata(data: KorisnikPretplataCreate, session: AsyncSession = Depends(get_session)):
+    print("Primljen payload:", data)
     db_obj = await create_korisnik_pretplata(session, data)
     return db_obj
 

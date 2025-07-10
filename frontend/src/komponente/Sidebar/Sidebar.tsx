@@ -108,6 +108,21 @@ const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
         <div className={styles.profileMenu}>
           <button
             className={styles.navBtn}
+            onClick={() => navigate("/historija")}
+          >
+            <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+              <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                <rect x="3" y="6" width="18" height="2" rx="1" />
+                <rect x="3" y="10" width="14" height="2" rx="1" />
+                <rect x="3" y="14" width="10" height="2" rx="1" />
+              </svg>
+            </span>
+            Historija
+          </button>
+        </div>
+        <div className={styles.profileMenu}>
+          <button
+            className={styles.navBtn}
             onClick={() => setShowPlaylistMenu((prev) => !prev)}
           >
             {/* Playlist icon */}

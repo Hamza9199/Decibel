@@ -242,10 +242,10 @@ const Album: React.FC = () => {
                           onClick={() => handleAddToPlaylist(p)}
                           title="Dodaj u playlistu"
                         >
-                          <svg width="22" height="22" viewBox="0 0 44 44" fill="#b91d95">
-                            <rect x="18" y="8" width="8" height="28" />
-                            <rect x="8" y="18" width="28" height="8" />
-                          </svg>
+                          <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
+            <rect x="18" y="8" width="8" height="28" />
+            <rect x="8" y="18" width="28" height="8" />
+          </svg>
                         </button>
                       </td>
                     </tr>

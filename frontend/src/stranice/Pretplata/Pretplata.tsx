@@ -5,6 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import Loading from "../../komponente/Loading/Loading";
+import { useNavigate } from "react-router-dom";
 import type { KorisnikPretplata, Pretplata } from "../../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
@@ -14,6 +15,8 @@ const Pretplata: React.FC = () => {
   const [korisnikPretplata, setKorisnikPretplata] = useState<KorisnikPretplata | null>(null);
   const [ponude, setPonude] = useState<Pretplata[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [kupovinaLoading, setKupovinaLoading] = useState(false);
+  const navigate = useNavigate();
 
   let korisnikID = "";
   try {
@@ -30,7 +33,6 @@ const Pretplata: React.FC = () => {
       return;
     }
     setLoading(true);
-    // Prvo dohvati korisnikovu pretplatu (ispravan endpoint je /korisnik-pretplata/ umjesto /korisnik-pretplate/)
     axios
       .get(`${API_BASE}/korisnik_pretplata/`)
       .then((res) => {
@@ -38,7 +40,6 @@ const Pretplata: React.FC = () => {
         const moja = pretplate.find((p) => p.korisnikID === korisnikID);
         setKorisnikPretplata(moja || null);
         if (!moja) {
-          // Ako nema pretplatu, dohvati sve dostupne ponude
           axios
             .get(`${API_BASE}/pretplate/`)
             .then((r) => setPonude((r.data || []).filter((p: Pretplata) => p.dostupno)))
@@ -48,6 +49,27 @@ const Pretplata: React.FC = () => {
       .catch((error) => setError("Greška pri dohvatu podataka. " + (error?.response?.status === 404 ? "Nema podataka." : error)))
       .finally(() => setLoading(false));
   }, [korisnikID]);
+
+  // Otkazivanje pretplate
+  const handleOtkaziPretplatu = async () => {
+    if (!korisnikPretplata) return;
+    if (!window.confirm("Jeste li sigurni da želite otkazati pretplatu?")) return;
+    setKupovinaLoading(true);
+    try {
+      await axios.delete(`${API_BASE}/korisnik_pretplata/${korisnikPretplata.id}`);
+      window.location.reload();
+    } catch {
+      setError("Greška pri otkazivanju pretplate.");
+    } finally {
+      setKupovinaLoading(false);
+    }
+  };
+
+  // Obnova pretplate
+  const handleObnoviPretplatu = () => {
+    if (!korisnikPretplata?.pretplataID) return;
+    navigate(`/nova-pretplata/${korisnikPretplata.pretplataID}`);
+  };
 
   return (
     <>
@@ -79,6 +101,24 @@ const Pretplata: React.FC = () => {
                   Ističe: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()}</b>
                 </div>
               )}
+              <div style={{ display: "flex", gap: 12, marginTop: 16, justifyContent: "center" }}>
+                <button
+                  className={styles.kupiBtn}
+                  style={{ background: "#e754a2" }}
+                  onClick={handleObnoviPretplatu}
+                  disabled={kupovinaLoading}
+                >
+                  Obnovi pretplatu
+                </button>
+                <button
+                  className={styles.kupiBtn}
+                  style={{ background: "#232323", color: "#ffe6ec", border: "1px solid #b91d95" }}
+                  onClick={handleOtkaziPretplatu}
+                  disabled={kupovinaLoading}
+                >
+                  Otkaži pretplatu
+                </button>
+              </div>
               <div className={styles.success}>Imate aktivnu pretplatu.</div>
             </div>
           ) : (
@@ -95,8 +135,12 @@ const Pretplata: React.FC = () => {
                       <div className={styles.ponudaNaziv}>{p.naziv}</div>
                       <div className={styles.ponudaOpis}>{p.opis}</div>
                       <div className={styles.ponudaCijena}>{p.cijena} KM / mj</div>
-                      <button className={styles.kupiBtn} disabled>
-                        Kupi (uskoro)
+                      <button
+                        className={styles.kupiBtn}
+                        onClick={() => navigate(`/nova-pretplata/${p.id}`)}
+                        disabled={kupovinaLoading}
+                      >
+                        Kupi
                       </button>
                     </div>
                   ))
@@ -112,3 +156,5 @@ const Pretplata: React.FC = () => {
 };
 
 export default Pretplata;
+               
+

@@ -3,10 +3,12 @@ export type Album = {
   naziv: string;
   opis?: string;
   putanjaSlika?: string;
+  putanjaGif?: string;
   korisnikID?: string;
   odobreno?: boolean;
   brojLajkova?: number;
   javno?: boolean;
+  kreiranDatumVrijeme?: string;
   korisnik?: {
     id: string;
     korisnicko_ime: string;

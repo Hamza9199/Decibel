@@ -2,8 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
 import { Korisnik, Playlista, Pjesma, VezaPjesmaPlaylista } from "../../types";
+import { Link } from "react-router-dom";
 
 type Props = {
+  id?: number; // <-- dodaj id u Props
   src?: string;
   title?: string;
   putanjaGif?: string;
@@ -19,6 +21,7 @@ type Props = {
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const AudioPlayer: React.FC<Props> = ({
+  id, // <-- primi id
   src,
   title,
   putanjaGif,
@@ -364,12 +367,16 @@ const AudioPlayer: React.FC<Props> = ({
         />
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
+            <Link to={`/izvodjac/${korisnik?.id}`}>
             <span className={styles.audioArtist}>
-              {korisnik?.korisnicko_ime || "Nepoznati korisnik"}
+              {korisnik?.korisnicko_ime || "Nepoznati korisnik"} -
             </span>
-            <span className={styles.audioTitle}>
-              {title || "Trenutno nema pjesme"}
-            </span>
+            </Link>
+            <Link to={id ? `/pjesma/${id}` : "#"}>
+              <span className={styles.audioTitle}>
+                {title || "Trenutno nema pjesme"}
+              </span>
+            </Link>
           </div>
           <div className={styles.audioTime}>
             {formatTime(progress)} / {formatTime(duration)}

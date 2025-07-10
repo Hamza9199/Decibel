@@ -180,8 +180,8 @@
 }
 
 .audioArtist{
-   color: #fff;
-  font-size: 1.10rem;
+    color: #fff;
+  font-size: 1.25rem;
   font-weight: 700;
   margin-bottom: 4px;
   text-align: left;
@@ -189,6 +189,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 320px;
+  margin-right: -5px;
 }
 
 .audioDetails{

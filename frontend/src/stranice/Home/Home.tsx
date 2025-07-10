@@ -18,6 +18,7 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [activeSong, setActiveSong] = useState<Pjesma | null>(null);
+  const repeatAll = false;
 
   // Emit event for background image when song changes
   useEffect(() => {
@@ -59,6 +60,7 @@ const Home: React.FC = () => {
       window.dispatchEvent(
         new CustomEvent("globalAudioPlay", {
           detail: {
+            id: id,
             src: audioUrl,
             title: song.naziv,
             putanjaGif: song.putanjaGif,
@@ -100,49 +102,41 @@ const Home: React.FC = () => {
   };
 
   // Dodaj play funkciju za playlistu
-  const handlePlayPlaylist = (playlistaId: number) => {
-    // Prvo dohvati redoslijed pjesama iz playliste (ako koristiš redoslijed_pjesama endpoint)
-    axios
-      .get(`${API_BASE}/redoslijed_pjesama/?playlistaID=${playlistaId}`)
-      .then((res) => {
-        const redoslijed = res.data || [];
-        // Dohvati detalje pjesama po ID-u
-        Promise.all(
-          redoslijed.map((r: { pjesmaID: number }) =>
-            axios
-              .get(`${API_BASE}/pjesme/${r.pjesmaID}`)
-              .then((r) => r.data)
-              .catch(() => null)
-          )
-        ).then((pjesmeArr) => {
-          const pjesmeZaPustanje = pjesmeArr.filter(Boolean).filter((p: Pjesma) => p.putanjaAudio);
-          if (pjesmeZaPustanje.length === 0) return;
-          let idx = 0;
-          const playNext = () => {
-            if (idx >= pjesmeZaPustanje.length) return;
-            const p = pjesmeZaPustanje[idx];
-            window.dispatchEvent(
-              new CustomEvent("globalAudioPlay", {
-                detail: {
-                  src: p.putanjaAudio,
-                  title: p.naziv,
-                  putanjaGif: p.putanjaGif,
-                  putanjaSlika: p.putanjaSlika,
-                  korisnikID: p.korisnikID,
-                },
-              })
-            );
-            idx++;
-            const handler = () => {
-              playNext();
-              window.removeEventListener("audioSongEnded", handler);
-            };
-            window.addEventListener("audioSongEnded", handler);
-          };
-          playNext();
-        });
-      });
-  };
+  const handlePlayPlaylist = (playlistId: number) => {
+    const playlistSongs = pjesme.filter((p) => p.id === playlistId && p.putanjaAudio);
+    if (playlistSongs.length === 0) return;
+    let idx = 0;
+    const playNext = () => {
+      if (idx >= playlistSongs.length) {
+        if (repeatAll) {
+           idx = 0;
+         } else {
+           return;
+         }
+       }
+       const p = pjesme[idx];
+       window.dispatchEvent(
+         new CustomEvent("globalAudioPlay", {
+           detail:
+             {
+               src: p.putanjaAudio,
+               title: p.naziv,
+               putanjaGif: p.putanjaGif,
+               putanjaSlika: p.putanjaSlika,
+               korisnikID: p.korisnikID,
+             },
+         })
+       );
+       idx++;
+       // Slušaj završetak pjesme i pusti sljedeću
+       const handler = () => {
+         playNext();
+         window.removeEventListener("audioSongEnded", handler);
+       };
+       window.addEventListener("audioSongEnded", handler);
+     };
+     playNext();
+   };
 
   if (loading) return <Loading />;
 
@@ -178,7 +172,10 @@ const Home: React.FC = () => {
                     )}
                   </div>
                   <Link to={`/pjesma/${p.id}`}><div className={styles.cardTitle}>{p.naziv}</div></Link>
+                  <Link to={`/izvodjac/${p.korisnik?.id}`}>
+
                    <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
+                   </Link>
                 </div>
               ))}
             </div>
@@ -207,7 +204,9 @@ const Home: React.FC = () => {
                     </button>
                   </div>
                   <Link to={`/album/${a.id}`}><div className={styles.cardTitle}>{a.naziv}</div></Link>
+                  <Link to={`/izvodjac/${a.korisnik?.id}`}>
                   <div className={styles.cardDesc}>{a.korisnik?.korisnicko_ime|| <span>&nbsp;</span>}</div>
+                  </Link>
                 </div>
               ))}
             </div>
@@ -238,7 +237,9 @@ const Home: React.FC = () => {
                   <Link to={`/playlista/${pl.id}`}>
                     <div className={styles.cardTitle}>{pl.naziv}</div>
                   </Link>
+                   <Link to={`/izvodjac/${pl.korisnik?.id}`}>
                   <div className={styles.cardDesc}>{pl.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
+                  </Link>
                 </div>
               ))}
             </div>

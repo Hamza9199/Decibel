@@ -88,14 +88,27 @@ const Statistika: React.FC = () => {
   const privatne = pjesme.length - javne;
 
   // Top 10 najslušanijih pjesama (po broju reprodukcija)
-  const topSlusane = statistika
-    .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0))
-    .slice(0, 10)
-    .map((s) => ({
-      ...s,
-      pjesma: pjesme.find((p) => p.id === s.pjesmaID),
-    }))
-    .filter((s) => s.pjesma);
+  // Ako statistika nema podatke, koristi brojReprodukcija iz pjesme
+  let topSlusane: { pjesma: Pjesma; brojReprodukcija: number }[] = [];
+
+  if (statistika.length > 0) {
+    // Ako backend vraća statistiku sa pjesma objektom
+    topSlusane = statistika
+      .map((s: Statistika) => ({
+        pjesma: s.pjesma || pjesme.find((p) => p.id === s.pjesmaID),
+        brojReprodukcija: s.brojReprodukcija || 0,
+      }))
+      .filter((s): s is { pjesma: Pjesma; brojReprodukcija: number } => !!s.pjesma)
+      .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0))
+      .slice(0, 10);
+  } else {
+    // Ako nema statistike, koristi brojReprodukcija iz pjesme
+    topSlusane = [...pjesme]
+      .filter((p) => typeof p.brojReprodukcija === "number")
+      .sort((a, b) => (b.brojReprodukcija ?? 0) - (a.brojReprodukcija ?? 0))
+      .slice(0, 10)
+      .map((p) => ({ pjesma: p, brojReprodukcija: p.brojReprodukcija || 0 }));
+  }
 
   return (
     <>

@@ -9,6 +9,9 @@
   display: flex;
   flex-direction: column;
   z-index: 1200;
+  overflow-y: auto; /* Dodaj scroll */
+  scrollbar-width: thin;
+  scrollbar-color: #b91d95 #232323;
 }
 
 .logoWrap {
@@ -116,6 +119,19 @@
 .subNavBtn:focus {
   background: #b91d9533;
   color: #e754a2;
+}
+
+/* Prilagodi scroll bar za Webkit browsere */
+.sidebar::-webkit-scrollbar {
+  width: 8px;
+  background: #232323;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background: #b91d95;
+  border-radius: 6px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: #e754a2;
 }
 
 @media (max-width: 900px) {

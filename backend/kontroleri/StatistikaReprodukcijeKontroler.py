@@ -2,6 +2,7 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from modeli.StatistikaReprodukcije import StatistikaReprodukcijeORM, StatistikaReprodukcije, StatistikaReprodukcijeCreate
+from modeli.Pjesma import PjesmaORM
 
 async def get_all_statistika(session: AsyncSession):
     result = await session.execute(select(StatistikaReprodukcijeORM))
@@ -16,6 +17,11 @@ async def get_statistika_by_id(session: AsyncSession, statistika_id: int):
 async def create_statistika(session: AsyncSession, data: StatistikaReprodukcijeCreate):
     db_obj = StatistikaReprodukcijeORM(**data.dict())
     session.add(db_obj)
+    # Povećaj broj reprodukcija na pjesmi
+    pjesma = await session.get(PjesmaORM, data.pjesmaID)
+    if pjesma:
+        pjesma.brojReprodukcija = (pjesma.brojReprodukcija or 0) + 1
+        session.add(pjesma)
     await session.commit()
     await session.refresh(db_obj)
     return db_obj

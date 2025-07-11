@@ -16,6 +16,7 @@ export type Pjesma = {
   licenca?: string;
   eksplicitniSadrzaj?: boolean;
   datumObjave?: string;
+  brojReprodukcija?: number;
   korisnik?: {
     id: string;
     korisnicko_ime: string;

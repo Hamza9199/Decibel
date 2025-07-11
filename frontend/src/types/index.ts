@@ -12,3 +12,4 @@ export * from "./komentar.types";
 export * from "./korisnikpjesma.types";
 export * from "./korisnikalbum.types";
 export * from "./korisnikplaylista.types";
+export * from "./statistikareprodukcije.types";

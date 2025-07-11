@@ -48,6 +48,7 @@ const AudioPlayer: React.FC<Props> = ({
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
    const [liked, setLiked] = useState(false);
    const [pjesma, setPjesma] = useState<Pjesma>();
+   const [statistikaSent, setStatistikaSent] = useState(false);
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -175,6 +176,45 @@ const AudioPlayer: React.FC<Props> = ({
         setLiked(false);
       });
   }, [src, korisnik?.id]);
+
+  // Dodaj statistiku reprodukcije nakon 10 sekundi slušanja
+useEffect(() => {
+  if (!pjesma || !korisnik?.id || !playing || !src) {
+    setStatistikaSent(false);
+    return;
+  }
+  if (progress < 10 || statistikaSent) return;
+
+  const sendStatistika = async () => {
+    try {
+      // Statistika reprodukcije
+      await axios.post(`${API_BASE}/statistika/`, {
+        korisnikID: korisnik.id,
+        pjesmaID: pjesma.id,
+        brojReprodukcija: 1,
+        ukupnoTrajanje: pjesma.trajanjeSekunde || 0,
+        zadnjePustanje: new Date().toISOString(),
+      }).catch(() => {});
+
+      // Povećaj broj reprodukcija na pjesmi
+      await axios.put(`${API_BASE}/pjesme/${pjesma.id}`, {
+        ...pjesma,
+        brojReprodukcija: (pjesma.brojReprodukcija || 0) + 1,
+      }).catch(() => {});
+    } catch {
+      console.error("Failed to send statistika reprodukcije");
+    }
+    setStatistikaSent(true);
+  };
+
+  sendStatistika();
+  // eslint-disable-next-line
+}, [progress, pjesma, korisnik?.id, statistikaSent, src]);
+
+// Reset statistikaSent kad se pjesma promijeni
+useEffect(() => {
+  setStatistikaSent(false);
+}, [src]);
 
   const handlePlayPause = () => {
     setPlaying((p) => !p);

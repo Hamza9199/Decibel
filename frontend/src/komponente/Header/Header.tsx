@@ -57,12 +57,10 @@ const Header: React.FC = () => {
 
       <div className={styles.logo}>Decibel</div>
       </Link>
-                <Link className={styles.welcomeMessage} to="/profile/edit">
 
-      <span >
+      <span className={styles.welcomeMessage}>
         Dobrodošli {korisnik?.korisnicko_ime} !
       </span>
-            </Link>
 
 
                       <Link to="/profile/edit">

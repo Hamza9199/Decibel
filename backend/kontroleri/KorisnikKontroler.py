@@ -36,7 +36,13 @@ async def register_korisnik(session: AsyncSession, korisnik: KorisnikCreate):
         korisnicko_ime=korisnik.korisnicko_ime,
         email=korisnik.email,
         lozinka=hash_password(korisnik.lozinka),  # Hesiraj lozinku
-        rola=korisnik.rola
+        rola=korisnik.rola,
+        bio=korisnik.bio,
+        statusKorisnika=korisnik.statusKorisnika or "aktivan",
+        putanjaProfilneSlike=korisnik.putanjaProfilneSlike,
+        datumRegistracije=korisnik.datumRegistracije or None,
+        brojPratilaca=korisnik.brojPratilaca or 0,
+        obrisan=korisnik.obrisan or False
     )
     session.add(db_korisnik)
     await session.commit()

@@ -32,7 +32,7 @@ class KorisnikCreate(BaseModel):
     korisnicko_ime: str
     email: str
     lozinka: str
-    rola: KorisnikRole
+    rola: Optional[KorisnikRole] = KorisnikRole.korisnik
     bio: Optional[str] = None
     statusKorisnika: Optional[KorisnikStatusEnum] = KorisnikStatusEnum.aktivan
     putanjaProfilneSlike: Optional[str] = None

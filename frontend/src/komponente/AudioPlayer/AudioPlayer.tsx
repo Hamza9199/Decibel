@@ -223,8 +223,10 @@ useEffect(() => {
     // Dodaj u historiju samo kad se pjesma promijeni
     const addToHistorija = async () => {
       try {
+        const user = JSON.parse(localStorage.getItem("korisnik") || "");
+
         await axios.post(`${API_BASE}/historija/`, {
-          korisnikID: korisnik.id,
+          korisnikID: user?.id,
           pjesmaID: pjesma.id,
           playlistaID: null,
           kreiranDatumVrijeme: new Date().toISOString(),

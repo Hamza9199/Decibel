@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./NoviAlbum.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -6,7 +6,7 @@ import Loading from "../../komponente/Loading/Loading";
 import Footer from "../../komponente/Footer/Footer";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
-
+import { Pjesma } from "../../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -18,6 +18,8 @@ const NoviAlbum: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [svePjesme, setSvePjesme] = useState<Pjesma[]>([]);
+  const [odabranePjesme, setOdabranePjesme] = useState<number[]>([]);
   const navigate = useNavigate();
 
   let korisnikID = "";
@@ -27,6 +29,26 @@ const NoviAlbum: React.FC = () => {
   } catch {
     korisnikID = "";
   }
+
+  useEffect(() => {
+    // Dohvati sve pjesme korisnika
+    if (!korisnikID) return;
+    axios
+      .get(`${API_BASE}/pjesme/`)
+      .then((res) => {
+        // Prikazi samo pjesme korisnika koje nisu već na albumu
+        setSvePjesme((res.data || []).filter((p: Pjesma) => p.korisnikID === korisnikID && !p.albumID));
+      })
+      .catch(() => setSvePjesme([]));
+  }, [korisnikID]);
+
+  const handleTogglePjesma = (pjesmaId: number) => {
+    setOdabranePjesme((prev) =>
+      prev.includes(pjesmaId)
+        ? prev.filter((id) => id !== pjesmaId)
+        : [...prev, pjesmaId]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,9 +64,22 @@ const NoviAlbum: React.FC = () => {
     if (fileGif) formData.append("file_gif", fileGif);
 
     try {
-      await axios.post(`${API_BASE}/albumi/`, formData, {
+      // 1. Kreiraj album
+      const albumRes = await axios.post(`${API_BASE}/albumi/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      const albumId = albumRes.data.id;
+      // 2. Dodaj pjesme na album (ako su odabrane)
+      if (albumId && odabranePjesme.length > 0) {
+        await Promise.all(
+          odabranePjesme.map((pjesmaId) =>
+            axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
+              ...svePjesme.find((p) => p.id === pjesmaId),
+              albumID: albumId,
+            })
+          )
+        );
+      }
       setSuccess("Album je uspješno kreiran!");
       setTimeout(() => navigate("/albums"), 1200);
     } catch {
@@ -56,60 +91,92 @@ const NoviAlbum: React.FC = () => {
 
   return (
     <>
-    <Header/>
-    <Sidebar/>
-    
-    <div className={styles.noviAlbumBg}>
-      <form className={styles.noviAlbumForm} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>Novi album</h2>
-        <input
-          type="text"
-          placeholder="Naziv albuma"
-          className={styles.input}
-          value={naziv}
-          onChange={(e) => setNaziv(e.target.value)}
-          required
-        />
-        <textarea
-          placeholder="Opis (opcionalno)"
-          className={styles.textarea}
-          value={opis}
-          onChange={(e) => setOpis(e.target.value)}
-          rows={3}
-        />
-        <div className={styles.fileInputs}>
-          <label className={styles.fileLabel}>
-            Slika:
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFileSlika(e.target.files?.[0] || null)}
-            />
-          </label>
-          <label className={styles.fileLabel}>
-            Gif:
-            <input
-              type="file"
-              accept="image/gif"
-              onChange={(e) => setFileGif(e.target.files?.[0] || null)}
-            />
-          </label>
+      <Header/>
+      <Sidebar/>
+      <div className={styles.noviAlbumBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+        <form className={styles.noviAlbumForm} onSubmit={handleSubmit} style={{ minWidth: 340 }}>
+          <h2 className={styles.title}>Novi album</h2>
+          <input
+            type="text"
+            placeholder="Naziv albuma"
+            className={styles.input}
+            value={naziv}
+            onChange={(e) => setNaziv(e.target.value)}
+            required
+          />
+          <textarea
+            placeholder="Opis (opcionalno)"
+            className={styles.textarea}
+            value={opis}
+            onChange={(e) => setOpis(e.target.value)}
+            rows={3}
+          />
+          <div className={styles.fileInputs}>
+            <label className={styles.fileLabel}>
+              Slika:
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFileSlika(e.target.files?.[0] || null)}
+              />
+            </label>
+            <label className={styles.fileLabel}>
+              Gif:
+              <input
+                type="file"
+                accept="image/gif"
+                onChange={(e) => setFileGif(e.target.files?.[0] || null)}
+              />
+            </label>
+          </div>
+          {error && <div className={styles.error}>{error}</div>}
+          {success && <div className={styles.success}>{success}</div>}
+          <button className={styles.button} type="submit" disabled={loading}>
+            {loading ? <Loading /> : "Kreiraj album"}
+          </button>
+          <button
+            type="button"
+            className={styles.cancelBtn}
+            onClick={() => navigate("/albums")}
+          >
+            Odustani
+          </button>
+        </form>
+        {/* Desno: izbor pjesama */}
+        <div style={{
+          marginLeft: 32,
+          background: "#232323",
+          borderRadius: 14,
+          padding: "24px 18px",
+          minWidth: 260,
+          maxHeight: 480,
+          overflowY: "auto",
+          boxShadow: "0 4px 24px #b91d9533"
+        }}>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Dodaj postojeće pjesme</h4>
+          {svePjesme.length === 0 ? (
+            <div style={{ color: "#b3b3b3" }}>Nema dostupnih pjesama.</div>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {svePjesme.map((p) => (
+                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
+                  <input
+                    type="checkbox"
+                    checked={odabranePjesme.includes(p.id)}
+                    onChange={() => handleTogglePjesma(p.id)}
+                    style={{ marginRight: 10 }}
+                  />
+                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
+                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
+                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-        {error && <div className={styles.error}>{error}</div>}
-        {success && <div className={styles.success}>{success}</div>}
-        <button className={styles.button} type="submit" disabled={loading}>
-          {loading ? <Loading /> : "Kreiraj album"}
-        </button>
-        <button
-          type="button"
-          className={styles.cancelBtn}
-          onClick={() => navigate("/albums")}
-        >
-          Odustani
-        </button>
-      </form>
-    </div>
-    <Footer/>
+      </div>
+      <Footer/>
     </>
   );
 };

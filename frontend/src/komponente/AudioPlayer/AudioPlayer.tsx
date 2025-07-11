@@ -46,6 +46,8 @@ const AudioPlayer: React.FC<Props> = ({
   const [repeatOne, setRepeatOne] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
+   const [liked, setLiked] = useState(false);
+   const [pjesma, setPjesma] = useState<Pjesma>();
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -136,9 +138,64 @@ const AudioPlayer: React.FC<Props> = ({
     }
   }, [src, playing]);
 
+
+   useEffect(() => {
+    if (!src) {
+      setPjesma(undefined);
+      setLiked(false);
+      return;
+    }
+    axios
+      .get(`${API_BASE}/pjesme/`)
+      .then((res) => {
+        const p = (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src);
+        setPjesma(p);
+        // Provjeri da li je korisnik lajkao pjesmu (koristi korisnik_pjesma)
+        let korisnikID = korisnik?.id;
+        try {
+          const user = JSON.parse(localStorage.getItem("korisnik") || "");
+          korisnikID = user?.id || korisnikID;
+        } catch {
+          console.error("Failed to parse user from localStorage");
+        }
+        if (p && korisnikID) {
+          axios
+            .get(`${API_BASE}/korisnik_pjesma/`)
+            .then((r) => {
+              const veze = r.data as { korisnikID: string; pjesmaID: number }[];
+              setLiked(!!veze.find((v) => v.korisnikID === korisnikID && v.pjesmaID === p.id));
+            })
+            .catch(() => setLiked(false));
+        } else {
+          setLiked(false);
+        }
+      })
+      .catch(() => {
+        setPjesma(undefined);
+        setLiked(false);
+      });
+  }, [src, korisnik?.id]);
+
   const handlePlayPause = () => {
     setPlaying((p) => !p);
   };
+
+   const handleLike = async () => {
+    if (!pjesma || !korisnik?.id) return;
+    if (liked) {
+      // Un-like
+      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`).catch(() => {});
+      setLiked(false);
+    } else {
+      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        korisnikID: korisnik.id,
+        pjesmaID: pjesma.id,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      }).catch(() => {});
+      setLiked(true);
+    }
+  };
+
 
   const handleTimeUpdate = () => {
     if (!audioRef.current) return;
@@ -377,6 +434,27 @@ const AudioPlayer: React.FC<Props> = ({
                 {title || "Trenutno nema pjesme"}
               </span>
             </Link>
+
+             {pjesma && korisnik?.id && (
+              <button
+                style={{
+                  marginLeft: -10,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  verticalAlign: "middle",
+                  outline: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
+                onClick={handleLike}
+                title={liked ? "Ukloni lajk" : "Lajkuj pjesmu"}
+              >
+                <svg width="22" height="22" viewBox="0 0 28 28" fill={liked ? "#e754a2" : "#fff"}>
+                  <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
+                </svg>
+              </button>
+            )}
           </div>
           <div className={styles.audioTime}>
             {formatTime(progress)} / {formatTime(duration)}

@@ -4,7 +4,7 @@ import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
-import { Pjesma, HistorijaSlusanja, Playlista } from "../../types";
+import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { Link } from "react-router-dom";
 
@@ -47,15 +47,33 @@ const Historija: React.FC = () => {
       .get(`${API_BASE}/playliste/`)
       .then((res) => setPlaylists(res.data || []))
       .catch(() => setPlaylists([]));
+    // Dohvati lajkove korisnika za pjesme
+    axios
+      .get(`${API_BASE}/korisnik_pjesma/`)
+      .then((res) => {
+        const veze = res.data as KorisnikPjesma[];
+        const map: { [pjesmaId: number]: boolean } = {};
+        veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.pjesmaID] = true; });
+        setLikeMap(map);
+      })
+      .catch(() => setLikeMap({}));
     setLoading(false);
   }, [korisnikID]);
 
-  // Like funkcionalnost (dummy, lokalno)
-  const handleLike = (pjesmaId: number) => {
-    setLikeMap((prev) => ({
-      ...prev,
-      [pjesmaId]: !prev[pjesmaId],
-    }));
+  // Like/Unlike handler
+  const handleLike = async (pjesmaId: number) => {
+    if (!korisnikID || !pjesmaId) return;
+    if (likeMap[pjesmaId]) {
+      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${pjesmaId}`).catch(() => {});
+      setLikeMap((prev) => ({ ...prev, [pjesmaId]: false }));
+    } else {
+      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        korisnikID,
+        pjesmaID: pjesmaId,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      }).catch(() => {});
+      setLikeMap((prev) => ({ ...prev, [pjesmaId]: true }));
+    }
   };
 
   // Dodavanje pjesme u playlistu
@@ -100,7 +118,7 @@ const Historija: React.FC = () => {
               <thead>
                 <tr>
                   <th>#</th>
-                    <th>Slika</th>
+                  <th>Slika</th>
                   <th>Naziv</th>
                   <th>Izvođač</th>
                   <th>Akcije</th>
@@ -112,7 +130,7 @@ const Historija: React.FC = () => {
                     <td>{idx + 1}</td>
                     <td>
                       <Link to={`/pjesma/${h.pjesmaID}`}>
-                      <img src={h.pjesma?.putanjaSlika} alt={h.pjesma?.naziv} className={styles.songImage} />
+                        <img src={h.pjesma?.putanjaSlika} alt={h.pjesma?.naziv} className={styles.songImage} />
                       </Link>
                     </td>
                     <td>
@@ -147,7 +165,7 @@ const Historija: React.FC = () => {
                         onClick={() => handleLike(h.pjesmaID)}
                         title={likeMap[h.pjesmaID] ? "Ukloni lajk" : "Lajkuj pjesmu"}
                       >
-                        <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[h.pjesmaID] ? "#e754a2" : "#fff"}>
+                        <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
                           <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                         </svg>
                       </button>
@@ -157,9 +175,9 @@ const Historija: React.FC = () => {
                         title="Dodaj u playlistu"
                       >
                         <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
-            <rect x="18" y="8" width="8" height="28" />
-            <rect x="8" y="18" width="28" height="8" />
-          </svg>
+                          <rect x="18" y="8" width="8" height="28" />
+                          <rect x="8" y="18" width="28" height="8" />
+                        </svg>
                       </button>
                       {/* Modal za izbor playliste */}
                       {showPlaylistModal === h.pjesmaID && (

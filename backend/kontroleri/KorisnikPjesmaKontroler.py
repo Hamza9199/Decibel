@@ -2,6 +2,7 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from modeli.KorisnikPjesma import KorisnikPjesmaORM, KorisnikPjesma, KorisnikPjesmaCreate
+from modeli.Pjesma import PjesmaORM
 
 async def get_all_korisnik_pjesma(session: AsyncSession):
     result = await session.execute(select(KorisnikPjesmaORM))
@@ -19,6 +20,11 @@ async def get_korisnik_pjesma(session: AsyncSession, korisnikID: str, pjesmaID: 
 async def create_korisnik_pjesma(session: AsyncSession, data: KorisnikPjesmaCreate):
     db_obj = KorisnikPjesmaORM(**data.dict())
     session.add(db_obj)
+    # Povećaj broj lajkova na pjesmi
+    pjesma = await session.get(PjesmaORM, data.pjesmaID)
+    if pjesma:
+        pjesma.brojLajkova = (pjesma.brojLajkova or 0) + 1
+        session.add(pjesma)
     await session.commit()
     await session.refresh(db_obj)
     return db_obj
@@ -28,5 +34,10 @@ async def delete_korisnik_pjesma(session: AsyncSession, korisnikID: str, pjesmaI
     if not db_obj:
         return None
     await session.delete(db_obj)
+    # Smanji broj lajkova na pjesmi
+    pjesma = await session.get(PjesmaORM, pjesmaID)
+    if pjesma and (pjesma.brojLajkova or 0) > 0:
+        pjesma.brojLajkova -= 1
+        session.add(pjesma)
     await session.commit()
     return db_obj

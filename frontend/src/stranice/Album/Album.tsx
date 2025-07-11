@@ -5,7 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import type { Album, Pjesma, Playlista } from "../../types";
+import type { Album, Pjesma, Playlista, KorisnikPjesma } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
@@ -21,6 +21,7 @@ const Album: React.FC = () => {
   const [likeCount, setLikeCount] = useState<number>(0);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
+  const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
 
   let korisnikID = "";
   try {
@@ -51,9 +52,25 @@ const Album: React.FC = () => {
         .get(`${API_BASE}/playliste/`)
         .then((res) => setPlaylists(res.data || []))
         .catch(() => setPlaylists([]));
+      // Provjeri da li je korisnik lajkao album
+      axios
+        .get(`${API_BASE}/korisnik_album/`)
+        .then((res) => {
+          const veze = res.data as { korisnikID: string; albumID: number }[];
+          setLiked(!!veze.find((v) => v.korisnikID === korisnikID && String(v.albumID) === String(albumId)));
+        })
+        .catch(() => setLiked(false));
+      // Dohvati lajkove korisnika za pjesme
+      axios
+        .get(`${API_BASE}/korisnik_pjesma/`)
+        .then((res) => {
+          const veze = res.data as KorisnikPjesma[];
+          const map: { [pjesmaId: number]: boolean } = {};
+          veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.pjesmaID] = true; });
+          setLikeMap(map);
+        })
+        .catch(() => setLikeMap({}));
     }
-    // Provjeri da li je korisnik lajkao album (dummy, zamijeni sa pravim endpointom ako imaš)
-    setLiked(false);
     setLoading(false);
   }, [albumId, korisnikID]);
 
@@ -105,10 +122,24 @@ const Album: React.FC = () => {
     playNext();
   };
 
-  const handleLike = () => {
-    // Dummy: zamijeni sa pravim endpointom za lajk
-    setLiked((prev) => !prev);
-    setLikeCount((prev) => prev + (liked ? -1 : 1));
+  const handleLike = async () => {
+    if (!album || !korisnikID) return;
+    if (liked) {
+      // Un-like
+      await axios.delete(`${API_BASE}/korisnik_album/${korisnikID}/${album.id}`).catch(() => {});
+      setLiked(false);
+      setLikeCount((prev) => prev - 1);
+    } else {
+      await axios
+        .post(`${API_BASE}/korisnik_album/`, {
+          korisnikID,
+          albumID: album.id,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        })
+        .catch(() => {});
+      setLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
   };
 
   const handleAddToPlaylist = (p: Pjesma) => {
@@ -130,6 +161,21 @@ const Album: React.FC = () => {
       alert("Pjesma je dodana u playlistu!");
     } catch {
       alert("Greška pri dodavanju pjesme u playlistu.");
+    }
+  };
+
+  const handleLikeSong = async (pjesmaId: number) => {
+    if (!korisnikID || !pjesmaId) return;
+    if (likeMap[pjesmaId]) {
+      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${pjesmaId}`).catch(() => {});
+      setLikeMap((prev) => ({ ...prev, [pjesmaId]: false }));
+    } else {
+      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        korisnikID,
+        pjesmaID: pjesmaId,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      }).catch(() => {});
+      setLikeMap((prev) => ({ ...prev, [pjesmaId]: true }));
     }
   };
 
@@ -169,7 +215,7 @@ const Album: React.FC = () => {
                 onClick={handleLike}
                 title={liked ? "Ukloni lajk" : "Lajkuj album"}
               >
-                <svg width="28" height="28" viewBox="0 0 28 28" fill={liked ? "#e754a2" : "#fff"}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill={liked ? "#f6b6d8ff" : "#fff"}>
                   <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                 </svg>
                 <span>{likeCount}</span>
@@ -235,6 +281,15 @@ const Album: React.FC = () => {
                         >
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff">
                             <polygon points="12,8 36,22 12,36" />
+                          </svg>
+                        </button>
+                        <button
+                          className={`${styles.songPlayBtn} ${likeMap[p.id] ? styles.liked : ""}`}
+                          onClick={() => handleLikeSong(p.id)}
+                          title={likeMap[p.id] ? "Ukloni lajk" : "Lajkuj pjesmu"}
+                        >
+                          <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[p.id] ? "#f2a9d0ff" : "#fff"}>
+                            <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                           </svg>
                         </button>
                         <button

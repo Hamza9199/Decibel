@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./NovaPjesma.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import Loading from "../../komponente/Loading/Loading";
 import Footer from "../../komponente/Footer/Footer";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
+import { Album } from "../../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -21,9 +22,22 @@ const NovaPjesma: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [albumi, setAlbumi] = useState<Album[]>([]);
+  const [albumID, setAlbumID] = useState<number | "">("");
   const navigate = useNavigate();
 
   const korisnik = JSON.parse(localStorage.getItem("korisnik") || "{}");
+
+  useEffect(() => {
+    // Dohvati sve albume korisnika
+    if (!korisnik?.id) return;
+    axios
+      .get(`${API_BASE}/albumi/`)
+      .then((res) => {
+        setAlbumi((res.data || []).filter((a: Album) => a.korisnikID === korisnik.id));
+      })
+      .catch(() => setAlbumi([]));
+  }, [korisnik?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +53,7 @@ const NovaPjesma: React.FC = () => {
       formData.append("datumObjave", datumObjave);
       formData.append("trajanjeSekunde", trajanjeSekunde.toString());
       formData.append("zanr", zanr);
+      if (albumID) formData.append("albumID", String(albumID));
       if (audio) formData.append("file_audio", audio);
       if (slika) formData.append("file_slika", slika);
       if (gif) formData.append("file_gif", gif);
@@ -52,20 +67,17 @@ const NovaPjesma: React.FC = () => {
       setTimeout(() => navigate("/"), 1200);
     } catch {
       setError("Greška pri dodavanju pjesme.");
-      
       setLoading(false);
     }
   };
 
   return (
     <>
-    <Header/>
-    <Sidebar/>
-    <div className={styles.novaPjesmaBg}>
-      {loading ? (
-        <Loading />
-      ) : (
-        <form className={styles.novaPjesmaForm} onSubmit={handleSubmit}>
+      <Header/>
+      <Sidebar/>
+      {loading && <Loading/>}
+      <div className={styles.novaPjesmaBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
+        <form className={styles.novaPjesmaForm} onSubmit={handleSubmit} style={{ minWidth: 340 }}>
           <h2 className={styles.title}>Dodaj novu pjesmu</h2>
           <label className={styles.label}>Naziv Pjesme</label>
           <input
@@ -120,6 +132,17 @@ const NovaPjesma: React.FC = () => {
             <option value="alternativni">Alternativni</option>
             <option value="rap">Rap</option>
           </select>
+          <label className={styles.label}>Album (opcionalno)</label>
+          <select
+            className={styles.input}
+            value={albumID}
+            onChange={e => setAlbumID(e.target.value ? Number(e.target.value) : "")}
+          >
+            <option value="">Bez albuma</option>
+            {albumi.map((a) => (
+              <option key={a.id} value={a.id}>{a.naziv}</option>
+            ))}
+          </select>
           <label className={styles.label}>Audio fajl:
             <input
               type="file"
@@ -151,9 +174,8 @@ const NovaPjesma: React.FC = () => {
             Dodaj pjesmu
           </button>
         </form>
-      )}
-    </div>
-    <Footer/>
+      </div>
+      <Footer/>
     </>
   );
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./UrediPjesmu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Pjesma } from "../../types";
+import { Pjesma, Album } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -27,6 +27,9 @@ const UrediPjesmu: React.FC = () => {
     korisnikID = undefined;
   }
 
+  const [albumi, setAlbumi] = useState<Album[]>([]);
+  const [albumID, setAlbumID] = useState<number | "">("");
+
   useEffect(() => {
     if (!pjesmaId) return;
     setLoading(true);
@@ -36,6 +39,18 @@ const UrediPjesmu: React.FC = () => {
       .catch(() => setError("Greška pri dohvatanju pjesme."))
       .finally(() => setLoading(false));
   }, [pjesmaId]);
+
+  // Dohvati sve albume korisnika
+  useEffect(() => {
+    if (korisnikID) {
+      axios
+        .get(`${API_BASE}/albumi/`)
+        .then((res) => {
+          setAlbumi((res.data || []).filter((a: Album) => a.korisnikID === korisnikID));
+        })
+        .catch(() => setAlbumi([]));
+    }
+  }, [korisnikID]);
 
   // Form state
   const [naziv, setNaziv] = useState("");
@@ -56,6 +71,7 @@ const UrediPjesmu: React.FC = () => {
       setJezikPjesme(pjesma.jezikPjesme || "");
       setLicenca(pjesma.licenca || "");
       setEksplicitniSadrzaj(!!pjesma.eksplicitniSadrzaj);
+      setAlbumID(pjesma.albumID || "");
     }
   }, [pjesma]);
 
@@ -76,7 +92,7 @@ const UrediPjesmu: React.FC = () => {
     formData.append("licenca", licenca);
     formData.append("eksplicitniSadrzaj", String(eksplicitniSadrzaj));
     formData.append("zanr", zanr);
-    if (pjesma.albumID) formData.append("albumID", String(pjesma.albumID));
+    if (albumID) formData.append("albumID", String(albumID));
     if (fileSlika) formData.append("file_slika", fileSlika);
     if (fileGif) formData.append("file_gif", fileGif);
     if (fileAudio) formData.append("file_audio", fileAudio);
@@ -147,6 +163,17 @@ const UrediPjesmu: React.FC = () => {
             style={{ marginLeft: 8 }}
           />
         </label>
+        <label className={styles.label}>Album (opcionalno)</label>
+        <select
+          className={styles.input}
+          value={albumID}
+          onChange={e => setAlbumID(e.target.value ? Number(e.target.value) : "")}
+        >
+          <option value="">Bez albuma</option>
+          {albumi.map((a) => (
+            <option key={a.id} value={a.id}>{a.naziv}</option>
+          ))}
+        </select>
         <label className={styles.label}>Nova slika (opcionalno)</label>
         <input
           type="file"

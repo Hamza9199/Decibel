@@ -29,6 +29,7 @@ import Footer from './komponente/Footer/Footer';
 import Sidebar from './komponente/Sidebar/Sidebar';
 import NovaPretplata from './stranice/NovaPretplata/NovaPretplata';
 import Historija from './stranice/Historija/Historija';
+import Omiljeno from './stranice/Omiljeno/Omiljeno';
 
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -98,6 +99,9 @@ const AppContent: FC = () => {
         <Route path="/uredi-playlistu/:playlistaId" element={<UrediPlaylistu />} />
         <Route path='/nova-pretplata/:pretplataId' element={<NovaPretplata />} />
         <Route path="/historija" element={<Historija />} />
+        <Route path="/omiljene/pjesme" element={<Omiljeno />} />
+        <Route path="/omiljene/albumi" element={<Omiljeno />} />
+        <Route path="/omiljene/playliste" element={<Omiljeno />} />
         {/* Fallback route */}
         <Route path="/404" element={
           <>

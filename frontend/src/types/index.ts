@@ -9,3 +9,6 @@ export * from "./vezapjesmaplaylista.types";
 export * from "./historijaslusanja.types";
 export * from "./statistika.types";
 export * from "./komentar.types";
+export * from "./korisnikpjesma.types";
+export * from "./korisnikalbum.types";
+export * from "./korisnikplaylista.types";

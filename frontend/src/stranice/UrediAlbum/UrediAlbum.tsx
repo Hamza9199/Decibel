@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./UrediAlbum.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Album } from "../../types";
+import { Album, Pjesma } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -16,6 +16,10 @@ const UrediAlbum: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [pjesmeAlbuma, setPjesmeAlbuma] = useState<Pjesma[]>([]);
+  const [svePjesme, setSvePjesme] = useState<Pjesma[]>([]);
+  const [removing, setRemoving] = useState<number | null>(null);
+  const [dodajuci, setDodajuci] = useState<number | null>(null);
   const navigate = useNavigate();
 
   // Dohvati ID logovanog korisnika iz localStorage
@@ -35,6 +39,22 @@ const UrediAlbum: React.FC = () => {
       .then((res) => setAlbum(res.data))
       .catch(() => setError("Greška pri dohvatanju albuma."))
       .finally(() => setLoading(false));
+  }, [albumId]);
+
+  // Dohvati pjesme na ovom albumu
+  useEffect(() => {
+    if (!albumId) return;
+    axios
+      .get(`${API_BASE}/pjesme/`)
+      .then((res) => {
+        const sve: Pjesma[] = res.data || [];
+        setPjesmeAlbuma(sve.filter((p) => String(p.albumID) === String(albumId)));
+        setSvePjesme(sve.filter((p) => !p.albumID || String(p.albumID) === "null" || p.albumID === null));
+      })
+      .catch(() => {
+        setPjesmeAlbuma([]);
+        setSvePjesme([]);
+      });
   }, [albumId]);
 
   // Form state
@@ -75,6 +95,42 @@ const UrediAlbum: React.FC = () => {
     } catch {
       setError("Greška pri ažuriranju albuma.");
     }
+  };
+
+  // Funkcija za izbacivanje pjesme iz albuma
+  const handleRemoveSong = async (pjesmaId: number) => {
+    setRemoving(pjesmaId);
+    try {
+      // Dohvati pjesmu, postavi albumID na null i update
+      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
+      const pjesma = pjesmaRes.data;
+      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
+        ...pjesma,
+        albumID: null,
+      });
+      setPjesmeAlbuma((prev) => prev.filter((p) => p.id !== pjesmaId));
+    } catch {
+      alert("Greška pri izbacivanju pjesme iz albuma.");
+    }
+    setRemoving(null);
+  };
+
+  // Dodavanje pjesme na album
+  const handleAddSong = async (pjesmaId: number) => {
+    setDodajuci(pjesmaId);
+    try {
+      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
+      const pjesma = pjesmaRes.data;
+      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
+        ...pjesma,
+        albumID: Number(albumId),
+      });
+      setPjesmeAlbuma((prev) => [...prev, pjesma]);
+      setSvePjesme((prev) => prev.filter((p) => p.id !== pjesmaId));
+    } catch {
+      alert("Greška pri dodavanju pjesme na album.");
+    }
+    setDodajuci(null);
   };
 
   if (loading) return <Loading />;
@@ -122,6 +178,87 @@ const UrediAlbum: React.FC = () => {
             Sačuvaj promjene
           </button>
         </form>
+        {/* Desno: prikaz pjesama na albumu i mogućnost izbacivanja/dodavanja */}
+        <div style={{
+          marginLeft: 32,
+          background: "#232323",
+          borderRadius: 14,
+          padding: "24px 18px",
+          minWidth: 260,
+          maxHeight: 480,
+          overflowY: "auto",
+          boxShadow: "0 4px 24px #b91d9533"
+        }}>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Pjesme na albumu</h4>
+          {pjesmeAlbuma.length === 0 ? (
+            <div style={{ color: "#b3b3b3" }}>Nema pjesama na ovom albumu.</div>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {pjesmeAlbuma.map((p) => (
+                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
+                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
+                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
+                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                  </span>
+                  <button
+                    style={{
+                      marginLeft: "auto",
+                      background: "#b91d95",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 14px",
+                      fontWeight: 600,
+                      fontSize: "0.98rem",
+                      cursor: "pointer",
+                      transition: "background 0.18s",
+                      opacity: removing === p.id ? 0.6 : 1
+                    }}
+                    disabled={removing === p.id}
+                    onClick={() => handleRemoveSong(p.id)}
+                  >
+                    {removing === p.id ? "Uklanjam..." : "Izbaci"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          <hr style={{ margin: "18px 0", border: "none", borderTop: "1px solid #444" }} />
+          <h4 style={{ color: "#fff", marginBottom: 10, fontWeight: 600 }}>Dodaj pjesme</h4>
+          {svePjesme.length === 0 ? (
+            <div style={{ color: "#b3b3b3" }}>Nema dostupnih pjesama.</div>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {svePjesme.map((p) => (
+                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
+                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
+                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
+                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                  </span>
+                  <button
+                    style={{
+                      marginLeft: "auto",
+                      background: "#b91d95",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 14px",
+                      fontWeight: 600,
+                      fontSize: "0.98rem",
+                      cursor: "pointer",
+                      transition: "background 0.18s",
+                      opacity: dodajuci === p.id ? 0.6 : 1
+                    }}
+                    disabled={dodajuci === p.id}
+                    onClick={() => handleAddSong(p.id)}
+                  >
+                    {dodajuci === p.id ? "Dodajem..." : "Dodaj"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       <Footer />
     </>

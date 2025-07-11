@@ -131,22 +131,22 @@ async def nova_pjesma(
 @router.put("/{pjesma_id}", response_model=Pjesma)
 async def izmeni_pjesmu(
     pjesma_id: int,
-    korisnikID: str = Form(...),
-    naziv: str = Form(...),
+    session: AsyncSession = Depends(get_session),
+    korisnikID: str = Form(None),
+    naziv: str = Form(None),
     opis: str = Form(None),
-    datumObjave: str = Form(...),
-    trajanjeSekunde: int = Form(...),
-    javno: bool = Form(False),
-    odobreno: bool = Form(False),
+    datumObjave: str = Form(None),
+    trajanjeSekunde: int = Form(None),
+    javno: bool = Form(None),
+    odobreno: bool = Form(None),
     jezikPjesme: str = Form(None),
     licenca: str = Form(None),
-    eksplicitniSadrzaj: bool = Form(False),
-    zanr: str = Form(...),
+    eksplicitniSadrzaj: bool = Form(None),
+    zanr: str = Form(None),
     albumID: int = Form(None),
     file_audio: UploadFile = File(None),
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
-    session: AsyncSession = Depends(get_session)
 ):
     # Dohvati postojeću pjesmu iz baze
     db_pjesma = await get_pjesma_by_id(session, pjesma_id)
@@ -179,24 +179,35 @@ async def izmeni_pjesmu(
         putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
         os.remove(temp_path)
 
-    pjesma_data = PjesmaCreate(
-        korisnikID=korisnikID,
-        albumID=albumID,
-        naziv=naziv,
-        opis=opis,
-        datumObjave=datumObjave,
-        trajanjeSekunde=trajanjeSekunde,
-        javno=javno,
-        odobreno=odobreno,
-        putanjaAudio=putanjaAudio,
-        putanjaSlika=putanjaSlika,
-        putanjaGif=putanjaGif,
-        jezikPjesme=jezikPjesme,
-        licenca=licenca,
-        eksplicitniSadrzaj=eksplicitniSadrzaj,
-        zanr=zanr
-    )
-    db_pjesma = await update_pjesma(session, pjesma_id, pjesma_data)
+    # Pripremi podatke za update, koristi postojeće vrijednosti ako nisu poslani novi podaci
+    pjesma_data = {
+        "korisnikID": korisnikID if korisnikID is not None else db_pjesma.korisnikID,
+        "albumID": albumID if albumID is not None else db_pjesma.albumID,
+        "naziv": naziv if naziv is not None else db_pjesma.naziv,
+        "opis": opis if opis is not None else db_pjesma.opis,
+        "datumObjave": datumObjave if datumObjave is not None else db_pjesma.datumObjave,
+        "trajanjeSekunde": trajanjeSekunde if trajanjeSekunde is not None else db_pjesma.trajanjeSekunde,
+        "javno": javno if javno is not None else db_pjesma.javno,
+        "odobreno": odobreno if odobreno is not None else db_pjesma.odobreno,
+        "putanjaAudio": putanjaAudio,
+        "putanjaSlika": putanjaSlika,
+        "putanjaGif": putanjaGif,
+        "jezikPjesme": jezikPjesme if jezikPjesme is not None else db_pjesma.jezikPjesme,
+        "licenca": licenca if licenca is not None else db_pjesma.licenca,
+        "eksplicitniSadrzaj": eksplicitniSadrzaj if eksplicitniSadrzaj is not None else db_pjesma.eksplicitniSadrzaj,
+        "zanr": zanr if zanr is not None else db_pjesma.zanr,
+        "brojReprodukcija": db_pjesma.brojReprodukcija,
+        "brojLajkova": db_pjesma.brojLajkova,
+    }
+
+    # Pretvori datumObjave u datetime.date ako je string
+    import datetime
+    if isinstance(pjesma_data["datumObjave"], str):
+        pjesma_data["datumObjave"] = datetime.datetime.strptime(pjesma_data["datumObjave"], "%Y-%m-%d").date()
+
+    from modeli.Pjesma import PjesmaCreate
+    pjesma_create = PjesmaCreate(**pjesma_data)
+    db_pjesma = await update_pjesma(session, pjesma_id, pjesma_create)
     if not db_pjesma:
         raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
     return db_pjesma

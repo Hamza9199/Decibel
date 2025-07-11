@@ -74,6 +74,7 @@
   cursor: pointer;
   margin-top: 8px;
   transition: background 0.18s;
+  max-width: 150px;
 }
 .pratiBtn.pratim {
   background: #e754a2;

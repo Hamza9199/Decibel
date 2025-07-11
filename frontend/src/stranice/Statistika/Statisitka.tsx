@@ -49,17 +49,20 @@ const Statistika: React.FC = () => {
 
   // Top 10 najlajkovanijih pjesama
   const topPjesme = [...pjesme]
-    .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0))
+    .filter(p => typeof p.brojLajkova === "number")
+    .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
     .slice(0, 10);
 
   // Top 10 najlajkovanijih albuma
   const topAlbumi = [...albumi]
-    .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0))
+    .filter(a => typeof a.brojLajkova === "number")
+    .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
     .slice(0, 10);
 
   // Top 10 najlajkovanijih plejlista
   const topPlayliste = [...playliste]
-    .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0))
+    .filter(pl => typeof pl.brojLajkova === "number")
+    .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
     .slice(0, 10);
 
   // Najpoznatiji izvođač (najviše pratilaca)

@@ -21,6 +21,7 @@ const Sidebar: React.FC = () => {
 const [showPlaylistMenu, setShowPlaylistMenu] = React.useState(false);
 const [showSongsMenu, setShowSongsMenu] = React.useState(false);
 const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
+const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
 
   return (
     <aside className={styles.sidebar}>
@@ -119,6 +120,65 @@ const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
             </span>
             Historija
           </button>
+        </div>
+        <div className={styles.profileMenu}>
+          <button
+            className={styles.navBtn}
+            onClick={() => setShowFavoritesMenu((prev) => !prev)}
+          >
+            <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+              <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+              </svg>
+            </span>
+            Omiljena muzika
+          </button>
+          {showFavoritesMenu && (
+            <div className={styles.subMenu}>
+              <button
+          className={styles.subNavBtn}
+          onClick={() => navigate("/omiljene/pjesme")}
+              >
+          {/* Music note icon */}
+          <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+            <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
+              <path d="M9 17V5l12-2v12" />
+              <circle cx="6" cy="18" r="3" />
+              <circle cx="18" cy="16" r="3" />
+            </svg>
+          </span>
+          Pjesme
+              </button>
+              <button
+          className={styles.subNavBtn}
+          onClick={() => navigate("/omiljene/playliste")}
+              >
+          {/* Playlist icon */}
+          <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+            <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
+              <rect x="4" y="6" width="16" height="2" rx="1" />
+              <rect x="4" y="10" width="16" height="2" rx="1" />
+              <rect x="4" y="14" width="16" height="2" rx="1" />
+              <circle cx="19" cy="15" r="3" />
+            </svg>
+          </span>
+          Playliste
+              </button>
+              <button
+          className={styles.subNavBtn}
+          onClick={() => navigate("/omiljene/albumi")}
+              >
+          {/* Album icon */}
+          <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+            <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" />
+              <circle cx="12" cy="12" r="4" />
+            </svg>
+          </span>
+          Albumi
+              </button>
+            </div>
+          )}
         </div>
         <div className={styles.profileMenu}>
           <button

@@ -1,0 +1,89 @@
+/* Osnovni stilovi za Omiljeno stranicu */
+
+.pjesmaBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: rgba(24,24,24,0.97);
+  display: flex;
+  align-items: start;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 50px 24px;
+  background: rgba(24,24,24,0.97);
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+}
+
+.title {
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.noItems {
+  color: #b3b3b3;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #232323;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.table th, .table td {
+  padding: 12px 8px;
+  text-align: center;
+  color: #fff;
+  border-bottom: 1px solid #333;
+}
+
+.table th {
+  background: #b91d95;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.table button {
+  background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+.table button:hover {
+  background: #e754a2;
+  transform: scale(1.08);
+}

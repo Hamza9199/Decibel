@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./UrediPlaylistu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Playlista } from "../../types";
+import { Playlista, Pjesma, VezaPjesmaPlaylista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -27,6 +27,10 @@ const UrediPlaylistu: React.FC = () => {
     korisnikID = undefined;
   }
 
+  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
+  const [veze, setVeze] = useState<VezaPjesmaPlaylista[]>([]);
+  const [removing, setRemoving] = useState<number | null>(null);
+
   useEffect(() => {
     if (!playlistaId) return;
     setLoading(true);
@@ -35,6 +39,47 @@ const UrediPlaylistu: React.FC = () => {
       .then((res) => setPlaylista(res.data))
       .catch(() => setError("Greška pri dohvatanju playliste."))
       .finally(() => setLoading(false));
+  }, [playlistaId]);
+
+  // Dohvati pjesme i veze za playlistu
+  useEffect(() => {
+    if (!playlistaId) return;
+    // Dohvati pjesme i veze za playlistu
+    axios
+      .get(`${API_BASE}/pjesma_playlista/`)
+      .then((res) => {
+        const sveVeze: VezaPjesmaPlaylista[] = res.data || [];
+        setVeze(sveVeze.filter((v) => String(v.playlistaID) === String(playlistaId)));
+        // Pronađi redoslijed pjesama
+        const filteredVeze = sveVeze.filter((v) => String(v.playlistaID) === String(playlistaId));
+        let prva = filteredVeze.find((v) => v.pokazivacNaPrethodnuPjesmuID == null);
+        if (!prva && filteredVeze.length === 1) prva = filteredVeze[0];
+        const orderedIds: number[] = [];
+        let curr = prva;
+        const visited = new Set<number>();
+        while (curr && !visited.has(curr.pjesmaID)) {
+          orderedIds.push(curr.pjesmaID);
+          visited.add(curr.pjesmaID);
+          curr = filteredVeze.find((v) => v.pjesmaID === curr!.pokazivacNaSljedecuPjesmuID);
+        }
+        const idsZaDohvat = orderedIds.length > 0
+          ? orderedIds
+          : filteredVeze.map((v) => v.pjesmaID);
+        Promise.all(
+          idsZaDohvat.map((id) =>
+            axios
+              .get(`${API_BASE}/pjesme/${id}`)
+              .then((r) => r.data)
+              .catch(() => null)
+          )
+        ).then((pjesmeArr) => {
+          setPjesme(pjesmeArr.filter(Boolean));
+        });
+      })
+      .catch(() => {
+        setPjesme([]);
+        setVeze([]);
+      });
   }, [playlistaId]);
 
   // Form state
@@ -74,6 +119,24 @@ const UrediPlaylistu: React.FC = () => {
     } catch {
       setError("Greška pri ažuriranju playliste.");
     }
+  };
+
+  // Izbacivanje pjesme iz playliste
+  const handleRemoveSong = async (pjesmaId: number) => {
+    setRemoving(pjesmaId);
+    try {
+      // Pronađi vezu pjesma-playlista
+      const veza = veze.find((v) => v.pjesmaID === pjesmaId);
+      if (!veza) {
+        setRemoving(null);
+        return alert("Veza nije pronađena.");
+      }
+      await axios.delete(`${API_BASE}/pjesma_playlista/${veza.id}`);
+      setPjesme((prev) => prev.filter((p) => p.id !== pjesmaId));
+    } catch {
+      alert("Greška pri izbacivanju pjesme iz playliste.");
+    }
+    setRemoving(null);
   };
 
   if (loading) return <Loading />;
@@ -121,6 +184,52 @@ const UrediPlaylistu: React.FC = () => {
             Sačuvaj promjene
           </button>
         </form>
+        {/* Desno: prikaz pjesama u playlisti i mogućnost izbacivanja */}
+        <div style={{
+          marginLeft: 32,
+          background: "#232323",
+          borderRadius: 14,
+          padding: "24px 18px",
+          minWidth: 260,
+          maxHeight: 480,
+          overflowY: "auto",
+          boxShadow: "0 4px 24px #b91d9533"
+        }}>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Pjesme u playlisti</h4>
+          {pjesme.length === 0 ? (
+            <div style={{ color: "#b3b3b3" }}>Nema pjesama u ovoj playlisti.</div>
+          ) : (
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {pjesme.map((p) => (
+                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
+                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
+                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
+                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                  </span>
+                  <button
+                    style={{
+                      marginLeft: "auto",
+                      background: "#b91d95",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "6px 14px",
+                      fontWeight: 600,
+                      fontSize: "0.98rem",
+                      cursor: "pointer",
+                      transition: "background 0.18s",
+                      opacity: removing === p.id ? 0.6 : 1
+                    }}
+                    disabled={removing === p.id}
+                    onClick={() => handleRemoveSong(p.id)}
+                  >
+                    {removing === p.id ? "Uklanjam..." : "Izbaci"}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
       <Footer />
     </>

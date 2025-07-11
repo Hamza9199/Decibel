@@ -49,7 +49,6 @@ const AudioPlayer: React.FC<Props> = ({
    const [liked, setLiked] = useState(false);
    const [pjesma, setPjesma] = useState<Pjesma>();
    const [statistikaSent, setStatistikaSent] = useState(false);
-  const user = JSON.parse(localStorage.getItem("korisnik") || "");
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -155,6 +154,8 @@ const AudioPlayer: React.FC<Props> = ({
         // Provjeri da li je korisnik lajkao pjesmu (koristi korisnik_pjesma)
         let korisnikID = korisnik?.id;
         try {
+            const user = JSON.parse(localStorage.getItem("korisnik") || "");
+
           korisnikID = user?.id || korisnikID;
         } catch {
           console.error("Failed to parse user from localStorage");
@@ -175,7 +176,7 @@ const AudioPlayer: React.FC<Props> = ({
         setPjesma(undefined);
         setLiked(false);
       });
-  }, [src, korisnik?.id, user?.id]);
+  }, [src, korisnik?.id]);
 
   // Dodaj statistiku reprodukcije nakon 10 sekundi slušanja
 useEffect(() => {

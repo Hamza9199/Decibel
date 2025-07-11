@@ -49,6 +49,7 @@ const AudioPlayer: React.FC<Props> = ({
    const [liked, setLiked] = useState(false);
    const [pjesma, setPjesma] = useState<Pjesma>();
    const [statistikaSent, setStatistikaSent] = useState(false);
+  const user = JSON.parse(localStorage.getItem("korisnik") || "");
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -154,7 +155,6 @@ const AudioPlayer: React.FC<Props> = ({
         // Provjeri da li je korisnik lajkao pjesmu (koristi korisnik_pjesma)
         let korisnikID = korisnik?.id;
         try {
-          const user = JSON.parse(localStorage.getItem("korisnik") || "");
           korisnikID = user?.id || korisnikID;
         } catch {
           console.error("Failed to parse user from localStorage");
@@ -175,7 +175,7 @@ const AudioPlayer: React.FC<Props> = ({
         setPjesma(undefined);
         setLiked(false);
       });
-  }, [src, korisnik?.id]);
+  }, [src, korisnik?.id, user?.id]);
 
   // Dodaj statistiku reprodukcije nakon 10 sekundi slušanja
 useEffect(() => {
@@ -215,6 +215,30 @@ useEffect(() => {
 useEffect(() => {
   setStatistikaSent(false);
 }, [src]);
+
+  // Dodaj pjesmu u historiju slušanja kada se pjesma pusti (na početku)
+  useEffect(() => {
+    if (!pjesma || !korisnik?.id || !src) return;
+    // Dodaj u historiju samo kad se pjesma promijeni
+    const addToHistorija = async () => {
+      try {
+        await axios.post(`${API_BASE}/historija/`, {
+          korisnikID: korisnik.id,
+          pjesmaID: pjesma.id,
+          playlistaID: null,
+          kreiranDatumVrijeme: new Date().toISOString(),
+          trajanje: pjesma.trajanjeSekunde || 0,
+          kontekstPustanjaURL: null,
+          offline: false,
+          kontekstPustanja: null,
+        });
+      } catch {
+        // ignore error
+      }
+    };
+    addToHistorija();
+    // eslint-disable-next-line
+  }, [pjesma?.id, korisnik?.id, src]);
 
   const handlePlayPause = () => {
     setPlaying((p) => !p);

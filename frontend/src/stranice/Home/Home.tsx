@@ -3,7 +3,7 @@ import styles from "./Home.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import axios from "axios";
-import { Pjesma, Album, Playlista, Korisnik, HistorijaSlusanja } from "../../types";
+import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { Link } from "react-router-dom";
@@ -57,31 +57,6 @@ const Home: React.FC = () => {
     const song = pjesme.find((p) => p.id === id);
     setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
 
-    // Dodaj u historiju slusanja (obavezno playlistaID: null)
-    if (song) {
-      try {
-        // Provjeri zadnju pjesmu u historiji za korisnika
-        const historijaRes = await axios.get(`${API_BASE}/historija/`);
-        const historija = historijaRes.data || [];
-        const korisnikID = song.korisnikID;
-        const mojaHistorija = historija.filter((h: HistorijaSlusanja) => h.korisnikID === korisnikID);
-        const zadnja = mojaHistorija.length > 0 ? mojaHistorija[mojaHistorija.length - 1] : null;
-        if (!zadnja || zadnja.pjesmaID !== song.id) {
-          await axios.post(`${API_BASE}/historija/`, {
-            korisnikID: song.korisnikID,
-            pjesmaID: song.id,
-            playlistaID: null,
-            kreiranDatumVrijeme: new Date().toISOString(),
-            trajanje: song.trajanjeSekunde || 0,
-            kontekstPustanjaURL: null,
-            offline: false,
-            kontekstPustanja: null,
-          });
-        }
-      } catch {
-        // ignore error
-      }
-    }
 
     if (song && audioUrl) {
       window.dispatchEvent(
@@ -303,6 +278,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
     {children}
   </section>
 );
+
 
 
 export default Home;

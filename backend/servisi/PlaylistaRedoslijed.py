@@ -232,13 +232,16 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             sljed_obj.pokazivacNaPrethodnuPjesmuID = stari_prethodna
             session.add(sljed_obj)
 
+    # Resetuj pointere prije umetanja na novo mjesto!
+    obj.pokazivacNaPrethodnuPjesmuID = None
+    obj.pokazivacNaSljedecuPjesmuID = None
+
     # Sada umetanje na novo mjesto
     if nova_pozicija_iza_pjesmeID is None:
         # Dodaj na početak (iza zadnje, ispred prve)
         prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
         zadnja_id = await pronadji_zadnju_pjesmu(session, playlistaID)
         if prva_id == pjesmaID:
-            # Već je na početku
             await session.commit()
             return obj
 

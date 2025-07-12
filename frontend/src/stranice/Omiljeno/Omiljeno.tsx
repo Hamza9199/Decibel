@@ -265,11 +265,11 @@ const Omiljeno: React.FC = () => {
                         </Link>
                       </td>
                       <td>
-                        <Link to={`/pjesma/${p.id}`}>{p.naziv}</Link>
+                        <Link to={`/pjesma/${p.id}`} className="link">{p.naziv}</Link>
                       </td>
                       <td>
                         {izvodjac ? (
-                          <Link to={`/izvodjac/${izvodjac.id}`}>{izvodjac.korisnicko_ime}</Link>
+                          <Link to={`/izvodjac/${izvodjac.id}`} className="link">{izvodjac.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
                       <td>
@@ -431,11 +431,11 @@ const Omiljeno: React.FC = () => {
                         </Link>
                       </td>
                       <td>
-                        <Link to={`/album/${a.id}`}>{a.naziv}</Link>
+                        <Link to={`/album/${a.id}`} className="link">{a.naziv}</Link>
                       </td>
                       <td>
                         {izvodjac ? (
-                          <Link to={`/izvodjac/${izvodjac.id}`}>{izvodjac.korisnicko_ime}</Link>
+                          <Link to={`/izvodjac/${izvodjac.id}`} className="link">{izvodjac.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
                       <td>
@@ -505,11 +505,11 @@ const Omiljeno: React.FC = () => {
                         </Link>
                       </td>
                       <td>
-                        <Link to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
+                        <Link to={`/playlista/${pl.id}`} className="link">{pl.naziv}</Link>
                       </td>
                       <td>
                         {vlasnik ? (
-                          <Link to={`/izvodjac/${vlasnik.id}`}>{vlasnik.korisnicko_ime}</Link>
+                          <Link to={`/izvodjac/${vlasnik.id}`} className="link">{vlasnik.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
                       <td>

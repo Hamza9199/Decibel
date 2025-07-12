@@ -42,51 +42,30 @@ const Playlista: React.FC = () => {
       .then((res) => {
         setPlaylista(res.data);
         setLikeCount(res.data.brojLajkova || 0);
-        // Provjeri da li je vlasnik
         setIsOwner(res.data.korisnikID === korisnikID);
       })
       .catch(() => setPlaylista(null));
 
+    // KORISTI REDOSLIJED SA BACKENDA
     axios
-      .get(`${API_BASE}/pjesma_playlista/`)
-      .then((res) => {
-        const veze: VezaPjesmaPlaylista[] = (res.data || []);
-        const filteredVeze = veze.filter(
-          (v) => String(v.playlistaID) === String(playlistaId)
-        );
-        if (filteredVeze.length === 0) {
+      .get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`)
+      .then(async (res) => {
+        const idsZaDohvat: number[] = res.data || [];
+        if (idsZaDohvat.length === 0) {
           setPjesme([]);
           setLoading(false);
           return;
         }
-        // Pronađi prvu pjesmu (ona kojoj je pokazivacNaPrethodnuPjesmuID === null)
-        let prva = filteredVeze.find((v) => v.pokazivacNaPrethodnuPjesmuID == null);
-        // Ako nema prva, uzmi bilo koju (možda je samo jedna pjesma i nema pokazivače)
-        if (!prva && filteredVeze.length === 1) prva = filteredVeze[0];
-        const orderedIds: number[] = [];
-        let curr = prva;
-        const visited = new Set<number>();
-        // Slijedi pokazivače dok ne dođeš do kraja ili ne uđeš u petlju
-        while (curr && !visited.has(curr.pjesmaID)) {
-          orderedIds.push(curr.pjesmaID);
-          visited.add(curr.pjesmaID);
-          curr = filteredVeze.find((v) => v.pjesmaID === curr!.pokazivacNaSljedecuPjesmuID);
-        }
-        // Ako nije pronađena prva, ali ima barem jednu vezu, prikaži sve pjesme po ID-u
-        const idsZaDohvat = orderedIds.length > 0
-          ? orderedIds
-          : filteredVeze.map((v) => v.pjesmaID);
-        Promise.all(
+        const pjesmeArr = await Promise.all(
           idsZaDohvat.map((id) =>
             axios
               .get(`${API_BASE}/pjesme/${id}`)
               .then((r) => r.data)
               .catch(() => null)
           )
-        ).then((pjesmeArr) => {
-          setPjesme(pjesmeArr.filter(Boolean));
-          setLoading(false);
-        });
+        );
+        setPjesme(pjesmeArr.filter(Boolean));
+        setLoading(false);
       })
       .catch(() => {
         setPjesme([]);
@@ -235,49 +214,35 @@ const Playlista: React.FC = () => {
       setDragOverIdx(null);
       return;
     }
-    // Promijeni redoslijed na backendu
     const draggedPjesma = pjesme[draggedIdx];
-    // Pozovi backend endpoint za promjenu redoslijeda
     await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
       playlistaID: playlistaId,
       pjesmaID: draggedPjesma.id,
       nova_pozicija_iza_pjesmeID: idx === 0 ? null : pjesme[idx - 1].id,
     });
-    // Osvježi listu pjesama
     setDraggedIdx(null);
     setDragOverIdx(null);
-    // Ručno triggeraj refresh
     setLoading(true);
+    // REFRESH KORISTI REDOSLIJED SA BACKENDA
     axios
-      .get(`${API_BASE}/pjesma_playlista/`)
-      .then((res) => {
-        const veze: VezaPjesmaPlaylista[] = (res.data || []);
-        const filteredVeze = veze.filter(
-          (v) => String(v.playlistaID) === String(playlistaId)
-        );
-        const prva = filteredVeze.find((v) => v.pokazivacNaPrethodnuPjesmuID == null);
-        const orderedIds: number[] = [];
-        let curr = prva;
-        const visited = new Set<number>();
-        while (curr && !visited.has(curr.pjesmaID)) {
-          orderedIds.push(curr.pjesmaID);
-          visited.add(curr.pjesmaID);
-          curr = filteredVeze.find((v) => v.pjesmaID === curr!.pokazivacNaSljedecuPjesmuID);
+      .get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`)
+      .then(async (res) => {
+        const idsZaDohvat: number[] = res.data || [];
+        if (idsZaDohvat.length === 0) {
+          setPjesme([]);
+          setLoading(false);
+          return;
         }
-        const idsZaDohvat = orderedIds.length > 0
-          ? orderedIds
-          : filteredVeze.map((v) => v.pjesmaID);
-        Promise.all(
+        const pjesmeArr = await Promise.all(
           idsZaDohvat.map((id) =>
             axios
               .get(`${API_BASE}/pjesme/${id}`)
               .then((r) => r.data)
               .catch(() => null)
           )
-        ).then((pjesmeArr) => {
-          setPjesme(pjesmeArr.filter(Boolean));
-          setLoading(false);
-        });
+        );
+        setPjesme(pjesmeArr.filter(Boolean));
+        setLoading(false);
       })
       .catch(() => {
         setPjesme([]);
@@ -551,3 +516,4 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Playlista;
+

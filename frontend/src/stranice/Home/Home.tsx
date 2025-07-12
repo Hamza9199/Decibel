@@ -251,7 +251,7 @@ const Home: React.FC = () => {
             <div className={styles.gridRow}>
               {korisnici.map((k) => (
                 <div key={k.id} className={styles.card}>
-                  <div className={styles.cardImageWrap}>
+                  <div className={styles.cardImageWrap2}>
                     {k.putanjaProfilneSlike ? (
                       <img src={k.putanjaProfilneSlike} alt={k.korisnicko_ime} className={styles.cardImage} />
                     ) : (

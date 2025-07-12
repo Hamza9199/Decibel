@@ -134,7 +134,7 @@ const Historija: React.FC = () => {
                       </Link>
                     </td>
                     <td>
-                      <Link to={`/pjesma/${h.pjesmaID}`}>{h.pjesma?.naziv}</Link>
+                      <Link to={`/pjesma/${h.pjesmaID}`} className="link">{h.pjesma?.naziv}</Link>
                     </td>
                     <td>{h.pjesma?.korisnik?.korisnicko_ime || ""}</td>
                     <td>

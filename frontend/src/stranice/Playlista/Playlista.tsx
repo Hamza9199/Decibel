@@ -117,40 +117,16 @@ const Playlista: React.FC = () => {
 
   const handlePlayPlaylist = () => {
     if (pjesme.length === 0) return;
-    let idx = 0;
-    const playNext = () => {
-      if (idx >= pjesme.length) {
-        if (repeatAll) {
-          idx = 0;
-        } else {
-          return;
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlaylist", {
+        detail: {
+          playlist: pjesme,
+          idx: 0,
+          repeatAll,
         }
-      }
-      const p = pjesme[idx];
-      window.dispatchEvent(
-        new CustomEvent("globalAudioPlay", {
-          detail:
-            {
-              src: p.putanjaAudio,
-              title: p.naziv,
-              putanjaGif: p.putanjaGif,
-              putanjaSlika: p.putanjaSlika,
-              korisnikID: p.korisnikID,
-            },
-        })
-      );
-      idx++;
-      // Slušaj završetak pjesme i pusti sljedeću
-      const handler = () => {
-        playNext();
-        window.removeEventListener("audioSongEnded", handler);
-      };
-      window.addEventListener("audioSongEnded", handler);
-    };
-    playNext();
+      })
+    );
   };
-
-
 
   const handleLikeSong = async (pjesmaId: number) => {
     if (!korisnikID || !pjesmaId) return;
@@ -524,7 +500,7 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Playlista;
-
+                            
 
 
 

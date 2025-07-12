@@ -4,7 +4,7 @@ import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
-import { Pjesma, Playlista, VezaPjesmaPlaylista } from "../../types";
+import { Playlista } from "../../types";
 import { Link } from "react-router-dom";
 
 
@@ -14,8 +14,6 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const SvePlayliste: React.FC = () => {
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [veze, setVeze] = useState<VezaPjesmaPlaylista[]>([]);
 
   // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
@@ -45,61 +43,37 @@ const SvePlayliste: React.FC = () => {
       .finally(() => setLoading(false));
   }, [korisnikID]);
 
-  useEffect(() => {
-    axios
-      .get(`${API_BASE}/pjesme/`)
-      .then((res) => setPjesme(res.data || []))
-      .catch(() => setPjesme([]));
-    axios
-      .get(`${API_BASE}/pjesma_playlista/`)
-      .then((res) => setVeze(res.data || []))
-      .catch(() => setVeze([]));
-  }, [korisnikID]);
+  
 
   // Funkcija za puštanje playliste
-  const handlePlayPlaylist = (playlistId: number) => {
-    // Pronađi veze za playlistu i složi redoslijed
-    const vezeZaPlaylistu = veze.filter((v) => v.playlistaID === playlistId);
-    if (vezeZaPlaylistu.length === 0) return;
-    // Pronađi prvu pjesmu (ona kojoj je pokazivacNaPrethodnuPjesmuID == null)
-    let prva = vezeZaPlaylistu.find((v) => v.pokazivacNaPrethodnuPjesmuID == null);
-    if (!prva && vezeZaPlaylistu.length === 1) prva = vezeZaPlaylistu[0];
-    const orderedIds: number[] = [];
-    let curr = prva;
-    const visited = new Set<number>();
-    while (curr && !visited.has(curr.pjesmaID)) {
-      orderedIds.push(curr.pjesmaID);
-      visited.add(curr.pjesmaID);
-      curr = vezeZaPlaylistu.find((v) => v.pjesmaID === curr?.pokazivacNaSljedecuPjesmuID);
-    }
-    const idsZaDohvat = orderedIds.length > 0 ? orderedIds : vezeZaPlaylistu.map((v) => v.pjesmaID);
-    const playlistSongs = idsZaDohvat
-      .map((id) => pjesme.find((p) => p.id === id && p.putanjaAudio))
-      .filter(Boolean);
-    if (playlistSongs.length === 0) return;
-    let idx = 0;
-    const playNext = () => {
-      if (idx >= playlistSongs.length) return;
-      const p = playlistSongs[idx];
+  const handlePlayPlaylist = async (playlistId: number) => {
+    // Dohvati redoslijed sa backenda
+    try {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+      const idsZaDohvat: number[] = res.data || [];
+      if (idsZaDohvat.length === 0) return;
+      const pjesmeArr = await Promise.all(
+        idsZaDohvat.map((id) =>
+          axios
+            .get(`${API_BASE}/pjesme/${id}`)
+            .then((r) => r.data)
+            .catch(() => null)
+        )
+      );
+      const playlistSongs = pjesmeArr.filter(Boolean);
+      if (playlistSongs.length === 0) return;
       window.dispatchEvent(
-        new CustomEvent("globalAudioPlay", {
+        new CustomEvent("globalAudioPlaylist", {
           detail: {
-            src: p?.putanjaAudio,
-            title: p?.naziv,
-            putanjaGif: p?.putanjaGif,
-            putanjaSlika: p?.putanjaSlika,
-            korisnikID: p?.korisnikID,
-          },
+            playlist: playlistSongs,
+            idx: 0,
+            repeatAll: false,
+          }
         })
       );
-      idx++;
-      const handler = () => {
-        playNext();
-        window.removeEventListener("audioSongEnded", handler);
-      };
-      window.addEventListener("audioSongEnded", handler);
-    };
-    playNext();
+    } catch {
+      // fallback na staro ponašanje ako backend ne radi
+    }
   };
 
   return (
@@ -176,3 +150,4 @@ const SvePlayliste: React.FC = () => {
 };
 
 export default SvePlayliste;
+               

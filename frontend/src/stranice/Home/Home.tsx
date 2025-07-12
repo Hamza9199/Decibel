@@ -78,67 +78,45 @@ const Home: React.FC = () => {
   const handlePlayAlbum = (albumId: number) => {
     const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
     if (albumSongs.length === 0) return;
-    let idx = 0;
-    const playNext = () => {
-      if (idx >= albumSongs.length) return;
-      const p = albumSongs[idx];
-      window.dispatchEvent(
-        new CustomEvent("globalAudioPlay", {
-          detail: {
-            src: p.putanjaAudio,
-            title: p.naziv,
-            putanjaGif: p.putanjaGif,
-            putanjaSlika: p.putanjaSlika,
-            korisnikID: p.korisnikID,
-          },
-        })
-      );
-      idx++;
-      const handler = () => {
-        playNext();
-        window.removeEventListener("audioSongEnded", handler);
-      };
-      window.addEventListener("audioSongEnded", handler);
-    };
-    playNext();
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlaylist", {
+        detail: {
+          playlist: albumSongs,
+          idx: 0,
+          repeatAll,
+        }
+      })
+    );
   };
 
-  // Dodaj play funkciju za playlistu
-  const handlePlayPlaylist = (playlistId: number) => {
-    const playlistSongs = pjesme.filter((p) => p.id === playlistId && p.putanjaAudio);
-    if (playlistSongs.length === 0) return;
-    let idx = 0;
-    const playNext = () => {
-      if (idx >= playlistSongs.length) {
-        if (repeatAll) {
-           idx = 0;
-         } else {
-           return;
-         }
-       }
-       const p = pjesme[idx];
-       window.dispatchEvent(
-         new CustomEvent("globalAudioPlay", {
-           detail:
-             {
-               src: p.putanjaAudio,
-               title: p.naziv,
-               putanjaGif: p.putanjaGif,
-               putanjaSlika: p.putanjaSlika,
-               korisnikID: p.korisnikID,
-             },
-         })
-       );
-       idx++;
-       // Slušaj završetak pjesme i pusti sljedeću
-       const handler = () => {
-         playNext();
-         window.removeEventListener("audioSongEnded", handler);
-       };
-       window.addEventListener("audioSongEnded", handler);
-     };
-     playNext();
-   };
+  const handlePlayPlaylist = async (playlistId: number) => {
+    try {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+      const idsZaDohvat: number[] = res.data || [];
+      if (idsZaDohvat.length === 0) return;
+      const pjesmeArr = await Promise.all(
+        idsZaDohvat.map((id) =>
+          axios
+            .get(`${API_BASE}/pjesme/${id}`)
+            .then((r) => r.data)
+            .catch(() => null)
+        )
+      );
+      const playlistSongs = pjesmeArr.filter(Boolean);
+      if (playlistSongs.length === 0) return;
+      window.dispatchEvent(
+        new CustomEvent("globalAudioPlaylist", {
+          detail: {
+            playlist: playlistSongs,
+            idx: 0,
+            repeatAll,
+          }
+        })
+      );
+    } catch {
+      // fallback na staro ponašanje ako backend ne radi
+    }
+  };
 
   if (loading) return <Loading />;
 
@@ -282,3 +260,4 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 
 
 export default Home;
+

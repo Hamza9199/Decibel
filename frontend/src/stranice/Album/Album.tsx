@@ -90,36 +90,15 @@ const Album: React.FC = () => {
 
   const handlePlayAlbum = () => {
     if (pjesme.length === 0) return;
-    let idx = 0;
-    const playNext = () => {
-      if (idx >= pjesme.length) {
-        if (repeatAll) {
-          idx = 0;
-        } else {
-          return;
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlaylist", {
+        detail: {
+          playlist: pjesme,
+          idx: 0,
+          repeatAll,
         }
-      }
-      const p = pjesme[idx];
-      window.dispatchEvent(
-        new CustomEvent("globalAudioPlay", {
-          detail: {
-            src: p.putanjaAudio,
-            title: p.naziv,
-            putanjaGif: p.putanjaGif,
-            putanjaSlika: p.putanjaSlika,
-            korisnikID: p.korisnikID,
-          },
-        })
-      );
-      idx++;
-      // Slušaj završetak pjesme i pusti sljedeću
-      const handler = () => {
-        playNext();
-        window.removeEventListener("audioSongEnded", handler);
-      };
-      window.addEventListener("audioSongEnded", handler);
-    };
-    playNext();
+      })
+    );
   };
 
   const handleLike = async () => {
@@ -150,17 +129,33 @@ const Album: React.FC = () => {
   const handleSelectPlaylist = async (playlistId: number) => {
     if (!selectedSong) return;
     try {
-      await axios.post(`${API_BASE}/pjesma_playlista/`, {
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
         pjesmaID: selectedSong.id,
         playlistaID: playlistId,
-        pokazivacNaSljedecuPjesmuID: null,
-        pokazivacNaPrethodnuPjesmuID: null,
       });
       setShowPlaylistModal(false);
       setSelectedSong(null);
       alert("Pjesma je dodana u playlistu!");
-    } catch {
-      alert("Greška pri dodavanju pjesme u playlistu.");
+    } catch (e: unknown) {
+      if (
+        typeof e === "object" &&
+        e !== null &&
+        "response" in e &&
+        typeof (e as { response?: { data?: { detail?: string } } }).response === "object" &&
+        (e as { response?: { data?: { detail?: string } } }).response !== null &&
+        "data" in (e as { response?: { data?: { detail?: string } } }).response! &&
+        typeof ((e as { response?: { data?: { detail?: string } } }).response as { data?: { detail?: string } }).data === "object" &&
+        ((e as { response?: { data?: { detail?: string } } }).response as { data?: { detail?: string } }).data !== null &&
+        "detail" in ((e as { response?: { data?: { detail?: string } } }).response as { data?: { detail?: string } }).data!
+      ) {
+        alert(
+          ((e as { response?: { data?: { detail?: string } } }).response as { data?: { detail?: string } }).data!.detail
+        );
+      } else {
+        alert("Greška pri dodavanju pjesme u playlistu.");
+      }
+      setShowPlaylistModal(false);
+      setSelectedSong(null);
     }
   };
 
@@ -346,3 +341,4 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Album;
+           

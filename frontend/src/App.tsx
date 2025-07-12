@@ -132,16 +132,19 @@ const App: FC = () => {
     visible: boolean;
     korisnikID?: string;
     minimized?: boolean;
+    playlist?: unknown[];
+    playlistIdx?: number;
+    playlistRepeat?: boolean;
   }>({ visible: false, minimized: false });
 
-  // Slušaj event iz Home i drugih stranica za promjenu pjesme
+  // Slušaj event iz Home i drugih stranica za promjenu pjesme (single)
   useEffect(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
       const { id, src, title, putanjaGif, putanjaSlika, korisnikID } = (customEvent.detail || {});
       if (src) {
         setAudioState({
-          id, // <-- proslijedi id pjesme
+          id,
           src,
           title,
           putanjaGif,
@@ -158,14 +161,27 @@ const App: FC = () => {
     return () => window.removeEventListener("globalAudioPlay", handler);
   }, []);
 
- 
- 
+  // Slušaj event za album/playlista play i otvori player
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.playlist && Array.isArray(detail.playlist) && typeof detail.idx === "number") {
+        setAudioState((prev) => ({
+          ...prev,
+          visible: true,
+          minimized: false,
+        }));
+      }
+    };
+    window.addEventListener("globalAudioPlaylist", handler);
+    return () => window.removeEventListener("globalAudioPlaylist", handler);
+  }, []);
 
   return (
     <Router>
       <AppContent />
       <AudioPlayer
-        id={audioState.id} // <-- proslijedi id kao prop
+        id={audioState.id}
         src={audioState.src}
         title={audioState.title}
         putanjaGif={audioState.putanjaGif}
@@ -173,8 +189,7 @@ const App: FC = () => {
         korisnikID={audioState.korisnikID}
         visible={audioState.visible}
         minimized={audioState.minimized}
-        onEnded={() => {/* ne gasi player automatski */}
-        }
+        onEnded={() => {/* ne gasi player automatski */}}
         onClose={() =>
           setAudioState((prev) =>
             prev.visible

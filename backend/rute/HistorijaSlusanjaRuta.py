@@ -69,3 +69,23 @@ async def obrisi_historiju(historija_id: int, session: AsyncSession = Depends(ge
     if not db_obj:
         raise HTTPException(status_code=404, detail="Historija nije pronađena")
     return db_obj
+
+# Dodaj DELETE rutu za brisanje po korisnikID i pjesmaID
+@router.delete("/obrisi/{korisnik_id}/{pjesma_id}", response_model=dict)
+async def obrisi_historiju_by_korisnik_pjesma(
+    korisnik_id: str,
+    pjesma_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    result = await session.execute(
+        select(HistorijaSlusanjaORM).where(
+            HistorijaSlusanjaORM.korisnikID == korisnik_id,
+            HistorijaSlusanjaORM.pjesmaID == pjesma_id
+        )
+    )
+    obj = result.scalar_one_or_none()
+    if not obj:
+        raise HTTPException(status_code=404, detail="Historija nije pronađena")
+    await session.delete(obj)
+    await session.commit()
+    return {"success": True}

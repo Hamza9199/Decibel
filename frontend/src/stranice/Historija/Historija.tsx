@@ -36,7 +36,14 @@ const Historija: React.FC = () => {
       .get(`${API_BASE}/historija/`)
       .then((res) => {
         const sve: HistorijaSlusanja[] = res.data || [];
-        setHistorija(sve.filter((h) => h.korisnikID === korisnikID));
+        // Sortiraj po datumu od najnovije prema najstarijoj
+        const sortirano = sve
+          .filter((h) => h.korisnikID === korisnikID)
+          .sort((a, b) =>
+            new Date(b.kreiranDatumVrijeme || "").getTime() -
+            new Date(a.kreiranDatumVrijeme || "").getTime()
+          );
+        setHistorija(sortirano);
       })
       .catch(() => setHistorija([]));
     axios
@@ -92,7 +99,7 @@ const Historija: React.FC = () => {
 
   // Prikupi sve pjesme iz historije (najnovije prve)
   const historijaPjesme = historija
-    .sort((a, b) => new Date(b.kreiranDatumVrijeme || "").getTime() - new Date(a.kreiranDatumVrijeme || "").getTime())
+    // .sort((a, b) => new Date(b.kreiranDatumVrijeme || "").getTime() - new Date(a.kreiranDatumVrijeme || "").getTime()) // <-- više nije potrebno, već sortirano
     .map((h) => ({
       ...h,
       pjesma: pjesme.find((p) => p.id === h.pjesmaID),

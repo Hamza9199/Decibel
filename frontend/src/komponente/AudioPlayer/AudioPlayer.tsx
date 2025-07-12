@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
-import { Korisnik, Playlista, Pjesma, VezaPjesmaPlaylista } from "../../types";
+import { Korisnik, Playlista, Pjesma } from "../../types";
 import { Link } from "react-router-dom";
 
 type Props = {
@@ -38,7 +38,7 @@ const AudioPlayer: React.FC<Props> = ({
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [volume, setVolume] = useState(0.1);
+  const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
   const [korisnik, setKorisnik] = useState<Korisnik>();
   const [lastSrc, setLastSrc] = useState<string | undefined>(undefined);
@@ -49,6 +49,13 @@ const AudioPlayer: React.FC<Props> = ({
    const [liked, setLiked] = useState(false);
    const [pjesma, setPjesma] = useState<Pjesma>();
    const [statistikaSent, setStatistikaSent] = useState(false);
+   const [globalPlaylist, setGlobalPlaylist] = useState<Pjesma[]>([]);
+   const [playlistIdx, setPlaylistIdx] = useState<number>(-1);
+   const [playlistRepeat, setPlaylistRepeat] = useState(false);
+  // Dodaj state za prikaz trenutne pjesme iz playliste ili single
+  const [currentSong, setCurrentSong] = useState<Pjesma | null>(null);
+  // Dodaj state za vlasnika trenutne pjesme
+  const [currentOwner, setCurrentOwner] = useState<Korisnik | undefined>(undefined);
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -64,7 +71,7 @@ const AudioPlayer: React.FC<Props> = ({
       }
     }
     // eslint-disable-next-line
-  }, [src]);
+  }, [src, globalPlaylist.length]);
 
   // Ensure play/pause state is always in sync with minimized state
   useEffect(() => {
@@ -130,15 +137,14 @@ const AudioPlayer: React.FC<Props> = ({
 
   // Fix: If user clicks play on a new song while another is paused, always play the new one
   useEffect(() => {
-    if (audioRef.current && src && playing && audioRef.current.src !== src) {
+    if (audioRef.current && src && playing && audioRef.current.src !== src && globalPlaylist.length === 0) {
       audioRef.current.src = src;
       audioRef.current.load();
       audioRef.current.play().catch(() => {});
       setProgress(0);
       setLastSrc(src);
     }
-  }, [src, playing]);
-
+  }, [src, playing, globalPlaylist.length]);
 
    useEffect(() => {
     if (!src) {
@@ -224,7 +230,9 @@ useEffect(() => {
     const addToHistorija = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("korisnik") || "");
-
+        // Prvo obriši ako već postoji u historiji za korisnika
+        await axios.delete(`${API_BASE}/historija/obrisi/${user?.id}/${pjesma.id}`).catch(() => {});
+        // Zatim dodaj kao novu (prva u historiji)
         await axios.post(`${API_BASE}/historija/`, {
           korisnikID: user?.id,
           pjesmaID: pjesma.id,
@@ -244,7 +252,14 @@ useEffect(() => {
   }, [pjesma?.id, korisnik?.id, src]);
 
   const handlePlayPause = () => {
-    setPlaying((p) => !p);
+    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
+      // Nastavi/zaustavi trenutnu pjesmu iz playliste
+      setPlaying((p) => !p);
+    } else if (globalPlaylist.length === 0 && src) {
+      // Single song
+      setPlaying((p) => !p);
+    }
+    // Ne mijenjaj currentSong ovdje!
   };
 
    const handleLike = async () => {
@@ -294,9 +309,19 @@ useEffect(() => {
     setMuted((m) => !m);
   };
 
-  // Handler for repeat toggle
+  // Dodaj funkciju za toggle repeat all (album/playlist)
+  const handleRepeatAllToggle = () => {
+    setPlaylistRepeat((prev) => !prev);
+    // Ako je repeatOne bio aktivan, isključi ga
+    if (repeatOne) setRepeatOne(false);
+  };
+
+  // Izmijeni handleRepeatToggle da isključuje repeatAll ako uključuje repeatOne i obrnuto
   const handleRepeatToggle = () => {
-    setRepeatOne((prev) => !prev);
+    setRepeatOne((prev) => {
+      if (!prev) setPlaylistRepeat(false);
+      return !prev;
+    });
   };
 
   // Dohvati korisnika
@@ -327,85 +352,169 @@ useEffect(() => {
   // Dodavanje pjesme u playlistu
   const handleAddToPlaylist = async (playlistaID: number) => {
     if (!src || !korisnikID) return;
+    // Pronađi pjesmu po putanji
     const pjesmaRes = await axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) => (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src));
     if (!pjesmaRes) return;
 
-    // Dohvati sve veze za playlistu
-    const veze: VezaPjesmaPlaylista[] = await axios
-      .get(`${API_BASE}/pjesma_playlista/`)
-      .then((res) => res.data as VezaPjesmaPlaylista[])
-      .catch(() => []);
-
-    const postoji = veze.find(
-      (v) => v.pjesmaID === pjesmaRes.id && v.playlistaID === playlistaID
-    );
-    if (postoji) {
-      alert("Pjesma je već u playlisti!");
-      setShowPlaylistModal(false);
-      return;
-    }
-
-    const vezeZaPlaylistu = veze.filter((v) => v.playlistaID === playlistaID);
-
-    let pokazivacNaPrethodnuPjesmuID: number | null = null;
-    let pokazivacNaSljedecuPjesmuID: number | null = null;
-    let prva: VezaPjesmaPlaylista | null = null;
-    let zadnja: VezaPjesmaPlaylista | null = null;
-
-    if (vezeZaPlaylistu.length === 0) {
-      // Prva pjesma, pokazivači na samu sebe (kružna lista)
-      pokazivacNaPrethodnuPjesmuID = pjesmaRes.id;
-      pokazivacNaSljedecuPjesmuID = pjesmaRes.id;
-    } else {
-      // Prva: ona kojoj je pokazivacNaPrethodnuPjesmuID === pjesmaID
-      prva = vezeZaPlaylistu.find((v) => v.pokazivacNaPrethodnuPjesmuID === v.pjesmaID) || vezeZaPlaylistu[0];
-      // Zadnja: ona kojoj je pokazivacNaSljedecuPjesmuID === pjesmaID
-      zadnja = vezeZaPlaylistu.find((v) => v.pokazivacNaSljedecuPjesmuID === v.pjesmaID) || vezeZaPlaylistu[vezeZaPlaylistu.length - 1];
-      pokazivacNaPrethodnuPjesmuID = zadnja.pjesmaID;
-      pokazivacNaSljedecuPjesmuID = prva.pjesmaID;
-    }
-
-    // Dodaj novu pjesmu (kružna lista)
-    await axios.post(
-      `${API_BASE}/pjesma_playlista/`,
-      {
+    // Pozovi backend da doda pjesmu na kraj playliste
+    try {
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
         pjesmaID: pjesmaRes.id,
         playlistaID: playlistaID,
-        pokazivacNaSljedecuPjesmuID,
-        pokazivacNaPrethodnuPjesmuID,
-        kreiranDatumVrijeme: null,
-      },
-      {
-        headers: { "Content-Type": "application/json" },
+      });
+      setShowPlaylistModal(false);
+      alert("Pjesma dodana u playlistu!");
+    } catch (error: unknown) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+      ) {
+        alert((error as { response: { data: { detail: string } } }).response.data.detail);
+      } else {
+        alert("Greška pri dodavanju pjesme u playlistu.");
       }
-    );
-
-    // Ako nije prva, ažuriraj pokazivače prvoj i zadnjoj pjesmi
-    if (vezeZaPlaylistu.length > 0 && zadnja && prva) {
-      // Update zadnja.pokazivacNaSljedecuPjesmuID na novu pjesmu
-      await axios.put(
-        `${API_BASE}/pjesma_playlista/${zadnja.pjesmaID}/${playlistaID}`,
-        {
-          ...zadnja,
-          pokazivacNaSljedecuPjesmuID: pjesmaRes.id,
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      // Update prva.pokazivacNaPrethodnuPjesmuID na novu pjesmu
-      await axios.put(
-        `${API_BASE}/pjesma_playlista/${prva.pjesmaID}/${playlistaID}`,
-        {
-          ...prva,
-          pokazivacNaPrethodnuPjesmuID: pjesmaRes.id,
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
+      setShowPlaylistModal(false);
     }
+  };
 
-    setShowPlaylistModal(false);
-    alert("Pjesma dodana u playlistu!");
+  // Slušaj globalni event za puštanje playliste/album
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.playlist && Array.isArray(detail.playlist) && typeof detail.idx === "number") {
+        setGlobalPlaylist(detail.playlist);
+        setPlaylistIdx(detail.idx);
+        setPlaylistRepeat(!!detail.repeatAll);
+      } else {
+        setGlobalPlaylist([]);
+        setPlaylistIdx(-1);
+        setPlaylistRepeat(false);
+      }
+    };
+    window.addEventListener("globalAudioPlaylist", handler);
+    return () => window.removeEventListener("globalAudioPlaylist", handler);
+  }, []);
+
+  // Kad se promijeni playlistIdx ili globalPlaylist, ažuriraj currentSong i pusti pjesmu
+  useEffect(() => {
+    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
+      const song = globalPlaylist[playlistIdx];
+      setCurrentSong(song);
+      if (audioRef.current && song?.putanjaAudio) {
+        audioRef.current.src = song.putanjaAudio;
+        audioRef.current.load();
+        setPlaying(true);
+        setProgress(0);
+      }
+    }
+  }, [playlistIdx, globalPlaylist]);
+
+  // Ukloni/popravi automatsko postavljanje currentSong i audioRef.src iz props kad je aktivna playlista
+  useEffect(() => {
+    // Postavi currentSong i audioRef.src iz props SAMO ako NIJE aktivna playlista
+    if (globalPlaylist.length === 0 && src) {
+      setCurrentSong({
+        id: id ?? 0,
+        naziv: title ?? "",
+        putanjaAudio: src,
+        putanjaGif: putanjaGif,
+        putanjaSlika: putanjaSlika,
+        korisnikID: korisnikID ?? "",
+      } as Pjesma);
+      if (audioRef.current && globalPlaylist.length === 0) {
+        audioRef.current.src = src;
+        audioRef.current.load();
+      }
+    }
+    // Ako je aktivna playlista, NE diraj currentSong ni audioRef.src ovdje!
+  }, [src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
+
+  // Kada se promijeni currentSong, učitaj vlasnika pjesme
+  useEffect(() => {
+    if (!currentSong?.korisnikID) {
+      setCurrentOwner(undefined);
+      return;
+    }
+    axios
+      .get(`${API_BASE}/korisnici/${currentSong.korisnikID}`)
+      .then((res) => setCurrentOwner(res.data))
+      .catch(() => setCurrentOwner(undefined));
+  }, [currentSong?.korisnikID]);
+
+  // Kada se pusti single pjesma, očisti globalPlaylist i postavi currentSong
+  useEffect(() => {
+    // Ako je došao globalAudioPlay event, očisti playlistu i postavi currentSong
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail?.src) {
+        setGlobalPlaylist([]);
+        setPlaylistIdx(-1);
+        setPlaylistRepeat(false);
+        setCurrentSong({
+          id: detail.id ?? 0,
+          naziv: detail.title ?? "",
+          putanjaAudio: detail.src,
+          putanjaGif: detail.putanjaGif,
+          putanjaSlika: detail.putanjaSlika,
+          korisnikID: detail.korisnikID ?? "",
+        } as Pjesma);
+        if (audioRef.current) {
+          audioRef.current.src = detail.src;
+          audioRef.current.load();
+          setPlaying(true);
+          setProgress(0);
+        }
+      }
+    };
+    window.addEventListener("globalAudioPlay", handler);
+    return () => window.removeEventListener("globalAudioPlay", handler);
+  }, []);
+
+  // On ended: ispravi logiku za repeatOne i playlistRepeat
+  const handleEnded = () => {
+    if (globalPlaylist.length > 0 && playlistIdx >= 0) {
+      if (repeatOne) {
+        // Ako je repeatOne aktivan, ponovi istu pjesmu
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+        setPlaying(true);
+        setProgress(0);
+        return;
+      }
+      const nextIdx = playlistIdx + 1;
+      if (nextIdx < globalPlaylist.length) {
+        setPlaylistIdx(nextIdx);
+      } else if (playlistRepeat) {
+        setPlaylistIdx(0);
+      } else {
+        setPlaying(false);
+        setProgress(0);
+        setPlaylistIdx(-1);
+        setGlobalPlaylist([]);
+        setCurrentSong(null);
+      }
+    } else {
+      if (repeatOne) {
+        // Single song repeat
+        if (audioRef.current) {
+          audioRef.current.currentTime = 0;
+          audioRef.current.play().catch(() => {});
+        }
+        setPlaying(true);
+        setProgress(0);
+        return;
+      }
+      setPlaying(false);
+      setProgress(0);
+      setCurrentSong(null);
+      onEnded?.();
+    }
   };
 
   if (!visible && !minimized) return null;
@@ -426,11 +535,11 @@ useEffect(() => {
         }}
       >
         <img
-          src={putanjaGif || putanjaSlika || "/logo.gif"}
+          src={currentSong?.putanjaGif || currentSong?.putanjaSlika || "/logo.gif"}
           alt="Decibel"
           className={styles.miniPlayerImg}
         />
-        <span className={styles.miniPlayerText}>{title || "Pjesma"}</span>
+        <span className={styles.miniPlayerText}>{currentSong?.naziv || "Pjesma"}</span>
         <svg width="22" height="22" viewBox="0 0 22 22" fill="#ffe6ec" style={{ marginLeft: 6 }}>
           <rect x="8" y="8" width="7" height="22" rx="2" />
           <rect x="23" y="8" width="7" height="22" rx="2" />
@@ -440,14 +549,10 @@ useEffect(() => {
           autoPlay={playing}
           controls={false}
           style={{ display: "none" }}
-          src={src}
+          src={currentSong?.putanjaAudio || ""}
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => {
-            setPlaying(false);
-            setProgress(0);
-            onEnded?.();
-          }}
+          onEnded={handleEnded}
         />
       </button>
     );
@@ -485,20 +590,20 @@ useEffect(() => {
       </button>
       <div className={styles.audioInfo}>
         <img
-          src={putanjaGif || putanjaSlika || "/logo.gif"}
+          src={currentSong?.putanjaGif || currentSong?.putanjaSlika || "/logo.gif"}
           alt="Decibel logo"
           className={styles.audioLogo}
         />
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
-            <Link to={`/izvodjac/${korisnik?.id}`}>
+            <Link to={`/izvodjac/${currentOwner?.id}`}>
             <span className={styles.audioArtist}>
-              {korisnik?.korisnicko_ime || "Nepoznati korisnik"} -
+              {currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
             </span>
             </Link>
-            <Link to={id ? `/pjesma/${id}` : "#"}>
+            <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
               <span className={styles.audioTitle}>
-                {title || "Trenutno nema pjesme"}
+                {currentSong?.naziv || "Trenutno nema pjesme"}
               </span>
             </Link>
 
@@ -571,38 +676,46 @@ useEffect(() => {
             <option value={2}>2x</option>
           </select>
         </label>
-        {/* Repeat button */}
+        {/* Repeat one button */}
         <button
           type="button"
           className={styles.muteBtn}
           onClick={handleRepeatToggle}
-          aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi sve"}
+          aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
           style={{ marginLeft: 16, marginRight: 8 }}
         >
-          {repeatOne ? (
-            // Repeat one icon
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <g>
-                <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <g>
+              <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              {repeatOne && (
                 <text x="13" y="19" fontSize="10" fill="#ffe6ec" fontWeight="bold">
                   1
                 </text>
-              </g>
-            </svg>
-          ) : (
-            // Normal repeat icon
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <g>
-                <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              </g>
-            </svg>
-          )}
+              )}
+            </g>
+          </svg>
+        </button>
+        <button
+          type="button"
+          className={styles.muteBtn}
+          onClick={handleRepeatAllToggle}
+          aria-label={playlistRepeat ? "Ponovi cijeli album/playlistu" : "Ponovi album/playlistu"}
+          style={{ marginLeft: 2, marginRight: 8 }}
+        >
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <g>
+              <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              {playlistRepeat && (
+                <circle cx="23" cy="5" r="3" fill="#2f0650ff" />
+              )}
+            </g>
+          </svg>
         </button>
         <button
           type="button"
@@ -733,17 +846,13 @@ useEffect(() => {
       )}
       <audio
         ref={audioRef}
-        src={src}
+        src={currentSong?.putanjaAudio || ""}
         autoPlay={playing}
         controls={false}
-        loop={repeatOne}
+        loop={repeatOne && globalPlaylist.length === 0}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        onEnded={() => {
-          setPlaying(false);
-          setProgress(0);
-          onEnded?.();
-        }}
+        onEnded={handleEnded}
         style={{ display: "none" }}
       />
     </div>
@@ -758,4 +867,5 @@ function formatTime(sec: number) {
 }
 
 export default AudioPlayer;
+
 

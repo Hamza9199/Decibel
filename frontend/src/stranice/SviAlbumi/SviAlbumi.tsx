@@ -53,29 +53,15 @@ const SviAlbumi: React.FC = () => {
   const handlePlayAlbum = (albumId: number) => {
     const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
     if (albumSongs.length === 0) return;
-    let idx = 0;
-    const playNext = () => {
-      if (idx >= albumSongs.length) return;
-      const p = albumSongs[idx];
-      window.dispatchEvent(
-        new CustomEvent("globalAudioPlay", {
-          detail: {
-            src: p.putanjaAudio,
-            title: p.naziv,
-            putanjaGif: p.putanjaGif,
-            putanjaSlika: p.putanjaSlika,
-            korisnikID: p.korisnikID,
-          },
-        })
-      );
-      idx++;
-      const handler = () => {
-        playNext();
-        window.removeEventListener("audioSongEnded", handler);
-      };
-      window.addEventListener("audioSongEnded", handler);
-    };
-    playNext();
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlaylist", {
+        detail: {
+          playlist: albumSongs,
+          idx: 0,
+          repeatAll: false,
+        }
+      })
+    );
   };
 
   return (
@@ -152,3 +138,4 @@ const SviAlbumi: React.FC = () => {
 };
 
 export default SviAlbumi;
+                 

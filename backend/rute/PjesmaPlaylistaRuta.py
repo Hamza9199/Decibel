@@ -46,7 +46,7 @@ class DodajPjesmuRequest(BaseModel):
 class PromjeniRedoslijedRequest(BaseModel):
     playlistaID: int
     pjesmaID: int
-    nova_pozicija_iza_pjesmeID: int = None
+    nova_pozicija_iza_pjesmeID: int | None = None  # <-- ispravno dozvoli None
 
 @router.get("/", response_model=List[PjesmaPlaylista])
 async def sve_pjesma_playlista(session: AsyncSession = Depends(get_session)):

@@ -29,6 +29,7 @@ from rute.ObnovaPretplateRuta import router as obnova_pretplate_router
 from rute.AlbumRuta import router as album_router
 from rute.PlaylistaRuta import router as playlista_router
 from rute.PratilacKorisnikRuta import router as pratilac_korisnik_router
+from rute.PrijavaIzvodjacaRuta import router as prijava_izvodjaca_router
 
 app = FastAPI()
 
@@ -86,6 +87,7 @@ app.include_router(pretplata_router)
 app.include_router(korisnik_pretplata_router)
 app.include_router(obnova_pretplate_router)
 app.include_router(pratilac_korisnik_router)
+app.include_router(prijava_izvodjaca_router)
 
 
 

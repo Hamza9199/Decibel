@@ -245,7 +245,7 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
         obj.pokazivacNaPrethodnuPjesmuID = zadnja_id
         obj.pokazivacNaSljedecuPjesmuID = prva_id
 
-        # Ažuriraj zadnju i prvu
+        # Ažuriraj zadnju da pokazuje na novu prvu
         zadnja_result = await session.execute(
             select(PjesmaPlaylistaORM).where(
                 and_(
@@ -259,6 +259,7 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             zadnja_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
             session.add(zadnja_obj)
 
+        # Ažuriraj staru prvu da pokazuje na novu prvu kao prethodnu
         prva_result = await session.execute(
             select(PjesmaPlaylistaORM).where(
                 and_(

@@ -181,7 +181,15 @@ const SviKorisnici: React.FC = () => {
                   >
                     <h4 style={{ marginTop: 0 }}>Prijava za izvođača</h4>
                     <div style={{ marginBottom: 12 }}>
-                      <b>Korisnik ID:</b> {prijavaModal.korisnikID}
+                      <b>Korisnik:</b>{" "}
+                      {
+                        (() => {
+                          const korisnik = korisnici.find(k => k.id === prijavaModal.korisnikID);
+                          return korisnik
+                            ? `${korisnik.korisnicko_ime} (${korisnik.ime} ${korisnik.prezime})`
+                            : prijavaModal.korisnikID;
+                        })()
+                      }
                     </div>
                     <div style={{ marginBottom: 12 }}>
                       <b>Poruka:</b>

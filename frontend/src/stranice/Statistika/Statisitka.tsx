@@ -83,9 +83,6 @@ const Statistika: React.FC = () => {
     pjesme.filter(p => (p.zanr || "").toLowerCase() === z).length
   );
 
-  // Pie chart: omjer javnih i privatnih pjesama
-  const javne = pjesme.filter(p => p.javno).length;
-  const privatne = pjesme.length - javne;
 
   // Top 10 najslušanijih pjesama (po broju reprodukcija)
   // Ako statistika nema podatke, koristi brojReprodukcija iz pjesme
@@ -220,25 +217,7 @@ const Statistika: React.FC = () => {
                     }}
                   />
                 </div>
-                <div className={styles.chartCard}>
-                  <h3>Javne vs privatne pjesme</h3>
-                  <Pie
-                    data={{
-                      labels: ["Javne", "Privatne"],
-                      datasets: [
-                        {
-                          label: "Broj pjesama",
-                          data: [javne, privatne],
-                          backgroundColor: ["#b91d95", "#232323"],
-                        },
-                      ],
-                    }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { position: "bottom" } },
-                    }}
-                  />
-                </div>
+               
                 <div className={styles.chartCard}>
                   <h3>Top 10 najslušanijih pjesama</h3>
                   <Bar

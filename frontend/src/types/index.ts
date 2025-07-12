@@ -14,3 +14,4 @@ export * from "./korisnikalbum.types";
 export * from "./korisnikplaylista.types";
 export * from "./statistikareprodukcije.types";
 export * from "./izvodjacpjesmaveza.types";
+export * from "./prijavaizvodjaca.types";

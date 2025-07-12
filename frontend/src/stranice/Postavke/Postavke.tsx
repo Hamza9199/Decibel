@@ -3,6 +3,7 @@ import styles from "./Postavke.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
+import axios from "axios";
 
 const Postavke: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -22,12 +23,31 @@ const Postavke: React.FC = () => {
     setPoruka(e.target.value);
   };
 
-  const handleSend = () => {
-    const subject = encodeURIComponent("Prijava za izvođača");
-    const body = encodeURIComponent(
-      `Razlozi prijave:\n${poruka}\n\n(Poruka poslata sa Decibel aplikacije)`
-    );
-    window.location.href = `mailto:hamza.gacic.22@size.ba?subject=${subject}&body=${body}`;
+  const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+
+  const handleSend = async () => {
+    // Slanje prijave na backend
+    let korisnikID = "";
+    try {
+      const user = JSON.parse(localStorage.getItem("korisnik") || "");
+      korisnikID = user?.id || "";
+    } catch {
+      korisnikID = "";
+    }
+    if (!poruka.trim() || !korisnikID) {
+      alert("Morate unijeti poruku i biti prijavljeni.");
+      return;
+    }
+    try {
+      await axios.post(`${API_BASE}/prijave_izvodjaca/`, {
+        korisnikID,
+        poruka,
+        datum: new Date().toISOString(),
+      });
+      alert("Prijava je uspješno poslana!");
+    } catch {
+      alert("Greška pri slanju prijave.");
+    }
     handleCloseModal();
   };
 

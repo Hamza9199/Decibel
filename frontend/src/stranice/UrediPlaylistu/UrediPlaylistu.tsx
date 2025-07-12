@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./UrediPlaylistu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Playlista, Pjesma, VezaPjesmaPlaylista } from "../../types";
+import { Playlista, Pjesma } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -28,7 +28,6 @@ const UrediPlaylistu: React.FC = () => {
   }
 
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [veze, setVeze] = useState<VezaPjesmaPlaylista[]>([]);
   const [removing, setRemoving] = useState<number | null>(null);
 
   useEffect(() => {
@@ -41,45 +40,27 @@ const UrediPlaylistu: React.FC = () => {
       .finally(() => setLoading(false));
   }, [playlistaId]);
 
-  // Dohvati pjesme i veze za playlistu
   useEffect(() => {
     if (!playlistaId) return;
-    // Dohvati pjesme i veze za playlistu
     axios
-      .get(`${API_BASE}/pjesma_playlista/`)
-      .then((res) => {
-        const sveVeze: VezaPjesmaPlaylista[] = res.data || [];
-        setVeze(sveVeze.filter((v) => String(v.playlistaID) === String(playlistaId)));
-        // Pronađi redoslijed pjesama
-        const filteredVeze = sveVeze.filter((v) => String(v.playlistaID) === String(playlistaId));
-        let prva = filteredVeze.find((v) => v.pokazivacNaPrethodnuPjesmuID == null);
-        if (!prva && filteredVeze.length === 1) prva = filteredVeze[0];
-        const orderedIds: number[] = [];
-        let curr = prva;
-        const visited = new Set<number>();
-        while (curr && !visited.has(curr.pjesmaID)) {
-          orderedIds.push(curr.pjesmaID);
-          visited.add(curr.pjesmaID);
-          curr = filteredVeze.find((v) => v.pjesmaID === curr!.pokazivacNaSljedecuPjesmuID);
+      .get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`)
+      .then(async (res) => {
+        const idsZaDohvat: number[] = res.data || [];
+        if (idsZaDohvat.length === 0) {
+          setPjesme([]);
+          return;
         }
-        const idsZaDohvat = orderedIds.length > 0
-          ? orderedIds
-          : filteredVeze.map((v) => v.pjesmaID);
-        Promise.all(
+        const pjesmeArr = await Promise.all(
           idsZaDohvat.map((id) =>
             axios
               .get(`${API_BASE}/pjesme/${id}`)
               .then((r) => r.data)
               .catch(() => null)
           )
-        ).then((pjesmeArr) => {
-          setPjesme(pjesmeArr.filter(Boolean));
-        });
+        );
+        setPjesme(pjesmeArr.filter(Boolean));
       })
-      .catch(() => {
-        setPjesme([]);
-        setVeze([]);
-      });
+      .catch(() => setPjesme([]));
   }, [playlistaId]);
 
   // Form state
@@ -121,17 +102,14 @@ const UrediPlaylistu: React.FC = () => {
     }
   };
 
-  // Izbacivanje pjesme iz playliste
   const handleRemoveSong = async (pjesmaId: number) => {
     setRemoving(pjesmaId);
     try {
-      // Pronađi vezu pjesma-playlista
-      const veza = veze.find((v) => v.pjesmaID === pjesmaId);
-      if (!veza) {
+      if (!playlistaId) {
         setRemoving(null);
-        return alert("Veza nije pronađena.");
+        return;
       }
-      await axios.delete(`${API_BASE}/pjesma_playlista/${veza.id}`);
+      await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
       setPjesme((prev) => prev.filter((p) => p.id !== pjesmaId));
     } catch {
       alert("Greška pri izbacivanju pjesme iz playliste.");

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from typing import List
 from pydantic import BaseModel
 from modeli.PjesmaPlaylista import PjesmaPlaylista, PjesmaPlaylistaCreate
 from sqlalchemy.orm import sessionmaker
@@ -46,7 +46,7 @@ class DodajPjesmuRequest(BaseModel):
 class PromjeniRedoslijedRequest(BaseModel):
     playlistaID: int
     pjesmaID: int
-    nova_pozicija_iza_pjesmeID: Optional[int] = None  # FIXED: Added Optional
+    nova_pozicija_iza_pjesmeID: int = None
 
 @router.get("/", response_model=List[PjesmaPlaylista])
 async def sve_pjesma_playlista(session: AsyncSession = Depends(get_session)):

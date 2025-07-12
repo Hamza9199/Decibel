@@ -212,74 +212,56 @@ const Playlista: React.FC = () => {
     return;
   }
 
-  // DEBUG: Dodaj console.log da vidiš što se događa
-  console.log('=== DRAG DROP DEBUG ===');
-  console.log('draggedIdx:', draggedIdx);
-  console.log('idx (drop target):', idx);
-  console.log('pjesme.length:', pjesme.length);
-  
   // Novi poredak bez pomjerene pjesme
   const pjesmeBez = pjesme.filter((_, i) => i !== draggedIdx);
-  console.log('pjesmeBez.length:', pjesmeBez.length);
-  
+
   let nova_pozicija_iza_pjesmeID: number | null = null;
 
   if (idx === 0) {
     // Na prvo mjesto: null
     nova_pozicija_iza_pjesmeID = null;
-    console.log('SLUČAJ: Stavi na početak (null)');
-  } else if (idx >= pjesmeBez.length) {
-    // Na zadnje mjesto: ID trenutno zadnje pjesme
+  } else if (idx === pjesme.length - 1) {
+    // Na kraj: ID zadnje pjesme iz niza bez pomjerene pjesme
     nova_pozicija_iza_pjesmeID = pjesmeBez[pjesmeBez.length - 1]?.id ?? null;
-    console.log('SLUČAJ: Stavi na kraj, iza pjesme ID:', nova_pozicija_iza_pjesmeID);
-  } else {
-    // Između pjesama: ID pjesme na poziciji idx - 1 (u novom poretku)
+  } else if (draggedIdx < idx) {
+    // Pomjeranje prema dolje: ID pjesme na poziciji idx - 1
     nova_pozicija_iza_pjesmeID = pjesmeBez[idx - 1]?.id ?? null;
-    console.log('SLUČAJ: Stavi između, iza pjesme ID:', nova_pozicija_iza_pjesmeID);
+  } else {
+    // Pomjeranje prema gore: ID pjesme na poziciji idx - 1
+    nova_pozicija_iza_pjesmeID = pjesmeBez[idx - 1]?.id ?? null;
   }
-  
-  console.log('Šalje se nova_pozicija_iza_pjesmeID:', nova_pozicija_iza_pjesmeID);
 
   const draggedPjesma = pjesme[draggedIdx];
+  await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
+    playlistaID: playlistaId,
+    pjesmaID: draggedPjesma.id,
+    nova_pozicija_iza_pjesmeID,
+  });
+  setDraggedIdx(null);
+  setDragOverIdx(null);
+  setLoading(true);
   
-  try {
-    await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
-      playlistaID: playlistaId,
-      pjesmaID: draggedPjesma.id,
-      nova_pozicija_iza_pjesmeID,
-    });
-    
-    setDraggedIdx(null);
-    setDragOverIdx(null);
-    setLoading(true);
-    
-    // REFRESH KORISTI REDOSLIJED SA BACKENDA
-    const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
-    const idsZaDohvat: number[] = res.data || [];
-    
-    if (idsZaDohvat.length === 0) {
-      setPjesme([]);
-      setLoading(false);
-      return;
-    }
-    
-    const pjesmeArr = await Promise.all(
-      idsZaDohvat.map((id) =>
-        axios
-          .get(`${API_BASE}/pjesme/${id}`)
-          .then((r) => r.data)
-          .catch(() => null)
-      )
-    );
-    
-    setPjesme(pjesmeArr.filter(Boolean));
+  // REFRESH KORISTI REDOSLIJED SA BACKENDA
+  const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
+  const idsZaDohvat: number[] = res.data || [];
+  
+  if (idsZaDohvat.length === 0) {
+    setPjesme([]);
     setLoading(false);
-  } catch (error) {
-    console.error('Greška pri promjeni redoslijeda:', error);
-    setDraggedIdx(null);
-    setDragOverIdx(null);
-    setLoading(false);
+    return;
   }
+  
+  const pjesmeArr = await Promise.all(
+    idsZaDohvat.map((id) =>
+      axios
+        .get(`${API_BASE}/pjesme/${id}`)
+        .then((r) => r.data)
+        .catch(() => null)
+    )
+  );
+  
+  setPjesme(pjesmeArr.filter(Boolean));
+  setLoading(false);
 };
 
   // Izbacivanje pjesme iz playliste
@@ -541,6 +523,7 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Playlista;
+
 
 
 

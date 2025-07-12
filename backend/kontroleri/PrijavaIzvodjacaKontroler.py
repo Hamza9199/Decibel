@@ -14,11 +14,13 @@ async def get_prijava_by_id(session: AsyncSession, prijava_id: str):
     return result.scalar_one_or_none()
 
 async def create_prijava(session: AsyncSession, data: PrijavaIzvodjacaCreate):
+    import datetime
+    import uuid
     obj = PrijavaIzvodjacaORM(
         id=str(uuid.uuid4()),
         korisnikID=data.korisnikID,
         poruka=data.poruka,
-        datum=data.datum
+        datum=data.datum or datetime.datetime.utcnow()
     )
     session.add(obj)
     await session.commit()

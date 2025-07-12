@@ -5,7 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { Pjesma, VezaPjesmaPlaylista, KorisnikPjesma, Playlista as PlaylistaType } from "../../types";
+import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
@@ -251,14 +251,7 @@ const Playlista: React.FC = () => {
   const handleRemoveSong = async (pjesmaId: number) => {
     if (!playlistaId) return;
     try {
-      // Pronađi vezu pjesma-playlista
-      const vezeRes = await axios.get(`${API_BASE}/pjesma_playlista/`);
-      const veze: VezaPjesmaPlaylista[] = vezeRes.data || [];
-      const veza = veze.find(
-        (v) => String(v.playlistaID) === String(playlistaId) && v.pjesmaID === pjesmaId
-      );
-      if (!veza) return alert("Veza nije pronađena.");
-      await axios.delete(`${API_BASE}/pjesma_playlista/${veza.id}`);
+      await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
       setPjesme((prev) => prev.filter((p) => p.id !== pjesmaId));
     } catch {
       alert("Greška pri izbacivanju pjesme iz playliste.");
@@ -513,4 +506,5 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Playlista;
+ 
 

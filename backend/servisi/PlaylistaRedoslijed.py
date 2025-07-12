@@ -195,7 +195,12 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
     if len(veze) <= 1:
         return obj
 
-    # Ukloni pjesmu iz trenutnog mjesta (spoji prethodnu i sljedeću)
+    # Ako pokušavaš staviti pjesmu odmah iza sebe, nema smisla
+    if nova_pozicija_iza_pjesmeID == pjesmaID:
+        await session.commit()
+        return obj
+
+    # Prvo izbacivanje pjesme iz trenutnog mjesta (spoji prethodnu i sljedeću)
     stari_prethodna = obj.pokazivacNaPrethodnuPjesmuID
     stari_sljedeca = obj.pokazivacNaSljedecuPjesmuID
 
@@ -227,13 +232,12 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             sljed_obj.pokazivacNaPrethodnuPjesmuID = stari_prethodna
             session.add(sljed_obj)
 
-    # Dodaj pjesmu na novo mjesto
+    # Sada umetanje na novo mjesto
     if nova_pozicija_iza_pjesmeID is None:
         # Dodaj na početak (iza zadnje, ispred prve)
         prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
         zadnja_id = await pronadji_zadnju_pjesmu(session, playlistaID)
         if prva_id == pjesmaID or zadnja_id == pjesmaID:
-            # Već je na početku/kraju
             await session.commit()
             return obj
 
@@ -282,6 +286,11 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             return obj
 
         sljedeca_id = target.pokazivacNaSljedecuPjesmuID
+
+        # Ako je sljedeća pjesma ona koju pomjeramo, nema potrebe za promjenom
+        if sljedeca_id == pjesmaID:
+            await session.commit()
+            return obj
 
         obj.pokazivacNaPrethodnuPjesmuID = target.pjesmaID
         obj.pokazivacNaSljedecuPjesmuID = sljedeca_id

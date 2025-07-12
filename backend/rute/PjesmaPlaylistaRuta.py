@@ -52,17 +52,17 @@ class PromjeniRedoslijedRequest(BaseModel):
 async def sve_pjesma_playlista(session: AsyncSession = Depends(get_session)):
     return await get_all_pjesma_playlista(session)
 
+@router.get("/redoslijed/{playlistaID}", response_model=List[int])
+async def dobij_redoslijed(playlistaID: int, session: AsyncSession = Depends(get_session)):
+    """Vraća redoslijed pjesama u playlisti"""
+    return await dobij_redoslijed_playliste(session, playlistaID)
+
 @router.get("/{pjesmaID}/{playlistaID}", response_model=PjesmaPlaylista)
 async def get_veza(pjesmaID: int, playlistaID: int, session: AsyncSession = Depends(get_session)):
     veza = await get_pjesma_playlista(session, pjesmaID, playlistaID)
     if not veza:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return veza
-
-@router.get("/redoslijed/{playlistaID}", response_model=List[int])
-async def dobij_redoslijed(playlistaID: int, session: AsyncSession = Depends(get_session)):
-    """Vraća redoslijed pjesama u playlisti"""
-    return await dobij_redoslijed_playliste(session, playlistaID)
 
 @router.post("/", response_model=PjesmaPlaylista)
 async def nova_pjesma_playlista(data: PjesmaPlaylistaCreate, session: AsyncSession = Depends(get_session)):

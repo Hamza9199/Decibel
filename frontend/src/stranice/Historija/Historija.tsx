@@ -77,14 +77,11 @@ const Historija: React.FC = () => {
   };
 
   // Dodavanje pjesme u playlistu
-  const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
+   const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
     try {
-      await axios.post(`${API_BASE}/pjesma_playlista/`, {
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
         pjesmaID,
         playlistaID,
-        pokazivacNaSljedecuPjesmuID: null,
-        pokazivacNaPrethodnuPjesmuID: null,
-        kreiranDatumVrijeme: null,
       });
       setShowPlaylistModal(null);
       alert("Pjesma je dodana u playlistu!");

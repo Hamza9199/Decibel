@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./UrediPjesmu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { Pjesma, Album } from "../../types";
+import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -29,6 +29,9 @@ const UrediPjesmu: React.FC = () => {
 
   const [albumi, setAlbumi] = useState<Album[]>([]);
   const [albumID, setAlbumID] = useState<number | "">("");
+  const [sviIzvodjaci, setSviIzvodjaci] = useState<Korisnik[]>([]);
+  const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     if (!pjesmaId) return;
@@ -51,6 +54,43 @@ const UrediPjesmu: React.FC = () => {
         .catch(() => setAlbumi([]));
     }
   }, [korisnikID]);
+
+  // Dohvati sve korisnike za search izvođača
+  useEffect(() => {
+    axios
+      .get(`${API_BASE}/korisnici/`)
+      .then((res) => setSviIzvodjaci(res.data || []))
+      .catch(() => setSviIzvodjaci([]));
+  }, []);
+
+ 
+
+  // Dohvati postojeće izvođače za pjesmu
+  useEffect(() => {
+    if (!pjesma?.id) return;
+    axios
+      .get(`${API_BASE}/izvodjac_pjesma/`)
+      .then((res) => {
+        const veze: IzvodjacPjesmaVeza[] = res.data || [];
+        const izvodjaciIds = veze
+          .filter((v) => v.pjesmaID === pjesma.id)
+          .map((v) => v.izvodjacID);
+        setIzabraniIzvodjaci(
+          sviIzvodjaci.filter((k) => izvodjaciIds.includes(k.id))
+        );
+      })
+      .catch(() => setIzabraniIzvodjaci([]));
+  }, [pjesma?.id, sviIzvodjaci]);
+
+  // Dodavanje/uklanjanje izvođača
+  const handleAddIzvodjac = (korisnik: Korisnik) => {
+    if (!izabraniIzvodjaci.find((k) => k.id === korisnik.id)) {
+      setIzabraniIzvodjaci((prev) => [...prev, korisnik]);
+    }
+  };
+  const handleRemoveIzvodjac = (korisnikId: string) => {
+    setIzabraniIzvodjaci((prev) => prev.filter((k) => k.id !== korisnikId));
+  };
 
   // Form state
   const [naziv, setNaziv] = useState("");
@@ -84,7 +124,7 @@ const UrediPjesmu: React.FC = () => {
     formData.append("korisnikID", korisnikID);
     formData.append("naziv", naziv);
     formData.append("opis", opis);
-    formData.append("datumObjave", pjesma.datumObjave || ""); // datum ne mijenjaj
+    formData.append("datumObjave", pjesma.datumObjave || "");
     formData.append("trajanjeSekunde", String(pjesma.trajanjeSekunde));
     formData.append("javno", String(pjesma.javno || false));
     formData.append("odobreno", String(pjesma.odobreno || false));
@@ -101,6 +141,23 @@ const UrediPjesmu: React.FC = () => {
       await axios.put(`${API_BASE}/pjesme/${pjesma.id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Update izvođača: prvo obriši sve postojeće veze, pa dodaj nove
+      await axios.get(`${API_BASE}/izvodjac_pjesma/`).then(async (res) => {
+        const veze = res.data || [];
+        const zaPjesmu = veze.filter((v: IzvodjacPjesmaVeza) => v.pjesmaID === pjesma.id);
+        for (const v of zaPjesmu) {
+          await axios.delete(`${API_BASE}/izvodjac_pjesma/${v.izvodjacID}/${pjesma.id}`);
+        }
+        for (const izvodjac of izabraniIzvodjaci) {
+          await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
+            izvodjacID: izvodjac.id,
+            pjesmaID: pjesma.id,
+            potvrdjeno: izvodjac.id === korisnikID,
+          });
+        }
+      });
+
       setSuccess("Pjesma je uspješno ažurirana.");
       setTimeout(() => navigate(`/pjesma/${pjesma.id}`), 1200);
     } catch {
@@ -118,7 +175,7 @@ const UrediPjesmu: React.FC = () => {
     <>
     <Header/>
     <Sidebar/>
-        <div className={styles.editSongBg}>
+    <div className={styles.editSongBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
       <form className={styles.editSongForm} onSubmit={handleSubmit}>
         <h2 className={styles.title}>Uredi pjesmu</h2>
         <label className={styles.label}>Naziv</label>
@@ -198,6 +255,103 @@ const UrediPjesmu: React.FC = () => {
           Sačuvaj promjene
         </button>
       </form>
+      {/* Desno: search i izbor izvođača */}
+      <div style={{
+        marginLeft: 32,
+        background: "#232323",
+        borderRadius: 14,
+        padding: "24px 18px",
+        minWidth: 260,
+        maxHeight: 480,
+        overflowY: "auto",
+        boxShadow: "0 4px 24px #b91d9533"
+      }}>
+        <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Izvođači na pjesmi</h4>
+        <input
+          type="text"
+          placeholder="Pretraži izvođače..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            width: "100%",
+            borderRadius: 8,
+            border: "1px solid #b91d95",
+            padding: "8px 10px",
+            fontSize: "1.05rem",
+            marginBottom: 10,
+            background: "#181818",
+            color: "#fff"
+          }}
+        />
+        <div style={{ marginBottom: 10 }}>
+          {izabraniIzvodjaci.map((k) => (
+            <span key={k.id} style={{
+              display: "inline-flex",
+              alignItems: "center",
+              background: "#b91d95",
+              color: "#fff",
+              borderRadius: 8,
+              padding: "4px 10px",
+              marginRight: 6,
+              marginBottom: 6,
+              fontWeight: 600,
+              fontSize: "0.98rem"
+            }}>
+              {k.korisnicko_ime}
+              <button
+                style={{
+                  marginLeft: 6,
+                  background: "none",
+                  border: "none",
+                  color: "#fff",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  fontSize: "1.1rem"
+                }}
+                onClick={() => handleRemoveIzvodjac(k.id)}
+                title={k.id === korisnikID ? "Ukloni sebe kao izvođača" : "Ukloni izvođača"}
+                type="button"
+              >
+                ×
+              </button>
+            </span>
+          ))}
+          {/* Napomena korisniku */}
+          <div style={{ color: "#bbb", fontSize: "0.93rem", marginTop: 4 }}>
+            Možete ukloniti bilo kojeg izvođača, uključujući i sebe.
+          </div>
+        </div>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {sviIzvodjaci
+            .filter((k) =>
+              k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()) &&
+              !izabraniIzvodjaci.find((iz) => iz.id === k.id)
+            )
+            .slice(0, 8)
+            .map((k) => (
+              <li key={k.id} style={{ marginBottom: 8 }}>
+                <button
+                  style={{
+                    background: "#b91d95",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "8px 0",
+                    fontSize: "1.05rem",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    width: "100%",
+                    transition: "background 0.18s",
+                  }}
+                  type="button"
+                  onClick={() => handleAddIzvodjac(k)}
+                >
+                  {k.korisnicko_ime}
+                </button>
+              </li>
+            ))}
+        </ul>
+      </div>
     </div>
     <Footer/>
     </>

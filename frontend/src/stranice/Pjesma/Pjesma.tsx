@@ -22,6 +22,7 @@ const Pjesma: React.FC = () => {
   const [editKomentarId, setEditKomentarId] = useState<number | null>(null);
   const [editKomentarTekst, setEditKomentarTekst] = useState("");
   const [komentarError, setKomentarError] = useState<string | null>(null);
+  const [izdavac, setIzdavac] = useState<Korisnik | null>(null);
   const navigate = useNavigate();
 
   let mojID = "";
@@ -47,6 +48,22 @@ const Pjesma: React.FC = () => {
       .then((res) => {
         if (!isMounted) return;
         setPjesma(res.data);
+
+        // Dohvati izdavaoca (korisnikID od pjesme)
+        const korisnikID = res.data.korisnikID;
+        if (korisnikID) {
+          axios
+            .get(`${API_BASE}/korisnici/${korisnikID}`)
+            .then((r) => {
+              if (isMounted) setIzdavac(r.data);
+            })
+            .catch(() => {
+              if (isMounted) setIzdavac(null);
+            });
+        } else {
+          setIzdavac(null);
+        }
+
         // Dohvati izvođače za pjesmu
         axios
           .get(`${API_BASE}/izvodjac_pjesma/`)
@@ -259,7 +276,22 @@ const Pjesma: React.FC = () => {
                 </span>
               </div>
               <div className={styles.izvodjaciWrap}>
-                <span className={styles.izvodjaciLabel}>Izvođači:</span>
+                {/* Izdavaoc lijevo */}
+                <span className={styles.izvodjaciLabel}>Izdavač:</span>
+                {izdavac ? (
+                  <span className={styles.izvodjacIme}>
+                    <img
+                      src={izdavac.putanjaProfilneSlike || "/logo.gif"}
+                      alt={izdavac.korisnicko_ime}
+                      className={styles.izvodjacSlika}
+                    />
+                    {izdavac.korisnicko_ime}
+                  </span>
+                ) : (
+                  <span className={styles.izvodjacIme}>Nepoznato</span>
+                )}
+                {/* Izvođači desno */}
+                <span className={styles.izvodjaciLabel} style={{ marginLeft: 18 }}>Izvođači:</span>
                 {izvodjaci.length === 0 ? (
                   <span className={styles.izvodjacIme}>Nepoznato</span>
                 ) : (

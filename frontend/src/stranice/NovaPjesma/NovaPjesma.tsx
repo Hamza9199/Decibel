@@ -6,7 +6,7 @@ import Loading from "../../komponente/Loading/Loading";
 import Footer from "../../komponente/Footer/Footer";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
-import { Album } from "../../types";
+import { Album, Korisnik } from "../../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -24,6 +24,9 @@ const NovaPjesma: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [albumi, setAlbumi] = useState<Album[]>([]);
   const [albumID, setAlbumID] = useState<number | "">("");
+  const [sviIzvodjaci, setSviIzvodjaci] = useState<Korisnik[]>([]);
+  const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   const korisnik = JSON.parse(localStorage.getItem("korisnik") || "{}");
@@ -38,6 +41,37 @@ const NovaPjesma: React.FC = () => {
       })
       .catch(() => setAlbumi([]));
   }, [korisnik?.id]);
+
+  useEffect(() => {
+    // Dohvati sve korisnike za search izvođača
+    axios
+      .get(`${API_BASE}/korisnici/`)
+      .then((res) => setSviIzvodjaci(res.data || []))
+      .catch(() => setSviIzvodjaci([]));
+  }, [korisnik?.id]);
+
+  // Ensure the user creating the song is always in izabraniIzvodjaci
+  useEffect(() => {
+    if (!korisnik?.id) return;
+    setIzabraniIzvodjaci((prev) => {
+      if (prev.find((k) => k.id === korisnik.id)) return prev;
+      // Try to find the korisnik object from sviIzvodjaci if possible
+      const userObj = sviIzvodjaci.find((k) => k.id === korisnik.id) || korisnik;
+      return [userObj, ...prev];
+    });
+    // eslint-disable-next-line
+  }, [korisnik?.id, sviIzvodjaci]);
+
+  // Dodavanje/uklanjanje izvođača
+  const handleAddIzvodjac = (korisnik: Korisnik) => {
+    if (!izabraniIzvodjaci.find((k) => k.id === korisnik.id)) {
+      setIzabraniIzvodjaci((prev) => [...prev, korisnik]);
+    }
+  };
+  const handleRemoveIzvodjac = (korisnikId: string) => {
+    // Sada se može ukloniti i sam sebe
+    setIzabraniIzvodjaci((prev) => prev.filter((k) => k.id !== korisnikId));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +92,20 @@ const NovaPjesma: React.FC = () => {
       if (slika) formData.append("file_slika", slika);
       if (gif) formData.append("file_gif", gif);
 
-      await axios.post<{ id: number }>(`${API_BASE}/pjesme/`, formData, {
+      // 1. Kreiraj pjesmu
+      const res = await axios.post<{ id: number }>(`${API_BASE}/pjesme/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+      const pjesmaId = res.data.id;
+
+      // 2. Dodaj veze za izvodjace (ako ima više)
+      for (const izvodjac of izabraniIzvodjaci) {
+        await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
+          izvodjacID: izvodjac.id,
+          pjesmaID: pjesmaId,
+          potvrdjeno: izvodjac.id === korisnik.id, // vlasnik automatski potvrđen
+        });
+      }
 
       setSuccess("Pjesma je uspješno dodana!");
       setLoading(false);
@@ -174,6 +219,103 @@ const NovaPjesma: React.FC = () => {
             Dodaj pjesmu
           </button>
         </form>
+        {/* Desno: search i izbor izvođača */}
+        <div style={{
+          marginLeft: 32,
+          background: "#232323",
+          borderRadius: 14,
+          padding: "24px 18px",
+          minWidth: 260,
+          maxHeight: 480,
+          overflowY: "auto",
+          boxShadow: "0 4px 24px #b91d9533"
+        }}>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Izvođači na pjesmi</h4>
+          <input
+            type="text"
+            placeholder="Pretraži izvođače..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              borderRadius: 8,
+              border: "1px solid #b91d95",
+              padding: "8px 10px",
+              fontSize: "1.05rem",
+              marginBottom: 10,
+              background: "#181818",
+              color: "#fff"
+            }}
+          />
+          <div style={{ marginBottom: 10 }}>
+            {izabraniIzvodjaci.map((k) => (
+              <span key={k.id} style={{
+                display: "inline-flex",
+                alignItems: "center",
+                background: "#b91d95",
+                color: "#fff",
+                borderRadius: 8,
+                padding: "4px 10px",
+                marginRight: 6,
+                marginBottom: 6,
+                fontWeight: 600,
+                fontSize: "0.98rem"
+              }}>
+                {k.korisnicko_ime}
+                <button
+                  style={{
+                    marginLeft: 6,
+                    background: "none",
+                    border: "none",
+                    color: "#fff",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    fontSize: "1.1rem"
+                  }}
+                  onClick={() => handleRemoveIzvodjac(k.id)}
+                  title={k.id === korisnik.id ? "Ukloni sebe kao izvođača" : "Ukloni izvođača"}
+                  type="button"
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {/* Napomena korisniku */}
+            <div style={{ color: "#bbb", fontSize: "0.93rem", marginTop: 4 }}>
+              Možete ukloniti i sebe kao izvođača.
+            </div>
+          </div>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {sviIzvodjaci
+              .filter((k) =>
+                k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()) &&
+                !izabraniIzvodjaci.find((iz) => iz.id === k.id)
+              )
+              .slice(0, 8)
+              .map((k) => (
+                <li key={k.id} style={{ marginBottom: 8 }}>
+                  <button
+                    style={{
+                      background: "#b91d95",
+                      color: "#fff",
+                      border: "none",
+                      borderRadius: 8,
+                      padding: "8px 0",
+                      fontSize: "1.05rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      width: "100%",
+                      transition: "background 0.18s",
+                    }}
+                    type="button"
+                    onClick={() => handleAddIzvodjac(k)}
+                  >
+                    {k.korisnicko_ime}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </div>
       </div>
       <Footer/>
     </>

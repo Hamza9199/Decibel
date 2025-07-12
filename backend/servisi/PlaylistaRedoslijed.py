@@ -169,7 +169,7 @@ async def obrisi_pjesmu(session: AsyncSession, playlistaID: int, pjesmaID: int):
     await session.commit()
     return True
 
-async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID: int, nova_pozicija_iza_pjesmeID: int):
+async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID: int, nova_pozicija_iza_pjesmeID: int | None):
     """
     Pomjera pjesmu na novo mjesto u kružnoj playlisti.
     Ako je nova_pozicija_iza_pjesmeID=None, pjesma ide na početak.
@@ -238,7 +238,7 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
 
     # Sada umetanje na novo mjesto
     if nova_pozicija_iza_pjesmeID is None:
-        # Dodaj na početak (iza zadnje, ispred prve)
+        # Dodaj na početak (prije prve pjesme)
         prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
         zadnja_id = await pronadji_zadnju_pjesmu(session, playlistaID)
         if prva_id == pjesmaID:
@@ -274,6 +274,7 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
         if zadnja_obj:
             zadnja_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
             session.add(zadnja_obj)
+
     else:
         # Dodaj iza određene pjesme
         target_result = await session.execute(
@@ -289,11 +290,13 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             await session.commit()
             return obj
 
-        # Provjeri da li je target zadnja pjesma (pokazivacNaSljedecuPjesmuID pokazuje na prvu)
         prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
-        if target.pokazivacNaSljedecuPjesmuID == prva_id:
-            # Umetanje na kraj
-            obj.pokazivacNaPrethodnuPjesmuID = target.pjesmaID
+        zadnja_id = await pronadji_zadnju_pjesmu(session, playlistaID)
+
+        # Ako je target zadnja pjesma (pokazivacNaSljedecuPjesmuID pokazuje na prvu)
+        if target.pjesmaID == zadnja_id:
+            # Umetanje na kraj (iza zadnje, ispred prve)
+            obj.pokazivacNaPrethodnuPjesmuID = zadnja_id
             obj.pokazivacNaSljedecuPjesmuID = prva_id
 
             target.pokazivacNaSljedecuPjesmuID = pjesmaID

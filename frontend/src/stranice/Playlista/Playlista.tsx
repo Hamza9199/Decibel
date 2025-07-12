@@ -220,6 +220,7 @@ const Playlista: React.FC = () => {
   if (idx === 0) {
     // Na prvo mjesto: null
     nova_pozicija_iza_pjesmeID = null;
+    return;
   } else if (idx === pjesme.length - 1) {
     // Na kraj: ID zadnje pjesme iz niza bez pomjerene pjesme
     nova_pozicija_iza_pjesmeID = pjesmeBez[pjesmeBez.length - 1]?.id ?? null;

@@ -19,4 +19,5 @@ from .Pretplata import *
 from .PretplataStatus import *
 from .KorisnikPretplata import *
 from .ObnovaPretplate import *
+from .PrijavaIzvodjaca import *
 

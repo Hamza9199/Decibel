@@ -43,7 +43,9 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    create_tables()  
+    result = create_tables()
+    if asyncio.iscoroutine(result):
+        await result
     await database.connect()
 
     def keep_alive():

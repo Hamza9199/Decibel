@@ -72,6 +72,12 @@ async def nova_pjesma_playlista(data: PjesmaPlaylistaCreate, session: AsyncSessi
 @router.post("/dodaj-na-kraj/", response_model=PjesmaPlaylista)
 async def dodaj_na_kraj(data: DodajPjesmuRequest, session: AsyncSession = Depends(get_session)):
     """Dodaje pjesmu na kraj playliste"""
+    from modeli.Pjesma import PjesmaORM
+    pjesma = await session.get(PjesmaORM, data.pjesmaID)
+    if not pjesma:
+        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+    if not bool(getattr(pjesma, "odobreno", False)):
+        raise HTTPException(status_code=400, detail="Pjesma nije odobrena i ne može se dodati u playlistu")
     try:
         result = await dodaj_pjesmu_na_kraj(session, data.playlistaID, data.pjesmaID)
         return result

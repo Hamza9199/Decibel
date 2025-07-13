@@ -4,11 +4,15 @@ import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
+import { useTranslation } from "react-i18next";
+import "../../i18n"; 
 
 const Postavke: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [poruka, setPoruka] = useState("");
   const [brisanje, setBrisanje] = useState(false);
+  const { t, i18n } = useTranslation();
+  const [jezik, setJezik] = useState(i18n.language || "bs");
 
   const handleOpenModal = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -85,44 +89,41 @@ const Postavke: React.FC = () => {
     handleCloseModal();
   };
 
+  // Kada korisnik promijeni jezik, promijeni i u i18n
+  const handleJezikChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const lang = e.target.value;
+    setJezik(lang);
+    i18n.changeLanguage(lang);
+  };
+
   return (
     <>
       <Header />
       <Sidebar />
       <div className={styles.settingsBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Postavke stranice</h2>
+          <h2 className={styles.title}>{t("settings")}</h2>
           <div className={styles.form}>
             <div className={styles.label}>
-              <span>Izgled aplikacije:</span>
+              <span>{t("appearance")}:</span>
               <select className={styles.input} disabled>
-                <option>Svijetli (uskoro)</option>
-                <option>Tamni</option>
+                <option>{t("dark_mode")}</option>
+                <option>{t("white_mode")}</option>
               </select>
             </div>
             <div className={styles.label}>
-              <span>Jezik:</span>
-              <select className={styles.input} disabled>
-                <option>Bosanski/Srpski/Hrvatski</option>
-                <option>English (uskoro)</option>
+              <span>{t("language")}:</span>
+              <select
+                className={styles.input}
+                value={jezik}
+                onChange={handleJezikChange}
+              >
+                <option value="bs">Bosanski/Srpski/Hrvatski</option>
+                <option value="en">English</option>
               </select>
             </div>
             <div className={styles.label}>
-              <span>Obavijesti:</span>
-              <input type="checkbox" checked disabled />{" "}
-              <span style={{ marginLeft: 8 }}>
-                Uključi obavijesti (uskoro)
-              </span>
-            </div>
-            <div className={styles.label}>
-              <span>Automatska reprodukcija:</span>
-              <input type="checkbox" checked disabled />{" "}
-              <span style={{ marginLeft: 8 }}>
-                Uključi autoplay (uskoro)
-              </span>
-            </div>
-            <div className={styles.label}>
-              <span>Prijava za izvođača:</span>
+              <span>{t("artist_application")}:</span>
               <span style={{ marginLeft: 8 }}>
                 <a
                   href="#"
@@ -130,12 +131,12 @@ const Postavke: React.FC = () => {
                   style={{ color: "#1e90ff" }}
                   onClick={handleOpenModal}
                 >
-                  Prijavi se ovdje
+                  {t("apply_here")}
                 </a>
               </span>
             </div>
-             <div className={styles.label}>
-              <span>Obrisi profil:</span>
+            <div className={styles.label}>
+              <span>{t("delete_profile")}:</span>
               <span style={{ marginLeft: 8 }}>
                 <a
                   href="#"
@@ -143,7 +144,7 @@ const Postavke: React.FC = () => {
                   style={{ color: "#1e90ff" }}
                   onClick={handleOpenBrisanje}
                 >
-                  Brisanje
+                  {t("deleting")}
                 </a>
               </span>
             </div>
@@ -155,8 +156,7 @@ const Postavke: React.FC = () => {
                 fontSize: "0.98rem",
               }}
             >
-              Ovdje će biti dodatne postavke aplikacije (tema, jezik, obavijesti,
-              privatnost, itd.).
+              {t("additional_settings")}
             </div>
           </div>
         </div>
@@ -193,9 +193,9 @@ const Postavke: React.FC = () => {
           >
             {!brisanje ? (
               <>
-                <h3 style={{ margin: 0 }}>Prijava za izvođača</h3>
+                <h3 style={{ margin: 0 }}>{t("artist_application")}</h3>
                 <label>
-                  Zašto bi baš vas izabrali? (Napišite bitne informacije)
+                  {t("why_choose_you")}
                   <textarea
                     value={poruka}
                     onChange={handlePorukaChange}
@@ -210,7 +210,7 @@ const Postavke: React.FC = () => {
                       background: "#181818",
                       color: "#fff",
                     }}
-                    placeholder="Npr. iskustvo, žanr, linkovi, kontakt..."
+                    placeholder={t("experience_genre_links")}
                   />
                 </label>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
@@ -225,7 +225,7 @@ const Postavke: React.FC = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Odustani
+                    {t("cancel")}
                   </button>
                   <button
                     onClick={handleSend}
@@ -240,15 +240,15 @@ const Postavke: React.FC = () => {
                       opacity: poruka.trim() ? 1 : 0.7,
                     }}
                   >
-                    Pošalji
+                    {t("send_application")}
                   </button>
                 </div>
               </>
             ) : (
               <>
-                <h3 style={{ margin: 0, color: "#e754a2" }}>Deaktivacija naloga</h3>
+                <h3 style={{ margin: 0, color: "#e754a2" }}>{t("deactivate_account")}</h3>
                 <div style={{ marginBottom: 12 }}>
-                  Da li ste sigurni da želite deaktivirati svoj nalog? Vaš profil će biti postavljen kao neaktivan i više neće biti vidljiv drugim korisnicima.
+                  {t("account_deactivated_info")}
                 </div>
                 <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
                   <button
@@ -262,7 +262,7 @@ const Postavke: React.FC = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Odustani
+                    {t("cancel")}
                   </button>
                   <button
                     onClick={handleBrisanje}
@@ -275,7 +275,7 @@ const Postavke: React.FC = () => {
                       cursor: "pointer",
                     }}
                   >
-                    Deaktiviraj nalog
+                    {t("deactivate_account")}
                   </button>
                 </div>
               </>
@@ -289,4 +289,3 @@ const Postavke: React.FC = () => {
 };
 
 export default Postavke;
-

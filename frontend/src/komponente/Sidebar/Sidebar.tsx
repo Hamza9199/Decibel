@@ -1,11 +1,13 @@
 import React from "react";
 import styles from "./Sidebar.module.css";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 type Role = "korisnik" | "izvodac" | "admin";
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const userStr = localStorage.getItem("korisnik");
   let role: Role = "korisnik";
   if (userStr) {
@@ -27,17 +29,13 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
     <aside className={styles.sidebar}>
       <div className={styles.logoWrap}>
         <Link to="/">
-
-        <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
+          <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
         </Link>
-                <Link to="/">
-
-        <span className={styles.logoText}>Decibel</span>
-                </Link>
-
+        <Link to="/">
+          <span className={styles.logoText}>Decibel</span>
+        </Link>
       </div>
       <nav className={styles.nav}>
-
         <button className={styles.navBtn} onClick={() => navigate("/")}>
           {/* Home icon */}
           <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
@@ -45,7 +43,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               <path d="M3 12L12 4l9 8v7a2 2 0 0 1-2 2h-3v-5h-6v5H5a2 2 0 0 1-2-2z" />
             </svg>
           </span>
-          Početna
+          {t("home") || "Početna"}
         </button>
         <div className={styles.profileMenu}>
           <button
@@ -59,7 +57,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                 <path d="M4 20c0-4 16-4 16 0" />
               </svg>
             </span>
-            Profil
+            {t("profile")}
           </button>
           {showProfileMenu && (
             <div className={styles.subMenu}>
@@ -74,7 +72,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.36.36.58.86.6 1.39V9a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
                 </span>
-                Postavke
+                {t("settings")}
               </button>
               <button
                 className={styles.subNavBtn}
@@ -87,7 +85,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <path d="M18.4 2.6a2 2 0 0 1 2.8 2.8l-2 2-2.8-2.8 2-2z" />
                   </svg>
                 </span>
-                Uredi profil
+                {t("edit_profile")}
               </button>
               <button
                 className={styles.subNavBtn}
@@ -101,7 +99,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <path d="M8 3v4" />
                   </svg>
                 </span>
-                Pretplata
+                {t("subscription")}
               </button>
             </div>
           )}
@@ -118,7 +116,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                 <rect x="3" y="14" width="10" height="2" rx="1" />
               </svg>
             </span>
-            Historija
+            {t("history")}
           </button>
         </div>
         <div className={styles.profileMenu}>
@@ -128,54 +126,54 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
           >
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
               <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
-          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
               </svg>
             </span>
-            Omiljena muzika
+            {t("favorites")}
           </button>
           {showFavoritesMenu && (
             <div className={styles.subMenu}>
               <button
-          className={styles.subNavBtn}
-          onClick={() => navigate("/omiljene/pjesme")}
+                className={styles.subNavBtn}
+                onClick={() => navigate("/omiljene/pjesme")}
               >
-          {/* Music note icon */}
-          <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
-            <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
-              <path d="M9 17V5l12-2v12" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
-          </span>
-          Pjesme
+                {/* Music note icon */}
+                <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+                  <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
+                    <path d="M9 17V5l12-2v12" />
+                    <circle cx="6" cy="18" r="3" />
+                    <circle cx="18" cy="16" r="3" />
+                  </svg>
+                </span>
+                {t("songs")}
               </button>
               <button
-          className={styles.subNavBtn}
-          onClick={() => navigate("/omiljene/playliste")}
+                className={styles.subNavBtn}
+                onClick={() => navigate("/omiljene/playliste")}
               >
-          {/* Playlist icon */}
-          <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
-            <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
-              <rect x="4" y="6" width="16" height="2" rx="1" />
-              <rect x="4" y="10" width="16" height="2" rx="1" />
-              <rect x="4" y="14" width="16" height="2" rx="1" />
-              <circle cx="19" cy="15" r="3" />
-            </svg>
-          </span>
-          Playliste
+                {/* Playlist icon */}
+                <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+                  <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
+                    <rect x="4" y="6" width="16" height="2" rx="1" />
+                    <rect x="4" y="10" width="16" height="2" rx="1" />
+                    <rect x="4" y="14" width="16" height="2" rx="1" />
+                    <circle cx="19" cy="15" r="3" />
+                  </svg>
+                </span>
+                {t("playlists")}
               </button>
               <button
-          className={styles.subNavBtn}
-          onClick={() => navigate("/omiljene/albumi")}
+                className={styles.subNavBtn}
+                onClick={() => navigate("/omiljene/albumi")}
               >
-          {/* Album icon */}
-          <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
-            <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
-              <circle cx="12" cy="12" r="10" />
-              <circle cx="12" cy="12" r="4" />
-            </svg>
-          </span>
-          Albumi
+                {/* Album icon */}
+                <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+                  <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                </span>
+                {t("albums")}
               </button>
             </div>
           )}
@@ -194,7 +192,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                 <circle cx="19" cy="15" r="3" />
               </svg>
             </span>
-            Playliste
+            {t("playlists")}
           </button>
           {showPlaylistMenu && (
             <div className={styles.subMenu}>
@@ -210,7 +208,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <rect x="4" y="14" width="16" height="2" rx="1" />
                   </svg>
                 </span>
-                Sve playliste
+                {t("all_playlists") || "Sve playliste"}
               </button>
               <button
                 className={styles.subNavBtn}
@@ -223,7 +221,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <rect x="11" y="4" width="2" height="16" rx="1" />
                   </svg>
                 </span>
-                Dodaj playlistu
+                {t("create_playlist")}
               </button>
             </div>
           )}
@@ -232,7 +230,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
 
         {(role === "izvodac" || role === "admin") && (
           <>
-            <div className={styles.sectionTitle}>Izvođač</div>
+            <div className={styles.sectionTitle}>{t("artists")}</div>
             <div className={styles.profileMenu}>
               <button
                 className={styles.navBtn}
@@ -246,7 +244,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <circle cx="18" cy="16" r="3" />
                   </svg>
                 </span>
-                Pjesme
+                {t("songs")}
               </button>
               {showSongsMenu && (
                 <div className={styles.subMenu}>
@@ -262,7 +260,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                         <rect x="4" y="14" width="16" height="2" rx="1" />
                       </svg>
                     </span>
-                    Sve pjesme
+                    {t("all_songs") || "Sve pjesme"}
                   </button>
                   <button
                     className={styles.subNavBtn}
@@ -275,7 +273,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                         <rect x="11" y="4" width="2" height="16" rx="1" />
                       </svg>
                     </span>
-                    Nova pjesma
+                    {t("new_song") || "Nova pjesma"}
                   </button>
                 </div>
               )}
@@ -292,7 +290,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                     <circle cx="12" cy="12" r="4" />
                   </svg>
                 </span>
-                Albumi
+                {t("albums")}
               </button>
               {showAlbumsMenu && (
                 <div className={styles.subMenu}>
@@ -308,7 +306,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                         <rect x="4" y="14" width="16" height="2" rx="1" />
                       </svg>
                     </span>
-                    Svi albumi
+                    {t("all_albums") || "Svi albumi"}
                   </button>
                   <button
                     className={styles.subNavBtn}
@@ -321,7 +319,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                         <rect x="11" y="4" width="2" height="16" rx="1" />
                       </svg>
                     </span>
-                    Novi album
+                    {t("new_album") || "Novi album"}
                   </button>
                 </div>
               )}
@@ -340,7 +338,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                   <path d="M9 21V9" />
                 </svg>
               </span>
-              Admin panel
+              {t("admin_panel")}
             </button>
             <button className={styles.navBtn} onClick={() => navigate("/statistika")}>
               {/* Stats icon */}
@@ -351,7 +349,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                   <rect x="15" y="4" width="4" height="16" rx="1" />
                 </svg>
               </span>
-              Statistika
+              {t("statistic")}
             </button>
             <button className={styles.navBtn} onClick={() => navigate("/korisnici")}>
               {/* Users icon */}
@@ -363,7 +361,7 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                   <path d="M17 20v-1a3 3 0 0 0-3-3h-2" />
                 </svg>
               </span>
-              Svi korisnici
+              {t("all_users") || "Svi korisnici"}
             </button>
           </>
         )}

@@ -7,6 +7,7 @@ import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -19,6 +20,7 @@ const Home: React.FC = () => {
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [activeSong, setActiveSong] = useState<Pjesma | null>(null);
   const repeatAll = false;
+  const { t } = useTranslation();
 
   // Emit event for background image when song changes
   useEffect(() => {
@@ -126,7 +128,7 @@ const Home: React.FC = () => {
       <Sidebar/>
       <div className={styles.spotifyBg}>
         <div className={styles.container}>
-          <Section title="Pjesme">
+          <Section title={t("songs")}>
             <div className={styles.gridRow}>
               {pjesme.filter(p => p.odobreno).map((p) => (
                 <div
@@ -160,7 +162,7 @@ const Home: React.FC = () => {
             </div>
           </Section>
 
-          <Section title="Albumi">
+          <Section title={t("albums")}>
             <div className={styles.gridRow}>
               {albumi.filter(a => a.odobreno).map((a) => (
                 <div key={a.id} className={styles.card}>
@@ -191,7 +193,7 @@ const Home: React.FC = () => {
             </div>
           </Section>
 
-          <Section title="Playliste">
+          <Section title={t("playlists")}>
             <div className={styles.gridRow}>
               {playliste.filter(pl => pl.javno).map((pl) => (
                 <div key={pl.id} className={styles.card}>
@@ -224,7 +226,7 @@ const Home: React.FC = () => {
             </div>
           </Section>
 
-          <Section title="Izvođači">
+          <Section title={t("artists")}>
             <div className={styles.gridRow}>
               {korisnici
                 .filter((k) => k.rola === "izvodac" && k.statusKorisnika !== "suspendovan")

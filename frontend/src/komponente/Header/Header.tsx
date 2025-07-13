@@ -3,6 +3,7 @@ import styles from "./Header.module.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { Korisnik } from "../../types";
+import { useTranslation } from "react-i18next";
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Header: React.FC = () => {
@@ -10,67 +11,57 @@ const Header: React.FC = () => {
   const user = JSON.parse(localStorage.getItem("korisnik") || "");
   const [korisnik, setKorisnik] = useState<Korisnik>();
   let korisnikID = "";
-
+  const { t } = useTranslation();
 
   if (isLoggedIn) {
     try {
       korisnikID = user?.id || "";
-
     } catch {
       korisnikID = "";
     }
   }
 
+  useEffect(() => {
+    if (!korisnikID) return;
+    axios
+      .get(`${API_BASE}/korisnici/${korisnikID}`)
+      .then((res) => {
+        setKorisnik(res.data);
+      })
+      .catch(() => {
+        setKorisnik(undefined);
+      });
+  }, [korisnikID]);
 
-    useEffect(() => {
-      if (!korisnikID) return;
-          axios.get(`${API_BASE}/korisnici/${korisnikID}`)
-        .then((res) => {
-          setKorisnik(res.data);
-        })
-        .catch(() => {
-          setKorisnik(undefined);
-        });
-         
-        }, [korisnikID]);
-  
-
- 
   const handleLogout = () => {
     localStorage.removeItem("korisnik");
-    
+
     window.location.href = "/login";
   };
 
   return (
     <header className={styles.header}>
       <Link to="/">
-
-      <img
-        src="/logo.gif"
-        alt="Decibel logo"
-        className={styles.logoImg}
-        style={{ height: "45px", marginRight: "14px", marginLeft: "18px" }}
-      />
+        <img
+          src="/logo.gif"
+          alt="Decibel logo"
+          className={styles.logoImg}
+          style={{ height: "45px", marginRight: "14px", marginLeft: "18px" }}
+        />
       </Link>
-                <Link to="/">
-
-      <div className={styles.logo}>Decibel</div>
+      <Link to="/">
+        <div className={styles.logo}>Decibel</div>
       </Link>
 
       <span className={styles.welcomeMessage}>
-        Dobrodošli {korisnik?.korisnicko_ime} !
+        {t("welcome")} {korisnik?.korisnicko_ime} !
       </span>
 
-
-                      <Link to="/profile/edit">
-
-          <img src={korisnik?.putanjaProfilneSlike} className={styles.profileImg} />
+      <Link to="/profile/edit">
+        <img src={korisnik?.putanjaProfilneSlike} className={styles.profileImg} />
       </Link>
 
-
       {isLoggedIn && (
-      
         <button
           className={styles.logoutBtn}
           onClick={handleLogout}
@@ -88,7 +79,7 @@ const Header: React.FC = () => {
             fontSize: "1rem",
           }}
         >
-          Logout
+          {t("logout")}
         </button>
       )}
     </header>
@@ -96,3 +87,5 @@ const Header: React.FC = () => {
 };
 
 export default Header;
+        
+          

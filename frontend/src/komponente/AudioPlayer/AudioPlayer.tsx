@@ -28,7 +28,6 @@ const AudioPlayer: React.FC<Props> = ({
   putanjaSlika,
   korisnikID,
   visible,
-  onEnded,
   onClose,
   minimized,
   onExpand,
@@ -475,18 +474,21 @@ useEffect(() => {
     }
   }, [playlistIdx, globalPlaylist]);
 
-  // Ukloni/popravi automatsko postavljanje currentSong i audioRef.src iz props kad je aktivna playlista
   useEffect(() => {
     // Postavi currentSong i audioRef.src iz props SAMO ako NIJE aktivna playlista
     if (globalPlaylist.length === 0 && src) {
-      setCurrentSong({
-        id: id ?? 0,
-        naziv: title ?? "",
-        putanjaAudio: src,
-        putanjaGif: putanjaGif,
-        putanjaSlika: putanjaSlika,
-        korisnikID: korisnikID ?? "",
-      } as Pjesma);
+      setCurrentSong((prev) => {
+        // Ako već prikazujemo ovu pjesmu, ne mijenjaj state (zadrži detalje)
+        if (prev && prev.putanjaAudio === src) return prev;
+        return {
+          id: id ?? 0,
+          naziv: title ?? "",
+          putanjaAudio: src,
+          putanjaGif: putanjaGif,
+          putanjaSlika: putanjaSlika,
+          korisnikID: korisnikID ?? "",
+        } as Pjesma;
+      });
       if (audioRef.current && globalPlaylist.length === 0) {
         audioRef.current.src = src;
         audioRef.current.load();
@@ -574,8 +576,8 @@ useEffect(() => {
       }
       setPlaying(false);
       setProgress(0);
-      setCurrentSong(null);
-      onEnded?.();
+      // NE briši currentSong kod single song!
+      // onEnded?.();
     }
   };
 

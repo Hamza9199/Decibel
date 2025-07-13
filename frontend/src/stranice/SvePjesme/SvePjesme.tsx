@@ -114,24 +114,17 @@ const SvePjesme: React.FC = () => {
                   <Link to={`/izvodjac/${p.korisnikID}`}>
                   <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                   </Link>
-                  <div> 
+                  <div className={styles.cardActions}>
                   <Link
                     to={`/uredi-pjesmu/${p.id}`}
-                    style={{
-                      color: "#b91d95",
-                      fontWeight: 600,
-                      fontSize: "0.98rem",
-                      textDecoration: "underline",
-                      marginTop: 6,
-                      display: "inline-block",
-                    }}
+                    className="link"
                   >
-                    <button >
-                    Uredi pjesmu
+                    <button className={styles.editButton}> 
+                    Uredi
                     </button>
                   </Link>
-                  <button onClick={() => handleDelete(p.id)}>
-                    Obrisi pjesmu
+                  <button className={styles.deleteButton} onClick={() => handleDelete(p.id)}>
+                    Obrisi
                     </button>
                     </div>
                 </div>

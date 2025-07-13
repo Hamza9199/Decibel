@@ -88,6 +88,7 @@ const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () =>
 );
 
 const ObrisanScreen: FC<{ onLogout: () => void; onReaktiviraj: () => void }> = ({ onLogout, onReaktiviraj }) => (
+
   <div style={{
     minHeight: "100vh",
     display: "flex",
@@ -240,9 +241,11 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
 
   if (provjera) return null;
   if (obrisan) {
+    window.dispatchEvent(new CustomEvent("hideSubscriptionMsg"));
     return <ObrisanScreen onLogout={handleLogout} onReaktiviraj={handleReaktiviraj} />;
   }
   if (suspendInfo) {
+    window.dispatchEvent(new CustomEvent("hideSubscriptionMsg"));
     return <SuspendovanScreen poruka={suspendInfo.poruka} vrijemeDo={suspendInfo.vrijemeDo} onLogout={handleLogout} />;
   }
   return <>{children}</>;

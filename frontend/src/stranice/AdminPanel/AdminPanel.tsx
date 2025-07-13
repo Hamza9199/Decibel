@@ -5,6 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Pjesma, Album, Playlista } from "../../types";
+import { Link } from "react-router-dom";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -15,6 +16,7 @@ const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const repeatAll = false;
 
   useEffect(() => {
     setLoading(true);
@@ -78,6 +80,108 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // Play single song
+  const handlePlaySong = (p: Pjesma) => {
+    if (!p.putanjaAudio) return;
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlay", {
+        detail: {
+          id: p.id,
+          src: p.putanjaAudio,
+          title: p.naziv,
+          putanjaGif: p.putanjaGif,
+          putanjaSlika: p.putanjaSlika,
+          korisnikID: p.korisnikID,
+        },
+      })
+    );
+  };
+
+  // Play album
+  const handlePlayAlbumSongs = (albumId: number) => {
+    const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
+    if (albumSongs.length === 0) return;
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlaylist", {
+        detail: {
+          playlist: albumSongs,
+          idx: 0,
+          repeatAll,
+        }
+      })
+    );
+  };
+
+  // Play playlist
+  const handlePlayPlaylistSongs = async (playlistId: number) => {
+    try {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+      const idsZaDohvat: number[] = res.data || [];
+      if (idsZaDohvat.length === 0) return;
+      const pjesmeArr = await Promise.all(
+        idsZaDohvat.map((id) =>
+          axios
+            .get(`${API_BASE}/pjesme/${id}`)
+            .then((r) => r.data)
+            .catch(() => null)
+        )
+      );
+      const playlistSongs = pjesmeArr.filter(Boolean);
+      if (playlistSongs.length === 0) return;
+      window.dispatchEvent(
+        new CustomEvent("globalAudioPlaylist", {
+          detail: {
+            playlist: playlistSongs,
+            idx: 0,
+            repeatAll,
+          }
+        })
+      );
+    } catch {
+      // fallback na staro ponašanje ako backend ne radi
+    }
+  };
+
+  // Dodaj funkcije za brisanje
+  const handleObrisiPjesmu = async (pjesmaId: number) => {
+    if (!window.confirm("Da li ste sigurni da želite obrisati ovu pjesmu?")) return;
+    setError(null);
+    setSuccess(null);
+    try {
+      await axios.delete(`${API_BASE}/pjesme/${pjesmaId}`);
+      setPjesme(prev => prev.filter(p => p.id !== pjesmaId));
+      setSuccess("Pjesma je obrisana.");
+    } catch {
+      setError("Greška pri brisanju pjesme.");
+    }
+  };
+
+  const handleObrisiAlbum = async (albumId: number) => {
+    if (!window.confirm("Da li ste sigurni da želite obrisati ovaj album?")) return;
+    setError(null);
+    setSuccess(null);
+    try {
+      await axios.delete(`${API_BASE}/albumi/${albumId}`);
+      setAlbumi(prev => prev.filter(a => a.id !== albumId));
+      setSuccess("Album je obrisan.");
+    } catch {
+      setError("Greška pri brisanju albuma.");
+    }
+  };
+
+  const handleObrisiPlaylistu = async (playlistaId: number) => {
+    if (!window.confirm("Da li ste sigurni da želite obrisati ovu playlistu?")) return;
+    setError(null);
+    setSuccess(null);
+    try {
+      await axios.delete(`${API_BASE}/playliste/${playlistaId}`);
+      setPlayliste(prev => prev.filter(pl => pl.id !== playlistaId));
+      setSuccess("Playlista je obrisana.");
+    } catch {
+      setError("Greška pri brisanju playliste.");
+    }
+  };
+
   return (
     <>
       <Header />
@@ -99,15 +203,35 @@ const AdminPanel: React.FC = () => {
                     <tr>
                       <th>Naziv</th>
                       <th>Izvođač</th>
+                      <th>Preslušaj</th>
                       <th>Odobreno</th>
                       <th>Akcija</th>
+                      <th>Obriši</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pjesme.map((p) => (
                       <tr key={p.id}>
-                        <td>{p.naziv}</td>
-                        <td>{p.korisnik?.korisnicko_ime || p.korisnikID}</td>
+                        <td>
+                          <Link className="link" to={`/pjesma/${p.id}`}>{p.naziv}</Link>
+                        </td>
+                        <td>
+                          <Link className="link" to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
+                            {p.korisnik?.korisnicko_ime || p.korisnikID}
+                          </Link>
+                        </td>
+                        <td>
+                          {p.putanjaAudio && (
+                            <button
+                              className={styles.btn}
+                              style={{ background: "#2ecc40", margin: 0 }}
+                              onClick={() => handlePlaySong(p)}
+                              title="Preslušaj pjesmu"
+                            >
+                              ▶
+                            </button>
+                          )}
+                        </td>
                         <td>
                           <span
                             className={
@@ -132,6 +256,16 @@ const AdminPanel: React.FC = () => {
                             {p.odobreno ? "Poništi odobrenje" : "Odobri"}
                           </button>
                         </td>
+                        <td>
+                          <button
+                            className={styles.btn}
+                            style={{ background: "#e53935", margin: 0 }}
+                            onClick={() => handleObrisiPjesmu(p.id)}
+                            title="Obriši pjesmu"
+                          >
+                            Obriši
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -146,16 +280,34 @@ const AdminPanel: React.FC = () => {
                       <th>Naziv</th>
                       <th>Korisnik</th>
                       <th>Broj lajkova</th>
+                      <th>Preslušaj</th>
                       <th>Odobreno</th>
                       <th>Akcija</th>
+                      <th>Obriši</th>
                     </tr>
                   </thead>
                   <tbody>
                     {albumi.map((a) => (
                       <tr key={a.id}>
-                        <td>{a.naziv}</td>
-                        <td>{a.korisnik?.korisnicko_ime || a.korisnikID}</td>
+                        <td>
+                          <Link className="link" to={`/album/${a.id}`}>{a.naziv}</Link>
+                        </td>
+                        <td>
+                          <Link className="link" to={`/izvodjac/${a.korisnik?.id || a.korisnikID}`}>
+                            {a.korisnik?.korisnicko_ime || a.korisnikID}
+                          </Link>
+                        </td>
                         <td>{a.brojLajkova}</td>
+                        <td>
+                          <button
+                            className={styles.btn}
+                            style={{ background: "#2ecc40", margin: 0 }}
+                            onClick={() => handlePlayAlbumSongs(a.id)}
+                            title="Preslušaj album"
+                          >
+                            ▶
+                          </button>
+                        </td>
                         <td>
                           <span
                             className={
@@ -180,6 +332,16 @@ const AdminPanel: React.FC = () => {
                             {a.odobreno ? "Poništi odobrenje" : "Odobri"}
                           </button>
                         </td>
+                        <td>
+                          <button
+                            className={styles.btn}
+                            style={{ background: "#e53935", margin: 0 }}
+                            onClick={() => handleObrisiAlbum(a.id)}
+                            title="Obriši album"
+                          >
+                            Obriši
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -194,14 +356,42 @@ const AdminPanel: React.FC = () => {
                       <th>Naziv</th>
                       <th>Korisnik</th>
                       <th>Broj lajkova</th>
+                      <th>Preslušaj</th>
+                      <th>Obriši</th>
                     </tr>
                   </thead>
                   <tbody>
                     {playliste.map((pl) => (
                       <tr key={pl.id}>
-                        <td>{pl.naziv}</td>
-                        <td>{pl.korisnik?.korisnicko_ime || pl.korisnikID}</td>
+                        <td>
+                          <Link className="link" to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
+                        </td>
+                        <td>
+                          <Link className="link" to={`/izvodjac/${pl.korisnik?.id || pl.korisnikID}`}>
+                            {pl.korisnik?.korisnicko_ime || pl.korisnikID}
+                          </Link>
+                        </td>
                         <td>{pl.brojLajkova}</td>
+                        <td>
+                          <button
+                            className={styles.btn}
+                            style={{ background: "#2ecc40", margin: 0 }}
+                            onClick={() => handlePlayPlaylistSongs(pl.id)}
+                            title="Preslušaj playlistu"
+                          >
+                            ▶
+                          </button>
+                        </td>
+                        <td>
+                          <button
+                            className={styles.btn}
+                            style={{ background: "#e53935", margin: 0 }}
+                            onClick={() => handleObrisiPlaylistu(pl.id)}
+                            title="Obriši playlistu"
+                          >
+                            Obriši
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

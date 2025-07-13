@@ -128,7 +128,7 @@ const Home: React.FC = () => {
         <div className={styles.container}>
           <Section title="Pjesme">
             <div className={styles.gridRow}>
-              {pjesme.map((p) => (
+              {pjesme.filter(p => p.odobreno).map((p) => (
                 <div
                   key={p.id}
                   className={`${styles.card} ${activeSongId === p.id ? styles.activeCard : ""}`}
@@ -151,9 +151,8 @@ const Home: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  <Link to={`/pjesma/${p.id}`}><div className={styles.cardTitle}>{p.naziv}</div></Link>
-                  <Link to={`/izvodjac/${p.korisnik?.id}`}>
-
+                  <Link className="link" to={`/pjesma/${p.id}`}><div className={styles.cardTitle}>{p.naziv}</div></Link>
+                  <Link className="link" to={`/izvodjac/${p.korisnik?.id}`}>
                    <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                    </Link>
                 </div>
@@ -163,7 +162,7 @@ const Home: React.FC = () => {
 
           <Section title="Albumi">
             <div className={styles.gridRow}>
-              {albumi.map((a) => (
+              {albumi.filter(a => a.odobreno).map((a) => (
                 <div key={a.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {a.putanjaSlika ? (
@@ -183,8 +182,8 @@ const Home: React.FC = () => {
                       </svg>
                     </button>
                   </div>
-                  <Link to={`/album/${a.id}`}><div className={styles.cardTitle}>{a.naziv}</div></Link>
-                  <Link to={`/izvodjac/${a.korisnik?.id}`}>
+                  <Link className="link" to={`/album/${a.id}`}><div className={styles.cardTitle}>{a.naziv}</div></Link>
+                  <Link className="link" to={`/izvodjac/${a.korisnik?.id}`}>
                   <div className={styles.cardDesc}>{a.korisnik?.korisnicko_ime|| <span>&nbsp;</span>}</div>
                   </Link>
                 </div>
@@ -194,7 +193,7 @@ const Home: React.FC = () => {
 
           <Section title="Playliste">
             <div className={styles.gridRow}>
-              {playliste.map((pl) => (
+              {playliste.filter(pl => pl.javno).map((pl) => (
                 <div key={pl.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {pl.putanjaSlika ? (
@@ -214,10 +213,10 @@ const Home: React.FC = () => {
                       </svg>
                     </button>
                   </div>
-                  <Link to={`/playlista/${pl.id}`}>
+                  <Link className="link" to={`/playlista/${pl.id}`}>
                     <div className={styles.cardTitle}>{pl.naziv}</div>
                   </Link>
-                   <Link to={`/izvodjac/${pl.korisnik?.id}`}>
+                   <Link className="link" to={`/izvodjac/${pl.korisnik?.id}`}>
                   <div className={styles.cardDesc}>{pl.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
                   </Link>
                 </div>
@@ -227,20 +226,22 @@ const Home: React.FC = () => {
 
           <Section title="Izvođači">
             <div className={styles.gridRow}>
-              {korisnici.map((k) => (
-                <div key={k.id} className={styles.card}>
-                  <div className={styles.cardImageWrap2}>
-                    {k.putanjaProfilneSlike ? (
-                      <img src={k.putanjaProfilneSlike} alt={k.korisnicko_ime} className={styles.cardImage} />
-                    ) : (
-                      <div className={styles.cardImage} style={{ background: "#222" }} />
-                    )}
+              {korisnici
+                .filter((k) => k.rola === "izvodac" && k.statusKorisnika !== "suspendovan")
+                .map((k) => (
+                  <div key={k.id} className={styles.card}>
+                    <div className={styles.cardImageWrap2}>
+                      {k.putanjaProfilneSlike ? (
+                        <img src={k.putanjaProfilneSlike} alt={k.korisnicko_ime} className={styles.cardImage} />
+                      ) : (
+                        <div className={styles.cardImage} style={{ background: "#222" }} />
+                      )}
+                    </div>
+                    <Link className="link" to={`/izvodjac/${k.id}`}>
+                      <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
+                    </Link>
                   </div>
-                  <Link to={`/izvodjac/${k.id}`}>
-                    <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
-                  </Link>
-                </div>
-              ))}
+                ))}
             </div>
           </Section>
         </div>

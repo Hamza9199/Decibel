@@ -68,11 +68,13 @@ const UrediPlaylistu: React.FC = () => {
   const [opis, setOpis] = useState("");
   const [fileSlika, setFileSlika] = useState<File | null>(null);
   const [fileGif, setFileGif] = useState<File | null>(null);
+  const [javno, setJavno] = useState(false);
 
   useEffect(() => {
     if (playlista) {
       setNaziv(playlista.naziv || "");
       setOpis(playlista.opis || "");
+      setJavno(!!playlista.javno);
     }
   }, [playlista]);
 
@@ -86,7 +88,7 @@ const UrediPlaylistu: React.FC = () => {
     formData.append("naziv", naziv);
     formData.append("opis", opis);
     formData.append("kreiranDatumVrijeme", playlista.kreiranDatumVrijeme || "");
-    formData.append("javno", String(playlista.javno || false));
+    formData.append("javno", String(javno));
     formData.append("brojLajkova", String(playlista.brojLajkova || 0));
     if (fileSlika) formData.append("file_slika", fileSlika);
     if (fileGif) formData.append("file_gif", fileGif);
@@ -156,6 +158,15 @@ const UrediPlaylistu: React.FC = () => {
             accept="image/gif"
             onChange={(e) => setFileGif(e.target.files?.[0] || null)}
           />
+          <label className={styles.fileLabel} style={{marginTop: 10, marginBottom: 10}}>
+            <input
+              type="checkbox"
+              checked={javno}
+              onChange={e => setJavno(e.target.checked)}
+              style={{marginRight: 8}}
+            />
+            Javna playlista
+          </label>
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit">

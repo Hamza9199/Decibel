@@ -16,6 +16,11 @@ const SviKorisnici: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [prijave, setPrijave] = useState<PrijavaIzvodjaca[]>([]);
   const [prijavaModal, setPrijavaModal] = useState<{ korisnikID: string; prijava: PrijavaIzvodjaca } | null>(null);
+  const [suspendModal, setSuspendModal] = useState<{
+    korisnik: Korisnik;
+    poruka: string;
+    vrijemeDo: string;
+  } | null>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -38,6 +43,17 @@ const SviKorisnici: React.FC = () => {
   ) => {
     setError(null);
     setSuccess(null);
+
+    // Ako se bira "suspendovan" status, otvori modal za unos poruke i vremena
+    if (field === "statusKorisnika" && value === "suspendovan") {
+      setSuspendModal({
+        korisnik,
+        poruka: "",
+        vrijemeDo: "",
+      });
+      return;
+    }
+
     try {
       await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, {
         ...korisnik,
@@ -59,6 +75,51 @@ const SviKorisnici: React.FC = () => {
     } catch {
       setError("Greška pri ažuriranju korisnika.");
     }
+  };
+
+  // Funkcija za potvrdu suspenzije
+  const handlePotvrdiSuspenziju = async () => {
+    if (!suspendModal) return;
+    setError(null);
+    setSuccess(null);
+    try {
+      // Prvo ažuriraj korisnika na suspendovan
+      await axios.put(`${API_BASE}/korisnici/${suspendModal.korisnik.id}`, {
+        ...suspendModal.korisnik,
+        statusKorisnika: "suspendovan",
+      });
+      // Zatim kreiraj zapis o suspenziji
+      await axios.post(`${API_BASE}/suspendovani/`, {
+        korisnikID: suspendModal.korisnik.id,
+        vrijemeDo: suspendModal.vrijemeDo,
+        poruka: suspendModal.poruka,
+      });
+      setSuccess("Korisnik je suspendovan.");
+      setKorisnici((prev) =>
+        prev.map((k) =>
+          k.id === suspendModal.korisnik.id
+            ? { ...k, statusKorisnika: "suspendovan" }
+            : k
+        )
+      );
+      setSuspendModal(null);
+    } catch {
+      setError("Greška pri suspenziji korisnika.");
+    }
+  };
+
+  // Funkcija za prekid suspenzije (zatvaranje modala i vraćanje na aktivan)
+  const handlePrekiniSuspenziju = () => {
+    if (!suspendModal) return;
+    // Vraćanje selecta na "aktivan" bez slanja na backend
+    setKorisnici((prev) =>
+      prev.map((k) =>
+        k.id === suspendModal.korisnik.id
+          ? { ...k, statusKorisnika: "aktivan" }
+          : k
+      )
+    );
+    setSuspendModal(null);
   };
 
   return (
@@ -245,6 +306,122 @@ const SviKorisnici: React.FC = () => {
                         onClick={() => setPrijavaModal(null)}
                       >
                         Zatvori
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              {/* Modal za suspenziju korisnika */}
+              {suspendModal && (
+                <div
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    background: "rgba(24,24,24,0.85)",
+                    zIndex: 4000,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={handlePrekiniSuspenziju}
+                >
+                  <div
+                    style={{
+                      background: "#232323",
+                      borderRadius: 14,
+                      padding: "32px 24px 24px 24px",
+                      minWidth: 320,
+                      maxWidth: 480,
+                      boxShadow: "0 4px 24px #b91d9533",
+                      textAlign: "left",
+                      color: "#fff",
+                      position: "relative",
+                    }}
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <h4 style={{ marginTop: 0 }}>Suspenduj korisnika</h4>
+                    <div style={{ marginBottom: 12 }}>
+                      <b>Korisnik:</b> {suspendModal.korisnik.korisnicko_ime}
+                    </div>
+                    <div style={{ marginBottom: 12 }}>
+                      <label>
+                        Poruka za korisnika (razlog suspenzije):
+                        <textarea
+                          style={{
+                            width: "100%",
+                            minHeight: 60,
+                            marginTop: 6,
+                            borderRadius: 6,
+                            border: "1px solid #b91d95",
+                            background: "#181818",
+                            color: "#fff",
+                            padding: 8,
+                            marginBottom: 8,
+                          }}
+                          value={suspendModal.poruka}
+                          onChange={e =>
+                            setSuspendModal((prev) =>
+                              prev ? { ...prev, poruka: e.target.value } : prev
+                            )
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
+                    <div style={{ marginBottom: 18 }}>
+                      <label>
+                        Trajanje suspenzije (do kada, ISO format ili YYYY-MM-DDTHH:mm):
+                        <input
+                          type="datetime-local"
+                          style={{
+                            width: "100%",
+                            borderRadius: 6,
+                            border: "1px solid #b91d95",
+                            background: "#181818",
+                            color: "#fff",
+                            padding: 8,
+                            marginTop: 6,
+                          }}
+                          value={suspendModal.vrijemeDo}
+                          onChange={e =>
+                            setSuspendModal((prev) =>
+                              prev ? { ...prev, vrijemeDo: e.target.value } : prev
+                            )
+                          }
+                          required
+                        />
+                      </label>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+                      <button
+                        style={{
+                          background: "#e754a2",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "7px 18px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        onClick={async () => {
+                          await handlePotvrdiSuspenziju();
+                        }}
+                      >
+                        Potvrdi suspenziju
+                      </button>
+                      <button
+                        style={{
+                          background: "#444",
+                          color: "#fff",
+                          border: "none",
+                          borderRadius: 6,
+                          padding: "7px 18px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        onClick={handlePrekiniSuspenziju}
+                      >
+                        Odustani
                       </button>
                     </div>
                   </div>

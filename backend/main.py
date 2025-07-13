@@ -2,13 +2,14 @@ import os
 from typing import List
 from uuid import UUID, uuid4
 from fastapi import FastAPI
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine, MetaData, select
 from sqlalchemy.orm import sessionmaker, declarative_base
 from databases import Database
 from fastapi.middleware.cors import CORSMiddleware
 import asyncio
 import threading
 import requests
+import datetime
 
 from modeli.Korisnik import Korisnik
 from modeli.KorisnikRole import KorisnikRole as Role
@@ -30,6 +31,7 @@ from rute.AlbumRuta import router as album_router
 from rute.PlaylistaRuta import router as playlista_router
 from rute.PratilacKorisnikRuta import router as pratilac_korisnik_router
 from rute.PrijavaIzvodjacaRuta import router as prijava_izvodjaca_router
+from rute.SuspendovanKorisnikRuta import router as suspendovan_korisnik_router
 
 app = FastAPI()
 
@@ -48,6 +50,45 @@ async def startup():
     if asyncio.iscoroutine(result):
         await result
     await database.connect()
+
+    from sqlalchemy.ext.asyncio import AsyncSession
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.ext.asyncio import create_async_engine
+    from modeli.SuspendovanKorisnik import SuspendovanKorisnikORM
+    from modeli.Korisnik import KorisnikORM
+    from modeli.KorisnikStatus import KorisnikStatusEnum
+
+    ASYNC_DATABASE_URL = os.getenv("DATABASE_URL_ASYNC")
+    engine = create_async_engine(
+        ASYNC_DATABASE_URL, echo=False, future=True
+    )
+    AsyncSessionLocal = sessionmaker(
+        bind=engine, class_=AsyncSession, expire_on_commit=False
+    )
+
+    async def check_and_update_suspended_users():
+        while True:
+            async with AsyncSessionLocal() as session:
+                now = datetime.datetime.utcnow()
+                # Pronađi sve suspendovane korisnike kojima je istekla suspenzija
+                suspendovani = await session.execute(
+                    select(SuspendovanKorisnikORM).where(SuspendovanKorisnikORM.vrijemeDo <= now)
+                )
+                suspendovani_list = suspendovani.scalars().all()
+                for sus in suspendovani_list:
+                    # Nađi korisnika i promijeni status na aktivan
+                    korisnik = await session.get(KorisnikORM, sus.korisnikID)
+                    if korisnik and korisnik.statusKorisnika == KorisnikStatusEnum.suspendovan:
+                        korisnik.statusKorisnika = KorisnikStatusEnum.aktivan
+                        session.add(korisnik)
+                    # Obriši zapis o suspenziji
+                    await session.delete(sus)
+                if suspendovani_list:
+                    await session.commit()
+            await asyncio.sleep(60)  # Provjeravaj svake minute
+
+    # Pokreni background task
+    asyncio.create_task(check_and_update_suspended_users())
 
     def keep_alive():
         import time
@@ -88,6 +129,8 @@ app.include_router(korisnik_pretplata_router)
 app.include_router(obnova_pretplate_router)
 app.include_router(pratilac_korisnik_router)
 app.include_router(prijava_izvodjaca_router)
+app.include_router(suspendovan_korisnik_router)
+
 
 
 

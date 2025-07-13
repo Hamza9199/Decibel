@@ -17,6 +17,7 @@ const NovaPlaylista: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [javno, setJavno] = useState(false);
   const navigate = useNavigate();
 
   let korisnikID = "";
@@ -39,6 +40,7 @@ const NovaPlaylista: React.FC = () => {
     formData.append("opis", opis);
     if (fileSlika) formData.append("file_slika", fileSlika);
     if (fileGif) formData.append("file_gif", fileGif);
+    formData.append("javno", String(javno));
 
     try {
       await axios.post(`${API_BASE}/playliste/`, formData, {
@@ -93,6 +95,15 @@ const NovaPlaylista: React.FC = () => {
             />
           </label>
         </div>
+        <label className={styles.fileLabel} style={{marginTop: 10, marginBottom: 10}}>
+          <input
+            type="checkbox"
+            checked={javno}
+            onChange={e => setJavno(e.target.checked)}
+            style={{marginRight: 8}}
+          />
+          Javna playlista
+        </label>
         {error && <div className={styles.error}>{error}</div>}
         {success && <div className={styles.success}>{success}</div>}
         <button className={styles.button} type="submit" disabled={loading}>

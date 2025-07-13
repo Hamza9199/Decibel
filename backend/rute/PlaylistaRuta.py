@@ -104,12 +104,21 @@ async def izmeni_playlistu(
 ):
     putanjaSlika = putanjaGif = None
 
+    # Dohvati postojeću playlistu iz baze
+    from kontroleri.PlaylistaKontroler import get_playlista_by_id
+    db_playlista = await get_playlista_by_id(session, playlista_id)
+    if not db_playlista:
+        raise HTTPException(status_code=404, detail="Playlista nije pronađena")
+
+    # Ako nije uploadovana nova slika/gif, koristi postojeće putanje
     if file_slika:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
         putanjaSlika = upload_file(temp_path, f"playliste/slike/{file_slika.filename}")
         os.remove(temp_path)
+    else:
+        putanjaSlika = db_playlista.putanjaSlika
 
     if file_gif:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -117,6 +126,8 @@ async def izmeni_playlistu(
             temp_path = tmp.name
         putanjaGif = upload_file(temp_path, f"playliste/gif/{file_gif.filename}")
         os.remove(temp_path)
+    else:
+        putanjaGif = db_playlista.putanjaGif
 
     playlista_data = PlaylistaCreate(
         korisnikID=korisnikID,
@@ -128,6 +139,7 @@ async def izmeni_playlistu(
         putanjaSlika=putanjaSlika,
         putanjaGif=putanjaGif
     )
+    from kontroleri.PlaylistaKontroler import update_playlista
     db_playlista = await update_playlista(session, playlista_id, playlista_data)
     if not db_playlista:
         raise HTTPException(status_code=404, detail="Playlista nije pronađena")

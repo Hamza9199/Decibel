@@ -30,19 +30,124 @@ import Sidebar from './komponente/Sidebar/Sidebar';
 import NovaPretplata from './stranice/NovaPretplata/NovaPretplata';
 import Historija from './stranice/Historija/Historija';
 import Omiljeno from './stranice/Omiljeno/Omiljeno';
+import axios from "axios";
+import { useCallback } from 'react';
 
+
+const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () => void }> = ({ poruka, vrijemeDo, onLogout }) => (
+  <div style={{
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(24,24,24,0.97)",
+    color: "#fff",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "#232323",
+      borderRadius: 18,
+      padding: "40px 32px",
+      boxShadow: "0 4px 24px #b91d9533",
+      maxWidth: 420,
+      textAlign: "center"
+    }}>
+      <h2 style={{ color: "#e754a2", marginBottom: 18 }}>Vaš nalog je suspendovan</h2>
+      <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
+        <b>Razlog:</b>
+        <div style={{
+          background: "#181818",
+          borderRadius: 6,
+          padding: 12,
+          marginTop: 4,
+          whiteSpace: "pre-wrap"
+        }}>{poruka}</div>
+      </div>
+      <div style={{ marginBottom: 24 }}>
+        <b>Suspenzija traje do:</b> <span style={{ color: "#ffe6ec" }}>{new Date(vrijemeDo).toLocaleString()}</span>
+      </div>
+      <button
+        style={{
+          background: "#b91d95",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+          padding: "10px 28px",
+          fontWeight: 600,
+          fontSize: "1.1rem",
+          cursor: "pointer"
+        }}
+        onClick={onLogout}
+      >
+        Logout
+      </button>
+    </div>
+  </div>
+);
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [suspendInfo, setSuspendInfo] = useState<{ poruka: string; vrijemeDo: string } | null>(null);
+  const [provjera, setProvjera] = useState(true);
+
+  const handleLogout = useCallback(() => {
+    localStorage.removeItem("korisnik");
+    navigate("/login");
+  }, [navigate]);
 
   useEffect(() => {
-    const user = localStorage.getItem("korisnik");
-    if (!user && location.pathname !== "/login" && location.pathname !== "/register") {
+    const userStr = localStorage.getItem("korisnik");
+    if (!userStr && location.pathname !== "/login" && location.pathname !== "/register") {
       navigate("/login");
+      return;
+    }
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      const korisnikID = user?.id;
+      if (korisnikID) {
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`)
+          .then(res => {
+            if (res.data.statusKorisnika === "suspendovan") {
+              axios.get(`${import.meta.env.VITE_API_BASE_URL}/suspendovani/korisnik/${korisnikID}`)
+                .then(r => {
+                  setSuspendInfo({
+                    poruka: r.data.poruka,
+                    vrijemeDo: r.data.vrijemeDo,
+                  });
+                  setProvjera(false);
+                })
+                .catch(() => {
+                  setSuspendInfo({
+                    poruka: "Vaš nalog je suspendovan.",
+                    vrijemeDo: "",
+                  });
+                  setProvjera(false);
+                });
+            } else {
+              setSuspendInfo(null);
+              setProvjera(false);
+            }
+          })
+          .catch(() => {
+            setSuspendInfo(null);
+            setProvjera(false);
+          });
+      } else {
+        setSuspendInfo(null);
+        setProvjera(false);
+      }
+    } else {
+      setSuspendInfo(null);
+      setProvjera(false);
     }
   }, [location, navigate]);
 
+  if (provjera) return null;
+  if (suspendInfo) {
+    return <SuspendovanScreen poruka={suspendInfo.poruka} vrijemeDo={suspendInfo.vrijemeDo} onLogout={handleLogout} />;
+  }
   return <>{children}</>;
 };
 

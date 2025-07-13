@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Header.module.css";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { Korisnik } from "../../types";
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Header: React.FC = () => {
-  const navigate = useNavigate();
   const isLoggedIn = !!localStorage.getItem("korisnik");
   const user = JSON.parse(localStorage.getItem("korisnik") || "");
   const [korisnik, setKorisnik] = useState<Korisnik>();
@@ -39,7 +38,8 @@ const Header: React.FC = () => {
  
   const handleLogout = () => {
     localStorage.removeItem("korisnik");
-    navigate("/login");
+    
+    window.location.href = "/login";
   };
 
   return (

@@ -24,7 +24,7 @@ const Login: React.FC = () => {
       });
       localStorage.setItem("korisnik", JSON.stringify(res.data));
       setLoading(false);
-      navigate("/");
+      window.location.href = "/";
     } catch {
       setError("Pogrešan email ili lozinka.");
       setLoading(false);
@@ -37,6 +37,8 @@ const Login: React.FC = () => {
     resetBodyBackground();
     // Sakrij player i mutiraj muziku
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: {} }));
+    // Sakrij poruku o pretplati (AudioPlayer)
+    window.dispatchEvent(new CustomEvent("hideSubscriptionMsg"));
     const audio = document.querySelector('audio');
     if (audio) {
       audio.muted = true;

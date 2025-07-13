@@ -35,7 +35,7 @@ const Register: React.FC = () => {
       setLoading(false);
       localStorage.setItem("korisnik", JSON.stringify(res.data));
 
-      setTimeout(() => navigate("/"), 1200);
+      setTimeout(() => window.location.href = "/", 1200);
     } catch {
       setError("Greška pri registraciji. Provjerite podatke.");
       setLoading(false);
@@ -48,6 +48,8 @@ const Register: React.FC = () => {
     resetBodyBackground();
     // Sakrij player i mutiraj muziku
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: {} }));
+    // Sakrij poruku o pretplati (AudioPlayer)
+    window.dispatchEvent(new CustomEvent("hideSubscriptionMsg"));
     const audio = document.querySelector('audio');
     if (audio) {
       audio.muted = true;

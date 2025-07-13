@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
-import { Korisnik, Playlista, Pjesma } from "../../types";
-import { Link } from "react-router-dom";
+import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from "../../types";
+import { Link, useLocation } from "react-router-dom";
 
 type Props = {
   id?: number; // <-- dodaj id u Props
@@ -21,7 +21,7 @@ type Props = {
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const AudioPlayer: React.FC<Props> = ({
-  id, // <-- primi id
+  id,
   src,
   title,
   putanjaGif,
@@ -56,6 +56,62 @@ const AudioPlayer: React.FC<Props> = ({
   const [currentSong, setCurrentSong] = useState<Pjesma | null>(null);
   // Dodaj state za vlasnika trenutne pjesme
   const [currentOwner, setCurrentOwner] = useState<Korisnik | undefined>(undefined);
+  const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
+  const [showNoSubMsg, setShowNoSubMsg] = useState(true);
+  const location = useLocation();
+
+   // Provjera pretplate korisnika koji sluša (iz localStorage)
+  useEffect(() => {
+    // Provjeri pretplatu korisnika koji sluša (iz localStorage)
+    let isMounted = true;
+    async function checkPretplata() {
+      let slusacID = "";
+      try {
+        const user = JSON.parse(localStorage.getItem("korisnik") || "");
+        slusacID = user?.id || "";
+      } catch {
+        slusacID = "";
+      }
+      if (!slusacID) {
+        setPretplataValid(false);
+        return;
+      }
+      try {
+        const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
+        const svePretplate = res.data || [];
+        
+        const moja = (svePretplate as KorisnikPretplata[]).find((p) => p.korisnikID === slusacID);
+        if (!moja || !moja.datumIsteka || new Date(moja.datumIsteka) < new Date()) {
+          if (isMounted) setPretplataValid(false);
+        } else {
+          if (isMounted) setPretplataValid(true);
+        }
+      } catch {
+        if (isMounted) setPretplataValid(false);
+      }
+    }
+    checkPretplata();
+    return () => { isMounted = false; };
+  }, []);
+
+  // Dodaj listener za "hideSubscriptionMsg" event da sakrije poruku o pretplati
+  useEffect(() => {
+    const handler = () => setShowNoSubMsg(false);
+    window.addEventListener("hideSubscriptionMsg", handler);
+    return () => window.removeEventListener("hideSubscriptionMsg", handler);
+  }, []);
+
+  // Automatski sakrij poruku nakon 4 sekunde
+  useEffect(() => {
+    if (pretplataValid === false && showNoSubMsg) {
+      const timer = setTimeout(() => setShowNoSubMsg(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [pretplataValid, showNoSubMsg]);
+
+  useEffect(() => {
+    setShowNoSubMsg(true);
+  }, [location.pathname]);
 
   // Sync audio src and play new song immediately
   useEffect(() => {
@@ -84,21 +140,24 @@ const AudioPlayer: React.FC<Props> = ({
   }, [playing, minimized]);
 
   useEffect(() => {
+    if (pretplataValid === false) return;
     if (audioRef.current) {
       audioRef.current.playbackRate = playbackRate;
     }
-  }, [playbackRate]);
+  }, [playbackRate,pretplataValid]);
 
   // Sync volume and muted state always, including on minimize/maximize
   useEffect(() => {
+    if (pretplataValid === false) return;
     if (audioRef.current) {
       audioRef.current.volume = volume;
       audioRef.current.muted = muted;
     }
-  }, [volume, muted, minimized]);
+  }, [volume, muted, minimized,pretplataValid]);
 
   // When minimized, keep audio playing in background and keep progress/volume
   useEffect(() => {
+    if (pretplataValid === false) return;
     if (audioRef.current && minimized && playing) {
       audioRef.current.play().catch(() => {});
       audioRef.current.currentTime = progress;
@@ -110,6 +169,7 @@ const AudioPlayer: React.FC<Props> = ({
 
   // Fix: When returning from minimized to maximized, do NOT reset audio, just continue
   useEffect(() => {
+    if (pretplataValid === false) return;
     if (!minimized && wasMinimized && audioRef.current) {
       // Just restore UI, do not reload or reset audio
       audioRef.current.currentTime = progress;
@@ -125,6 +185,7 @@ const AudioPlayer: React.FC<Props> = ({
 
   // If src changes, always play the new song
   useEffect(() => {
+    if (pretplataValid === false) return;
     if (audioRef.current && src && src !== lastSrc) {
       audioRef.current.src = src;
       audioRef.current.load();
@@ -137,6 +198,7 @@ const AudioPlayer: React.FC<Props> = ({
 
   // Fix: If user clicks play on a new song while another is paused, always play the new one
   useEffect(() => {
+    if (pretplataValid === false) return;
     if (audioRef.current && src && playing && audioRef.current.src !== src && globalPlaylist.length === 0) {
       audioRef.current.src = src;
       audioRef.current.load();
@@ -144,7 +206,7 @@ const AudioPlayer: React.FC<Props> = ({
       setProgress(0);
       setLastSrc(src);
     }
-  }, [src, playing, globalPlaylist.length]);
+  }, [src, playing, globalPlaylist.length,pretplataValid]);
 
    useEffect(() => {
     if (!src) {
@@ -516,6 +578,78 @@ useEffect(() => {
       onEnded?.();
     }
   };
+
+ 
+
+  // Always call hooks at the top level, not conditionally!
+  useEffect(() => {
+    if (pretplataValid === false && showNoSubMsg) {
+      const timer = setTimeout(() => setShowNoSubMsg(false), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [pretplataValid, showNoSubMsg]);
+
+  // Ako korisnik koji sluša nema pretplatu ili je istekla, prikaži poruku i dugme za kupovinu
+  if (pretplataValid === false) {
+    if (showNoSubMsg) {
+      return (
+        <div
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 3000,
+            background: "#232323",
+            color: "#ffe6ec",
+            padding: "32px 0 36px 0",
+            textAlign: "center",
+            boxShadow: "0 -4px 24px #b91d9533",
+          }}
+        >
+          <button
+            onClick={() => setShowNoSubMsg(false)}
+            style={{
+              position: "absolute",
+              top: 10,
+              right: 24,
+              background: "none",
+              border: "none",
+              color: "#ffe6ec",
+              fontSize: 28,
+              cursor: "pointer",
+              lineHeight: 1,
+              zIndex: 10,
+            }}
+            aria-label="Zatvori"
+          >
+            ×
+          </button>
+          <div style={{ fontSize: "1.2rem", marginBottom: 16 }}>
+            Za slušanje muzike morate imati aktivnu pretplatu.
+          </div>
+          <button
+            style={{
+              background: "#b91d95",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 28px",
+              fontWeight: 600,
+              fontSize: "1.1rem",
+              cursor: "pointer"
+            }}
+            onClick={() => window.location.href = "/profile/subscription"}
+          >
+            Kupi pretplatu
+          </button>
+        </div>
+      );
+    }
+    
+
+    return null;
+  }
 
   if (!visible && !minimized) return null;
 

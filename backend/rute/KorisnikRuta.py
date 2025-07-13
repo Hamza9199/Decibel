@@ -63,9 +63,15 @@ async def update(korisnik_id: str, korisnik: KorisnikCreate, session: AsyncSessi
 
 @router.delete("/{korisnik_id}", response_model=Korisnik)
 async def delete(korisnik_id: str, session: AsyncSession = Depends(get_session)):
-    db_korisnik = await delete_korisnik(session, korisnik_id)
+    # Umjesto fizičkog brisanja, postavi status na "neaktivan"
+    db_korisnik = await get_korisnik_by_id(session, korisnik_id)
     if not db_korisnik:
         raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
+    db_korisnik.statusKorisnika = "neaktivan"
+    db_korisnik.obrisan = True
+    session.add(db_korisnik)
+    await session.commit()
+    await session.refresh(db_korisnik)
     return db_korisnik
 
 @router.post("/register", response_model=Korisnik)

@@ -87,16 +87,103 @@ const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () =>
   </div>
 );
 
+const ObrisanScreen: FC<{ onLogout: () => void; onReaktiviraj: () => void }> = ({ onLogout, onReaktiviraj }) => (
+  <div style={{
+    minHeight: "100vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(24,24,24,0.97)",
+    color: "#fff",
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: "#232323",
+      borderRadius: 18,
+      padding: "40px 32px",
+      boxShadow: "0 4px 24px #b91d9533",
+      maxWidth: 420,
+      textAlign: "center"
+    }}>
+      <img src="/logo.gif" alt="Obrisan" style={{ width: 120, height: 120, marginBottom: 24 }} />
+      <h2 style={{ color: "#e754a2", marginBottom: 18 }}>Vaš nalog je deaktiviran</h2>
+      <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
+        Vaš nalog je postavljen kao neaktivan (obrisan). Ne možete koristiti aplikaciju dok ga ne reaktivirate.
+      </div>
+      <div style={{ marginBottom: 24 }}>
+        Ako želite ponovo koristiti nalog, kliknite na <b>Reaktiviraj nalog</b>.
+      </div>
+      <button
+        style={{
+          background: "#b91d95",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+          padding: "10px 28px",
+          fontWeight: 600,
+          fontSize: "1.1rem",
+          cursor: "pointer",
+          marginRight: 12
+        }}
+        onClick={onReaktiviraj}
+      >
+        Reaktiviraj nalog
+      </button>
+      <button
+        style={{
+          background: "#444",
+          color: "#fff",
+          border: "none",
+          borderRadius: "8px",
+          padding: "10px 28px",
+          fontWeight: 600,
+          fontSize: "1.1rem",
+          cursor: "pointer"
+        }}
+        onClick={onLogout}
+      >
+        Logout
+      </button>
+    </div>
+  </div>
+);
+
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [suspendInfo, setSuspendInfo] = useState<{ poruka: string; vrijemeDo: string } | null>(null);
+  const [obrisan, setObrisan] = useState(false);
   const [provjera, setProvjera] = useState(true);
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem("korisnik");
     navigate("/login");
   }, [navigate]);
+
+  const handleReaktiviraj = useCallback(async () => {
+    const userStr = localStorage.getItem("korisnik");
+    if (!userStr) return;
+    const user = JSON.parse(userStr);
+    const korisnikID = user?.id;
+    if (!korisnikID) return;
+    try {
+      // Dohvati korisnika sa backend-a
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`);
+      const korisnik = res.data;
+      // Pošalji update sa statusKorisnika: "aktivan", obrisan: false
+      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`, {
+        ...korisnik,
+        statusKorisnika: "aktivan",
+        obrisan: false
+      });
+      setObrisan(false);
+      setProvjera(false);
+      window.location.reload();
+    } catch {
+      alert("Greška pri reaktivaciji naloga.");
+    }
+  }, []);
 
   useEffect(() => {
     const userStr = localStorage.getItem("korisnik");
@@ -110,6 +197,12 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
       if (korisnikID) {
         axios.get(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`)
           .then(res => {
+            if (res.data.obrisan === true || res.data.statusKorisnika === "neaktivan") {
+              setObrisan(true);
+              setProvjera(false);
+              return;
+            }
+            // Provjeri suspenziju tek ako nije obrisan/neaktivan
             if (res.data.statusKorisnika === "suspendovan") {
               axios.get(`${import.meta.env.VITE_API_BASE_URL}/suspendovani/korisnik/${korisnikID}`)
                 .then(r => {
@@ -146,6 +239,9 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
   }, [location, navigate]);
 
   if (provjera) return null;
+  if (obrisan) {
+    return <ObrisanScreen onLogout={handleLogout} onReaktiviraj={handleReaktiviraj} />;
+  }
   if (suspendInfo) {
     return <SuspendovanScreen poruka={suspendInfo.poruka} vrijemeDo={suspendInfo.vrijemeDo} onLogout={handleLogout} />;
   }

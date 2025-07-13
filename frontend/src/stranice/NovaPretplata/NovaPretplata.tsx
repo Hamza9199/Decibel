@@ -78,9 +78,13 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
         pretplataStatus: "aktivna",
       });
       setKupovinaSuccess("Pretplata je uspješno kupljena!");
-      setTimeout(() => navigate("/pretplata"), 1500);
-    } catch {
-      setKupovinaError("Greška pri kupovini pretplate.");
+
+      setTimeout(() => window.location.href = "/pretplata", 1500);
+    } catch (error: unknown) {
+      const errorMessage = axios.isAxiosError(error) && error.response
+        ? error.response.data.detail || "Greška pri kupovini pretplate."
+        : "Greška pri kupovini pretplate.";
+      setKupovinaError(errorMessage);
     } finally {
       setKupovinaLoading(false);
     }

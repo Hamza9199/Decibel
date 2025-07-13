@@ -98,7 +98,7 @@ const Pretplata: React.FC = () => {
               </div>
               {korisnikPretplata.datumIsteka && (
                 <div className={styles.istice}>
-                  Ističe: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()}</b>
+                  Ističe: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()} ({new Date(korisnikPretplata.datumIsteka).toLocaleTimeString()})</b>
                 </div>
               )}
               <div style={{ display: "flex", gap: 12, marginTop: 16, justifyContent: "center" }}>
@@ -156,5 +156,5 @@ const Pretplata: React.FC = () => {
 };
 
 export default Pretplata;
-               
+
 

@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import selectinload
 
 from modeli.KorisnikPretplata import KorisnikPretplata, KorisnikPretplataCreate
+from modeli.KorisnikPretplata import KorisnikPretplataORM  # Dodaj import ORM klase
+from modeli.Pretplata import PretplataORM  # Dodaj import ORM klase Pretplata
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
@@ -39,7 +41,7 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def sve_korisnik_pretplate(session: AsyncSession = Depends(get_session)):
     # Pribavi sve korisnik_pretplata sa vezanom pretplatom
     result = await session.execute(
-        select(KorisnikPretplata).options(selectinload(KorisnikPretplata.pretplata))
+        select(KorisnikPretplataORM).options(selectinload(KorisnikPretplataORM.pretplata))
     )
     return result.scalars().all()
 
@@ -47,7 +49,7 @@ async def sve_korisnik_pretplate(session: AsyncSession = Depends(get_session)):
 async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):
     # Pribavi korisnik_pretplata sa vezanom pretplatom
     result = await session.execute(
-        select(KorisnikPretplata).options(selectinload(KorisnikPretplata.pretplata)).where(KorisnikPretplata.id == korisnik_pretplata_id)
+        select(KorisnikPretplataORM).options(selectinload(KorisnikPretplataORM.pretplata)).where(KorisnikPretplataORM.id == korisnik_pretplata_id)
     )
     obj = result.scalar_one_or_none()
     if not obj:

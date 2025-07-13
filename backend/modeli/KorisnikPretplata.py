@@ -19,7 +19,7 @@ class KorisnikPretplataORM(Base):
     datumIsteka = Column(DateTime, nullable=True)
 
     korisnik = relationship("KorisnikORM", foreign_keys=[korisnikID])
-    pretplata = relationship("PretplataORM", foreign_keys=[pretplataID])
+    pretplata = relationship("PretplataORM", backref="korisnik_pretplate")
 
     __table_args__ = (
         UniqueConstraint('korisnikID', name='uq_korisnik_pretplata_korisnikID'),
@@ -40,6 +40,10 @@ class KorisnikPretplataCreate(KorisnikPretplataBase):
 
 class KorisnikPretplata(KorisnikPretplataBase):
     id: int
+    pretplata: Optional["Pretplata"] = None  # Dodaj ovo polje
 
     class Config:
         orm_mode = True
+
+from .Pretplata import Pretplata
+KorisnikPretplata.model_rebuild()

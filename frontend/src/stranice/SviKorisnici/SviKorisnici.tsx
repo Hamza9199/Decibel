@@ -60,6 +60,23 @@ const SviKorisnici: React.FC = () => {
         rola: field === "rola" ? value : korisnik.rola,
         statusKorisnika: field === "statusKorisnika" ? value : korisnik.statusKorisnika,
       });
+
+      // Ako se status mijenja na aktivan ili neaktivan, obriši suspenziju ako postoji
+      if (
+        field === "statusKorisnika" &&
+        (value === "aktivan" || value === "neaktivan")
+      ) {
+        try {
+          // Prvo pokušaj dohvatiti suspenziju
+          const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${korisnik.id}`);
+          if (res.data && res.data.id) {
+            await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
+          }
+        } catch {
+          // Nema suspenzije, ignoriši grešku
+        }
+      }
+
       setSuccess("Uspješno ažurirano.");
       setKorisnici((prev) =>
         prev.map((k) =>

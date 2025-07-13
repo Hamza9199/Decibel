@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import os
 from dotenv import load_dotenv
+from sqlalchemy.orm import selectinload
 
 from modeli.KorisnikPretplata import KorisnikPretplata, KorisnikPretplataCreate
 from sqlalchemy.orm import sessionmaker
@@ -35,11 +37,19 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 @router.get("/", response_model=List[KorisnikPretplata])
 async def sve_korisnik_pretplate(session: AsyncSession = Depends(get_session)):
-    return await get_all_korisnik_pretplata(session)
+    # Pribavi sve korisnik_pretplata sa vezanom pretplatom
+    result = await session.execute(
+        select(KorisnikPretplata).options(selectinload(KorisnikPretplata.pretplata))
+    )
+    return result.scalars().all()
 
 @router.get("/{korisnik_pretplata_id}", response_model=KorisnikPretplata)
 async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):
-    obj = await get_korisnik_pretplata_by_id(session, korisnik_pretplata_id)
+    # Pribavi korisnik_pretplata sa vezanom pretplatom
+    result = await session.execute(
+        select(KorisnikPretplata).options(selectinload(KorisnikPretplata.pretplata)).where(KorisnikPretplata.id == korisnik_pretplata_id)
+    )
+    obj = result.scalar_one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena")
     return obj

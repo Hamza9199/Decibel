@@ -53,6 +53,7 @@ const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () =>
       maxWidth: 420,
       textAlign: "center"
     }}>
+      <img src="/logo.gif" alt="Suspendovan" style={{ width: 120, height: 120, marginBottom: 24 }} />
       <h2 style={{ color: "#e754a2", marginBottom: 18 }}>Vaš nalog je suspendovan</h2>
       <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
         <b>Razlog:</b>

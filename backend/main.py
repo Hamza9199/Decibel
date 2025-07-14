@@ -98,8 +98,6 @@ async def startup():
 
     threading.Thread(target=keep_alive, daemon=True).start()
 
-    import time
-
     def auto_cleanup():
         while True:
             try:
@@ -112,7 +110,7 @@ async def startup():
                         pass
             except Exception as e:
                 print("[AutoCleanup] Greška:", e)
-            time.sleep(60 * 60 * 3)
+            time.sleep(60 * 30 * 1)
 
     threading.Thread(target=auto_cleanup, daemon=True).start()
 

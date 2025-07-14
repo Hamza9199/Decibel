@@ -228,6 +228,11 @@
   "add_comment": "Add comment",
   "no_comments": "No comments.",
   "playlist_not_found": "Playlist not found.",
-  "register": "Register"
+  "register": "Register",
+  "search_playlists": "Search playlists",
+  "search_songs": "Search songs",
+  "search_albums": "Search albums",
+  "search_users": "Search users",
+  "no_results": "No search results found."
 }
 

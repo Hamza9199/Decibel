@@ -14,6 +14,7 @@ const SvePjesme: React.FC = () => {
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
@@ -74,6 +75,11 @@ const SvePjesme: React.FC = () => {
     }
   };
 
+  // Dodaj filtrirane pjesme prema search-u
+  const filtriranePjesme = pjesme.filter((p) =>
+    p.naziv.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <Header />
@@ -81,13 +87,34 @@ const SvePjesme: React.FC = () => {
       <div className={styles.svePjesmeBg}>
         <div className={styles.container}>
           <h2 className={styles.title}>{t("my_songs") || "Moje pjesme"}</h2>
+          <input
+            type="text"
+            placeholder={t("search_songs") || "Pretraži pjesme..."}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 24,
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid #b91d95",
+              background: "#181818",
+              color: "#fff",
+              fontSize: "1.08rem"
+            }}
+          />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>
-          ) : pjesme.length === 0 ? (
-            <div className={styles.noSongs}>{t("no_songs_user") || "Nemate nijednu pjesmu."}</div>
+          ) : filtriranePjesme.length === 0 ? (
+            <div className={styles.noSongs}>
+              {pjesme.length === 0
+                ? t("no_songs_user") || "Nemate nijednu pjesmu."
+                : t("no_results") || "Nema rezultata."}
+            </div>
           ) : (
             <div className={styles.songGrid}>
-              {pjesme.map((p) => (
+              {filtriranePjesme.map((p) => (
                 <div
                   key={p.id}
                   className={`${styles.card} ${activeSongId === p.id ? styles.activeCard : ""}`}

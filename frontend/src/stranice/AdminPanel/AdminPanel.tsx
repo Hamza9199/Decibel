@@ -17,6 +17,8 @@ const AdminPanel: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"pjesme" | "albumi" | "playliste">("pjesme");
+  const [search, setSearch] = useState("");
   const repeatAll = false;
   const { t } = useTranslation();
 
@@ -184,6 +186,17 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // Lokalni search za svaku tabelu
+  const filtriranePjesme = pjesme.filter((p) =>
+    p.naziv.toLowerCase().includes(search.toLowerCase())
+  );
+  const filtriraniAlbumi = albumi.filter((a) =>
+    a.naziv.toLowerCase().includes(search.toLowerCase())
+  );
+  const filtriranePlayliste = playliste.filter((pl) =>
+    pl.naziv.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <Header />
@@ -191,6 +204,76 @@ const AdminPanel: React.FC = () => {
       <div className={styles.adminBg}>
         <div className={styles.container}>
           <h2 className={styles.title}>{t("admin_panel") || "Admin panel"}</h2>
+          <div style={{ display: "flex", gap: 16, marginBottom: 28, justifyContent: "center" }}>
+            <button
+              className={styles.btn}
+              style={{
+                background: activeTab === "pjesme" ? "#b91d95" : "#232323",
+                color: activeTab === "pjesme" ? "#fff" : "#ffe6ec",
+                border: activeTab === "pjesme" ? "2px solid #b91d95" : "2px solid #232323",
+                fontWeight: activeTab === "pjesme" ? 700 : 500,
+                fontSize: "1.07rem",
+                padding: "10px 28px"
+              }}
+              onClick={() => { setActiveTab("pjesme"); setSearch(""); }}
+            >
+              {t("songs") || "Pjesme"}
+            </button>
+            <button
+              className={styles.btn}
+              style={{
+                background: activeTab === "albumi" ? "#b91d95" : "#232323",
+                color: activeTab === "albumi" ? "#fff" : "#ffe6ec",
+                border: activeTab === "albumi" ? "2px solid #b91d95" : "2px solid #232323",
+                fontWeight: activeTab === "albumi" ? 700 : 500,
+                fontSize: "1.07rem",
+                padding: "10px 28px"
+              }}
+              onClick={() => { setActiveTab("albumi"); setSearch(""); }}
+            >
+              {t("albums") || "Albumi"}
+            </button>
+            <button
+              className={styles.btn}
+              style={{
+                background: activeTab === "playliste" ? "#b91d95" : "#232323",
+                color: activeTab === "playliste" ? "#fff" : "#ffe6ec",
+                border: activeTab === "playliste" ? "2px solid #b91d95" : "2px solid #232323",
+                fontWeight: activeTab === "playliste" ? 700 : 500,
+                fontSize: "1.07rem",
+                padding: "10px 28px"
+              }}
+              onClick={() => { setActiveTab("playliste"); setSearch(""); }}
+            >
+              {t("playlists") || "Playliste"}
+            </button>
+          </div>
+          <input
+            type="text"
+            placeholder={
+              activeTab === "pjesme"
+                ? t("search_songs") || "Pretraži pjesme..."
+                : activeTab === "albumi"
+                ? t("search_albums") || "Pretraži albume..."
+                : t("search_playlists") || "Pretraži playliste..."
+            }
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 24,
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid #b91d95",
+              background: "#181818",
+              color: "#fff",
+              fontSize: "1.08rem",
+              display: "block",
+              marginLeft: "auto",
+              marginRight: "auto"
+            }}
+          />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>
           ) : (
@@ -198,207 +281,243 @@ const AdminPanel: React.FC = () => {
               {success && <div className={styles.success}>{success}</div>}
               {error && <div className={styles.error}>{error}</div>}
 
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>{t("songs")}</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>{t("song_name") || "Naziv"}</th>
-                      <th>{t("artist") || "Izvođač"}</th>
-                      <th>{t("play") || "Preslušaj"}</th>
-                      <th>{t("approved") || "Odobreno"}</th>
-                      <th>{t("action") || "Akcija"}</th>
-                      <th>{t("delete") || "Obriši"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pjesme.map((p) => (
-                      <tr key={p.id}>
-                        <td>
-                          <Link className="link" to={`/pjesma/${p.id}`}>{p.naziv}</Link>
-                        </td>
-                        <td>
-                          <Link className="link" to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
-                            {p.korisnik?.korisnicko_ime || p.korisnikID}
-                          </Link>
-                        </td>
-                        <td>
-                          {p.putanjaAudio && (
-                            <button
-                              className={styles.btn}
-                              style={{ background: "#2ecc40", margin: 0 }}
-                              onClick={() => handlePlaySong(p)}
-                              title={t("play_song") || "Preslušaj pjesmu"}
-                            >
-                              ▶
-                            </button>
-                          )}
-                        </td>
-                        <td>
-                          <span
-                            className={
-                              p.odobreno
-                                ? styles.odobreno
-                                : styles.neodobreno
-                            }
-                          >
-                            {p.odobreno ? t("yes") || "DA" : t("no") || "NE"}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{
-                              background: p.odobreno ? "#e754a2" : "#b91d95",
-                            }}
-                            onClick={() =>
-                              handleOdobriPjesmu(p, !p.odobreno)
-                            }
-                          >
-                            {p.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{ background: "#e53935", margin: 0 }}
-                            onClick={() => handleObrisiPjesmu(p.id)}
-                            title={t("delete") || "Obriši pjesmu"}
-                          >
-                            {t("delete") || "Obriši"}
-                          </button>
-                        </td>
+              {activeTab === "pjesme" && (
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>{t("songs")}</h3>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>{t("song_name") || "Naziv"}</th>
+                        <th>{t("artist") || "Izvođač"}</th>
+                        <th>{t("play") || "Preslušaj"}</th>
+                        <th>{t("approved") || "Odobreno"}</th>
+                        <th>{t("action") || "Akcija"}</th>
+                        <th>{t("delete") || "Obriši"}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+                    </thead>
+                    <tbody>
+                      {filtriranePjesme.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ color: "#b3b3b3", textAlign: "center" }}>
+                            {pjesme.length === 0
+                              ? t("no_songs_user") || "Nema pjesama."
+                              : t("no_results") || "Nema rezultata."}
+                          </td>
+                        </tr>
+                      ) : (
+                        filtriranePjesme.map((p) => (
+                          <tr key={p.id}>
+                            <td>
+                              <Link className="link" to={`/pjesma/${p.id}`}>{p.naziv}</Link>
+                            </td>
+                            <td>
+                              <Link className="link" to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
+                                {p.korisnik?.korisnicko_ime || p.korisnikID}
+                              </Link>
+                            </td>
+                            <td>
+                              {p.putanjaAudio && (
+                                <button
+                                  className={styles.btn}
+                                  style={{ background: "#2ecc40", margin: 0 }}
+                                  onClick={() => handlePlaySong(p)}
+                                  title={t("play_song") || "Preslušaj pjesmu"}
+                                >
+                                  ▶
+                                </button>
+                              )}
+                            </td>
+                            <td>
+                              <span
+                                className={
+                                  p.odobreno
+                                    ? styles.odobreno
+                                    : styles.neodobreno
+                                }
+                              >
+                                {p.odobreno ? t("yes") || "DA" : t("no") || "NE"}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{
+                                  background: p.odobreno ? "#e754a2" : "#b91d95",
+                                }}
+                                onClick={() =>
+                                  handleOdobriPjesmu(p, !p.odobreno)
+                                }
+                              >
+                                {p.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{ background: "#e53935", margin: 0 }}
+                                onClick={() => handleObrisiPjesmu(p.id)}
+                                title={t("delete") || "Obriši pjesmu"}
+                              >
+                                {t("delete") || "Obriši"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </section>
+              )}
 
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>{t("albums")}</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>{t("album_name") || "Naziv"}</th>
-                      <th>{t("artist") || "Korisnik"}</th>
-                      <th>{t("number_of_likes") || "Broj lajkova"}</th>
-                      <th>{t("play") || "Preslušaj"}</th>
-                      <th>{t("approved") || "Odobreno"}</th>
-                      <th>{t("action") || "Akcija"}</th>
-                      <th>{t("delete") || "Obriši"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {albumi.map((a) => (
-                      <tr key={a.id}>
-                        <td>
-                          <Link className="link" to={`/album/${a.id}`}>{a.naziv}</Link>
-                        </td>
-                        <td>
-                          <Link className="link" to={`/izvodjac/${a.korisnik?.id || a.korisnikID}`}>
-                            {a.korisnik?.korisnicko_ime || a.korisnikID}
-                          </Link>
-                        </td>
-                        <td>{a.brojLajkova}</td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{ background: "#2ecc40", margin: 0 }}
-                            onClick={() => handlePlayAlbumSongs(a.id)}
-                            title={t("play_album") || "Preslušaj album"}
-                          >
-                            ▶
-                          </button>
-                        </td>
-                        <td>
-                          <span
-                            className={
-                              a.odobreno
-                                ? styles.odobreno
-                                : styles.neodobreno
-                            }
-                          >
-                            {a.odobreno ? t("yes") || "DA" : t("no") || "NE"}
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{
-                              background: a.odobreno ? "#e754a2" : "#b91d95",
-                            }}
-                            onClick={() =>
-                              handleOdobriAlbum(a, !a.odobreno)
-                            }
-                          >
-                            {a.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{ background: "#e53935", margin: 0 }}
-                            onClick={() => handleObrisiAlbum(a.id)}
-                            title={t("delete") || "Obriši album"}
-                          >
-                            {t("delete") || "Obriši"}
-                          </button>
-                        </td>
+              {activeTab === "albumi" && (
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>{t("albums")}</h3>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>{t("album_name") || "Naziv"}</th>
+                        <th>{t("artist") || "Korisnik"}</th>
+                        <th>{t("number_of_likes") || "Broj lajkova"}</th>
+                        <th>{t("play") || "Preslušaj"}</th>
+                        <th>{t("approved") || "Odobreno"}</th>
+                        <th>{t("action") || "Akcija"}</th>
+                        <th>{t("delete") || "Obriši"}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+                    </thead>
+                    <tbody>
+                      {filtriraniAlbumi.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} style={{ color: "#b3b3b3", textAlign: "center" }}>
+                            {albumi.length === 0
+                              ? t("no_albums_user") || "Nema albuma."
+                              : t("no_results") || "Nema rezultata."}
+                          </td>
+                        </tr>
+                      ) : (
+                        filtriraniAlbumi.map((a) => (
+                          <tr key={a.id}>
+                            <td>
+                              <Link className="link" to={`/album/${a.id}`}>{a.naziv}</Link>
+                            </td>
+                            <td>
+                              <Link className="link" to={`/izvodjac/${a.korisnik?.id || a.korisnikID}`}>
+                                {a.korisnik?.korisnicko_ime || a.korisnikID}
+                              </Link>
+                            </td>
+                            <td>{a.brojLajkova}</td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{ background: "#2ecc40", margin: 0 }}
+                                onClick={() => handlePlayAlbumSongs(a.id)}
+                                title={t("play_album") || "Preslušaj album"}
+                              >
+                                ▶
+                              </button>
+                            </td>
+                            <td>
+                              <span
+                                className={
+                                  a.odobreno
+                                    ? styles.odobreno
+                                    : styles.neodobreno
+                                }
+                              >
+                                {a.odobreno ? t("yes") || "DA" : t("no") || "NE"}
+                              </span>
+                            </td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{
+                                  background: a.odobreno ? "#e754a2" : "#b91d95",
+                                }}
+                                onClick={() =>
+                                  handleOdobriAlbum(a, !a.odobreno)
+                                }
+                              >
+                                {a.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{ background: "#e53935", margin: 0 }}
+                                onClick={() => handleObrisiAlbum(a.id)}
+                                title={t("delete") || "Obriši album"}
+                              >
+                                {t("delete") || "Obriši"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </section>
+              )}
 
-              <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>{t("playlists")}</h3>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th>{t("playlist_name") || "Naziv"}</th>
-                      <th>{t("artist") || "Korisnik"}</th>
-                      <th>{t("number_of_likes") || "Broj lajkova"}</th>
-                      <th>{t("play") || "Preslušaj"}</th>
-                      <th>{t("delete") || "Obriši"}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {playliste.map((pl) => (
-                      <tr key={pl.id}>
-                        <td>
-                          <Link className="link" to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
-                        </td>
-                        <td>
-                          <Link className="link" to={`/izvodjac/${pl.korisnik?.id || pl.korisnikID}`}>
-                            {pl.korisnik?.korisnicko_ime || pl.korisnikID}
-                          </Link>
-                        </td>
-                        <td>{pl.brojLajkova}</td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{ background: "#2ecc40", margin: 0 }}
-                            onClick={() => handlePlayPlaylistSongs(pl.id)}
-                            title={t("play_playlist") || "Preslušaj playlistu"}
-                          >
-                            ▶
-                          </button>
-                        </td>
-                        <td>
-                          <button
-                            className={styles.btn}
-                            style={{ background: "#e53935", margin: 0 }}
-                            onClick={() => handleObrisiPlaylistu(pl.id)}
-                            title={t("delete") || "Obriši playlistu"}
-                          >
-                            {t("delete") || "Obriši"}
-                          </button>
-                        </td>
+              {activeTab === "playliste" && (
+                <section className={styles.section}>
+                  <h3 className={styles.sectionTitle}>{t("playlists")}</h3>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>{t("playlist_name") || "Naziv"}</th>
+                        <th>{t("artist") || "Korisnik"}</th>
+                        <th>{t("number_of_likes") || "Broj lajkova"}</th>
+                        <th>{t("play") || "Preslušaj"}</th>
+                        <th>{t("delete") || "Obriši"}</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+                    </thead>
+                    <tbody>
+                      {filtriranePlayliste.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} style={{ color: "#b3b3b3", textAlign: "center" }}>
+                            {playliste.length === 0
+                              ? t("no_playlists_user") || "Nema playlista."
+                              : t("no_results") || "Nema rezultata."}
+                          </td>
+                        </tr>
+                      ) : (
+                        filtriranePlayliste.map((pl) => (
+                          <tr key={pl.id}>
+                            <td>
+                              <Link className="link" to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
+                            </td>
+                            <td>
+                              <Link className="link" to={`/izvodjac/${pl.korisnik?.id || pl.korisnikID}`}>
+                                {pl.korisnik?.korisnicko_ime || pl.korisnikID}
+                              </Link>
+                            </td>
+                            <td>{pl.brojLajkova}</td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{ background: "#2ecc40", margin: 0 }}
+                                onClick={() => handlePlayPlaylistSongs(pl.id)}
+                                title={t("play_playlist") || "Preslušaj playlistu"}
+                              >
+                                ▶
+                              </button>
+                            </td>
+                            <td>
+                              <button
+                                className={styles.btn}
+                                style={{ background: "#e53935", margin: 0 }}
+                                onClick={() => handleObrisiPlaylistu(pl.id)}
+                                title={t("delete") || "Obriši playlistu"}
+                              >
+                                {t("delete") || "Obriši"}
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </section>
+              )}
             </>
           )}
         </div>

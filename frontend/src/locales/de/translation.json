@@ -228,5 +228,10 @@
   "add_comment": "Kommentar hinzufügen",
   "no_comments": "Keine Kommentare.",
   "playlist_not_found": "Playlist nicht gefunden.",
-  "register": "Registrieren"
+  "register": "Registrieren",
+  "search_playlists": "Playlists suchen",
+  "search_songs": "Lieder suchen",
+  "search_albums": "Alben suchen",
+  "search_users": "Nutzer suchen",
+  "no_results": "Keine Suchergebnisse."
 }

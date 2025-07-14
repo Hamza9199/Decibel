@@ -48,9 +48,6 @@
 }
 
 .playBtn {
-  position: absolute;
-  bottom: 18px;
-  right: 18px;
   background: #b91d95;
   border: none;
   border-radius: 50%;
@@ -245,4 +242,49 @@
 
 .backBtn:hover {
   background: #e754a2;
+}
+
+.actionBtnsRow {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  right: 18px;
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  z-index: 3;
+  justify-content: space-between;
+}
+
+.likeBtn {
+  background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(30,185,84,0.18);
+  transition: background 0.15s, transform 0.1s;
+  z-index: 2;
+  padding: 0;
+}
+
+.likeBtn.liked {
+  background: #f6b6d8ff;
+}
+
+.likeBtn span {
+  font-size: 1.01rem;
+  margin-left: 4px;
+  color: #fff;
+  font-weight: 600;
+}
+.likeBtn span {
+  font-size: 1.01rem;
+  margin-left: 4px;
+  color: #fff;
+  font-weight: 600;
 }

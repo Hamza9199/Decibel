@@ -228,7 +228,7 @@ const Omiljeno: React.FC = () => {
               </thead>
               <tbody>
                 {omiljenePjesme.map((kp, idx) => {
-                  const p = pjesme.find((pp) => pp.id === kp.pjesmaID);
+                  const p = pjesme.find((pp) => pp.id === kp.pjesmaID && pp.odobreno); // prikazuj samo odobrene pjesme
                   if (!p) return null;
                   const izvodjac = korisnici.find((k) => k.id === p.korisnikID);
                   return (

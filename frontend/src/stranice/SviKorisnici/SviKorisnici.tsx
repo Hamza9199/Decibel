@@ -22,6 +22,7 @@ const SviKorisnici: React.FC = () => {
     poruka: string;
     vrijemeDo: string;
   } | null>(null);
+  const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -141,6 +142,11 @@ const SviKorisnici: React.FC = () => {
     setSuspendModal(null);
   };
 
+  // Dodaj filtrirane korisnike prema search-u
+  const filtriraniKorisnici = korisnici.filter((k) =>
+    k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <Header />
@@ -148,6 +154,23 @@ const SviKorisnici: React.FC = () => {
       <div className={styles.bg}>
         <div className={styles.container}>
           <h2 className={styles.title}>{t("all_users") || "Svi korisnici"}</h2>
+          <input
+            type="text"
+            placeholder={t("search_users") || "Pretraži korisnike..."}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 24,
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid #b91d95",
+              background: "#181818",
+              color: "#fff",
+              fontSize: "1.08rem"
+            }}
+          />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>
           ) : error ? (
@@ -169,7 +192,7 @@ const SviKorisnici: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {korisnici.map((k) => {
+                  {filtriraniKorisnici.map((k) => {
                     const prijava = prijave.find((p) => p.korisnikID === k.id);
                     return (
                       <tr key={k.id}>

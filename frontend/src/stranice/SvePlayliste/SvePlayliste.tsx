@@ -15,6 +15,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const SvePlayliste: React.FC = () => {
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
@@ -78,6 +79,11 @@ const SvePlayliste: React.FC = () => {
     }
   };
 
+  // Dodaj filtrirane playliste prema search-u
+  const filtriranePlayliste = playliste.filter((pl) =>
+    pl.naziv.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <Header />
@@ -85,13 +91,34 @@ const SvePlayliste: React.FC = () => {
       <div className={styles.svePlaylisteBg}>
         <div className={styles.container}>
           <h2 className={styles.title}>{t("my_playlists") || "Moje playliste"}</h2>
+          <input
+            type="text"
+            placeholder={t("search_playlists") || "Pretraži playliste..."}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 24,
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid #b91d95",
+              background: "#181818",
+              color: "#fff",
+              fontSize: "1.08rem"
+            }}
+          />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>
-          ) : playliste.length === 0 ? (
-            <div className={styles.noPlaylists}>{t("no_playlists_user") || "Nemate nijednu playlistu."}</div>
+          ) : filtriranePlayliste.length === 0 ? (
+            <div className={styles.noPlaylists}>
+              {playliste.length === 0
+                ? t("no_playlists_user") || "Nemate nijednu playlistu."
+                : t("no_results") || "Nema rezultata."}
+            </div>
           ) : (
             <div className={styles.playlistGrid}>
-              {playliste.map((pl) => (
+              {filtriranePlayliste.map((pl) => (
                 <div key={pl.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {pl.putanjaSlika ? (

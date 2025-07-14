@@ -106,7 +106,7 @@ const Historija: React.FC = () => {
       ...h,
       pjesma: pjesme.find((p) => p.id === h.pjesmaID),
     }))
-    .filter((h) => h.pjesma);
+    .filter((h) => h.pjesma && h.pjesma.odobreno); // prikazuje samo odobrene pjesme
 
   if (loading) return <Loading />;
 

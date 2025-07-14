@@ -24,6 +24,8 @@ const Pjesma: React.FC = () => {
   const [editKomentarTekst, setEditKomentarTekst] = useState("");
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [izdavac, setIzdavac] = useState<Korisnik | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState<number>(0);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -51,6 +53,23 @@ const Pjesma: React.FC = () => {
         if (!isMounted) return;
         setPjesma(res.data);
 
+        // Dodaj: postavi broj lajkova i da li je korisnik lajkao pjesmu
+        setLikeCount(res.data.brojLajkova || 0);
+        if (mojID) {
+          axios
+            .get(`${API_BASE}/korisnik_pjesma/`)
+            .then((resp) => {
+              const veze = resp.data as { korisnikID: string; pjesmaID: number }[];
+              setLiked(
+                !!veze.find(
+                  (v) =>
+                    v.korisnikID === mojID &&
+                    String(v.pjesmaID) === String(pjesmaId)
+                )
+              );
+            })
+            .catch(() => setLiked(false));
+        }
         // Dohvati izdavaoca (korisnikID od pjesme)
         const korisnikID = res.data.korisnikID;
         if (korisnikID) {
@@ -118,7 +137,7 @@ const Pjesma: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [pjesmaId]);
+  }, [pjesmaId, mojID]);
 
   useEffect(() => {
     if (!pjesmaId) return;
@@ -218,6 +237,29 @@ const Pjesma: React.FC = () => {
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
   })();
 
+  // Dodaj funkciju za like/unlike pjesme
+  const handleLike = async () => {
+    if (!pjesma || !mojID) return;
+    if (liked) {
+      // Un-like
+      await axios
+        .delete(`${API_BASE}/korisnik_pjesma/${mojID}/${pjesma.id}`)
+        .catch(() => {});
+      setLiked(false);
+      setLikeCount((prev) => prev - 1);
+    } else {
+      await axios
+        .post(`${API_BASE}/korisnik_pjesma/`, {
+          korisnikID: mojID,
+          pjesmaID: pjesma.id,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        })
+        .catch(() => {});
+      setLiked(true);
+      setLikeCount((prev) => prev + 1);
+    }
+  };
+
   if (loading) return <Loading />;
 
   if (!pjesma)
@@ -248,17 +290,30 @@ const Pjesma: React.FC = () => {
                 alt={pjesma.naziv}
                 className={styles.pjesmaSlika}
               />
-              {pjesma.putanjaAudio && (
+              <div className={styles.actionBtnsRow}>
                 <button
-                  className={styles.playBtn}
-                  onClick={() => handlePlay(pjesma)}
-                  title={t("play_song")}
+                  className={`${styles.playBtn} ${styles.likeBtn} ${liked ? styles.liked : ""}`}
+                  onClick={handleLike}
+                  title={liked ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}
+                  style={{ right: 90, left: "auto", background: liked ? "#f6b6d8ff" : "#b91d95" }}
                 >
-                  <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
-                    <polygon points="12,8 36,22 12,36" />
+                  <svg width="40" height="40" viewBox="0 0 28 28" fill="#fff">
+                    <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                   </svg>
+                  <span style={{ color: "#fff", fontWeight: 600, marginLeft: 6 }}>{likeCount}</span>
                 </button>
-              )}
+                {pjesma.putanjaAudio && (
+                  <button
+                    className={styles.playBtn}
+                    onClick={() => handlePlay(pjesma)}
+                    title={t("play_song")}
+                  >
+                    <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
+                      <polygon points="12,8 36,22 12,36" />
+                    </svg>
+                  </button>
+                )}
+              </div>
             </div>
             <div className={styles.pjesmaInfo}>
               <h2 className={styles.pjesmaNaziv}>{pjesma.naziv}</h2>

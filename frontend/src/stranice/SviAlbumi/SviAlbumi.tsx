@@ -14,6 +14,7 @@ const SviAlbumi: React.FC = () => {
   const [albumi, setAlbumi] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
+  const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
@@ -66,6 +67,11 @@ const SviAlbumi: React.FC = () => {
     );
   };
 
+  // Dodaj filtrirane albume prema search-u
+  const filtriraniAlbumi = albumi.filter((a) =>
+    a.naziv.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <>
       <Header />
@@ -73,13 +79,34 @@ const SviAlbumi: React.FC = () => {
       <div className={styles.sviAlbumiBg}>
         <div className={styles.container}>
           <h2 className={styles.title}>{t("my_albums") || "Moji albumi"}</h2>
+          <input
+            type="text"
+            placeholder={t("search_albums") || "Pretraži albume..."}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            style={{
+              width: "100%",
+              maxWidth: 340,
+              marginBottom: 24,
+              padding: "10px 14px",
+              borderRadius: 8,
+              border: "1px solid #b91d95",
+              background: "#181818",
+              color: "#fff",
+              fontSize: "1.08rem"
+            }}
+          />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>
-          ) : albumi.length === 0 ? (
-            <div className={styles.noAlbums}>{t("no_albums_user") || "Nemate nijedan album."}</div>
+          ) : filtriraniAlbumi.length === 0 ? (
+            <div className={styles.noAlbums}>
+              {albumi.length === 0
+                ? t("no_albums_user") || "Nemate nijedan album."
+                : t("no_results") || "Nema rezultata."}
+            </div>
           ) : (
             <div className={styles.albumGrid}>
-              {albumi.map((a) => (
+              {filtriraniAlbumi.map((a) => (
                 <div key={a.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {a.putanjaSlika ? (

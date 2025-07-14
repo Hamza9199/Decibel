@@ -7,6 +7,7 @@ import axios from "axios";
 import Loading from "../../komponente/Loading/Loading";
 import { useNavigate } from "react-router-dom";
 import type { KorisnikPretplata, Pretplata } from "../../types";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -17,6 +18,7 @@ const Pretplata: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [kupovinaLoading, setKupovinaLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -77,7 +79,7 @@ const Pretplata: React.FC = () => {
       <Sidebar />
       <div className={styles.pretplataBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Pretplata</h2>
+          <h2 className={styles.title}>{t("subscription")}</h2>
           {loading ? (
             <Loading />
           ) : error ? (
@@ -85,20 +87,20 @@ const Pretplata: React.FC = () => {
           ) : korisnikPretplata ? (
             <div className={styles.infoBox}>
               <div className={styles.status}>
-                Status: <b>{korisnikPretplata.pretplataStatus}</b>
+                {t("status") || "Status"}: <b>{korisnikPretplata.pretplataStatus}</b>
               </div>
               <div className={styles.naziv}>
-                Paket: <b>{korisnikPretplata.pretplata?.naziv || "Nepoznato"}</b>
+                {t("package") || "Paket"}: <b>{korisnikPretplata.pretplata?.naziv || t("no_data")}</b>
               </div>
               <div className={styles.opis}>
                 {korisnikPretplata.pretplata?.opis}
               </div>
               <div className={styles.cijena}>
-                Cijena: <b>{korisnikPretplata.pretplata?.cijena} KM / mj</b>
+                {t("price") || "Cijena"}: <b>{korisnikPretplata.pretplata?.cijena} KM / mj</b>
               </div>
               {korisnikPretplata.datumIsteka && (
                 <div className={styles.istice}>
-                  Ističe: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()} ({new Date(korisnikPretplata.datumIsteka).toLocaleTimeString()})</b>
+                  {t("expires") || "Ističe"}: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()} ({new Date(korisnikPretplata.datumIsteka).toLocaleTimeString()})</b>
                 </div>
               )}
               <div style={{ display: "flex", gap: 12, marginTop: 16, justifyContent: "center" }}>
@@ -108,7 +110,7 @@ const Pretplata: React.FC = () => {
                   onClick={handleObnoviPretplatu}
                   disabled={kupovinaLoading}
                 >
-                  Obnovi pretplatu
+                  {t("renew_subscription") || "Obnovi pretplatu"}
                 </button>
                 <button
                   className={styles.kupiBtn}
@@ -116,19 +118,19 @@ const Pretplata: React.FC = () => {
                   onClick={handleOtkaziPretplatu}
                   disabled={kupovinaLoading}
                 >
-                  Otkaži pretplatu
+                  {t("cancel_subscription") || "Otkaži pretplatu"}
                 </button>
               </div>
-              <div className={styles.success}>Imate aktivnu pretplatu.</div>
+              <div className={styles.success}>{t("active_subscription") || "Imate aktivnu pretplatu."}</div>
             </div>
           ) : (
             <div className={styles.noSub}>
               <div className={styles.warning}>
-                Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:
+                {t("no_active_subscription") || "Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:"}
               </div>
               <div className={styles.ponudeGrid}>
                 {ponude.length === 0 ? (
-                  <div className={styles.error}>Nema dostupnih pretplata.</div>
+                  <div className={styles.error}>{t("no_available_subscriptions") || "Nema dostupnih pretplata."}</div>
                 ) : (
                   ponude.map((p) => (
                     <div key={p.id} className={styles.ponudaCard}>
@@ -140,7 +142,7 @@ const Pretplata: React.FC = () => {
                         onClick={() => navigate(`/nova-pretplata/${p.id}`)}
                         disabled={kupovinaLoading}
                       >
-                        Kupi
+                        {t("buy_subscription")}
                       </button>
                     </div>
                   ))

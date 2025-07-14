@@ -7,6 +7,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { Album, Korisnik } from "../../types";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -28,6 +29,7 @@ const NovaPjesma: React.FC = () => {
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const korisnik = JSON.parse(localStorage.getItem("korisnik") || "{}");
 
@@ -123,72 +125,72 @@ const NovaPjesma: React.FC = () => {
       {loading && <Loading/>}
       <div className={styles.novaPjesmaBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
         <form className={styles.novaPjesmaForm} onSubmit={handleSubmit} style={{ minWidth: 340 }}>
-          <h2 className={styles.title}>Dodaj novu pjesmu</h2>
-          <label className={styles.label}>Naziv Pjesme</label>
+          <h2 className={styles.title}>{t("add_new_song") || "Dodaj novu pjesmu"}</h2>
+          <label className={styles.label}>{t("song_name") || "Naziv Pjesme"}</label>
           <input
             type="text"
-            placeholder="Naziv pjesme"
+            placeholder={t("song_name") || "Naziv pjesme"}
             className={styles.input}
             value={naziv}
             onChange={(e) => setNaziv(e.target.value)}
             required
           />
-          <label className={styles.label}>Opis</label>
+          <label className={styles.label}>{t("description")}</label>
           <textarea
-            placeholder="Opis"
+            placeholder={t("description")}
             className={styles.input}
             value={opis}
             onChange={(e) => setOpis(e.target.value)}
             rows={3}
           />
-            <label className={styles.label}>Datum objave</label>
+            <label className={styles.label}>{t("release_date") || "Datum objave"}</label>
           <input
             type="date"
-            placeholder="Datum objave"
+            placeholder={t("release_date") || "Datum objave"}
             className={styles.input}
             value={datumObjave}
             onChange={(e) => setDatumObjave(e.target.value)}
             required
           />
-            <label className={styles.label}>Trajanje (sekunde)</label>
+            <label className={styles.label}>{t("duration_seconds") || "Trajanje (sekunde)"}</label>
           <input
             type="number"
-            placeholder="Trajanje (sekunde)"
+            placeholder={t("duration_seconds") || "Trajanje (sekunde)"}
             className={styles.input}
             value={trajanjeSekunde}
             onChange={(e) => setTrajanjeSekunde(Number(e.target.value))}
             min={1}
             required
           />
-            <label className={styles.label}>Zanr</label>
+            <label className={styles.label}>{t("genre") || "Zanr"}</label>
           <select
             className={styles.input}
             value={zanr}
             onChange={(e) => setZanr(e.target.value)}
             required
           >
-            <option value="pop">Pop</option>
-            <option value="rock">Rock</option>
-            <option value="hip_hop">Hip Hop</option>
-            <option value="jazz">Jazz</option>
-            <option value="electronic">Electronic</option>
-            <option value="klasicna">Klasična</option>
-            <option value="metal">Metal</option>
-            <option value="alternativni">Alternativni</option>
-            <option value="rap">Rap</option>
+            <option value="pop">{t("genre_pop") || "Pop"}</option>
+            <option value="rock">{t("genre_rock") || "Rock"}</option>
+            <option value="hip_hop">{t("genre_hip_hop") || "Hip Hop"}</option>
+            <option value="jazz">{t("genre_jazz") || "Jazz"}</option>
+            <option value="electronic">{t("genre_electronic") || "Electronic"}</option>
+            <option value="klasicna">{t("genre_classical") || "Klasična"}</option>
+            <option value="metal">{t("genre_metal") || "Metal"}</option>
+            <option value="alternativni">{t("genre_alternative") || "Alternativni"}</option>
+            <option value="rap">{t("genre_rap") || "Rap"}</option>
           </select>
-          <label className={styles.label}>Album (opcionalno)</label>
+          <label className={styles.label}>{t("album_optional") || "Album (opcionalno)"}</label>
           <select
             className={styles.input}
             value={albumID}
             onChange={e => setAlbumID(e.target.value ? Number(e.target.value) : "")}
           >
-            <option value="">Bez albuma</option>
+            <option value="">{t("no_album") || "Bez albuma"}</option>
             {albumi.map((a) => (
               <option key={a.id} value={a.id}>{a.naziv}</option>
             ))}
           </select>
-          <label className={styles.label}>Audio fajl:
+          <label className={styles.label}>{t("audio_file") || "Audio fajl"}:
             <input
               type="file"
               accept="audio/*"
@@ -197,7 +199,7 @@ const NovaPjesma: React.FC = () => {
               required
             />
           </label>
-          <label className={styles.label}>Slika:
+          <label className={styles.label}>{t("image") || "Slika"}:
             <input
               type="file"
               accept="image/*"
@@ -216,7 +218,7 @@ const NovaPjesma: React.FC = () => {
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit">
-            Dodaj pjesmu
+            {t("add_song") || "Dodaj pjesmu"}
           </button>
         </form>
         {/* Desno: search i izbor izvođača */}
@@ -230,10 +232,10 @@ const NovaPjesma: React.FC = () => {
           overflowY: "auto",
           boxShadow: "0 4px 24px #b91d9533"
         }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Izvođači na pjesmi</h4>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("song_artists") || "Izvođači na pjesmi"}</h4>
           <input
             type="text"
-            placeholder="Pretraži izvođače..."
+            placeholder={t("search_artists") || "Pretraži izvođače..."}
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
@@ -273,7 +275,7 @@ const NovaPjesma: React.FC = () => {
                     fontSize: "1.1rem"
                   }}
                   onClick={() => handleRemoveIzvodjac(k.id)}
-                  title={k.id === korisnik.id ? "Ukloni sebe kao izvođača" : "Ukloni izvođača"}
+                  title={k.id === korisnik.id ? t("remove_self_artist") || "Ukloni sebe kao izvođača" : t("remove_artist") || "Ukloni izvođača"}
                   type="button"
                 >
                   ×
@@ -282,7 +284,7 @@ const NovaPjesma: React.FC = () => {
             ))}
             {/* Napomena korisniku */}
             <div style={{ color: "#bbb", fontSize: "0.93rem", marginTop: 4 }}>
-              Možete ukloniti i sebe kao izvođača.
+              {t("can_remove_self_artist") || "Možete ukloniti i sebe kao izvođača."}
             </div>
           </div>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>

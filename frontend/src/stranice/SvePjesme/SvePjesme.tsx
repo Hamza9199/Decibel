@@ -6,6 +6,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Pjesma } from "../../types";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -13,6 +14,7 @@ const SvePjesme: React.FC = () => {
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
+  const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
@@ -78,11 +80,11 @@ const SvePjesme: React.FC = () => {
       <Sidebar />
       <div className={styles.svePjesmeBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Moje pjesme</h2>
+          <h2 className={styles.title}>{t("my_songs") || "Moje pjesme"}</h2>
           {loading ? (
-            <div className={styles.loading}>Učitavanje...</div>
+            <div className={styles.loading}>{t("loading")}</div>
           ) : pjesme.length === 0 ? (
-            <div className={styles.noSongs}>Nemate nijednu pjesmu.</div>
+            <div className={styles.noSongs}>{t("no_songs_user") || "Nemate nijednu pjesmu."}</div>
           ) : (
             <div className={styles.songGrid}>
               {pjesme.map((p) => (
@@ -100,7 +102,7 @@ const SvePjesme: React.FC = () => {
                       <button
                         className={styles.playButton}
                         onClick={() => handlePlay(p)}
-                        title="Play"
+                        title={t("play")}
                       >
                         <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
@@ -120,11 +122,11 @@ const SvePjesme: React.FC = () => {
                     className="link"
                   >
                     <button className={styles.editButton}> 
-                    Uredi
+                    {t("edit")}
                     </button>
                   </Link>
                   <button className={styles.deleteButton} onClick={() => handleDelete(p.id)}>
-                    Obrisi
+                    {t("delete")}
                     </button>
                     </div>
                 </div>

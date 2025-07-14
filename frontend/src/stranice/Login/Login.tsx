@@ -3,6 +3,7 @@ import styles from "./Login.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -12,6 +13,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,10 +67,10 @@ const Login: React.FC = () => {
         <Loading />
       ) : (
         <form className={styles.loginForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>Prijava</h2>
+          <h2 className={styles.title}>{t("login")}</h2>
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t("email")}
             className={styles.input}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +78,7 @@ const Login: React.FC = () => {
           />
           <input
             type="password"
-            placeholder="Lozinka"
+            placeholder={t("password")}
             className={styles.input}
             value={lozinka}
             onChange={(e) => setLozinka(e.target.value)}
@@ -84,12 +86,12 @@ const Login: React.FC = () => {
           />
           {error && <div className={styles.error}>{error}</div>}
           <button className={styles.button} type="submit">
-            Prijavi se
+            {t("login")}
           </button>
           <div className={styles.linkWrap}>
-            Nemate nalog?{" "}
+            {t("dont_have_account") + " "}
             <span className={styles.link} onClick={() => navigate("/register")}>
-              Registrujte se
+              {t("register_here")}
             </span>
           </div>
         </form>

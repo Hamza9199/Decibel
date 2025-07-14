@@ -7,6 +7,7 @@ import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import { Pjesma, Album, Playlista, Korisnik, KorisnikPjesma, KorisnikAlbum, KorisnikPlaylista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -27,6 +28,7 @@ const Omiljeno: React.FC = () => {
   const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
   const [likeAlbumMap, setLikeAlbumMap] = useState<{ [albumId: number]: boolean }>({});
   const [likePlaylistMap, setLikePlaylistMap] = useState<{ [playlistaId: number]: boolean }>({});
+  const { t } = useTranslation();
 
   useEffect(() => {
     let id = "";
@@ -210,18 +212,18 @@ const Omiljeno: React.FC = () => {
     if (tip === "pjesme") {
       content = (
         <div>
-          <h2 className={styles.title}>Omiljene pjesme</h2>
+          <h2 className={styles.title}>{t("favorites_songs") || "Omiljene pjesme"}</h2>
           {omiljenePjesme.length === 0 ? (
-            <div className={styles.noItems}>Nemate omiljenih pjesama.</div>
+            <div className={styles.noItems}>{t("no_favorites_songs") || "Nemate omiljenih pjesama."}</div>
           ) : (
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Slika</th>
-                  <th>Naziv</th>
-                  <th>Izvođač</th>
-                  <th>Akcija</th>
+                  <th>{t("image")}</th>
+                  <th>{t("songs")}</th>
+                  <th>{t("artists")}</th>
+                  <th>{t("actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -376,18 +378,18 @@ const Omiljeno: React.FC = () => {
     } else if (tip === "albumi") {
       content = (
         <div>
-          <h2 className={styles.title}>Omiljeni albumi</h2>
+          <h2 className={styles.title}>{t("favorites_albums") || "Omiljeni albumi"}</h2>
           {omiljeniAlbumi.length === 0 ? (
-            <div className={styles.noItems}>Nemate omiljenih albuma.</div>
+            <div className={styles.noItems}>{t("no_favorites_albums") || "Nemate omiljenih albuma."}</div>
           ) : (
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Slika</th>
-                  <th>Naziv</th>
-                  <th>Izvođač</th>
-                  <th>Akcija</th>
+                  <th>{t("image")}</th>
+                  <th>{t("albums")}</th>
+                  <th>{t("artists")}</th>
+                  <th>{t("actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -450,18 +452,18 @@ const Omiljeno: React.FC = () => {
     } else if (tip === "playliste") {
       content = (
         <div>
-          <h2 className={styles.title}>Omiljene playliste</h2>
+          <h2 className={styles.title}>{t("favorites_playlists") || "Omiljene playliste"}</h2>
           {omiljenePlayliste.length === 0 ? (
-            <div className={styles.noItems}>Nemate omiljenih plejlista.</div>
+            <div className={styles.noItems}>{t("no_favorites_playlists") || "Nemate omiljenih plejlista."}</div>
           ) : (
             <table className={styles.table}>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Slika</th>
-                  <th>Naziv</th>
-                  <th>Vlasnik</th>
-                  <th>Akcija</th>
+                  <th>{t("image")}</th>
+                  <th>{t("playlists")}</th>
+                  <th>{t("profile")}</th>
+                  <th>{t("actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -523,7 +525,7 @@ const Omiljeno: React.FC = () => {
       );
     }
   } else {
-    content = <div className={styles.noItems}>Nepoznat tip omiljenih.</div>;
+    content = <div className={styles.noItems}>{t("unknown_favorites_type") || "Nepoznat tip omiljenih."}</div>;
   }
 
   return (

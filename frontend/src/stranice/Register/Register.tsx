@@ -3,6 +3,7 @@ import styles from "./Register.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -16,6 +17,7 @@ const Register: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,10 +76,10 @@ const Register: React.FC = () => {
         <Loading />
       ) : (
         <form className={styles.registerForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>Registracija</h2>
+          <h2 className={styles.title}>{t("register")}</h2>
           <input
             type="text"
-            placeholder="Ime"
+            placeholder={t("name")}
             className={styles.input}
             value={ime}
             onChange={(e) => setIme(e.target.value)}
@@ -85,7 +87,7 @@ const Register: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="Prezime"
+            placeholder={t("surname")}
             className={styles.input}
             value={prezime}
             onChange={(e) => setPrezime(e.target.value)}
@@ -93,7 +95,7 @@ const Register: React.FC = () => {
           />
           <input
             type="text"
-            placeholder="Korisničko ime"
+            placeholder={t("username")}
             className={styles.input}
             value={korisnicko_ime}
             onChange={(e) => setKorisnickoIme(e.target.value)}
@@ -101,7 +103,7 @@ const Register: React.FC = () => {
           />
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t("email")}
             className={styles.input}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -109,7 +111,7 @@ const Register: React.FC = () => {
           />
           <input
             type="password"
-            placeholder="Lozinka"
+            placeholder={t("password")}
             className={styles.input}
             value={lozinka}
             onChange={(e) => setLozinka(e.target.value)}
@@ -119,12 +121,12 @@ const Register: React.FC = () => {
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit">
-            Registruj se
+            {t("register")}
           </button>
           <div className={styles.linkWrap}>
-            Već imate nalog?{" "}
+            {t("already_have_account") + " "}
             <span className={styles.link} onClick={() => navigate("/")}>
-              Prijavite se
+              {t("login_here")}
             </span>
           </div>
         </form>

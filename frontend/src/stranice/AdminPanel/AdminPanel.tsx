@@ -6,6 +6,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Pjesma, Album, Playlista } from "../../types";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -17,6 +18,7 @@ const AdminPanel: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const repeatAll = false;
+  const { t } = useTranslation();
 
   useEffect(() => {
     setLoading(true);
@@ -188,25 +190,25 @@ const AdminPanel: React.FC = () => {
       <Sidebar />
       <div className={styles.adminBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Admin panel</h2>
+          <h2 className={styles.title}>{t("admin_panel") || "Admin panel"}</h2>
           {loading ? (
-            <div className={styles.loading}>Učitavanje...</div>
+            <div className={styles.loading}>{t("loading")}</div>
           ) : (
             <>
               {success && <div className={styles.success}>{success}</div>}
               {error && <div className={styles.error}>{error}</div>}
 
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Pjesme</h3>
+                <h3 className={styles.sectionTitle}>{t("songs")}</h3>
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Naziv</th>
-                      <th>Izvođač</th>
-                      <th>Preslušaj</th>
-                      <th>Odobreno</th>
-                      <th>Akcija</th>
-                      <th>Obriši</th>
+                      <th>{t("song_name") || "Naziv"}</th>
+                      <th>{t("artist") || "Izvođač"}</th>
+                      <th>{t("play") || "Preslušaj"}</th>
+                      <th>{t("approved") || "Odobreno"}</th>
+                      <th>{t("action") || "Akcija"}</th>
+                      <th>{t("delete") || "Obriši"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -226,7 +228,7 @@ const AdminPanel: React.FC = () => {
                               className={styles.btn}
                               style={{ background: "#2ecc40", margin: 0 }}
                               onClick={() => handlePlaySong(p)}
-                              title="Preslušaj pjesmu"
+                              title={t("play_song") || "Preslušaj pjesmu"}
                             >
                               ▶
                             </button>
@@ -240,7 +242,7 @@ const AdminPanel: React.FC = () => {
                                 : styles.neodobreno
                             }
                           >
-                            {p.odobreno ? "DA" : "NE"}
+                            {p.odobreno ? t("yes") || "DA" : t("no") || "NE"}
                           </span>
                         </td>
                         <td>
@@ -253,7 +255,7 @@ const AdminPanel: React.FC = () => {
                               handleOdobriPjesmu(p, !p.odobreno)
                             }
                           >
-                            {p.odobreno ? "Poništi odobrenje" : "Odobri"}
+                            {p.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
                           </button>
                         </td>
                         <td>
@@ -261,9 +263,9 @@ const AdminPanel: React.FC = () => {
                             className={styles.btn}
                             style={{ background: "#e53935", margin: 0 }}
                             onClick={() => handleObrisiPjesmu(p.id)}
-                            title="Obriši pjesmu"
+                            title={t("delete") || "Obriši pjesmu"}
                           >
-                            Obriši
+                            {t("delete") || "Obriši"}
                           </button>
                         </td>
                       </tr>
@@ -273,17 +275,17 @@ const AdminPanel: React.FC = () => {
               </section>
 
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Albumi</h3>
+                <h3 className={styles.sectionTitle}>{t("albums")}</h3>
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Naziv</th>
-                      <th>Korisnik</th>
-                      <th>Broj lajkova</th>
-                      <th>Preslušaj</th>
-                      <th>Odobreno</th>
-                      <th>Akcija</th>
-                      <th>Obriši</th>
+                      <th>{t("album_name") || "Naziv"}</th>
+                      <th>{t("artist") || "Korisnik"}</th>
+                      <th>{t("number_of_likes") || "Broj lajkova"}</th>
+                      <th>{t("play") || "Preslušaj"}</th>
+                      <th>{t("approved") || "Odobreno"}</th>
+                      <th>{t("action") || "Akcija"}</th>
+                      <th>{t("delete") || "Obriši"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -303,7 +305,7 @@ const AdminPanel: React.FC = () => {
                             className={styles.btn}
                             style={{ background: "#2ecc40", margin: 0 }}
                             onClick={() => handlePlayAlbumSongs(a.id)}
-                            title="Preslušaj album"
+                            title={t("play_album") || "Preslušaj album"}
                           >
                             ▶
                           </button>
@@ -316,7 +318,7 @@ const AdminPanel: React.FC = () => {
                                 : styles.neodobreno
                             }
                           >
-                            {a.odobreno ? "DA" : "NE"}
+                            {a.odobreno ? t("yes") || "DA" : t("no") || "NE"}
                           </span>
                         </td>
                         <td>
@@ -329,7 +331,7 @@ const AdminPanel: React.FC = () => {
                               handleOdobriAlbum(a, !a.odobreno)
                             }
                           >
-                            {a.odobreno ? "Poništi odobrenje" : "Odobri"}
+                            {a.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
                           </button>
                         </td>
                         <td>
@@ -337,9 +339,9 @@ const AdminPanel: React.FC = () => {
                             className={styles.btn}
                             style={{ background: "#e53935", margin: 0 }}
                             onClick={() => handleObrisiAlbum(a.id)}
-                            title="Obriši album"
+                            title={t("delete") || "Obriši album"}
                           >
-                            Obriši
+                            {t("delete") || "Obriši"}
                           </button>
                         </td>
                       </tr>
@@ -349,15 +351,15 @@ const AdminPanel: React.FC = () => {
               </section>
 
               <section className={styles.section}>
-                <h3 className={styles.sectionTitle}>Playliste</h3>
+                <h3 className={styles.sectionTitle}>{t("playlists")}</h3>
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Naziv</th>
-                      <th>Korisnik</th>
-                      <th>Broj lajkova</th>
-                      <th>Preslušaj</th>
-                      <th>Obriši</th>
+                      <th>{t("playlist_name") || "Naziv"}</th>
+                      <th>{t("artist") || "Korisnik"}</th>
+                      <th>{t("number_of_likes") || "Broj lajkova"}</th>
+                      <th>{t("play") || "Preslušaj"}</th>
+                      <th>{t("delete") || "Obriši"}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -377,7 +379,7 @@ const AdminPanel: React.FC = () => {
                             className={styles.btn}
                             style={{ background: "#2ecc40", margin: 0 }}
                             onClick={() => handlePlayPlaylistSongs(pl.id)}
-                            title="Preslušaj playlistu"
+                            title={t("play_playlist") || "Preslušaj playlistu"}
                           >
                             ▶
                           </button>
@@ -387,9 +389,9 @@ const AdminPanel: React.FC = () => {
                             className={styles.btn}
                             style={{ background: "#e53935", margin: 0 }}
                             onClick={() => handleObrisiPlaylistu(pl.id)}
-                            title="Obriši playlistu"
+                            title={t("delete") || "Obriši playlistu"}
                           >
-                            Obriši
+                            {t("delete") || "Obriši"}
                           </button>
                         </td>
                       </tr>

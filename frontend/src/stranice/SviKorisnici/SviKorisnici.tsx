@@ -6,6 +6,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Korisnik } from "../../types";
 import { PrijavaIzvodjaca } from "../../types"; // Dodaj tip ako ga imaš, ili koristi any
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -21,6 +22,7 @@ const SviKorisnici: React.FC = () => {
     poruka: string;
     vrijemeDo: string;
   } | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setLoading(true);
@@ -145,9 +147,9 @@ const SviKorisnici: React.FC = () => {
       <Sidebar />
       <div className={styles.bg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Svi korisnici</h2>
+          <h2 className={styles.title}>{t("all_users") || "Svi korisnici"}</h2>
           {loading ? (
-            <div className={styles.loading}>Učitavanje...</div>
+            <div className={styles.loading}>{t("loading")}</div>
           ) : error ? (
             <div className={styles.error}>{error}</div>
           ) : (
@@ -156,14 +158,14 @@ const SviKorisnici: React.FC = () => {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th>Profilna</th>
-                    <th>Korisničko ime</th>
-                    <th>Email</th>
-                    <th>Rola</th>
-                    <th>Status</th>
-                    <th>Ime</th>
-                    <th>Prezime</th>
-                    <th>Prijava za izvođača</th>
+                    <th>{t("profile_image") || "Profilna"}</th>
+                    <th>{t("username") || "Korisničko ime"}</th>
+                    <th>{t("email") || "Email"}</th>
+                    <th>{t("role") || "Rola"}</th>
+                    <th>{t("status") || "Status"}</th>
+                    <th>{t("name") || "Ime"}</th>
+                    <th>{t("surname") || "Prezime"}</th>
+                    <th>{t("artist_application") || "Prijava za izvođača"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -186,9 +188,9 @@ const SviKorisnici: React.FC = () => {
                             onChange={(e) => handleChange(k, "rola", e.target.value)}
                             className={styles.select}
                           >
-                            <option value="korisnik">korisnik</option>
-                            <option value="izvodac">izvođač</option>
-                            <option value="admin">admin</option>
+                            <option value="korisnik">{t("role_user") || "korisnik"}</option>
+                            <option value="izvodac">{t("role_artist") || "izvođač"}</option>
+                            <option value="admin">{t("role_admin") || "admin"}</option>
                           </select>
                         </td>
                         <td>
@@ -197,9 +199,9 @@ const SviKorisnici: React.FC = () => {
                             onChange={(e) => handleChange(k, "statusKorisnika", e.target.value)}
                             className={styles.select}
                           >
-                            <option value="aktivan">aktivan</option>
-                            <option value="neaktivan">neaktivan</option>
-                            <option value="suspendovan">suspendovan</option>
+                            <option value="aktivan">{t("status_active") || "aktivan"}</option>
+                            <option value="neaktivan">{t("status_inactive") || "neaktivan"}</option>
+                            <option value="suspendovan">{t("status_suspended") || "suspendovan"}</option>
                           </select>
                         </td>
                         <td>{k.ime}</td>
@@ -218,10 +220,10 @@ const SviKorisnici: React.FC = () => {
                               }}
                               onClick={() => setPrijavaModal({ korisnikID: k.id, prijava })}
                             >
-                              Prikaži prijavu
+                              {t("show_application") || "Prikaži prijavu"}
                             </button>
                           ) : (
-                            <span style={{ color: "#b3b3b3" }}>Nema</span>
+                            <span style={{ color: "#b3b3b3" }}>{t("no_application") || "Nema"}</span>
                           )}
                         </td>
                       </tr>
@@ -257,9 +259,9 @@ const SviKorisnici: React.FC = () => {
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    <h4 style={{ marginTop: 0 }}>Prijava za izvođača</h4>
+                    <h4 style={{ marginTop: 0 }}>{t("artist_application")}</h4>
                     <div style={{ marginBottom: 12 }}>
-                      <b>Korisnik:</b>{" "}
+                      <b>{t("user")}:</b>{" "}
                       {
                         (() => {
                           const korisnik = korisnici.find(k => k.id === prijavaModal.korisnikID);
@@ -270,7 +272,7 @@ const SviKorisnici: React.FC = () => {
                       }
                     </div>
                     <div style={{ marginBottom: 12 }}>
-                      <b>Poruka:</b>
+                      <b>{t("message") || "Poruka"}:</b>
                       <div style={{
                         background: "#181818",
                         borderRadius: 6,
@@ -284,7 +286,7 @@ const SviKorisnici: React.FC = () => {
                       </div>
                     </div>
                     <div style={{ marginBottom: 12 }}>
-                      <b>Datum:</b> {prijavaModal.prijava.datum ? new Date(prijavaModal.prijava.datum).toLocaleString() : ""}
+                      <b>{t("date") || "Datum"}:</b> {prijavaModal.prijava.datum ? new Date(prijavaModal.prijava.datum).toLocaleString() : ""}
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
                       <button
@@ -298,17 +300,17 @@ const SviKorisnici: React.FC = () => {
                           cursor: "pointer",
                         }}
                         onClick={async () => {
-                          if (!window.confirm("Jeste li sigurni da želite obrisati ovu prijavu?")) return;
+                          if (!window.confirm(t("confirm_delete_application") || "Jeste li sigurni da želite obrisati ovu prijavu?")) return;
                           try {
                             await axios.delete(`${API_BASE}/prijave_izvodjaca/${prijavaModal.prijava.id}`);
                             setPrijave((prev) => prev.filter((p) => p.id !== prijavaModal.prijava.id));
                             setPrijavaModal(null);
                           } catch {
-                            alert("Greška pri brisanju prijave.");
+                            alert(t("error_deleting_application") || "Greška pri brisanju prijave.");
                           }
                         }}
                       >
-                        Obriši prijavu
+                        {t("delete_application") || "Obriši prijavu"}
                       </button>
                       <button
                         style={{
@@ -322,7 +324,7 @@ const SviKorisnici: React.FC = () => {
                         }}
                         onClick={() => setPrijavaModal(null)}
                       >
-                        Zatvori
+                        {t("close")}
                       </button>
                     </div>
                   </div>
@@ -356,13 +358,13 @@ const SviKorisnici: React.FC = () => {
                     }}
                     onClick={e => e.stopPropagation()}
                   >
-                    <h4 style={{ marginTop: 0 }}>Suspenduj korisnika</h4>
+                    <h4 style={{ marginTop: 0 }}>{t("suspend_user") || "Suspenduj korisnika"}</h4>
                     <div style={{ marginBottom: 12 }}>
-                      <b>Korisnik:</b> {suspendModal.korisnik.korisnicko_ime}
+                      <b>{t("user")}:</b> {suspendModal.korisnik.korisnicko_ime}
                     </div>
                     <div style={{ marginBottom: 12 }}>
                       <label>
-                        Poruka za korisnika (razlog suspenzije):
+                        {t("suspension_reason") || "Poruka za korisnika (razlog suspenzije)"}:
                         <textarea
                           style={{
                             width: "100%",
@@ -387,7 +389,7 @@ const SviKorisnici: React.FC = () => {
                     </div>
                     <div style={{ marginBottom: 18 }}>
                       <label>
-                        Trajanje suspenzije (do kada, ISO format ili YYYY-MM-DDTHH:mm):
+                        {t("suspension_until") || "Trajanje suspenzije (do kada, ISO format ili YYYY-MM-DDTHH:mm)"}:
                         <input
                           type="datetime-local"
                           style={{
@@ -424,7 +426,7 @@ const SviKorisnici: React.FC = () => {
                           await handlePotvrdiSuspenziju();
                         }}
                       >
-                        Potvrdi suspenziju
+                        {t("confirm_suspension") || "Potvrdi suspenziju"}
                       </button>
                       <button
                         style={{
@@ -438,7 +440,7 @@ const SviKorisnici: React.FC = () => {
                         }}
                         onClick={handlePrekiniSuspenziju}
                       >
-                        Odustani
+                        {t("cancel")}
                       </button>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./Sidebar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -24,6 +24,18 @@ const [showPlaylistMenu, setShowPlaylistMenu] = React.useState(false);
 const [showSongsMenu, setShowSongsMenu] = React.useState(false);
 const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
 const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
+
+  useEffect(() => {
+    const tema = localStorage.getItem("decibel_tema") || "dark";
+    document.body.setAttribute("data-theme", tema);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema" && e.newValue) {
+        document.body.setAttribute("data-theme", e.newValue);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   return (
     <aside className={styles.sidebar}>

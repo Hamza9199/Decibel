@@ -6,6 +6,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Album, Pjesma } from "../../types";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -13,6 +14,7 @@ const SviAlbumi: React.FC = () => {
   const [albumi, setAlbumi] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
+  const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
@@ -70,11 +72,11 @@ const SviAlbumi: React.FC = () => {
       <Sidebar />
       <div className={styles.sviAlbumiBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Moji albumi</h2>
+          <h2 className={styles.title}>{t("my_albums") || "Moji albumi"}</h2>
           {loading ? (
-            <div className={styles.loading}>Učitavanje...</div>
+            <div className={styles.loading}>{t("loading")}</div>
           ) : albumi.length === 0 ? (
-            <div className={styles.noAlbums}>Nemate nijedan album.</div>
+            <div className={styles.noAlbums}>{t("no_albums_user") || "Nemate nijedan album."}</div>
           ) : (
             <div className={styles.albumGrid}>
               {albumi.map((a) => (
@@ -89,7 +91,7 @@ const SviAlbumi: React.FC = () => {
                     <button
                       className={styles.playButton}
                       onClick={() => handlePlayAlbum(a.id)}
-                      title="Pusti album"
+                      title={t("play_album")}
                       style={{ left: 50, position: "absolute", bottom: 10 }}
                     >
                       <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
@@ -107,23 +109,23 @@ const SviAlbumi: React.FC = () => {
                   <div className={styles.cardActions}>
                     <Link to={`/uredi-album/${a.id}`} className={styles.editButton}>
                     <button >
-                      Uredi
+                      {t("edit")}
                     </button>
                     </Link>
                     <button
                       className={styles.deleteButton}
                       onClick={() => {
-                        if (window.confirm("Jeste li sigurni da želite obrisati ovaj album?")) {
+                        if (window.confirm(t("confirm_delete_album") || "Jeste li sigurni da želite obrisati ovaj album?")) {
                           axios
                             .delete(`${API_BASE}/albumi/${a.id}`)
                             .then(() => {
                               setAlbumi((prev) => prev.filter((album) => album.id !== a.id));
                             })
-                            .catch(() => alert("Greška pri brisanju albuma."));
+                            .catch(() => alert(t("error_deleting_album") || "Greška pri brisanju albuma."));
                         }
                       }}
                     >
-                      Obriši
+                      {t("delete")}
                     </button>
                   </div>
                 </div>
@@ -138,4 +140,3 @@ const SviAlbumi: React.FC = () => {
 };
 
 export default SviAlbumi;
-                 

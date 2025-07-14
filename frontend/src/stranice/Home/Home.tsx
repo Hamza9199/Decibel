@@ -36,16 +36,23 @@ const Home: React.FC = () => {
   }, [activeSong]);
 
   useEffect(() => {
+    // Helper to shuffle and take N items
+    function getRandomItems<T>(arr: T[], n: number): T[] {
+      if (!arr) return [];
+      const shuffled = arr.slice().sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, n);
+    }
+
     Promise.all([
       axios.get(`${API_BASE}/pjesme/`).then((res) => res.data).catch(() => []),
       axios.get(`${API_BASE}/albumi/`).then((res) => res.data).catch(() => []),
       axios.get(`${API_BASE}/playliste/`).then((res) => res.data).catch(() => []),
       axios.get(`${API_BASE}/korisnici/`).then((res) => res.data).catch(() => []),
     ]).then(([pjesmeData, albumiData, playlisteData, korisniciData]) => {
-      setPjesme(pjesmeData);
-      setAlbumi(albumiData);
-      setPlayliste(playlisteData);
-      setKorisnici(korisniciData);
+      setPjesme(getRandomItems(pjesmeData, 20));
+      setAlbumi(getRandomItems(albumiData, 20));
+      setPlayliste(getRandomItems(playlisteData, 20));
+      setKorisnici(getRandomItems(korisniciData, 20));
       setLoading(false);
       console.log("Data loaded successfully", {
         pjesme: pjesmeData

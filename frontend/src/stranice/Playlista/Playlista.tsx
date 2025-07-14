@@ -7,6 +7,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -25,6 +26,7 @@ const Playlista: React.FC = () => {
   const [playlists, setPlaylists] = useState<PlaylistaType[]>([]);
   const [likePlaylist, setLikePlaylist] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -259,7 +261,7 @@ const Playlista: React.FC = () => {
         <Header />
         <Sidebar />
         <div className={styles.container}>
-          <h2>Playlista nije pronađena.</h2>
+          <h2>{t("playlist_not_found") || "Playlista nije pronađena."}</h2>
         </div>
         <Footer />
       </div>
@@ -278,7 +280,7 @@ const Playlista: React.FC = () => {
                 alt={playlista.naziv}
                 className={styles.playlistaSlika}
               />
-              <button className={styles.playBtn} onClick={handlePlayPlaylist} title="Pusti playlistu">
+              <button className={styles.playBtn} onClick={handlePlayPlaylist} title={t("play_playlist") || "Pusti playlistu"}>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
                   <polygon points="12,8 36,22 12,36" />
                 </svg>
@@ -286,7 +288,7 @@ const Playlista: React.FC = () => {
               <button
                 className={`${styles.likeBtn} ${likePlaylist ? styles.liked : ""}`}
                 onClick={handleLikeThisPlaylist}
-                title={likePlaylist ? "Ukloni lajk" : "Lajkuj playlistu"}
+                title={likePlaylist ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj playlistu"}
               >
                 <svg width="28" height="28" viewBox="0 0 28 28" fill={likePlaylist ? "#f7aed5ff" : "#fff"}>
                   <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -296,7 +298,7 @@ const Playlista: React.FC = () => {
               <button
                 className={styles.repeatBtn}
                 onClick={() => setRepeatAll((r) => !r)}
-                title={repeatAll ? "Isključi ponavljanje playliste" : "Ponovi playlistu"}
+                title={repeatAll ? t("cancel") || "Isključi ponavljanje playliste" : t("play_playlist") || "Ponovi playlistu"}
               >
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="#fff">
                   <g>
@@ -313,30 +315,30 @@ const Playlista: React.FC = () => {
               <div className={styles.playlistaOpis}>{playlista.opis}</div>
               <div className={styles.playlistaMeta}>
                 <span>
-                  Broj pjesama: <b>{pjesme.length}</b>
+                  {t("number_of_songs") || "Broj pjesama"}: <b>{pjesme.length}</b>
                 </span>
                 <span>
-                  Lajkova: <b>{likeCount}</b>
+                  {t("number_of_likes") || "Lajkova"}: <b>{likeCount}</b>
                 </span>
                 <span>
-                  Javno: <b>{playlista.javno ? "Da" : "Ne"}</b>
+                  {t("public_playlist") || "Javno"}: <b>{playlista.javno ? t("yes") || "Da" : t("no") || "Ne"}</b>
                 </span>
               </div>
             </div>
           </div>
           <div className={styles.pjesmeSection}>
-            <h3 className={styles.pjesmeTitle}>Pjesme u playlisti</h3>
+            <h3 className={styles.pjesmeTitle}>{t("songs_in_playlist") || "Pjesme u playlisti"}</h3>
             {pjesme.length === 0 ? (
-              <div className={styles.noSongs}>Nema pjesama u ovoj playlisti.</div>
+              <div className={styles.noSongs}>{t("no_songs_in_playlist") || "Nema pjesama u ovoj playlisti."}</div>
             ) : (
               <table className={styles.pjesmeTable}>
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Naziv</th>
-                    <th>Trajanje</th>
-                    <th>Izvođač</th>
-                    <th>Akcije</th>
+                    <th>{t("song_name") || "Naziv"}</th>
+                    <th>{t("duration_seconds") || "Trajanje"}</th>
+                    <th>{t("artist") || "Izvođač"}</th>
+                    <th>{t("actions") || "Akcije"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -370,7 +372,7 @@ const Playlista: React.FC = () => {
                         <button
                           className={styles.songPlayBtn}
                           onClick={() => handlePlaySong(p)}
-                          title="Pusti pjesmu"
+                          title={t("play_song") || "Pusti pjesmu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff">
                             <polygon points="12,8 36,22 12,36" />
@@ -379,7 +381,7 @@ const Playlista: React.FC = () => {
                         <button
                           className={`${styles.songPlayBtn} ${likeMap[p.id] ? styles.liked : ""}`}
                           onClick={() => handleLikeSong(p.id)}
-                          title={likeMap[p.id] ? "Ukloni lajk" : "Lajkuj pjesmu"}
+                          title={likeMap[p.id] ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[p.id] ? "#f6b8d9ff" : "#fff"}>
                             <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -388,7 +390,7 @@ const Playlista: React.FC = () => {
                         <button
                           className={styles.songPlayBtn}
                           onClick={() => setShowPlaylistModal(p.id)}
-                          title="Dodaj u playlistu"
+                          title={t("add_song_to_playlist") || "Dodaj u playlistu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
                             <rect x="18" y="8" width="8" height="28" />
@@ -400,7 +402,7 @@ const Playlista: React.FC = () => {
                             className={styles.songPlayBtn}
                             style={{ background: "#e754a2", marginLeft: 0 }}
                             onClick={() => handleRemoveSong(p.id)}
-                            title="Izbaci iz playliste"
+                            title={t("remove") || "Izbaci iz playliste"}
                           >
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff">
                               <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
@@ -432,7 +434,7 @@ const Playlista: React.FC = () => {
                               }}
                               onClick={e => e.stopPropagation()}
                             >
-                              <h4 style={{ color: "#fff", marginBottom: 18 }}>Dodaj pjesmu u playlistu</h4>
+                              <h4 style={{ color: "#fff", marginBottom: 18 }}>{t("add_song_to_playlist") || "Dodaj pjesmu u playlistu"}</h4>
                               <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 18 }}>
                                 {playlists
                                   .filter((pl) => String(pl.id) !== String(playlistaId))
@@ -473,7 +475,7 @@ const Playlista: React.FC = () => {
                                 }}
                                 onClick={() => setShowPlaylistModal(null)}
                               >
-                                Zatvori
+                                {t("close") || "Zatvori"}
                               </button>
                             </div>
                           </div>
@@ -500,7 +502,7 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Playlista;
-                            
+
 
 
 

@@ -7,6 +7,7 @@ import axios from "axios";
 import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -17,6 +18,7 @@ const Historija: React.FC = () => {
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null); // pjesmaID
   const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -114,18 +116,18 @@ const Historija: React.FC = () => {
       <Sidebar />
       <div className={styles.historijaBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Historija slušanja</h2>
+          <h2 className={styles.title}>{t("history")}</h2>
           {historijaPjesme.length === 0 ? (
-            <div className={styles.noSongs}>Nema historije slušanja.</div>
+            <div className={styles.noSongs}>{t("no_history")}</div>
           ) : (
             <table className={styles.pjesmeTable}>
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>Slika</th>
-                  <th>Naziv</th>
-                  <th>Izvođač</th>
-                  <th>Akcije</th>
+                  <th>{t("image") || "Slika"}</th>
+                  <th>{t("songs")}</th>
+                  <th>{t("artists")}</th>
+                  <th>{t("actions") || "Akcije"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -158,7 +160,7 @@ const Historija: React.FC = () => {
                             })
                           )
                         }
-                        title="Pusti pjesmu"
+                        title={t("play_song")}
                       >
                         <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
@@ -167,7 +169,7 @@ const Historija: React.FC = () => {
                       <button
                         className={`${styles.likeBtn} ${likeMap[h.pjesmaID] ? styles.liked : ""}`}
                         onClick={() => handleLike(h.pjesmaID)}
-                        title={likeMap[h.pjesmaID] ? "Ukloni lajk" : "Lajkuj pjesmu"}
+                        title={likeMap[h.pjesmaID] ? t("remove") : t("add_to_favorites") || "Lajkuj pjesmu"}
                       >
                         <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
                           <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -176,7 +178,7 @@ const Historija: React.FC = () => {
                       <button
                         className={styles.addBtn}
                         onClick={() => setShowPlaylistModal(h.pjesmaID)}
-                        title="Dodaj u playlistu"
+                        title={t("add_to_playlist")}
                       >
                         <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
                           <rect x="18" y="8" width="8" height="28" />
@@ -187,7 +189,7 @@ const Historija: React.FC = () => {
                       {showPlaylistModal === h.pjesmaID && (
                         <div className={styles.modalOverlay} onClick={() => setShowPlaylistModal(null)}>
                           <div className={styles.modal} onClick={e => e.stopPropagation()}>
-                            <h4>Dodaj pjesmu u playlistu</h4>
+                            <h4>{t("add_song_to_playlist")}</h4>
                             <ul className={styles.playlistList}>
                               {playlists.map((pl) => (
                                 <li key={pl.id}>
@@ -201,7 +203,7 @@ const Historija: React.FC = () => {
                               ))}
                             </ul>
                             <button className={styles.closeModalBtn} onClick={() => setShowPlaylistModal(null)}>
-                              Zatvori
+                              {t("close")}
                             </button>
                           </div>
                         </div>

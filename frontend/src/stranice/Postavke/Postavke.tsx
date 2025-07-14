@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Postavke.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -13,6 +13,13 @@ const Postavke: React.FC = () => {
   const [brisanje, setBrisanje] = useState(false);
   const { t, i18n } = useTranslation();
   const [jezik, setJezik] = useState(i18n.language || "bs");
+  const [tema, setTema] = useState(localStorage.getItem("decibel_tema") || "dark");
+
+  // Apply theme to body on mount and when changed
+  useEffect(() => {
+    document.body.setAttribute("data-theme", tema);
+    localStorage.setItem("decibel_tema", tema);
+  }, [tema]);
 
   const handleOpenModal = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -94,6 +101,7 @@ const Postavke: React.FC = () => {
     const lang = e.target.value;
     setJezik(lang);
     i18n.changeLanguage(lang);
+    localStorage.setItem("decibel_lang", lang);
   };
 
   return (
@@ -106,9 +114,13 @@ const Postavke: React.FC = () => {
           <div className={styles.form}>
             <div className={styles.label}>
               <span>{t("appearance")}:</span>
-              <select className={styles.input} disabled>
-                <option>{t("dark_mode")}</option>
-                <option>{t("white_mode")}</option>
+              <select
+                className={styles.input}
+                value={tema}
+                onChange={e => setTema(e.target.value)}
+              >
+                <option value="dark">{t("dark_mode")}</option>
+                <option value="light">{t("white_mode")}</option>
               </select>
             </div>
             <div className={styles.label}>
@@ -120,6 +132,7 @@ const Postavke: React.FC = () => {
               >
                 <option value="bs">Bosanski/Srpski/Hrvatski</option>
                 <option value="en">English</option>
+                <option value="de">German</option>
               </select>
             </div>
             <div className={styles.label}>

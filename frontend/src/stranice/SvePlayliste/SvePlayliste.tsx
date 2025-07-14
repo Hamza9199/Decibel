@@ -6,6 +6,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Playlista } from "../../types";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 
 
@@ -14,6 +15,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const SvePlayliste: React.FC = () => {
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
@@ -82,11 +84,11 @@ const SvePlayliste: React.FC = () => {
       <Sidebar />
       <div className={styles.svePlaylisteBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Moje playliste</h2>
+          <h2 className={styles.title}>{t("my_playlists") || "Moje playliste"}</h2>
           {loading ? (
-            <div className={styles.loading}>Učitavanje...</div>
+            <div className={styles.loading}>{t("loading")}</div>
           ) : playliste.length === 0 ? (
-            <div className={styles.noPlaylists}>Nemate nijednu playlistu.</div>
+            <div className={styles.noPlaylists}>{t("no_playlists_user") || "Nemate nijednu playlistu."}</div>
           ) : (
             <div className={styles.playlistGrid}>
               {playliste.map((pl) => (
@@ -101,7 +103,7 @@ const SvePlayliste: React.FC = () => {
                     <button
                       className={styles.playButton}
                       onClick={() => handlePlayPlaylist(pl.id)}
-                      title="Pusti playlistu"
+                      title={t("play_playlist")}
                       style={{ left: 50, position: "absolute", bottom: 10 }}
                     >
                       <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
@@ -118,23 +120,23 @@ const SvePlayliste: React.FC = () => {
                   <div className={styles.cardActions}>
                     <Link to={`/uredi-playlistu/${pl.id}`} className={styles.editButton}>
                     <button >
-                      Uredi
+                      {t("edit")}
                     </button>
                     </Link>
                     <button
                       className={styles.deleteButton}
                       onClick={() => {
-                        if (window.confirm("Jeste li sigurni da želite obrisati ovu playlistu?")) {
+                        if (window.confirm(t("confirm_delete_playlist") || "Jeste li sigurni da želite obrisati ovu playlistu?")) {
                           axios
-                            .delete(`${API_BASE}/playlista/${pl.id}`)
+                            .delete(`${API_BASE}/playliste/${pl.id}`)
                             .then(() => {
                               setPlayliste((prev) => prev.filter((playlist) => playlist.id !== pl.id));
                             })
-                            .catch(() => alert("Greška pri brisanju playliste."));
+                            .catch(() => alert(t("error_deleting_playlist") || "Greška pri brisanju playliste."));
                         }
                       }}
                     >
-                      Obriši
+                      {t("delete")}
                     </button>
                   </div>
 
@@ -150,4 +152,3 @@ const SvePlayliste: React.FC = () => {
 };
 
 export default SvePlayliste;
-               

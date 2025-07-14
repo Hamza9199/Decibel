@@ -5,6 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -22,6 +23,7 @@ const UrediProfil: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [slikaSuccess, setSlikaSuccess] = useState<string | null>(null);
   const [slikaError, setSlikaError] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -106,14 +108,14 @@ const UrediProfil: React.FC = () => {
       <Sidebar />
       <div className={styles.editProfileBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Uredi profil</h2>
+          <h2 className={styles.title}>{t("edit_profile")}</h2>
           {loading ? (
             <Loading />
           ) : (
             <>
               <form className={styles.form} onSubmit={handleSubmit}>
                 <label className={styles.label}>
-                  Ime:
+                  {t("name")}:
                   <input
                     className={styles.input}
                     type="text"
@@ -123,7 +125,7 @@ const UrediProfil: React.FC = () => {
                   />
                 </label>
                 <label className={styles.label}>
-                  Prezime:
+                  {t("surname")}:
                   <input
                     className={styles.input}
                     type="text"
@@ -133,7 +135,7 @@ const UrediProfil: React.FC = () => {
                   />
                 </label>
                 <label className={styles.label}>
-                  Korisničko ime:
+                  {t("username")}:
                   <input
                     className={styles.input}
                     type="text"
@@ -143,7 +145,7 @@ const UrediProfil: React.FC = () => {
                   />
                 </label>
                 <label className={styles.label}>
-                  Email:
+                  {t("email")}:
                   <input
                     className={styles.input}
                     type="email"
@@ -164,11 +166,11 @@ const UrediProfil: React.FC = () => {
                 {error && <div className={styles.error}>{error}</div>}
                 {success && <div className={styles.success}>{success}</div>}
                 <button className={styles.button} type="submit" disabled={loading}>
-                  Sačuvaj promjene
+                  {t("save_changes")}
                 </button>
               </form>
               <div className={styles.profileImageSection}>
-                <h3 className={styles.subtitle}>Profilna slika</h3>
+                <h3 className={styles.subtitle}>{t("profile")} {t("image") || "slika"}</h3>
                 <div className={styles.profileImageWrap}>
                   <img
                     src={slika || "/logo.gif"}
@@ -186,7 +188,7 @@ const UrediProfil: React.FC = () => {
                   {slikaError && <div className={styles.error}>{slikaError}</div>}
                   {slikaSuccess && <div className={styles.success}>{slikaSuccess}</div>}
                   <button className={styles.button} type="submit">
-                    Promijeni sliku
+                    {t("edit") + " " + (t("profile") || "") + " " + (t("image") || "slika")}
                   </button>
                 </form>
               </div>

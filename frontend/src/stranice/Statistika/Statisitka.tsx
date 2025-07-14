@@ -16,6 +16,7 @@ import {
 } from "chart.js";
 import type { Statistika } from "../../types";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
+import { useTranslation } from "react-i18next";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement);
 
@@ -28,6 +29,7 @@ const Statistika: React.FC = () => {
   const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
   const [statistika, setStatistika] = useState<Statistika[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     setLoading(true);
@@ -113,20 +115,20 @@ const Statistika: React.FC = () => {
       <Sidebar />
       <div className={styles.statsBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Statistika platforme</h2>
+          <h2 className={styles.title}>{t("platform_statistics") || "Statistika platforme"}</h2>
           {loading ? (
-            <div className={styles.loading}>Učitavanje...</div>
+            <div className={styles.loading}>{t("loading")}</div>
           ) : (
             <>
               <div className={styles.chartsGrid}>
                 <div className={styles.chartCard}>
-                  <h3>Top 10 pjesama (lajkovi)</h3>
+                  <h3>{t("top_10_songs_likes") || "Top 10 pjesama (lajkovi)"}</h3>
                   <Bar
                     data={{
                       labels: topPjesme.map(p => p.naziv),
                       datasets: [
                         {
-                          label: "Broj lajkova",
+                          label: t("number_of_likes") || "Broj lajkova",
                           data: topPjesme.map(p => p.brojLajkova),
                           backgroundColor: "#b91d95",
                         },
@@ -139,13 +141,13 @@ const Statistika: React.FC = () => {
                   />
                 </div>
                 <div className={styles.chartCard}>
-                  <h3>Top 10 albuma (lajkovi)</h3>
+                  <h3>{t("top_10_albums_likes") || "Top 10 albuma (lajkovi)"}</h3>
                   <Bar
                     data={{
                       labels: topAlbumi.map(a => a.naziv),
                       datasets: [
                         {
-                          label: "Broj lajkova",
+                          label: t("number_of_likes") || "Broj lajkova",
                           data: topAlbumi.map(a => a.brojLajkova),
                           backgroundColor: "#e754a2",
                         },
@@ -158,13 +160,13 @@ const Statistika: React.FC = () => {
                   />
                 </div>
                 <div className={styles.chartCard}>
-                  <h3>Top 10 plejlista (lajkovi)</h3>
+                  <h3>{t("top_10_playlists_likes") || "Top 10 plejlista (lajkovi)"}</h3>
                   <Bar
                     data={{
                       labels: topPlayliste.map(pl => pl.naziv),
                       datasets: [
                         {
-                          label: "Broj lajkova",
+                          label: t("number_of_likes") || "Broj lajkova",
                           data: topPlayliste.map(pl => pl.brojLajkova),
                           backgroundColor: "#590846",
                         },
@@ -177,13 +179,13 @@ const Statistika: React.FC = () => {
                   />
                 </div>
                 <div className={styles.chartCard}>
-                  <h3>Top 10 izvođača (pratioci)</h3>
+                  <h3>{t("top_10_artists_followers") || "Top 10 izvođača (pratioci)"}</h3>
                   <Bar
                     data={{
                       labels: topIzvodjaci.map(k => k.korisnicko_ime),
                       datasets: [
                         {
-                          label: "Broj pratilaca",
+                          label: t("number_of_followers") || "Broj pratilaca",
                           data: topIzvodjaci.map(k => k.brojPratilaca),
                           backgroundColor: "#ffe6ec",
                         },
@@ -196,13 +198,13 @@ const Statistika: React.FC = () => {
                   />
                 </div>
                 <div className={styles.chartCard}>
-                  <h3>Pjesme po žanru</h3>
+                  <h3>{t("songs_by_genre") || "Pjesme po žanru"}</h3>
                   <Pie
                     data={{
                       labels: zanrovi,
                       datasets: [
                         {
-                          label: "Broj pjesama",
+                          label: t("number_of_songs") || "Broj pjesama",
                           data: pjesmePoZanru,
                           backgroundColor: [
                             "#b91d95", "#e754a2", "#590846", "#ffe6ec",
@@ -219,13 +221,13 @@ const Statistika: React.FC = () => {
                 </div>
                
                 <div className={styles.chartCard}>
-                  <h3>Top 10 najslušanijih pjesama</h3>
+                  <h3>{t("top_10_most_played_songs") || "Top 10 najslušanijih pjesama"}</h3>
                   <Bar
                     data={{
                       labels: topSlusane.map((s) => s.pjesma?.naziv),
                       datasets: [
                         {
-                          label: "Broj slušanja",
+                          label: t("number_of_plays") || "Broj slušanja",
                           data: topSlusane.map((s) => s.brojReprodukcija),
                           backgroundColor: "#1e90ff",
                         },
@@ -239,7 +241,7 @@ const Statistika: React.FC = () => {
                 </div>
               </div>
               <div className={styles.infoBox}>
-                <h3>Najpoznatiji izvođač</h3>
+                <h3>{t("most_popular_artist") || "Najpoznatiji izvođač"}</h3>
                 {najpoznatijiIzvodjac ? (
                   <div className={styles.izvodjacCard}>
                     <img
@@ -250,12 +252,12 @@ const Statistika: React.FC = () => {
                     <div>
                       <div className={styles.izvodjacIme}>{najpoznatijiIzvodjac.korisnicko_ime}</div>
                       <div className={styles.izvodjacPratioci}>
-                        Pratilaca: <b>{najpoznatijiIzvodjac.brojPratilaca}</b>
+                        {t("followers") || "Pratilaca"}: <b>{najpoznatijiIzvodjac.brojPratilaca}</b>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div>Nema izvođača.</div>
+                  <div>{t("no_artists") || "Nema izvođača."}</div>
                 )}
               </div>
             </>

@@ -7,6 +7,7 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Pjesma, Korisnik, Komentar } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -24,6 +25,7 @@ const Pjesma: React.FC = () => {
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [izdavac, setIzdavac] = useState<Korisnik | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   let mojID = "";
   try {
@@ -224,9 +226,9 @@ const Pjesma: React.FC = () => {
         <Header />
         <Sidebar />
         <div className={styles.container}>
-          <h2>Pjesma nije pronađena.</h2>
+          <h2>{t("song_not_found") || "Pjesma nije pronađena."}</h2>
           <button onClick={() => navigate(-1)} className={styles.backBtn}>
-            Nazad
+            {t("back") || "Nazad"}
           </button>
         </div>
         <Footer />
@@ -250,7 +252,7 @@ const Pjesma: React.FC = () => {
                 <button
                   className={styles.playBtn}
                   onClick={() => handlePlay(pjesma)}
-                  title="Pusti pjesmu"
+                  title={t("play_song")}
                 >
                   <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
                     <polygon points="12,8 36,22 12,36" />
@@ -263,21 +265,20 @@ const Pjesma: React.FC = () => {
               <div className={styles.pjesmaOpis}>{pjesma.opis}</div>
               <div className={styles.pjesmaMeta}>
                 <span>
-                  Trajanje: <b>{formatTrajanje(pjesma.trajanjeSekunde)}</b>
+                  {t("duration_seconds") || "Trajanje"}: <b>{formatTrajanje(pjesma.trajanjeSekunde)}</b>
                 </span>
                 <span>
-                  Žanr: <b>{pjesma.zanr}</b>
+                  {t("genre") || "Žanr"}: <b>{pjesma.zanr}</b>
                 </span>
                 <span>
-                  Lajkova: <b>{pjesma.brojLajkova}</b>
+                  {t("number_of_likes") || "Lajkova"}: <b>{pjesma.brojLajkova}</b>
                 </span>
                 <span>
-                  Jezik: <b>{pjesma.jezikPjesme || "Nepoznato"}</b>
+                  {t("song_language") || "Jezik"}: <b>{pjesma.jezikPjesme || t("unknown") || "Nepoznato"}</b>
                 </span>
               </div>
               <div className={styles.izvodjaciWrap}>
-                {/* Izdavaoc lijevo */}
-                <span className={styles.izvodjaciLabel}>Izdavač:</span>
+                <span className={styles.izvodjaciLabel}>{t("publisher") || "Izdavač"}:</span>
                 {izdavac ? (
                   <span className={styles.izvodjacIme}>
                     <img
@@ -288,12 +289,11 @@ const Pjesma: React.FC = () => {
                     {izdavac.korisnicko_ime}
                   </span>
                 ) : (
-                  <span className={styles.izvodjacIme}>Nepoznato</span>
+                  <span className={styles.izvodjacIme}>{t("unknown") || "Nepoznato"}</span>
                 )}
-                {/* Izvođači desno */}
-                <span className={styles.izvodjaciLabel} style={{ marginLeft: 18 }}>Izvođači:</span>
+                <span className={styles.izvodjaciLabel} style={{ marginLeft: 18 }}>{t("artists") || "Izvođači"}:</span>
                 {izvodjaci.length === 0 ? (
-                  <span className={styles.izvodjacIme}>Nepoznato</span>
+                  <span className={styles.izvodjacIme}>{t("unknown") || "Nepoznato"}</span>
                 ) : (
                   izvodjaci.map((izv) => (
                     <span key={izv.id} className={styles.izvodjacIme}>
@@ -310,7 +310,7 @@ const Pjesma: React.FC = () => {
             </div>
           </div>
           <div className={styles.topPjesmeSection}>
-            <h3 className={styles.topPjesmeTitle}>Preporučene pjesme</h3>
+            <h3 className={styles.topPjesmeTitle}>{t("recommended_songs") || "Preporučene pjesme"}</h3>
             <div className={styles.topPjesmeGrid}>
               {topPjesme.map((p) => (
                 <div key={p.id} className={styles.topPjesmaCard}>
@@ -324,7 +324,7 @@ const Pjesma: React.FC = () => {
                       <button
                         className={styles.topPlayBtn}
                         onClick={() => handlePlay(p)}
-                        title="Pusti pjesmu"
+                        title={t("play_song")}
                       >
                         <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
@@ -342,12 +342,12 @@ const Pjesma: React.FC = () => {
           </div>
           {/* Komentari sekcija */}
           <div style={{ marginTop: 60 }}>
-            <h3 className={styles.topPjesmeTitle}>Komentari</h3>
+            <h3 className={styles.topPjesmeTitle}>{t("comments") || "Komentari"}</h3>
             <form onSubmit={handleDodajKomentar} style={{ marginBottom: 24 }}>
               <textarea
                 value={noviKomentar}
                 onChange={e => setNoviKomentar(e.target.value)}
-                placeholder="Dodaj komentar..."
+                placeholder={t("add_comment") || "Dodaj komentar..."}
                 rows={3}
                 style={{
                   width: "100%",
@@ -376,13 +376,13 @@ const Pjesma: React.FC = () => {
                   cursor: "pointer"
                 }}
               >
-                Dodaj komentar
+                {t("add_comment") || "Dodaj komentar"}
               </button>
               </div>
             </form>
             <div>
               {komentariSortirani.length === 0 ? (
-                <div style={{ color: "#b3b3b3" }}>Nema komentara.</div>
+                <div style={{ color: "#b3b3b3" }}>{t("no_comments") || "Nema komentara."}</div>
               ) : (
                 komentariSortirani.map((k) => (
                   <div
@@ -409,7 +409,7 @@ const Pjesma: React.FC = () => {
                         }}
                       />
                       <span style={{ color: "#ffe6ec", fontWeight: 600 }}>
-                        {korisniciKomentara[k.korisnikID]?.korisnicko_ime || "Korisnik"}
+                        {korisniciKomentara[k.korisnikID]?.korisnicko_ime || t("user") || "Korisnik"}
                         {k.korisnikID === mojID && " (Vi)"}
                       </span>
                       <span style={{ color: "#b3b3b3", fontSize: "0.98rem", marginLeft: 12 }}>
@@ -448,7 +448,7 @@ const Pjesma: React.FC = () => {
                           }}
                           onClick={() => handleUrediKomentar(k.id)}
                         >
-                          Sačuvaj
+                          {t("save_changes") || "Sačuvaj"}
                         </button>
                         <button
                           style={{
@@ -466,7 +466,7 @@ const Pjesma: React.FC = () => {
                             setEditKomentarTekst("");
                           }}
                         >
-                          Odustani
+                          {t("cancel") || "Odustani"}
                         </button>
                       </div>
                     ) : (
@@ -490,7 +490,7 @@ const Pjesma: React.FC = () => {
                               setEditKomentarTekst(k.tekst);
                             }}
                           >
-                            Uredi
+                            {t("edit") || "Uredi"}
                           </button>
                         )}
                       </div>

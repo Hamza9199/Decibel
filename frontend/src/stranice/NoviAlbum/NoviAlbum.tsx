@@ -7,6 +7,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { Pjesma } from "../../types";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -21,6 +22,7 @@ const NoviAlbum: React.FC = () => {
   const [svePjesme, setSvePjesme] = useState<Pjesma[]>([]);
   const [odabranePjesme, setOdabranePjesme] = useState<number[]>([]);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -95,17 +97,17 @@ const NoviAlbum: React.FC = () => {
       <Sidebar/>
       <div className={styles.noviAlbumBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
         <form className={styles.noviAlbumForm} onSubmit={handleSubmit} style={{ minWidth: 340 }}>
-          <h2 className={styles.title}>Novi album</h2>
+          <h2 className={styles.title}>{t("new_album")}</h2>
           <input
             type="text"
-            placeholder="Naziv albuma"
+            placeholder={t("album_name") || "Naziv albuma"}
             className={styles.input}
             value={naziv}
             onChange={(e) => setNaziv(e.target.value)}
             required
           />
           <textarea
-            placeholder="Opis (opcionalno)"
+            placeholder={t("description") + " (" + t("optional") + ")"}
             className={styles.textarea}
             value={opis}
             onChange={(e) => setOpis(e.target.value)}
@@ -113,7 +115,7 @@ const NoviAlbum: React.FC = () => {
           />
           <div className={styles.fileInputs}>
             <label className={styles.fileLabel}>
-              Slika:
+              {t("image") + ":"}
               <input
                 type="file"
                 accept="image/*"
@@ -132,14 +134,14 @@ const NoviAlbum: React.FC = () => {
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit" disabled={loading}>
-            {loading ? <Loading /> : "Kreiraj album"}
+            {loading ? <Loading /> : t("create_album")}
           </button>
           <button
             type="button"
             className={styles.cancelBtn}
             onClick={() => navigate("/albums")}
           >
-            Odustani
+            {t("cancel")}
           </button>
         </form>
         {/* Desno: izbor pjesama */}
@@ -153,9 +155,9 @@ const NoviAlbum: React.FC = () => {
           overflowY: "auto",
           boxShadow: "0 4px 24px #b91d9533"
         }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Dodaj postojeće pjesme</h4>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("add_existing_songs") || "Dodaj postojeće pjesme"}</h4>
           {svePjesme.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>Nema dostupnih pjesama.</div>
+            <div style={{ color: "#b3b3b3" }}>{t("no_available_songs") || "Nema dostupnih pjesama."}</div>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {svePjesme.map((p) => (

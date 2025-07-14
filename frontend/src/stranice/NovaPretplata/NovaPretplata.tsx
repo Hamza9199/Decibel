@@ -7,11 +7,13 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import Loading from "../../komponente/Loading/Loading";
 import type { Pretplata } from "../../types";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const NovaPretplata: React.FC = () => {
-const { pretplataId } = useParams<{ pretplataId: string }>();
+  const { pretplataId } = useParams<{ pretplataId: string }>();
+  const { t } = useTranslation();
 
   const [pretplata, setPretplata] = useState<Pretplata | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,10 +51,10 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
   }, [pretplataId]);
 
   function validateCard() {
-    if (!cardNumber.match(/^\d{16}$/)) return "Broj kartice mora imati 16 cifara.";
-    if (!cardName.trim()) return "Ime na kartici je obavezno.";
-    if (!cardExp.match(/^(0[1-9]|1[0-2])\/\d{2}$/)) return "Datum isteka mora biti MM/YY.";
-    if (!cardCvc.match(/^\d{3,4}$/)) return "CVC mora imati 3 ili 4 cifre.";
+    if (!cardNumber.match(/^\d{16}$/)) return t("card_number_invalid") || "Broj kartice mora imati 16 cifara.";
+    if (!cardName.trim()) return t("card_name_required") || "Ime na kartici je obavezno.";
+    if (!cardExp.match(/^(0[1-9]|1[0-2])\/\d{2}$/)) return t("card_exp_invalid") || "Datum isteka mora biti MM/YY.";
+    if (!cardCvc.match(/^\d{3,4}$/)) return t("card_cvc_invalid") || "CVC mora imati 3 ili 4 cifre.";
     return null;
   }
 
@@ -98,7 +100,7 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
         <Sidebar />
         <div className={styles.novaPretplataBg}>
           <div className={styles.container}>
-            <div className={styles.error}>Pretplata nije pronađena.</div>
+            <div className={styles.error}>{t("subscription_not_found") || "Pretplata nije pronađena."}</div>
           </div>
         </div>
         <Footer />
@@ -111,18 +113,20 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
       <Sidebar />
       <div className={styles.novaPretplataBg}>
         <div className={styles.container}>
-          <h2 className={styles.title}>Kupovina pretplate: {pretplata.naziv}</h2>
+          <h2 className={styles.title}>
+            {t("buy_subscription")}: {pretplata.naziv}
+          </h2>
           <div className={styles.kupovinaDetalji}>
             <div>
-              <b>Cijena:</b> {pretplata.cijena} KM / mj
+              <b>{t("price") || "Cijena"}:</b> {pretplata.cijena} KM / mj
             </div>
             <div>
-              <b>Opis:</b> {pretplata.opis}
+              <b>{t("description") || "Opis"}:</b> {pretplata.opis}
             </div>
           </div>
           <form className={styles.karticaForm} onSubmit={handlePotvrdiKupovinu} autoComplete="off">
             <label>
-              Broj kartice
+              {t("card_number") || "Broj kartice"}
               <input
                 type="text"
                 maxLength={16}
@@ -134,18 +138,18 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
               />
             </label>
             <label>
-              Ime na kartici
+              {t("card_name") || "Ime na kartici"}
               <input
                 type="text"
                 value={cardName}
                 onChange={e => setCardName(e.target.value)}
-                placeholder="IME I PREZIME"
+                placeholder={t("card_name_placeholder") || "IME I PREZIME"}
                 required
               />
             </label>
             <div style={{ display: "flex", gap: 12 }}>
               <label style={{ flex: 1 }}>
-                Istek (MM/YY)
+                {t("card_exp") || "Istek (MM/YY)"}
                 <input
                   type="text"
                   maxLength={5}
@@ -156,7 +160,7 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
                 />
               </label>
               <label style={{ flex: 1 }}>
-                CVC
+                {t("card_cvc") || "CVC"}
                 <input
                   type="text"
                   maxLength={4}
@@ -176,7 +180,7 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
                 type="submit"
                 disabled={kupovinaLoading}
               >
-                {kupovinaLoading ? "Kupujem..." : "Potvrdi kupovinu"}
+                {kupovinaLoading ? t("buying") || "Kupujem..." : t("confirm_purchase") || "Potvrdi kupovinu"}
               </button>
               <button
                 type="button"
@@ -184,7 +188,7 @@ const { pretplataId } = useParams<{ pretplataId: string }>();
                 style={{ background: "#232323", color: "#ffe6ec", border: "1px solid #b91d95" }}
                 onClick={() => navigate("/pretplata")}
               >
-                Odustani
+                {t("cancel")}
               </button>
             </div>
           </form>

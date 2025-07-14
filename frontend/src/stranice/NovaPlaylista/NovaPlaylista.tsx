@@ -6,6 +6,7 @@ import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import Footer from "../../komponente/Footer/Footer";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -19,6 +20,7 @@ const NovaPlaylista: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [javno, setJavno] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -61,17 +63,17 @@ const NovaPlaylista: React.FC = () => {
     <Sidebar/>
     <div className={styles.novaPlaylistaBg}>
       <form className={styles.novaPlaylistaForm} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>Nova playlista</h2>
+        <h2 className={styles.title}>{t("new_playlist")}</h2>
         <input
           type="text"
-          placeholder="Naziv playliste"
+          placeholder={t("playlist_name")}
           className={styles.input}
           value={naziv}
           onChange={(e) => setNaziv(e.target.value)}
           required
         />
         <textarea
-          placeholder="Opis (opcionalno)"
+          placeholder={t("description") + " (" + t("optional") + ")"}
           className={styles.textarea}
           value={opis}
           onChange={(e) => setOpis(e.target.value)}
@@ -79,7 +81,7 @@ const NovaPlaylista: React.FC = () => {
         />
         <div className={styles.fileInputs}>
           <label className={styles.fileLabel}>
-            Slika:
+            {t("image") + ":"}
             <input
               type="file"
               accept="image/*"
@@ -102,19 +104,19 @@ const NovaPlaylista: React.FC = () => {
             onChange={e => setJavno(e.target.checked)}
             style={{marginRight: 8}}
           />
-          Javna playlista
+          {t("public_playlist")}
         </label>
         {error && <div className={styles.error}>{error}</div>}
         {success && <div className={styles.success}>{success}</div>}
         <button className={styles.button} type="submit" disabled={loading}>
-          {loading ? <Loading /> : "Kreiraj playlistu"}
+          {loading ? <Loading /> : t("create_playlist")}
         </button>
         <button
           type="button"
           className={styles.cancelBtn}
           onClick={() => navigate("/playlists")}
         >
-          Odustani
+          {t("cancel")}
         </button>
       </form>
     </div>

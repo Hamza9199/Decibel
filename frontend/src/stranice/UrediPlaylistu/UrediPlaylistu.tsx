@@ -7,6 +7,7 @@ import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -17,6 +18,7 @@ const UrediPlaylistu: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
@@ -131,28 +133,28 @@ const UrediPlaylistu: React.FC = () => {
       <Sidebar />
       <div className={styles.editPlaylistBg}>
         <form className={styles.editPlaylistForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>Uredi playlistu</h2>
-          <label className={styles.label}>Naziv</label>
+          <h2 className={styles.title}>{t("edit_playlist") || "Uredi playlistu"}</h2>
+          <label className={styles.label}>{t("playlist_name") || "Naziv"}</label>
           <input
             className={styles.input}
             value={naziv}
             onChange={(e) => setNaziv(e.target.value)}
             required
           />
-          <label className={styles.label}>Opis</label>
+          <label className={styles.label}>{t("description")}</label>
           <textarea
             className={styles.input}
             value={opis}
             onChange={(e) => setOpis(e.target.value)}
             rows={3}
           />
-          <label className={styles.label}>Nova slika (opcionalno)</label>
+          <label className={styles.label}>{t("new_image_optional") || "Nova slika (opcionalno)"}</label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setFileSlika(e.target.files?.[0] || null)}
           />
-          <label className={styles.label}>Novi gif (opcionalno)</label>
+          <label className={styles.label}>{t("new_gif_optional") || "Novi gif (opcionalno)"}</label>
           <input
             type="file"
             accept="image/gif"
@@ -165,12 +167,12 @@ const UrediPlaylistu: React.FC = () => {
               onChange={e => setJavno(e.target.checked)}
               style={{marginRight: 8}}
             />
-            Javna playlista
+            {t("public_playlist")}
           </label>
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit">
-            Sačuvaj promjene
+            {t("save_changes")}
           </button>
         </form>
         {/* Desno: prikaz pjesama u playlisti i mogućnost izbacivanja */}
@@ -184,9 +186,9 @@ const UrediPlaylistu: React.FC = () => {
           overflowY: "auto",
           boxShadow: "0 4px 24px #b91d9533"
         }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Pjesme u playlisti</h4>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("songs_in_playlist") || "Pjesme u playlisti"}</h4>
           {pjesme.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>Nema pjesama u ovoj playlisti.</div>
+            <div style={{ color: "#b3b3b3" }}>{t("no_songs_in_playlist") || "Nema pjesama u ovoj playlisti."}</div>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {pjesme.map((p) => (
@@ -212,7 +214,7 @@ const UrediPlaylistu: React.FC = () => {
                     disabled={removing === p.id}
                     onClick={() => handleRemoveSong(p.id)}
                   >
-                    {removing === p.id ? "Uklanjam..." : "Izbaci"}
+                    {removing === p.id ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
                   </button>
                 </li>
               ))}

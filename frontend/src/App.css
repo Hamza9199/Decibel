@@ -51,3 +51,12 @@
 .read-the-docs {
   color: #888;
 }
+
+body[data-theme="light"] {
+  background: #fff !important;
+  color: #181818 !important;
+}
+body[data-theme="dark"] {
+  background: radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%) !important;
+  color: #fff !important;
+}

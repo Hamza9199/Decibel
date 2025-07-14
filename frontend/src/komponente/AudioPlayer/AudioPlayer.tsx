@@ -3,6 +3,7 @@ import styles from "./AudioPlayer.module.css";
 import axios from "axios";
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from "../../types";
 import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   id?: number; // <-- dodaj id u Props
@@ -32,12 +33,13 @@ const AudioPlayer: React.FC<Props> = ({
   minimized,
   onExpand,
 }) => {
+  const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState<number>(0.3);
   const [muted, setMuted] = useState(false);
   const [korisnik, setKorisnik] = useState<Korisnik>();
   const [lastSrc, setLastSrc] = useState<string | undefined>(undefined);
@@ -118,6 +120,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (audioRef.current.src !== src) {
         audioRef.current.src = src;
         audioRef.current.load();
+        audioRef.current.volume = 0.3; // ensure this is a float, not string
         setPlaying(true);
         setProgress(0);
         setLastSrc(src);
@@ -149,7 +152,7 @@ const AudioPlayer: React.FC<Props> = ({
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current) {
-      audioRef.current.volume = volume;
+      audioRef.current.volume = Number(volume); // ensure float
       audioRef.current.muted = muted;
     }
   }, [volume, muted, minimized,pretplataValid]);
@@ -245,13 +248,13 @@ const AudioPlayer: React.FC<Props> = ({
       });
   }, [src, korisnik?.id]);
 
-  // Dodaj statistiku reprodukcije nakon 10 sekundi slušanja
+  // Dodaj statistiku reprodukcije nakon 30 sekundi slušanja
 useEffect(() => {
   if (!pjesma || !korisnik?.id || !playing || !src) {
     setStatistikaSent(false);
     return;
   }
-  if (progress < 10 || statistikaSent) return;
+  if (progress < 30 || statistikaSent) return;
 
   const sendStatistika = async () => {
     try {
@@ -362,7 +365,7 @@ useEffect(() => {
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(Number(e.target.value));
+    setVolume(Number(e.target.value)); // ensure float
     if (muted && Number(e.target.value) > 0) setMuted(false);
   };
 
@@ -798,7 +801,7 @@ useEffect(() => {
       </div>
       <div className={styles.audioExtras}>
         <label className={styles.labelSmall}>
-          Brzina:
+          {t("fast")}
           <select
             value={playbackRate}
             onChange={handleRateChange}
@@ -903,7 +906,7 @@ useEffect(() => {
           <input
             type="range"
             min={0}
-            max={1}
+            max={0.30}
             step={0.01}
             value={muted ? 0 : volume}
             onChange={handleVolumeChange}
@@ -936,7 +939,7 @@ useEffect(() => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h4 style={{ color: "#fff", marginBottom: 18 }}>Dodaj pjesmu u playlistu</h4>
+            <h4 style={{ color: "#fff", marginBottom: 18 }}>{t("add_song_to_playlist")}</h4>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 18 }}>
               {playlists.map((pl) => (
                 <li key={pl.id} style={{ marginBottom: 8 }}>
@@ -975,7 +978,7 @@ useEffect(() => {
               }}
               onClick={() => setShowPlaylistModal(false)}
             >
-              Zatvori
+              {t("close")}
             </button>
           </div>
         </div>
@@ -988,6 +991,12 @@ useEffect(() => {
         loop={repeatOne && globalPlaylist.length === 0}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onLoadedData={() => {
+          if (audioRef.current) {
+            audioRef.current.volume = volume;
+            audioRef.current.muted = muted;
+          }
+        }}
         onEnded={handleEnded}
         style={{ display: "none" }}
       />

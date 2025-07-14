@@ -7,6 +7,7 @@ import axios from "axios";
 import { useParams, Link } from "react-router-dom";
 import type { Korisnik, Pjesma, Album, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -18,6 +19,7 @@ const Izvodjac: React.FC = () => {
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
   const [pratim, setPratim] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
 
   let mojID = "";
   try {
@@ -161,9 +163,9 @@ const Izvodjac: React.FC = () => {
             <div className={styles.izvodjacInfo}>
               <h2 className={styles.izvodjacNaziv}>{izvodjac.korisnicko_ime}</h2>
               <div className={styles.izvodjacMeta}>
-                <span>Ime: <b>{izvodjac.ime}</b></span>
-                <span>Prezime: <b>{izvodjac.prezime}</b></span>
-                <span>Pratilaca: <b>{izvodjac.brojPratilaca}</b></span>
+                <span>{t("name") || "Ime"}: <b>{izvodjac.ime}</b></span>
+                <span>{t("surname") || "Prezime"}: <b>{izvodjac.prezime}</b></span>
+                <span>{t("followers") || "Pratilaca"}: <b>{izvodjac.brojPratilaca}</b></span>
               </div>
               <div className={styles.izvodjacBio}>{izvodjac.bio}</div>
               {mojID && mojID !== izvodjac.id && (
@@ -171,16 +173,16 @@ const Izvodjac: React.FC = () => {
                   className={`${styles.pratiBtn} ${pratim ? styles.pratim : ""}`}
                   onClick={handlePrati}
                 >
-                  {pratim ? "Pratim" : "Prati"}
+                  {pratim ? t("following") || "Pratim" : t("follow") || "Prati"}
                 </button>
               )}
             </div>
           </div>
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Pjesme</h3>
+            <h3 className={styles.sectionTitle}>{t("songs")}</h3>
             <div className={styles.gridRow}>
               {pjesme.length === 0 ? (
-                <div className={styles.noItems}>Nema pjesama.</div>
+                <div className={styles.noItems}>{t("no_songs")}</div>
               ) : (
                 pjesme.map((p) => (
                   <div key={p.id} className={styles.card}>
@@ -194,7 +196,7 @@ const Izvodjac: React.FC = () => {
                         <button
                           className={styles.playBtn}
                           onClick={() => handlePlay(p)}
-                          title="Pusti pjesmu"
+                          title={t("play_song")}
                         >
                           <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                             <polygon points="12,8 36,22 12,36" />
@@ -212,10 +214,10 @@ const Izvodjac: React.FC = () => {
             </div>
           </div>
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Albumi</h3>
+            <h3 className={styles.sectionTitle}>{t("albums")}</h3>
             <div className={styles.gridRow}>
               {albumi.length === 0 ? (
-                <div className={styles.noItems}>Nema albuma.</div>
+                <div className={styles.noItems}>{t("no_albums")}</div>
               ) : (
                 albumi.map((a) => (
                   <div key={a.id} className={styles.card}>
@@ -229,7 +231,7 @@ const Izvodjac: React.FC = () => {
                       <button
                         className={styles.playBtn}
                         onClick={() => handlePlayAlbum(a.id)}
-                        title="Pusti album"
+                        title={t("play_album")}
                       >
                         <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
@@ -245,10 +247,10 @@ const Izvodjac: React.FC = () => {
             </div>
           </div>
           <div className={styles.section}>
-            <h3 className={styles.sectionTitle}>Playliste</h3>
+            <h3 className={styles.sectionTitle}>{t("playlists")}</h3>
             <div className={styles.gridRow}>
               {playliste.length === 0 ? (
-                <div className={styles.noItems}>Nema playlista.</div>
+                <div className={styles.noItems}>{t("no_playlists")}</div>
               ) : (
                 playliste.map((pl) => (
                   <div key={pl.id} className={styles.card}>
@@ -262,7 +264,7 @@ const Izvodjac: React.FC = () => {
                       <button
                         className={styles.playBtn}
                         onClick={() => handlePlayPlaylist(pl.id)}
-                        title="Pusti playlistu"
+                        title={t("play_playlist")}
                       >
                         <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { Korisnik } from "../../types";
 import { useTranslation } from "react-i18next";
+import Search from "../Search/Search";
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Header: React.FC = () => {
@@ -52,6 +53,8 @@ const Header: React.FC = () => {
       <Link to="/">
         <div className={styles.logo}>Decibel</div>
       </Link>
+      
+      <Search/>
 
       <span className={styles.welcomeMessage}>
         {t("welcome")} {korisnik?.korisnicko_ime} !

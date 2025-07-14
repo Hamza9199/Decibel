@@ -7,6 +7,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import type { Album, Pjesma, Playlista, KorisnikPjesma } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -22,6 +23,7 @@ const Album: React.FC = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
   const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
+  const { t } = useTranslation();
 
   let korisnikID = "";
   try {
@@ -200,7 +202,7 @@ const Album: React.FC = () => {
                 alt={album.naziv}
                 className={styles.albumSlika}
               />
-              <button className={styles.playBtn} onClick={handlePlayAlbum} title="Pusti album">
+              <button className={styles.playBtn} onClick={handlePlayAlbum} title={t("play_album") || "Pusti album"}>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
                   <polygon points="12,8 36,22 12,36" />
                 </svg>
@@ -208,7 +210,7 @@ const Album: React.FC = () => {
               <button
                 className={`${styles.likeBtn} ${liked ? styles.liked : ""}`}
                 onClick={handleLike}
-                title={liked ? "Ukloni lajk" : "Lajkuj album"}
+                title={liked ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj album"}
               >
                 <svg width="28" height="28" viewBox="0 0 28 28" fill={liked ? "#f6b6d8ff" : "#fff"}>
                   <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -218,7 +220,7 @@ const Album: React.FC = () => {
               <button
                 className={styles.repeatBtn}
                 onClick={() => setRepeatAll((r) => !r)}
-                title={repeatAll ? "Isključi ponavljanje albuma" : "Ponovi album"}
+                title={repeatAll ? t("cancel") || "Isključi ponavljanje albuma" : t("play_album") || "Ponovi album"}
               >
                 <svg width="28" height="28" viewBox="0 0 28 28" fill="#fff">
                   <g>
@@ -235,30 +237,28 @@ const Album: React.FC = () => {
               <div className={styles.albumOpis}>{album.opis}</div>
               <div className={styles.albumMeta}>
                 <span>
-                  Broj pjesama: <b>{pjesme.length}</b>
+                  {t("number_of_songs") || "Broj pjesama"}: <b>{pjesme.length}</b>
                 </span>
                 <span>
-                  Lajkova: <b>{likeCount}</b>
+                  {t("number_of_likes") || "Lajkova"}: <b>{likeCount}</b>
                 </span>
-                <span>
-                  Javno: <b>{album.javno ? "Da" : "Ne"}</b>
-                </span>
+               
               </div>
             </div>
           </div>
           <div className={styles.pjesmeSection}>
-            <h3 className={styles.pjesmeTitle}>Pjesme na albumu</h3>
+            <h3 className={styles.pjesmeTitle}>{t("songs_on_album") || "Pjesme na albumu"}</h3>
             {pjesme.length === 0 ? (
-              <div className={styles.noSongs}>Nema pjesama na ovom albumu.</div>
+              <div className={styles.noSongs}>{t("no_songs_on_album") || "Nema pjesama na ovom albumu."}</div>
             ) : (
               <table className={styles.pjesmeTable}>
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Naziv</th>
-                    <th>Trajanje</th>
-                    <th>Izvođač</th>
-                    <th>Akcije</th>
+                    <th>{t("song_name") || "Naziv"}</th>
+                    <th>{t("duration_seconds") || "Trajanje"}</th>
+                    <th>{t("artist") || "Izvođač"}</th>
+                    <th>{t("actions") || "Akcije"}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -272,7 +272,7 @@ const Album: React.FC = () => {
                         <button
                           className={styles.songPlayBtn}
                           onClick={() => handlePlaySong(p)}
-                          title="Pusti pjesmu"
+                          title={t("play_song") || "Pusti pjesmu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff">
                             <polygon points="12,8 36,22 12,36" />
@@ -281,7 +281,7 @@ const Album: React.FC = () => {
                         <button
                           className={`${styles.songPlayBtn} ${likeMap[p.id] ? styles.liked : ""}`}
                           onClick={() => handleLikeSong(p.id)}
-                          title={likeMap[p.id] ? "Ukloni lajk" : "Lajkuj pjesmu"}
+                          title={likeMap[p.id] ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[p.id] ? "#f2a9d0ff" : "#fff"}>
                             <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -290,7 +290,7 @@ const Album: React.FC = () => {
                         <button
                           className={styles.songAddBtn}
                           onClick={() => handleAddToPlaylist(p)}
-                          title="Dodaj u playlistu"
+                          title={t("add_song_to_playlist") || "Dodaj u playlistu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
             <rect x="18" y="8" width="8" height="28" />
@@ -308,7 +308,7 @@ const Album: React.FC = () => {
         {showPlaylistModal && (
           <div className={styles.modalOverlay} onClick={() => setShowPlaylistModal(false)}>
             <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <h4>Dodaj pjesmu u playlistu</h4>
+              <h4>{t("add_song_to_playlist") || "Dodaj pjesmu u playlistu"}</h4>
               <ul className={styles.playlistList}>
                 {playlists.map((pl) => (
                   <li key={pl.id}>
@@ -322,7 +322,7 @@ const Album: React.FC = () => {
                 ))}
               </ul>
               <button className={styles.closeModalBtn} onClick={() => setShowPlaylistModal(false)}>
-                Zatvori
+                {t("close") || "Zatvori"}
               </button>
             </div>
           </div>
@@ -341,4 +341,4 @@ function formatTrajanje(sec?: number) {
 }
 
 export default Album;
-           
+

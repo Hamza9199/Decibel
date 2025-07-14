@@ -7,6 +7,7 @@ import Loading from "../../komponente/Loading/Loading";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
+import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -21,6 +22,7 @@ const UrediAlbum: React.FC = () => {
   const [removing, setRemoving] = useState<number | null>(null);
   const [dodajuci, setDodajuci] = useState<number | null>(null);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
@@ -145,28 +147,28 @@ const UrediAlbum: React.FC = () => {
       <Sidebar />
       <div className={styles.editAlbumBg}>
         <form className={styles.editAlbumForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>Uredi album</h2>
-          <label className={styles.label}>Naziv</label>
+          <h2 className={styles.title}>{t("edit_album") || "Uredi album"}</h2>
+          <label className={styles.label}>{t("album_name") || "Naziv"}</label>
           <input
             className={styles.input}
             value={naziv}
             onChange={(e) => setNaziv(e.target.value)}
             required
           />
-          <label className={styles.label}>Opis</label>
+          <label className={styles.label}>{t("description")}</label>
           <textarea
             className={styles.input}
             value={opis}
             onChange={(e) => setOpis(e.target.value)}
             rows={3}
           />
-          <label className={styles.label}>Nova slika (opcionalno)</label>
+          <label className={styles.label}>{t("new_image_optional") || "Nova slika (opcionalno)"}</label>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => setFileSlika(e.target.files?.[0] || null)}
           />
-          <label className={styles.label}>Novi gif (opcionalno)</label>
+          <label className={styles.label}>{t("new_gif_optional") || "Novi gif (opcionalno)"}</label>
           <input
             type="file"
             accept="image/gif"
@@ -175,7 +177,7 @@ const UrediAlbum: React.FC = () => {
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit">
-            Sačuvaj promjene
+            {t("save_changes")}
           </button>
         </form>
         {/* Desno: prikaz pjesama na albumu i mogućnost izbacivanja/dodavanja */}
@@ -189,9 +191,9 @@ const UrediAlbum: React.FC = () => {
           overflowY: "auto",
           boxShadow: "0 4px 24px #b91d9533"
         }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>Pjesme na albumu</h4>
+          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("songs_on_album") || "Pjesme na albumu"}</h4>
           {pjesmeAlbuma.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>Nema pjesama na ovom albumu.</div>
+            <div style={{ color: "#b3b3b3" }}>{t("no_songs_on_album") || "Nema pjesama na ovom albumu."}</div>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {pjesmeAlbuma.map((p) => (
@@ -217,16 +219,16 @@ const UrediAlbum: React.FC = () => {
                     disabled={removing === p.id}
                     onClick={() => handleRemoveSong(p.id)}
                   >
-                    {removing === p.id ? "Uklanjam..." : "Izbaci"}
+                    {removing === p.id ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
                   </button>
                 </li>
               ))}
             </ul>
           )}
           <hr style={{ margin: "18px 0", border: "none", borderTop: "1px solid #444" }} />
-          <h4 style={{ color: "#fff", marginBottom: 10, fontWeight: 600 }}>Dodaj pjesme</h4>
+          <h4 style={{ color: "#fff", marginBottom: 10, fontWeight: 600 }}>{t("add_songs") || "Dodaj pjesme"}</h4>
           {svePjesme.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>Nema dostupnih pjesama.</div>
+            <div style={{ color: "#b3b3b3" }}>{t("no_available_songs") || "Nema dostupnih pjesama."}</div>
           ) : (
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {svePjesme.map((p) => (
@@ -252,7 +254,7 @@ const UrediAlbum: React.FC = () => {
                     disabled={dodajuci === p.id}
                     onClick={() => handleAddSong(p.id)}
                   >
-                    {dodajuci === p.id ? "Dodajem..." : "Dodaj"}
+                    {dodajuci === p.id ? t("adding") || "Dodajem..." : t("add") || "Dodaj"}
                   </button>
                 </li>
               ))}

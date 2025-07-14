@@ -46,9 +46,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup():
-    result = create_tables()
-    if asyncio.iscoroutine(result):
-        await result
+    create_tables()  
     await database.connect()
 
     from sqlalchemy.ext.asyncio import AsyncSession

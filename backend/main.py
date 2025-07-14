@@ -10,6 +10,7 @@ import asyncio
 import threading
 import requests
 import datetime
+import time
 
 from modeli.Korisnik import Korisnik
 from modeli.KorisnikRole import KorisnikRole as Role
@@ -96,6 +97,25 @@ async def startup():
             time.sleep(60)  
 
     threading.Thread(target=keep_alive, daemon=True).start()
+
+    import time
+
+    def auto_cleanup():
+        while True:
+            try:
+                print("[AutoCleanup] Pokrećem čišćenje servera...")
+                import glob, os
+                for f in glob.glob("/tmp/*"):
+                    try:
+                        os.remove(f)
+                    except Exception:
+                        pass
+            except Exception as e:
+                print("[AutoCleanup] Greška:", e)
+            time.sleep(60 * 60 * 3)
+
+    threading.Thread(target=auto_cleanup, daemon=True).start()
+
 
 
    

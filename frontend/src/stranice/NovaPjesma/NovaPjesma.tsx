@@ -101,12 +101,16 @@ const NovaPjesma: React.FC = () => {
       const pjesmaId = res.data.id;
 
       // 2. Dodaj veze za izvodjace (ako ima više)
-      for (const izvodjac of izabraniIzvodjaci) {
+      // Spriječi duplikate po izvodjacID
+      const uniqueIzvodjaci = izabraniIzvodjaci.filter(
+        (izv, idx, arr) => arr.findIndex(x => x.id === izv.id) === idx
+      );
+      for (const izvodjac of uniqueIzvodjaci) {
         await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
           izvodjacID: izvodjac.id,
           pjesmaID: pjesmaId,
           potvrdjeno: izvodjac.id === korisnik.id, // vlasnik automatski potvrđen
-        });
+        }).catch(() => {}); // ignorisi grešku za duplikat
       }
 
       setSuccess("Pjesma je uspješno dodana!");

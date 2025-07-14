@@ -35,3 +35,6 @@ class Komentar(KomentarBase):
 
     class Config:
         orm_mode = True
+
+class KomentarUpdate(BaseModel):
+    tekst: str

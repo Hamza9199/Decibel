@@ -272,10 +272,7 @@ const Pjesma: React.FC = () => {
                 </span>
                 <span>
                   {t("number_of_likes") || "Lajkova"}: <b>{pjesma.brojLajkova}</b>
-                </span>
-                <span>
-                  {t("song_language") || "Jezik"}: <b>{pjesma.jezikPjesme || t("unknown") || "Nepoznato"}</b>
-                </span>
+                </span>            
               </div>
               <div className={styles.izvodjaciWrap}>
                 <span className={styles.izvodjaciLabel}>{t("publisher") || "Izdavač"}:</span>

@@ -1,7 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from modeli.Komentar import KomentarORM, Komentar, KomentarCreate
+from modeli.Komentar import KomentarORM, Komentar, KomentarCreate, KomentarUpdate
 
 async def get_all_komentari(session: AsyncSession):
     result = await session.execute(select(KomentarORM))
@@ -27,7 +27,7 @@ async def delete_komentar(session: AsyncSession, komentar_id: int):
     return db_komentar
 
 
-async def update_komentar(session: AsyncSession, komentar_id: int, data: KomentarCreate):
+async def update_komentar(session: AsyncSession, komentar_id: int, data: KomentarUpdate):
     db_komentar = await get_komentar_by_id(session, komentar_id)
     if not db_komentar:
         return None

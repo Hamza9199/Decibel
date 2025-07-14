@@ -4,7 +4,7 @@ from typing import List
 import os
 from dotenv import load_dotenv
 
-from modeli.Komentar import Komentar, KomentarCreate
+from modeli.Komentar import Komentar, KomentarCreate, KomentarUpdate
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
@@ -53,7 +53,7 @@ async def novi_komentar(data: KomentarCreate, session: AsyncSession = Depends(ge
 @router.put("/{komentar_id}", response_model=Komentar)
 async def azuriraj_komentar(
     komentar_id: int,
-    data: KomentarCreate,
+    data: KomentarUpdate,
     session: AsyncSession = Depends(get_session)
 ):
     db_obj = await update_komentar(session, komentar_id, data)

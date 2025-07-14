@@ -36,12 +36,43 @@ const Izvodjac: React.FC = () => {
       .get(`${API_BASE}/korisnici/${izvodjacId}`)
       .then((res) => setIzvodjac(res.data))
       .catch(() => setIzvodjac(null));
+    // Dohvati pjesme gdje je vlasnik
     axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) =>
         setPjesme((res.data || []).filter((p: Pjesma) => p.korisnikID === izvodjacId))
       )
       .catch(() => setPjesme([]));
+    // Dohvati pjesme gdje je izvodjac (preko veze izvodjac_pjesma)
+    axios
+      .get(`${API_BASE}/izvodjac_pjesma/`)
+      .then(async (res) => {
+        const veze = res.data || [];
+        const pjesmaIDs = veze
+          .filter((v: { izvodjacID: string }) => v.izvodjacID === izvodjacId)
+          .map((v: { pjesmaID: number }) => v.pjesmaID);
+        if (pjesmaIDs.length > 0) {
+          const dodatnePjesme = await Promise.all(
+            pjesmaIDs.map((id: number) =>
+              axios
+                .get(`${API_BASE}/pjesme/${id}`)
+                .then((r) => r.data)
+                .catch(() => null)
+            )
+          );
+          setPjesme((prev) => {
+            // Dodaj samo pjesme koje nisu već u listi (po id)
+            const ids = new Set(prev.map((p) => p.id));
+            return [
+              ...prev,
+              ...dodatnePjesme.filter(
+                (p) => p && !ids.has(p.id)
+              ),
+            ];
+          });
+        }
+      })
+      .catch(() => {});
     axios
       .get(`${API_BASE}/albumi/`)
       .then((res) =>

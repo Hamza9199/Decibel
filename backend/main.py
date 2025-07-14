@@ -10,6 +10,7 @@ import asyncio
 import threading
 import requests
 import datetime
+import time
 
 from modeli.Korisnik import Korisnik
 from modeli.KorisnikRole import KorisnikRole as Role
@@ -37,7 +38,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "http://localhost:5173", "https://decibel-three.vercel.app"], 
+    allow_origins=["*", "http://localhost:5173", "https://deccibel.vercel.app"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -68,24 +69,20 @@ async def startup():
         while True:
             async with AsyncSessionLocal() as session:
                 now = datetime.datetime.utcnow()
-                # Pronađi sve suspendovane korisnike kojima je istekla suspenzija
                 suspendovani = await session.execute(
                     select(SuspendovanKorisnikORM).where(SuspendovanKorisnikORM.vrijemeDo <= now)
                 )
                 suspendovani_list = suspendovani.scalars().all()
                 for sus in suspendovani_list:
-                    # Nađi korisnika i promijeni status na aktivan
                     korisnik = await session.get(KorisnikORM, sus.korisnikID)
                     if korisnik and korisnik.statusKorisnika == KorisnikStatusEnum.suspendovan:
                         korisnik.statusKorisnika = KorisnikStatusEnum.aktivan
                         session.add(korisnik)
-                    # Obriši zapis o suspenziji
                     await session.delete(sus)
                 if suspendovani_list:
                     await session.commit()
-            await asyncio.sleep(60)  # Provjeravaj svake minute
+            await asyncio.sleep(60)  
 
-    # Pokreni background task
     asyncio.create_task(check_and_update_suspended_users())
 
     def keep_alive():
@@ -100,6 +97,23 @@ async def startup():
             time.sleep(60)  
 
     threading.Thread(target=keep_alive, daemon=True).start()
+
+
+    def auto_cleanup():
+        while True:
+            try:
+                print("[AutoCleanup] Pokrećem čišćenje servera...")
+                import glob, os
+                for f in glob.glob("/tmp/*"):
+                    try:
+                        os.remove(f)
+                    except Exception:
+                        pass
+            except Exception as e:
+                print("[AutoCleanup] Greška:", e)
+            time.sleep(60 * 60 * 3) 
+
+    threading.Thread(target=auto_cleanup, daemon=True).start()
 
 @app.on_event("shutdown")
 async def shutdown():

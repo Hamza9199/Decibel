@@ -36,14 +36,18 @@ const Izvodjac: React.FC = () => {
       .get(`${API_BASE}/korisnici/${izvodjacId}`)
       .then((res) => setIzvodjac(res.data))
       .catch(() => setIzvodjac(null));
-    // Dohvati pjesme gdje je vlasnik
+    // Dohvati pjesme gdje je vlasnik i odobrene
     axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) =>
-        setPjesme((res.data || []).filter((p: Pjesma) => p.korisnikID === izvodjacId))
+        setPjesme(
+          (res.data || []).filter(
+            (p: Pjesma) => p.korisnikID === izvodjacId && p.odobreno
+          )
+        )
       )
       .catch(() => setPjesme([]));
-    // Dohvati pjesme gdje je izvodjac (preko veze izvodjac_pjesma)
+    // Dohvati pjesme gdje je izvodjac (preko veze izvodjac_pjesma) i odobrene
     axios
       .get(`${API_BASE}/izvodjac_pjesma/`)
       .then(async (res) => {
@@ -61,28 +65,38 @@ const Izvodjac: React.FC = () => {
             )
           );
           setPjesme((prev) => {
-            // Dodaj samo pjesme koje nisu već u listi (po id)
+            // Dodaj samo pjesme koje nisu već u listi (po id) i koje su odobrene
             const ids = new Set(prev.map((p) => p.id));
             return [
               ...prev,
               ...dodatnePjesme.filter(
-                (p) => p && !ids.has(p.id)
+                (p) => p && !ids.has(p.id) && p.odobreno
               ),
             ];
           });
         }
       })
       .catch(() => {});
+    // Dohvati albume koji su odobreni
     axios
       .get(`${API_BASE}/albumi/`)
       .then((res) =>
-        setAlbumi((res.data || []).filter((a: Album) => a.korisnikID === izvodjacId))
+        setAlbumi(
+          (res.data || []).filter(
+            (a: Album) => a.korisnikID === izvodjacId && a.odobreno
+          )
+        )
       )
       .catch(() => setAlbumi([]));
+    // Dohvati playliste koje su javne
     axios
       .get(`${API_BASE}/playliste/`)
       .then((res) =>
-        setPlayliste((res.data || []).filter((pl: Playlista) => pl.korisnikID === izvodjacId))
+        setPlayliste(
+          (res.data || []).filter(
+            (pl: Playlista) => pl.korisnikID === izvodjacId && pl.javno
+          )
+        )
       )
       .catch(() => setPlayliste([]));
     // Provjeri da li pratim

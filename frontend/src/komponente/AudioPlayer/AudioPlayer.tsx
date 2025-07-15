@@ -60,8 +60,9 @@ const AudioPlayer: React.FC<Props> = ({
   const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const location = useLocation();
+  const [isMobile] = useState(window.innerWidth <= 480);
 
-   // Provjera pretplate korisnika koji sluša (iz localStorage)
+  // Provjera pretplate korisnika koji sluša (iz localStorage)
   useEffect(() => {
     // Provjeri pretplatu korisnika koji sluša (iz localStorage)
     let isMounted = true;
@@ -694,6 +695,107 @@ useEffect(() => {
           onEnded={handleEnded}
         />
       </button>
+    );
+  }
+
+  // Mobilni prikaz
+  if (isMobile && visible && !minimized) {
+    return (
+      <div className={styles.audioPlayerBar}>
+        <button
+          className={styles.closeBtn}
+          onClick={onClose}
+          aria-label="Minimiziraj player"
+          type="button"
+        >
+          {/* ...existing SVG... */}
+          <svg width="18" height="18" viewBox="0 0 26 26" fill="none">
+          <circle cx="13" cy="13" r="13" fill="#232323" />
+          <line
+            x1="8"
+            y1="8"
+            x2="18"
+            y2="18"
+            stroke="#ffe6ec"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+          <line
+            x1="18"
+            y1="8"
+            x2="8"
+            y2="18"
+            stroke="#ffe6ec"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+          />
+        </svg>
+        </button>
+        <div className={styles.audioInfo}>
+          <img
+            src={currentSong?.putanjaGif || currentSong?.putanjaSlika || "/logo.gif"}
+            alt="Decibel logo"
+            className={styles.audioLogo}
+          />
+          <div className={styles.audioMeta}>
+            <div className={styles.audioDetails}>
+              <span className={styles.audioArtist}>
+                {currentOwner?.korisnicko_ime || "Nepoznati"} -
+              </span>
+              <span className={styles.audioTitle}>
+                {currentSong?.naziv || "Nema pjesme"}
+              </span>
+            </div>
+            <div className={styles.audioTime}>
+              {formatTime(progress)} / {formatTime(duration)}
+            </div>
+          </div>
+        </div>
+        <div className={styles.audioControls}>
+          <button
+            className={styles.controlBtn}
+            onClick={handlePlayPause}
+            aria-label={playing ? "Pause" : "Play"}
+          >
+            {playing ? (
+              <svg width="18" height="18" viewBox="0 0 40 40" fill="#fff">
+              <rect x="8" y="8" width="7" height="22" rx="2" />
+              <rect x="23" y="8" width="7" height="22" rx="2" />
+            </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 40 40" fill="#fff">
+                <polygon points="10,8 32,19 10,30" />
+              </svg>
+            )}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={duration || 1}
+            value={progress}
+            step={0.1}
+            onChange={handleSeek}
+            className={styles.progressBar}
+          />
+        </div>
+        <audio
+          ref={audioRef}
+          src={currentSong?.putanjaAudio || ""}
+          autoPlay={playing}
+          controls={false}
+          loop={repeatOne && globalPlaylist.length === 0}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onLoadedData={() => {
+            if (audioRef.current) {
+              audioRef.current.volume = volume;
+              audioRef.current.muted = muted;
+            }
+          }}
+          onEnded={handleEnded}
+          style={{ display: "none" }}
+        />
+      </div>
     );
   }
 

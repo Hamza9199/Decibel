@@ -59,6 +59,83 @@
   }
 }
 
+@media (max-width: 480px) {
+  .spotifyBg {
+    padding-top: 44px;
+    padding-bottom: 32px;
+    min-height: 100vh;
+  }
+  .container {
+    max-width: 100vw;
+    margin-left: 0;
+    padding: 4px 0 24px 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: 60vh;
+  }
+  .title {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+  }
+  .sectionTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+    border-left: 3px solid #b91d95;
+    padding-left: 8px;
+  }
+  .gridRow {
+    gap: 4px;
+    padding-bottom: 2px;
+    margin-bottom: 12px;
+  }
+  .songGrid {
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .card {
+    min-width: 80px;
+    max-width: 80px;
+    padding: 4px 2px 4px 2px;
+    border-radius: 8px;
+    min-height: 110px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  }
+  .cardImageWrap,
+  .cardImageWrap2 {
+    width: 38px;
+    height: 38px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+  }
+  .cardImage {
+    border-radius: 6px;
+  }
+  .playButton {
+    width: 18px;
+    height: 18px;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.7rem;
+  }
+  .cardTitle {
+    font-size: 0.68rem;
+    margin-bottom: 2px;
+  }
+  .cardDesc {
+    font-size: 0.62rem;
+    margin-bottom: 2px;
+    min-height: 12px;
+  }
+  .activeCard {
+    border-width: 1.5px;
+    box-shadow: 0 2px 8px rgba(30,185,84,0.18);
+  }
+  .loading {
+    font-size: 0.85rem;
+    margin-top: 30px;
+  }
+}
+
 .title {
   text-align: left;
   margin-bottom: 32px;

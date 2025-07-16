@@ -27,6 +27,13 @@ const Search: React.FC = () => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 480);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -85,6 +92,20 @@ const Search: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [showDropdown]);
 
+  // On mobile: disable background scroll when dropdown is open
+  useEffect(() => {
+    if (isMobile && showDropdown) {
+      document.body.style.overflow = "hidden";
+      // Fokusiraj input automatski
+      setTimeout(() => inputRef.current?.focus(), 100);
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile, showDropdown]);
+
   return (
     <div className={styles.searchWrap}>
       <input
@@ -97,6 +118,8 @@ const Search: React.FC = () => {
         onChange={e => setQuery(e.target.value)}
         onFocus={() => query && setShowDropdown(true)}
         autoComplete="off"
+        // automatski fokus na mobilnom kad se otvori header
+        {...(isMobile ? { inputMode: "search" } : {})}
       />
       <span className={styles.searchIcon}>
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">

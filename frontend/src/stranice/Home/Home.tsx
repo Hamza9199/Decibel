@@ -22,7 +22,6 @@ const Home: React.FC = () => {
   const repeatAll = false;
   const { t } = useTranslation();
 
-  // Emit event for background image when song changes
   useEffect(() => {
     if (activeSong) {
       const bgGif = activeSong.putanjaGif;
@@ -36,7 +35,6 @@ const Home: React.FC = () => {
   }, [activeSong]);
 
   useEffect(() => {
-    // Helper to shuffle and take N items
     function getRandomItems<T>(arr: T[], n: number): T[] {
       if (!arr) return [];
       const shuffled = arr.slice().sort(() => Math.random() - 0.5);
@@ -83,7 +81,6 @@ const Home: React.FC = () => {
     }
   };
 
-  // Dodaj play funkciju za album
   const handlePlayAlbum = (albumId: number) => {
     const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
     if (albumSongs.length === 0) return;
@@ -210,7 +207,6 @@ const Home: React.FC = () => {
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
-                    {/* Play dugme za playlistu */}
                     <button
                       className={styles.playButton}
                       onClick={() => handlePlayPlaylist(pl.id)}

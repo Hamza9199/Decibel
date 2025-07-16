@@ -698,8 +698,7 @@ useEffect(() => {
     );
   }
 
-  // Mobilni prikaz
-  if (isMobile && visible && !minimized) {
+   if (isMobile && visible && !minimized) {
     return (
       <div className={styles.audioPlayerBar}>
         <button
@@ -708,49 +707,53 @@ useEffect(() => {
           aria-label="Minimiziraj player"
           type="button"
         >
-          {/* ...existing SVG... */}
           <svg width="18" height="18" viewBox="0 0 26 26" fill="none">
-          <circle cx="13" cy="13" r="13" fill="#232323" />
-          <line
-            x1="8"
-            y1="8"
-            x2="18"
-            y2="18"
-            stroke="#ffe6ec"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          />
-          <line
-            x1="18"
-            y1="8"
-            x2="8"
-            y2="18"
-            stroke="#ffe6ec"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          />
-        </svg>
+            <circle cx="13" cy="13" r="13" fill="#232323" />
+            <line
+              x1="8"
+              y1="8"
+              x2="18"
+              y2="18"
+              stroke="#ffe6ec"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+            <line
+              x1="18"
+              y1="8"
+              x2="8"
+              y2="18"
+              stroke="#ffe6ec"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+          </svg>
         </button>
-        <div className={styles.audioInfo}>
-          <img
-            src={currentSong?.putanjaGif || currentSong?.putanjaSlika || "/logo.gif"}
-            alt="Decibel logo"
-            className={styles.audioLogo}
-          />
-          <div className={styles.audioMeta}>
-            <div className={styles.audioDetails}>
+        
+        <img
+          src={currentSong?.putanjaGif || currentSong?.putanjaSlika || "/logo.gif"}
+          alt="Decibel logo"
+          className={styles.audioLogo}
+        />
+        
+        <div className={styles.audioMeta}>
+          <div className={styles.audioDetails}>
+            <Link to={`/izvodjac/${currentOwner?.id}`}>
               <span className={styles.audioArtist}>
-                {currentOwner?.korisnicko_ime || "Nepoznati"} -
+                {currentOwner?.korisnicko_ime || "Nepoznati korisnik"}
               </span>
+            </Link>
+            <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
               <span className={styles.audioTitle}>
-                {currentSong?.naziv || "Nema pjesme"}
+                {currentSong?.naziv || "Trenutno nema pjesme"}
               </span>
-            </div>
-            <div className={styles.audioTime}>
-              {formatTime(progress)} / {formatTime(duration)}
-            </div>
+            </Link>
+          </div>
+          <div className={styles.audioTime}>
+            {formatTime(progress)} / {formatTime(duration)}
           </div>
         </div>
+        
         <div className={styles.audioControls}>
           <button
             className={styles.controlBtn}
@@ -759,15 +762,16 @@ useEffect(() => {
           >
             {playing ? (
               <svg width="18" height="18" viewBox="0 0 40 40" fill="#fff">
-              <rect x="8" y="8" width="7" height="22" rx="2" />
-              <rect x="23" y="8" width="7" height="22" rx="2" />
-            </svg>
+                <rect x="8" y="8" width="7" height="22" rx="2" />
+                <rect x="23" y="8" width="7" height="22" rx="2" />
+              </svg>
             ) : (
               <svg width="18" height="18" viewBox="0 0 40 40" fill="#fff">
                 <polygon points="10,8 32,19 10,30" />
               </svg>
             )}
           </button>
+          
           <input
             type="range"
             min={0}
@@ -778,6 +782,87 @@ useEffect(() => {
             className={styles.progressBar}
           />
         </div>
+        
+        <div className={styles.audioExtras}>
+          <button
+            type="button"
+            className={styles.muteBtn}
+            onClick={handleMuteToggle}
+            aria-label={muted ? "Unmute" : "Mute"}
+            tabIndex={0}
+          >
+            {muted || volume === 0 ? (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 22 22"
+                fill="#ffe6ec"
+                style={{ verticalAlign: "middle" }}
+              >
+                <path d="M3 9v4h4l5 5V4L7 9H3z" />
+                <line x1="17" y1="7" x2="21" y2="15" stroke="#ffe6ec" strokeWidth="2" />
+                <line x1="21" y1="7" x2="17" y2="15" stroke="#ffe6ec" strokeWidth="2" />
+              </svg>
+            ) : (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 22 22"
+                fill="#ffe6ec"
+                style={{ verticalAlign: "middle" }}
+              >
+                <path d="M3 9v4h4l5 5V4L7 9H3z" />
+                <path d="M16.5 12c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5v3z" />
+              </svg>
+            )}
+          </button>
+          
+          <input
+            type="range"
+            min={0}
+            max={0.30}
+            step={0.01}
+            value={muted ? 0 : volume}
+            onChange={handleVolumeChange}
+            className={styles.volumeBar}
+          />
+          
+          <select
+            value={playbackRate}
+            onChange={handleRateChange}
+            className={styles.rateSelect}
+            aria-label="Brzina"
+          >
+            <option value={0.5}>0.5x</option>
+            <option value={0.75}>0.75x</option>
+            <option value={1}>1x</option>
+            <option value={1.25}>1.25x</option>
+            <option value={1.5}>1.5x</option>
+            <option value={2}>2x</option>
+          </select>
+          
+          <button
+            type="button"
+            className={styles.muteBtn}
+            onClick={handleRepeatToggle}
+            aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
+          >
+            <svg width="16" height="16" viewBox="0 0 28 28" fill="none">
+              <g>
+                <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                {repeatOne && (
+                  <text x="10" y="17" fontSize="6" fill="#ffe6ec" fontWeight="bold">
+                    1
+                  </text>
+                )}
+              </g>
+            </svg>
+          </button>
+        </div>
+        
         <audio
           ref={audioRef}
           src={currentSong?.putanjaAudio || ""}
@@ -798,7 +883,6 @@ useEffect(() => {
       </div>
     );
   }
-
   return (
     <div className={styles.audioPlayerBar}>
       <button
@@ -917,7 +1001,6 @@ useEffect(() => {
             <option value={2}>2x</option>
           </select>
         </label>
-        {/* Repeat one button */}
         <button
           type="button"
           className={styles.muteBtn}
@@ -979,7 +1062,6 @@ useEffect(() => {
             tabIndex={0}
           >
             {muted || volume === 0 ? (
-              // Mute ikona
               <svg
                 width="22"
                 height="22"
@@ -992,7 +1074,6 @@ useEffect(() => {
                 <line x1="21" y1="7" x2="17" y2="15" stroke="#ffe6ec" strokeWidth="2" />
               </svg>
             ) : (
-              // Zvuk ikona
               <svg
                 width="22"
                 height="22"
@@ -1016,7 +1097,6 @@ useEffect(() => {
           />
         </label>
       </div>
-      {/* Modal za dodavanje u playlistu */}
       {showPlaylistModal && (
         <div
           style={{

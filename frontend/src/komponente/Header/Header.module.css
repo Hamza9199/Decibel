@@ -49,27 +49,42 @@
 
 @media (max-width: 480px) {
   .header {
-    padding: 6px 0;
-    min-height: 38px;
+    padding: 4px 0 10px 0;
+    min-height: 55px;
     box-shadow: 0 1px 6px rgba(0,0,0,0.08);
     justify-content: flex-start;
+    align-items: center;
+    position: fixed;
+    width: 100vw;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    gap: 0;
   }
-  .logoImg {
-    height: 22px;
-    margin-right: 6px;
-    margin-left: 6px;
-  }
+  .logoImg,
   .logo {
-    font-size: 1rem;
-    margin-right: 10px;
+    display: none !important;
   }
   .welcomeMessage {
-    display: none;
+    display: none !important;
+  }
+  .searchWrap {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0 0 0 60px !important;
+    width: 1px !important;
+    max-width: 55vw;
+    display: flex;
+    margin-top: 10px;
   }
   .profileImg {
-    width: 22px;
-    height: 22px;
-    margin-right: 8px;
+    width: 26px;
+    height: 26px;
+    margin-right: 6px;
+    margin-left: 8px;
+    order: 2;
+    align-self: center;
+    margin-top: 5px;
   }
   .logoutBtn {
     font-size: 0.8rem !important;
@@ -77,6 +92,8 @@
     margin-right: 8px !important;
     margin-left: 0 !important;
     border-radius: 6px !important;
+    order: 3;
+    height: 28px;
+    align-self: center;
   }
-  /* Search komponenta može se dodatno prilagoditi ovdje ako je potrebno */
 }

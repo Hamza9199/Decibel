@@ -329,97 +329,156 @@
 
 @media (max-width: 480px) {
   .audioPlayerBar {
-    min-height: 38px;
-    padding: 2px 1px 2px 1px;
+    min-height: 100px;
+    padding: 6px 10px 6px 2px;
     border-radius: 0;
     box-shadow: 0 -1px 12px #b91d9533;
-  }
-  .audioLogo {
-    height: 22px;
-    width: 22px;
-    margin-right: 4px;
-    border-radius: 6px;
-  }
-  .audioTitle {
-    font-size: 0.78rem;
-    max-width: 54px;
-    margin-bottom: 2px;
-  }
-  .audioArtist {
-    font-size: 0.78rem;
-    max-width: 54px;
-    margin-bottom: 2px;
-    margin-right: -2px;
-  }
-  .audioControls {
-    min-width: 40px;
-    gap: 3px;
-    margin-left: 2px;
-  }
-  .audioExtras {
-    margin-left: 2px;
-    min-width: 30px;
-    gap: 2px;
-  }
-  .controlBtn {
-    width: 18px;
-    height: 18px;
-    margin-right: 3px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 6px;
+    flex-wrap: wrap;
   }
   .closeBtn {
-    width: 22px;
-    height: 22px;
-    top: 4px;
-    right: 8px;
+    position: absolute;
+    top: 2px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+  }
+  .audioLogo {
+    height: 50px;
+    width: 50px;
+    margin-right: 4px;
+    border-radius: 6px;
+    order: 1;
+    flex-shrink: 0;
+  }
+  .audioMeta {
+    display: flex !important;
+    flex-direction: column;
+    order: 2;
+    flex: 1;
+    min-width: 0;
+    margin-left: 0;
+  }
+  .audioTitle {
+    display: block !important;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  .audioArtist {
+    display: block !important;
+    color: #b3b3b3;
+    font-size: 0.65rem;
+    font-weight: 400;
+    margin-bottom: 2px;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  .audioDetails {
+    display: flex !important;
+    flex-direction: column;
+    gap: 1px;
+    align-items: flex-start;
+  }
+  .audioTime {
+    display: block !important;
+    font-size: 0.65rem;
+    margin: 0;
+    color: #ffe6ec;
+    font-weight: 500;
+    text-align: left;
+  }
+  .audioControls {
+    order: 3;
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .controlBtn {
+    width: 32px;
+    height: 32px;
+    margin-right: 5px;
+    flex-shrink: 0;
+    margin-top: 5px;
   }
   .progressBar {
     height: 4px;
-    margin-left: 2px;
+    margin-left: 0;
+    flex: 1;
+    accent-color: #ffe6ec;
+    background: #232323;
+    border-radius: 2px;
+    outline: none;
+    margin-top: 10px;
   }
-  .volumeBar {
-    width: 44px;
-    height: 4px;
-    margin-left: 2px;
+  .audioExtras {
+    order: 4;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+    width: 100%;
+    margin-top: 2px;
+    margin-left: 12px;
   }
-  .labelSmall {
-    font-size: 0.75rem;
-    gap: 2px;
-  }
-  .rateSelect {
-    font-size: 0.85rem;
-    padding: 2px 4px;
-    margin-left: 2px;
+  .muteBtn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin: 0 1px;
   }
   .muteBtn svg {
-    width: 18px;
-    height: 18px;
-  }
-  .miniPlayerBtn {
-    bottom: 6px;
-    right: 4px;
-    padding: 4px 8px 4px 4px;
-    font-size: 0.82rem;
-    border-radius: 18px;
-  }
-  .miniPlayerImg {
     width: 16px;
     height: 16px;
-    margin-right: 2px;
-    border-radius: 5px;
   }
-  .miniPlayerText {
-    font-size: 0.82rem;
-    max-width: 32px;
-    margin-right: 2px;
+  .volumeBar {
+    width: 50px;
+    height: 3px;
+    margin-left: 0;
+    accent-color: #ffe6ec;
+    background: #232323;
+    border-radius: 2px;
+    outline: none;
   }
-  .audioTime {
-    font-size: 0.75rem;
+  .labelSmall {
+    font-size: 0.65rem;
+    gap: 2px;
+    margin-left: 0;
+    margin-right: 0;
+    display: flex;
+    align-items: center;
   }
-  .audioDetails {
-    gap: 3px;
+  .rateSelect {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+    margin-left: 0;
+    border-radius: 3px;
+    border: 1px solid #b91d95;
+    background: #181818;
+    color: #fff;
+    width: 38px;
+    min-width: 38px;
+    max-width: 42px;
   }
-  /* Sakrij labelu brzine i dodatne kontrole ako je premalo prostora */
-  .audioExtras {
-    display: none;
+  /* Sakrij like dugme na mobilnom */
+  .audioDetails button {
+    display: none !important;
   }
 }

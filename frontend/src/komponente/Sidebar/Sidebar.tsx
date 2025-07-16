@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./Sidebar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -20,10 +20,12 @@ const Sidebar: React.FC = () => {
   }
 
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
-const [showPlaylistMenu, setShowPlaylistMenu] = React.useState(false);
-const [showSongsMenu, setShowSongsMenu] = React.useState(false);
-const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
-const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
+  const [showPlaylistMenu, setShowPlaylistMenu] = React.useState(false);
+  const [showSongsMenu, setShowSongsMenu] = React.useState(false);
+  const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
+  const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
 
   useEffect(() => {
     const tema = localStorage.getItem("decibel_tema") || "dark";
@@ -37,18 +39,68 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 480);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close sidebar on route change (optional)
+  useEffect(() => {
+    if (!isMobile) setSidebarOpen(false);
+  }, [isMobile]);
+
+  // Prevent background scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (isMobile && sidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMobile, sidebarOpen]);
+
+  const handleToggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logoWrap}>
-        <Link to="/">
-          <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
-        </Link>
-        <Link to="/">
-          <span className={styles.logoText}>Decibel</span>
-        </Link>
-      </div>
-      <nav className={styles.nav}>
-        <button className={styles.navBtn} onClick={() => navigate("/")}>
+    <>
+      {isMobile && (
+        <button
+          className={styles.hamburger}
+          aria-label="Otvori meni"
+          onClick={handleToggleSidebar}
+        >
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="#ffe6ec">
+            <rect y="6" width="32" height="4" rx="2" />
+            <rect y="14" width="32" height="4" rx="2" />
+            <rect y="22" width="32" height="4" rx="2" />
+          </svg>
+        </button>
+      )}
+      <aside
+        className={`${styles.sidebar} ${isMobile && sidebarOpen ? styles.open : ""}`}
+        style={isMobile ? { zIndex: 10000 } : {}}
+      >
+        {!isMobile && (
+          <div className={styles.logoWrap}>
+            <Link to="/" onClick={handleCloseSidebar}>
+              <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
+            </Link>
+            <Link to="/" onClick={handleCloseSidebar}>
+              <span className={styles.logoText}>Decibel</span>
+            </Link>
+          </div>
+        )}
+        <nav className={styles.nav}>
+          <button className={styles.navBtn} onClick={() => { navigate("/"); if (isMobile) handleCloseSidebar(); }}>
           {/* Home icon */}
           <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
             <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
@@ -60,7 +112,10 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
         <div className={styles.profileMenu}>
           <button
             className={styles.navBtn}
-            onClick={() => setShowProfileMenu((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowProfileMenu((prev) => !prev);
+            }}
           >
             {/* Profile icon */}
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
@@ -75,7 +130,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
             <div className={styles.subMenu}>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/profile/settings")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/profile/settings");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Settings icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -88,7 +147,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </button>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/profile/edit")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/profile/edit");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Edit icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -101,7 +164,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </button>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/profile/subscription")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/profile/subscription");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Subscription icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -119,7 +186,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
         <div className={styles.profileMenu}>
           <button
             className={styles.navBtn}
-            onClick={() => navigate("/historija")}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/historija");
+              if (isMobile) handleCloseSidebar();
+            }}
           >
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
               <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
@@ -134,7 +205,10 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
         <div className={styles.profileMenu}>
           <button
             className={styles.navBtn}
-            onClick={() => setShowFavoritesMenu((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowFavoritesMenu((prev) => !prev);
+            }}
           >
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
               <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
@@ -147,7 +221,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
             <div className={styles.subMenu}>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/omiljene/pjesme")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/omiljene/pjesme");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Music note icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -161,7 +239,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </button>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/omiljene/playliste")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/omiljene/playliste");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Playlist icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -176,7 +258,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </button>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/omiljene/albumi")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/omiljene/albumi");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Album icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -193,7 +279,10 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
         <div className={styles.profileMenu}>
           <button
             className={styles.navBtn}
-            onClick={() => setShowPlaylistMenu((prev) => !prev)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowPlaylistMenu((prev) => !prev);
+            }}
           >
             {/* Playlist icon */}
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
@@ -210,7 +299,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
             <div className={styles.subMenu}>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/playlists")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/playlists");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* List icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -224,7 +317,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </button>
               <button
                 className={styles.subNavBtn}
-                onClick={() => navigate("/playlists/add")}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate("/playlists/add");
+                  if (isMobile) handleCloseSidebar();
+                }}
               >
                 {/* Add icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -246,7 +343,10 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
             <div className={styles.profileMenu}>
               <button
                 className={styles.navBtn}
-                onClick={() => setShowSongsMenu((prev) => !prev)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSongsMenu((prev) => !prev);
+                }}
               >
                 {/* Music note icon */}
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
@@ -262,7 +362,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                 <div className={styles.subMenu}>
                   <button
                     className={styles.subNavBtn}
-                    onClick={() => navigate("/songs")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/songs");
+                      if (isMobile) handleCloseSidebar();
+                    }}
                   >
                     {/* List icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -276,7 +380,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                   </button>
                   <button
                     className={styles.subNavBtn}
-                    onClick={() => navigate("/add-song")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/add-song");
+                      if (isMobile) handleCloseSidebar();
+                    }}
                   >
                     {/* Add icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -293,7 +401,10 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
             <div className={styles.profileMenu}>
               <button
                 className={styles.navBtn}
-                onClick={() => setShowAlbumsMenu((prev) => !prev)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowAlbumsMenu((prev) => !prev);
+                }}
               >
                 {/* Album icon */}
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
@@ -308,7 +419,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                 <div className={styles.subMenu}>
                   <button
                     className={styles.subNavBtn}
-                    onClick={() => navigate("/albums")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/albums");
+                      if (isMobile) handleCloseSidebar();
+                    }}
                   >
                     {/* List icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -322,7 +437,11 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
                   </button>
                   <button
                     className={styles.subNavBtn}
-                    onClick={() => navigate("/add-album")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/add-album");
+                      if (isMobile) handleCloseSidebar();
+                    }}
                   >
                     {/* Add icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
@@ -341,7 +460,14 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
         {role === "admin" && (
           <>
             <div className={styles.sectionTitle}>Admin</div>
-            <button className={styles.navBtn} onClick={() => navigate("/admin-panel")}>
+            <button 
+              className={styles.navBtn} 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/admin-panel");
+                if (isMobile) handleCloseSidebar();
+              }}
+            >
               {/* Admin panel icon */}
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                 <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
@@ -352,7 +478,14 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </span>
               {t("admin_panel")}
             </button>
-            <button className={styles.navBtn} onClick={() => navigate("/statistika")}>
+            <button 
+              className={styles.navBtn} 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/statistika");
+                if (isMobile) handleCloseSidebar();
+              }}
+            >
               {/* Stats icon */}
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                 <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
@@ -363,7 +496,14 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
               </span>
               {t("statistic")}
             </button>
-            <button className={styles.navBtn} onClick={() => navigate("/korisnici")}>
+            <button 
+              className={styles.navBtn} 
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate("/korisnici");
+                if (isMobile) handleCloseSidebar();
+              }}
+            >
               {/* Users icon */}
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                 <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
@@ -377,8 +517,17 @@ const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
             </button>
           </>
         )}
+      
       </nav>
-    </aside>
+      </aside>
+      {isMobile && sidebarOpen && (
+        <div
+          className={styles.sidebarOverlay}
+          onClick={handleCloseSidebar}
+        />
+      )}
+    </>
+    
   );
 };
 

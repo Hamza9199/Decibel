@@ -339,6 +339,8 @@
     gap: 6px;
     flex-wrap: wrap;
   }
+
+  
   .closeBtn {
     position: absolute;
     top: 2px;
@@ -417,7 +419,7 @@
   }
   .progressBar {
     height: 4px;
-    margin-left: 0;
+    margin-left: 10px; /* Povećaj sa 0 na 10px */
     flex: 1;
     accent-color: #ffe6ec;
     background: #232323;
@@ -429,53 +431,82 @@
     order: 4;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px; 
     flex-wrap: nowrap;
     width: 100%;
     margin-top: 2px;
     margin-left: 12px;
+    flex-direction: row; 
   }
+  
+  .mobileControlsRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+  
+  .mobileControlsLeft {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  
+  .mobileControlsRight {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  
   .muteBtn {
-    width: 28px;
-    height: 28px;
+    width: 24px; /* Smanji sa 28px na 24px */
+    height: 24px; /* Smanji sa 28px na 24px */
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    margin: 0 1px;
+    margin: 0;
+    padding: 0;
   }
   .muteBtn svg {
-    width: 16px;
-    height: 16px;
+    width: 20px; /* Smanji sa 16px na 14px */
+    height: 20px; /* Smanji sa 16px na 14px */
   }
   .volumeBar {
-    width: 60px;
+    width: 80px; /* Povećaj sa 60px na 80px */
     height: 3px;
-    margin-left: 0;
+    margin-left: 2px; /* Smanji sa 0 na 2px */
     accent-color: #ffe6ec;
     background: #232323;
     border-radius: 2px;
     outline: none;
+    flex-shrink: 0;
   }
   .labelSmall {
-    font-size: 0.65rem;
-    gap: 2px;
+    font-size: 0.6rem; /* Smanji sa 0.65rem na 0.6rem */
+    gap: 1px; /* Smanji sa 2px na 1px */
     margin-left: 0;
     margin-right: 0;
     display: flex;
     align-items: center;
+    flex-shrink: 0;
   }
   .rateSelect {
-    font-size: 0.65rem;
-    padding: 2px 4px;
-    margin-left: 0;
+    font-size: 0.6rem; /* Smanji sa 0.65rem na 0.6rem */
+    padding: 1px 2px; /* Smanji sa 2px 4px na 1px 2px */
+    margin-left: 10px;
     border-radius: 3px;
     border: 1px solid #b91d95;
     background: #181818;
     color: #fff;
-    width: 38px;
-    min-width: 38px;
-    max-width: 42px;
+    width: 52px; /* Smanji sa 38px na 32px */
+    min-width: 32px; /* Smanji sa 38px na 32px */
+    max-width: 52px; /* Smanji sa 42px na 32px */
+    flex-shrink: 0;
   }
   /* Sakrij like dugme na mobilnom */
   .audioDetails button {

@@ -763,17 +763,6 @@ useEffect(() => {
                 {currentSong?.naziv || "Trenutno nema pjesme"}
               </span>
             </Link>
-            {pjesma && korisnik?.id && (
-              <button
-                onClick={handleLike}
-                title={liked ? "Ukloni lajk" : "Lajkuj pjesmu"}
-                aria-label={liked ? "Ukloni lajk" : "Lajkuj pjesmu"}
-              >
-                <svg width="18" height="18" viewBox="0 0 28 28" fill={liked ? "#e754a2" : "#fff"}>
-                  <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
-                </svg>
-              </button>
-            )}
           </div>
           <div className={styles.audioTime}>
             {formatTime(progress)} / {formatTime(duration)}
@@ -820,8 +809,8 @@ useEffect(() => {
               >
                 {muted || volume === 0 ? (
                   <svg
-                    width="18"
-                    height="18"
+                    width="14"
+                    height="14"
                     viewBox="0 0 22 22"
                     fill="#ffe6ec"
                   >
@@ -831,8 +820,8 @@ useEffect(() => {
                   </svg>
                 ) : (
                   <svg
-                    width="18"
-                    height="18"
+                    width="14"
+                    height="14"
                     viewBox="0 0 22 22"
                     fill="#ffe6ec"
                   >
@@ -851,37 +840,37 @@ useEffect(() => {
                 onChange={handleVolumeChange}
                 className={styles.volumeBar}
               />
-              
-              <button
-                type="button"
-                className={styles.muteBtn}
-                onClick={handleRepeatToggle}
-                aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
-              >
-                <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
-                  <g>
-                    <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    {repeatOne && (
-                      <text x="10" y="17" fontSize="8" fill="#ffe6ec" fontWeight="bold">
-                        1
-                      </text>
-                    )}
-                  </g>
-                </svg>
-              </button>
             </div>
             
             <div className={styles.mobileControlsRight}>
               <button
                 type="button"
                 className={styles.muteBtn}
+                onClick={handleRepeatToggle}
+                aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
+              >
+                <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
+                  <g>
+                    <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    {repeatOne && (
+                      <text x="10" y="17" fontSize="6" fill="#ffe6ec" fontWeight="bold">
+                        1
+                      </text>
+                    )}
+                  </g>
+                </svg>
+              </button>
+              
+              <button
+                type="button"
+                className={styles.muteBtn}
                 onClick={handleRepeatAllToggle}
                 aria-label={playlistRepeat ? "Ponovi cijeli album/playlistu" : "Ponovi album/playlistu"}
               >
-                <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
+                <svg width="14" height="14" viewBox="0 0 28 28" fill="none">
                   <g>
                     <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
                     <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
@@ -900,7 +889,7 @@ useEffect(() => {
                 onClick={() => setShowPlaylistModal(true)}
                 aria-label="Dodaj u playlistu"
               >
-                <svg width="18" height="18" viewBox="0 0 44 44" fill="#ffe6ec">
+                <svg width="14" height="14" viewBox="0 0 44 44" fill="#ffe6ec">
                   <rect x="18" y="8" width="8" height="28" />
                   <rect x="8" y="18" width="28" height="8" />
                 </svg>

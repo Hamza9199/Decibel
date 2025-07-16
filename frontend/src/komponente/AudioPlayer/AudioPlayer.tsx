@@ -513,6 +513,21 @@ useEffect(() => {
       .catch(() => setCurrentOwner(undefined));
   }, [currentSong?.korisnikID]);
 
+  // Dodaj effect za promjenu pozadine kad se promijeni currentSong
+  useEffect(() => {
+    if (currentSong) {
+      const bgGif = currentSong.putanjaGif;
+      const bgSlika = currentSong.putanjaSlika;
+      console.log('AudioPlayer dispatching background change:', { gif: bgGif, slika: bgSlika }); // Debug log
+      window.dispatchEvent(
+        new CustomEvent("activeSongBg", { detail: { gif: bgGif, slika: bgSlika } })
+      );
+    } else {
+      console.log('AudioPlayer resetting background - no current song'); // Debug log
+      window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
+    }
+  }, [currentSong, currentSong?.putanjaGif, currentSong?.putanjaSlika]);
+
   // Kada se pusti single pjesma, očisti globalPlaylist i postavi currentSong
   useEffect(() => {
     // Ako je došao globalAudioPlay event, očisti playlistu i postavi currentSong
@@ -707,7 +722,7 @@ useEffect(() => {
           aria-label="Minimiziraj player"
           type="button"
         >
-          <svg width="18" height="18" viewBox="0 0 26 26" fill="none">
+          <svg width="20" height="20" viewBox="0 0 26 26" fill="none">
             <circle cx="13" cy="13" r="13" fill="#232323" />
             <line
               x1="8"
@@ -748,6 +763,17 @@ useEffect(() => {
                 {currentSong?.naziv || "Trenutno nema pjesme"}
               </span>
             </Link>
+            {pjesma && korisnik?.id && (
+              <button
+                onClick={handleLike}
+                title={liked ? "Ukloni lajk" : "Lajkuj pjesmu"}
+                aria-label={liked ? "Ukloni lajk" : "Lajkuj pjesmu"}
+              >
+                <svg width="18" height="18" viewBox="0 0 28 28" fill={liked ? "#e754a2" : "#fff"}>
+                  <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
+                </svg>
+              </button>
+            )}
           </div>
           <div className={styles.audioTime}>
             {formatTime(progress)} / {formatTime(duration)}
@@ -761,12 +787,12 @@ useEffect(() => {
             aria-label={playing ? "Pause" : "Play"}
           >
             {playing ? (
-              <svg width="18" height="18" viewBox="0 0 40 40" fill="#fff">
+              <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff">
                 <rect x="8" y="8" width="7" height="22" rx="2" />
                 <rect x="23" y="8" width="7" height="22" rx="2" />
               </svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 40 40" fill="#fff">
+              <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff">
                 <polygon points="10,8 32,19 10,30" />
               </svg>
             )}
@@ -784,84 +810,192 @@ useEffect(() => {
         </div>
         
         <div className={styles.audioExtras}>
-          <button
-            type="button"
-            className={styles.muteBtn}
-            onClick={handleMuteToggle}
-            aria-label={muted ? "Unmute" : "Mute"}
-            tabIndex={0}
-          >
-            {muted || volume === 0 ? (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 22 22"
-                fill="#ffe6ec"
-                style={{ verticalAlign: "middle" }}
+          <div className={styles.mobileControlsRow}>
+            <div className={styles.mobileControlsLeft}>
+              <button
+                type="button"
+                className={styles.muteBtn}
+                onClick={handleMuteToggle}
+                aria-label={muted ? "Unmute" : "Mute"}
               >
-                <path d="M3 9v4h4l5 5V4L7 9H3z" />
-                <line x1="17" y1="7" x2="21" y2="15" stroke="#ffe6ec" strokeWidth="2" />
-                <line x1="21" y1="7" x2="17" y2="15" stroke="#ffe6ec" strokeWidth="2" />
-              </svg>
-            ) : (
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 22 22"
-                fill="#ffe6ec"
-                style={{ verticalAlign: "middle" }}
-              >
-                <path d="M3 9v4h4l5 5V4L7 9H3z" />
-                <path d="M16.5 12c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5v3z" />
-              </svg>
-            )}
-          </button>
-          
-          <input
-            type="range"
-            min={0}
-            max={0.30}
-            step={0.01}
-            value={muted ? 0 : volume}
-            onChange={handleVolumeChange}
-            className={styles.volumeBar}
-          />
-          
-          <select
-            value={playbackRate}
-            onChange={handleRateChange}
-            className={styles.rateSelect}
-            aria-label="Brzina"
-          >
-            <option value={0.5}>0.5x</option>
-            <option value={0.75}>0.75x</option>
-            <option value={1}>1x</option>
-            <option value={1.25}>1.25x</option>
-            <option value={1.5}>1.5x</option>
-            <option value={2}>2x</option>
-          </select>
-          
-          <button
-            type="button"
-            className={styles.muteBtn}
-            onClick={handleRepeatToggle}
-            aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
-          >
-            <svg width="16" height="16" viewBox="0 0 28 28" fill="none">
-              <g>
-                <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                {repeatOne && (
-                  <text x="10" y="17" fontSize="6" fill="#ffe6ec" fontWeight="bold">
-                    1
-                  </text>
+                {muted || volume === 0 ? (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 22 22"
+                    fill="#ffe6ec"
+                  >
+                    <path d="M3 9v4h4l5 5V4L7 9H3z" />
+                    <line x1="17" y1="7" x2="21" y2="15" stroke="#ffe6ec" strokeWidth="2" />
+                    <line x1="21" y1="7" x2="17" y2="15" stroke="#ffe6ec" strokeWidth="2" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 22 22"
+                    fill="#ffe6ec"
+                  >
+                    <path d="M3 9v4h4l5 5V4L7 9H3z" />
+                    <path d="M16.5 12c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5v3z" />
+                  </svg>
                 )}
-              </g>
-            </svg>
-          </button>
+              </button>
+              
+              <input
+                type="range"
+                min={0}
+                max={0.30}
+                step={0.01}
+                value={muted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className={styles.volumeBar}
+              />
+              
+              <button
+                type="button"
+                className={styles.muteBtn}
+                onClick={handleRepeatToggle}
+                aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
+              >
+                <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
+                  <g>
+                    <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    {repeatOne && (
+                      <text x="10" y="17" fontSize="8" fill="#ffe6ec" fontWeight="bold">
+                        1
+                      </text>
+                    )}
+                  </g>
+                </svg>
+              </button>
+            </div>
+            
+            <div className={styles.mobileControlsRight}>
+              <button
+                type="button"
+                className={styles.muteBtn}
+                onClick={handleRepeatAllToggle}
+                aria-label={playlistRepeat ? "Ponovi cijeli album/playlistu" : "Ponovi album/playlistu"}
+              >
+                <svg width="18" height="18" viewBox="0 0 28 28" fill="none">
+                  <g>
+                    <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+                    {playlistRepeat && (
+                      <circle cx="23" cy="5" r="2" fill="#2f0650ff" />
+                    )}
+                  </g>
+                </svg>
+              </button>
+              
+              <button
+                type="button"
+                className={styles.muteBtn}
+                onClick={() => setShowPlaylistModal(true)}
+                aria-label="Dodaj u playlistu"
+              >
+                <svg width="18" height="18" viewBox="0 0 44 44" fill="#ffe6ec">
+                  <rect x="18" y="8" width="8" height="28" />
+                  <rect x="8" y="18" width="28" height="8" />
+                </svg>
+              </button>
+              
+              <label className={styles.labelSmall}>
+                <select
+                  value={playbackRate}
+                  onChange={handleRateChange}
+                  className={styles.rateSelect}
+                  aria-label="Brzina"
+                >
+                  <option value={0.5}>0.5x</option>
+                  <option value={0.75}>0.75x</option>
+                  <option value={1}>1x</option>
+                  <option value={1.25}>1.25x</option>
+                  <option value={1.5}>1.5x</option>
+                  <option value={2}>2x</option>
+                </select>
+              </label>
+            </div>
+          </div>
         </div>
+        
+        {showPlaylistModal && (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(24,24,24,0.85)",
+              zIndex: 3000,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onClick={() => setShowPlaylistModal(false)}
+          >
+            <div
+              style={{
+                background: "#232323",
+                borderRadius: 14,
+                padding: "24px 16px 16px 16px",
+                minWidth: 280,
+                maxWidth: "90vw",
+                boxShadow: "0 4px 24px #b91d9533",
+                textAlign: "center",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h4 style={{ color: "#fff", marginBottom: 16, fontSize: "1rem" }}>
+                {t("add_song_to_playlist")}
+              </h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 16 }}>
+                {playlists.map((pl) => (
+                  <li key={pl.id} style={{ marginBottom: 6 }}>
+                    <button
+                      style={{
+                        background: "#b91d95",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 6,
+                        padding: "8px 0",
+                        fontSize: "0.9rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        width: "100%",
+                        transition: "background 0.18s",
+                      }}
+                      onClick={() => handleAddToPlaylist(pl.id)}
+                    >
+                      {pl.naziv}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <button
+                style={{
+                  background: "#232323",
+                  color: "#ffe6ec",
+                  border: "1px solid #b91d95",
+                  borderRadius: 6,
+                  padding: "8px 0",
+                  fontSize: "0.9rem",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  width: "100%",
+                  transition: "background 0.18s, color 0.18s",
+                }}
+                onClick={() => setShowPlaylistModal(false)}
+              >
+                {t("close")}
+              </button>
+            </div>
+          </div>
+        )}
         
         <audio
           ref={audioRef}

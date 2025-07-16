@@ -26,10 +26,12 @@ const Home: React.FC = () => {
     if (activeSong) {
       const bgGif = activeSong.putanjaGif;
       const bgSlika = activeSong.putanjaSlika;
+      console.log('Dispatching activeSongBg event:', { gif: bgGif, slika: bgSlika }); 
       window.dispatchEvent(
         new CustomEvent("activeSongBg", { detail: { gif: bgGif, slika: bgSlika } })
       );
     } else {
+      console.log('Resetting background - no active song');
       window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
     }
   }, [activeSong]);
@@ -63,7 +65,8 @@ const Home: React.FC = () => {
     setActiveSongId(id);
     const song = pjesme.find((p) => p.id === id);
     setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
-
+    
+    console.log('Setting active song:', song); // Debug log
 
     if (song && audioUrl) {
       window.dispatchEvent(

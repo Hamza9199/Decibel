@@ -233,3 +233,333 @@
   justify-content: center;
   background: rgba(24,24,24,0.97);
 }
+
+@media (max-width: 900px) {
+  .albumBg {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+  
+  .container {
+    max-width: 95vw;
+    margin: 0 auto;
+    padding: 20px 16px 40px 16px;
+    border-radius: 12px;
+  }
+  
+  .albumMain {
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .albumSlikaWrap {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .albumNaziv {
+    font-size: 1.8rem;
+  }
+  
+  .albumOpis {
+    font-size: 1rem;
+  }
+  
+  .albumMeta {
+    font-size: 0.95rem;
+    gap: 16px;
+  }
+  
+  .playBtn, .likeBtn, .repeatBtn {
+    width: 48px;
+    height: 48px;
+    bottom: 12px;
+  }
+  
+  .playBtn { left: 8px; }
+  .likeBtn { left: 64px; }
+  .repeatBtn { right: 8px; }
+  
+  .pjesmeTable th, .pjesmeTable td {
+    padding: 8px 6px;
+    font-size: 0.9rem;
+  }
+  
+  .songPlayBtn, .songAddBtn {
+    width: 32px;
+    height: 32px;
+    margin-right: 6px;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    max-width: 98vw;
+    padding: 16px 12px 30px 12px;
+  }
+  
+  .albumMain {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+  }
+  
+  .albumSlikaWrap {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .albumNaziv {
+    font-size: 1.6rem;
+  }
+  
+  .albumOpis {
+    font-size: 0.9rem;
+  }
+  
+  .albumMeta {
+    font-size: 0.85rem;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .playBtn, .likeBtn, .repeatBtn {
+    width: 40px;
+    height: 40px;
+    bottom: 8px;
+  }
+  
+  .playBtn { left: 6px; }
+  .likeBtn { left: 52px; }
+  .repeatBtn { right: 6px; }
+  
+  .pjesmeTable th, .pjesmeTable td {
+    padding: 6px 4px;
+    font-size: 0.8rem;
+  }
+  
+  .songPlayBtn, .songAddBtn {
+    width: 28px;
+    height: 28px;
+    margin-right: 4px;
+  }
+}
+
+@media (max-width: 480px) {
+  .albumBg {
+    padding-top: 55px;
+    padding-bottom: 30px;
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 100vw;
+    margin: 0 auto;
+    padding: 12px 8px 20px 8px;
+    border-radius: 0;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    background: rgba(24,24,24,0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .albumMain {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .albumSlikaWrap {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+  }
+  
+  .albumSlika {
+    border-radius: 8px;
+  }
+  
+  .playBtn, .likeBtn, .repeatBtn {
+    width: 32px;
+    height: 32px;
+    bottom: 6px;
+  }
+  
+  .playBtn { left: 4px; }
+  .likeBtn { left: 40px; }
+  .repeatBtn { right: 4px; }
+  
+  .albumNaziv {
+    font-size: 1.3rem;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  
+  .albumOpis {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+  
+  .albumMeta {
+    font-size: 0.75rem;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .pjesmeSection {
+    margin-top: 20px;
+  }
+  
+  .pjesmeTitle {
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    border-left: 3px solid #b91d95;
+    padding-left: 8px;
+  }
+  
+  .noSongs {
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+  }
+  
+  .pjesmeTable {
+    border-radius: 8px;
+    margin-top: 6px;
+    overflow-x: auto;
+    display: block;
+    white-space: nowrap;
+  }
+  
+  .pjesmeTable thead,
+  .pjesmeTable tbody,
+  .pjesmeTable tr {
+    display: block;
+  }
+  
+  .pjesmeTable thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .pjesmeTable tr {
+    border: 1px solid #333;
+    margin-bottom: 8px;
+    padding: 8px;
+    border-radius: 6px;
+    background: #232323;
+    display: block;
+    white-space: normal;
+  }
+  
+  .pjesmeTable td {
+    border: none;
+    padding: 4px 0;
+    text-align: left;
+    white-space: normal;
+    display: block;
+    font-size: 0.75rem;
+  }
+  
+  .pjesmeTable td:before {
+    content: attr(data-label) ": ";
+    font-weight: bold;
+    color: #b91d95;
+    font-size: 0.7rem;
+  }
+  
+  .songPlayBtn, .songAddBtn {
+    width: 24px;
+    height: 24px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  
+  .songPlayBtn svg, .songAddBtn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .modal {
+    min-width: 280px;
+    max-width: 90vw;
+    padding: 20px 16px 16px 16px;
+    border-radius: 8px;
+  }
+  
+  .playlistBtn {
+    font-size: 0.9rem;
+    padding: 8px 0;
+    margin-bottom: 6px;
+  }
+  
+  .closeModalBtn {
+    font-size: 0.9rem;
+    padding: 8px 0;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 8px 4px 16px 4px;
+  }
+  
+  .albumSlikaWrap {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .playBtn, .likeBtn, .repeatBtn {
+    width: 28px;
+    height: 28px;
+    bottom: 4px;
+  }
+  
+  .playBtn { left: 2px; }
+  .likeBtn { left: 32px; }
+  .repeatBtn { right: 2px; }
+  
+  .albumNaziv {
+    font-size: 1.2rem;
+  }
+  
+  .albumOpis {
+    font-size: 0.75rem;
+  }
+  
+  .albumMeta {
+    font-size: 0.7rem;
+  }
+  
+  .pjesmeTable td {
+    font-size: 0.7rem;
+  }
+  
+  .pjesmeTable td:before {
+    font-size: 0.65rem;
+  }
+  
+  .songPlayBtn, .songAddBtn {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .songPlayBtn svg, .songAddBtn svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .modal {
+    min-width: 260px;
+    padding: 16px 12px 12px 12px;
+  }
+  
+  .playlistBtn {
+    font-size: 0.85rem;
+  }
+  
+  .closeModalBtn {
+    font-size: 0.85rem;
+  }
+}

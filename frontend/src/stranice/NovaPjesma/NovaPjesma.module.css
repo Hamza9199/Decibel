@@ -161,3 +161,119 @@ textarea {
     padding: 10px 0;
   }
 }
+
+@media (max-width: 480px) {
+  .novaPjesmaBg {
+    margin-top: 55px;
+    padding: 15px 0;
+    min-height: 100vh;
+  }
+  
+  .novaPjesmaForm {
+    min-width: 95vw;
+    max-width: 95vw;
+    padding: 20px 12px 20px 12px;
+    border-radius: 8px;
+    gap: 0;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    background: rgba(24,24,24,0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    border: 1px solid #b91d95;
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+    text-shadow: none;
+  }
+  
+  .label {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    letter-spacing: 0.2px;
+  }
+  
+  .input, .fileInput, textarea {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #b91d95;
+    box-shadow: 0 1px 6px #b91d9533;
+  }
+  
+  .input:focus, .fileInput:focus, textarea:focus {
+    border: 1.5px solid #e754a2;
+    box-shadow: 0 2px 12px #e754a233;
+  }
+  
+  textarea {
+    min-height: 60px;
+  }
+  
+  .fileInput {
+    padding: 6px 0;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+  }
+  
+  .fileInput::-webkit-file-upload-button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  
+  .button {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    margin-top: 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 6px #b91d9533;
+  }
+  
+  .error, .success {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+}
+
+@media (max-width: 375px) {
+  .novaPjesmaForm {
+    min-width: 98vw;
+    max-width: 98vw;
+    padding: 16px 8px 16px 8px;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .label {
+    font-size: 0.8rem;
+  }
+  
+  .input, .fileInput, textarea {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+  
+  .button {
+    font-size: 0.9rem;
+    padding: 8px 0;
+  }
+  
+  .fileInput::-webkit-file-upload-button {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+}

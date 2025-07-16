@@ -124,3 +124,238 @@
   font-size: 1.1rem;
   margin-top: 40px;
 }
+
+@media (max-width: 900px) {
+  .svePlaylisteBg {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+  
+  .container {
+    max-width: 95vw;
+    margin: 0 auto;
+    padding: 20px 16px 40px 16px;
+    border-radius: 12px;
+  }
+  
+  .title {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+  
+  .playlistGrid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+  }
+  
+  .card {
+    min-width: 160px;
+    max-width: 160px;
+    padding: 14px 8px 12px 8px;
+  }
+  
+  .cardImageWrap {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+  }
+  
+  .playButton {
+    width: 40px;
+    height: 40px;
+    bottom: 8px;
+    right: 8px;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    max-width: 98vw;
+    padding: 16px 12px 30px 12px;
+  }
+  
+  .title {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+  }
+  
+  .playlistGrid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  
+  .card {
+    min-width: 140px;
+    max-width: 140px;
+    padding: 10px 6px 8px 6px;
+  }
+  
+  .cardImageWrap {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 8px;
+  }
+  
+  .cardTitle {
+    font-size: 0.9rem;
+  }
+  
+  .cardDesc {
+    font-size: 0.75rem;
+  }
+  
+  .playButton {
+    width: 32px;
+    height: 32px;
+    bottom: 6px;
+    right: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .svePlaylisteBg {
+    padding-top: 55px;
+    padding-bottom: 30px;
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 100vw;
+    margin: 0 auto;
+    padding: 12px 8px 20px 8px;
+    border-radius: 0;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    background: rgba(24,24,24,0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+    text-align: center;
+  }
+  
+  .playlistGrid {
+    grid-template-columns: repeat(auto-fit, minmax(85px, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .card {
+    min-width: 85px;
+    max-width: 85px;
+    padding: 8px 4px 6px 4px;
+    border-radius: 8px;
+    min-height: 130px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    background: rgba(35, 35, 35, 0.9);
+  }
+  
+  .cardImageWrap {
+    width: 65px;
+    height: 65px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+  }
+  
+  .cardImage {
+    border-radius: 6px;
+  }
+  
+  .cardTitle {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+    text-align: center;
+    padding: 0 2px;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .cardDesc {
+    font-size: 0.6rem;
+    margin-bottom: 0;
+    min-height: 16px;
+    text-align: center;
+    padding: 0 2px;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .playButton {
+    width: 28px;
+    height: 28px;
+    bottom: 4px;
+    right: 4px;
+  }
+  
+  .playButton svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .loading {
+    font-size: 1rem;
+    margin-top: 40px;
+  }
+  
+  .noPlaylists {
+    font-size: 0.95rem;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 8px 4px 16px 4px;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .playlistGrid {
+    grid-template-columns: repeat(auto-fit, minmax(75px, 1fr));
+    gap: 6px;
+  }
+  
+  .card {
+    min-width: 75px;
+    max-width: 75px;
+    min-height: 120px;
+  }
+  
+  .cardImageWrap {
+    width: 55px;
+    height: 55px;
+  }
+  
+  .cardTitle {
+    font-size: 0.65rem;
+  }
+  
+  .cardDesc {
+    font-size: 0.55rem;
+  }
+  
+  .playButton {
+    width: 24px;
+    height: 24px;
+    bottom: 3px;
+    right: 3px;
+  }
+  
+  .playButton svg {
+    width: 14px;
+    height: 14px;
+  }
+}

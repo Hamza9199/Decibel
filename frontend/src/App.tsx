@@ -254,12 +254,56 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
 const setBodyBackground = (imgUrl?: string) => {
   const body = document.body;
   if (!body) return;
+  
   if (imgUrl) {
+    // Set background image for both body and pseudo-element
     body.style.background = `url('${imgUrl}') center center / cover no-repeat fixed`;
-    body.style.setProperty('--has-bg-img', '1');
+    body.style.backgroundAttachment = 'fixed';
+    body.style.backgroundSize = 'cover';
+    body.style.backgroundPosition = 'center center';
+    body.style.backgroundRepeat = 'no-repeat';
+    
+    // Update pseudo-element background via CSS custom property
+    body.style.setProperty('--bg-image', `url('${imgUrl}')`);
+    
+    // Update pseudo-element styles
+    const style = document.createElement('style');
+    style.textContent = `
+      body::before {
+        background: url('${imgUrl}') center center / cover no-repeat fixed !important;
+        filter: blur(45px) brightness(0.4) saturate(1.3) !important;
+        opacity: 0.9 !important;
+      }
+      body::after {
+        background: rgba(24, 24, 24, 0.4) !important;
+      }
+    `;
+    
+    // Remove previous style if exists
+    const existingStyle = document.getElementById('dynamic-bg-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    style.id = 'dynamic-bg-style';
+    document.head.appendChild(style);
+    
+    console.log('Background set to:', imgUrl);
   } else {
+    // Reset to default gradient
     body.style.background = 'radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)';
-    body.style.setProperty('--has-bg-img', '0');
+    body.style.backgroundAttachment = 'fixed';
+    body.style.backgroundSize = 'auto';
+    body.style.backgroundPosition = 'initial';
+    body.style.backgroundRepeat = 'initial';
+    
+    // Remove dynamic styles
+    const existingStyle = document.getElementById('dynamic-bg-style');
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    console.log('Background reset to default gradient');
   }
 };
 
@@ -269,9 +313,17 @@ const AppContent: FC = () => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
       const { gif, slika } = (customEvent.detail || {});
-      if (gif) setBodyBackground(gif);
-      else if (slika) setBodyBackground(slika);
-      else setBodyBackground(undefined);
+      console.log('Background change event received:', { gif, slika }); // Debug log
+      if (gif) {
+        console.log('Setting GIF background:', gif); // Debug log
+        setBodyBackground(gif);
+      } else if (slika) {
+        console.log('Setting image background:', slika); // Debug log
+        setBodyBackground(slika);
+      } else {
+        console.log('Resetting to default background'); // Debug log
+        setBodyBackground(undefined);
+      }
     };
     window.addEventListener("activeSongBg", handler);
     return () => window.removeEventListener("activeSongBg", handler);

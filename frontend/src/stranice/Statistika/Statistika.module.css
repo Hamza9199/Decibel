@@ -92,3 +92,205 @@
   font-size: 1.2rem;
   margin-top: 80px;
 }
+
+@media (max-width: 900px) {
+  .statsBg {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+  
+  .container {
+    max-width: 95vw;
+    margin: 0 auto;
+    padding: 20px 16px 40px 16px;
+    border-radius: 12px;
+  }
+  
+  .title {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+  }
+  
+  .chartsGrid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  
+  .chartCard {
+    padding: 18px 12px 12px 12px;
+    min-height: 280px;
+  }
+  
+  .infoBox {
+    padding: 16px 12px;
+    margin-bottom: 12px;
+    max-width: 350px;
+  }
+  
+  .izvodjacImg {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .izvodjacIme {
+    font-size: 1rem;
+  }
+  
+  .izvodjacPratioci {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .container {
+    max-width: 98vw;
+    padding: 16px 12px 30px 12px;
+  }
+  
+  .title {
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+  }
+  
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .chartCard {
+    padding: 14px 8px 8px 8px;
+    min-height: 240px;
+  }
+  
+  .infoBox {
+    padding: 12px 8px;
+    margin-bottom: 8px;
+    max-width: 280px;
+  }
+  
+  .izvodjacCard {
+    gap: 12px;
+    margin-top: 8px;
+  }
+  
+  .izvodjacImg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .izvodjacIme {
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  
+  .izvodjacPratioci {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsBg {
+    padding-top: 55px;
+    padding-bottom: 30px;
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 100vw;
+    margin: 0 auto;
+    padding: 12px 8px 20px 8px;
+    border-radius: 0;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    background: rgba(24,24,24,0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  
+  .chartsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .chartCard {
+    padding: 12px 6px 6px 6px;
+    min-height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    background: rgba(35, 35, 35, 0.9);
+  }
+  
+  .infoBox {
+    padding: 10px 6px;
+    margin-bottom: 6px;
+    max-width: 240px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+  
+  .izvodjacCard {
+    gap: 8px;
+    margin-top: 6px;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .izvodjacImg {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .izvodjacIme {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+  }
+  
+  .izvodjacPratioci {
+    font-size: 0.7rem;
+  }
+  
+  .loading {
+    font-size: 1rem;
+    margin-top: 40px;
+  }
+}
+
+@media (max-width: 375px) {
+  .container {
+    padding: 8px 4px 16px 4px;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .chartCard {
+    min-height: 180px;
+  }
+  
+  .infoBox {
+    max-width: 200px;
+    font-size: 0.8rem;
+  }
+  
+  .izvodjacImg {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .izvodjacIme {
+    font-size: 0.75rem;
+  }
+  
+  .izvodjacPratioci {
+    font-size: 0.65rem;
+  }
+}

@@ -29,8 +29,7 @@ body {
   min-height: 100vh;
   /* Dinamički background se postavlja inline iz React-a */
   background: radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%);
-  transition: background-image 0.3s;
-  /* fallback za slučaj bez slike */
+  background-attachment: fixed;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -50,9 +49,21 @@ body::before {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  filter: blur(32px) brightness(0.7);
-  opacity: 1;
-  transition: background-image 0.3s, filter 0.4s;
+  background-attachment: fixed;
+  filter: blur(45px) brightness(0.5) saturate(1.2);
+  opacity: 0.85;
+  transition: background 0.4s ease-in-out, filter 0.4s ease-in-out;
+}
+
+/* Dodaj overlay za bolje čitljivost */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: rgba(24, 24, 24, 0.3);
+  transition: background 0.4s ease-in-out;
 }
 
 h1 {

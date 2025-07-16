@@ -228,7 +228,6 @@
   .spotifyBg {
     padding-top: 60px;
     min-height: 100vh;
-    background: rgba(24,24,24,0.97);
   }
   
   .container {
@@ -239,6 +238,10 @@
     border-radius: 0;
     box-shadow: none;
     min-height: 60vh;
+    margin-bottom: -90px;
+    background: rgba(24,24,24,0.6);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
   }
   
   .sectionTitle {
@@ -247,6 +250,9 @@
     margin-left: 0;
     border-left: 3px solid #b91d95;
     padding-left: 8px;
+    background: rgba(24,24,24,0.6);
+    padding-top: 5px;
+    padding-bottom: 5px;
   }
   
   .gridRow {
@@ -258,7 +264,6 @@
     overflow-x: auto;
   }
   
-  /* Ovo je ključno - pravilne dimenzije kartica za telefon */
   .card {
     min-width: 85px;
     max-width: 85px;
@@ -267,7 +272,9 @@
     min-height: 130px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.15);
     margin: 0;
-    flex-shrink: 0; /* Sprječava sažimanje kartica */
+    flex-shrink: 0;
+    background: rgba(24,24,24,0.6);
+
   }
   
   .cardImageWrap,

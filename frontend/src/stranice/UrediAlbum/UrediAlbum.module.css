@@ -80,3 +80,120 @@
   margin-bottom: 4px;
   text-align: center;
 }
+
+@media (max-width: 600px) {
+  .editAlbumBg {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+  
+  .editAlbumForm {
+    max-width: 90vw;
+    margin: 0 auto;
+    padding: 20px 16px 20px 16px;
+    border-radius: 12px;
+    gap: 12px;
+  }
+  
+  .title {
+    font-size: 1.3rem;
+    margin-bottom: 12px;
+  }
+  
+  .label {
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  
+  .input {
+    padding: 8px 10px;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  
+  .button {
+    padding: 10px 0;
+    font-size: 1rem;
+    margin-top: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .editAlbumBg {
+    padding-top: 55px;
+    padding-bottom: 30px;
+    min-height: 100vh;
+  }
+  
+  .editAlbumForm {
+    max-width: 95vw;
+    margin: 0 auto;
+    padding: 16px 12px 16px 12px;
+    border-radius: 8px;
+    gap: 10px;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    background: rgba(35, 35, 35, 0.95);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+  
+  .label {
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+  }
+  
+  .input {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    border-radius: 6px;
+  }
+  
+  .input:focus {
+    border: 1.5px solid #e754a2;
+  }
+  
+  .button {
+    padding: 10px 0;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    border-radius: 6px;
+  }
+  
+  .error, .success {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+    margin-bottom: 3px;
+  }
+}
+
+@media (max-width: 375px) {
+  .editAlbumForm {
+    max-width: 98vw;
+    padding: 12px 8px 12px 8px;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .label {
+    font-size: 0.8rem;
+  }
+  
+  .input {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+  
+  .button {
+    font-size: 0.85rem;
+    padding: 8px 0;
+  }
+}

@@ -231,5 +231,7 @@
   "search_songs": "Pretraži pjesme",
   "search_albums": "Pretraži albume",
   "search_users": "Pretraži korisnike",
-  "no_results": "Nema rezultata za pretragu."
+  "no_results": "Nema rezultata za pretragu.",
+  "name": "Ime",
+  "surname": "Prezime"
 }

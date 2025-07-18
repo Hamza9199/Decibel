@@ -4,6 +4,6 @@ Decibel je moderna muzička platforma koja omogućava korisnicima da otkrivaju, 
 
 - **Backend**: FastAPI, SQLAlchemy, async MySQL, Firebase Storage za fajlove.
 - **Frontend**: React (TypeScript), Vite, CSS Modules, responzivan dizajn.
-- **Mobilna aplikacija**: Android (Kotlin, MVVM), Jetpack biblioteke, fiksirani audio player.
+- **Mobilna aplikacija**: React-native.
 
 Za više informacija, pogledaj kompletnu [dokumentaciju projekta](dokumentacija/Dokumentacija.md).

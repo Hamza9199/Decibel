@@ -10,7 +10,7 @@ export default {
     userInterfaceStyle: "light",
     owner: "gale9199",
     splash: {
-      image: "./assets/splash.png",
+      image: "./assets/icon.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },

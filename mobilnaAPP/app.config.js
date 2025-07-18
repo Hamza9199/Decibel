@@ -8,6 +8,7 @@ export default {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
+    owner: "gale9199",
     splash: {
       image: "./assets/splash.png",
       resizeMode: "contain",
@@ -17,9 +18,11 @@ export default {
       "**/*"
     ],
     ios: {
-      supportsTablet: true
+      supportsTablet: true,
+      bundleIdentifier: "com.gale9199.decibel"
     },
     android: {
+      package: "com.gale9199.decibel",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#ffffff"
@@ -30,6 +33,9 @@ export default {
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+      eas: {
+        projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID
+      }
     }
   }
 };

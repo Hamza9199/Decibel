@@ -9,6 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { Image } from 'expo-image';
 import { Album, Korisnik, Pjesma, Playlista } from '@/types';
@@ -19,6 +21,8 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Home.styles';
 
 const Home: React.FC = () => {
+  const { t } = useTranslation();
+  const router = useRouter();
   const [songs, setSongs] = useState<Pjesma[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
@@ -63,8 +67,8 @@ const Home: React.FC = () => {
       console.error('Failed to load data:', error);
       // Add user-friendly error handling
       Alert.alert(
-        'Connection Error',
-        'Unable to load data. Please check your internet connection and try again.',
+        t('error'),
+        t('connection_error'),
         [{ text: 'OK' }]
       );
     } finally {
@@ -86,6 +90,22 @@ const Home: React.FC = () => {
     
     setActiveSongId(song.id);
     playAudio(song);
+  };
+
+  const handleNavigateToSong = (songId: number) => {
+    router.push(`/pjesma/${songId}`);
+  };
+
+  const handleNavigateToAlbum = (albumId: number) => {
+    router.push(`/album/${albumId}`);
+  };
+
+  const handleNavigateToPlaylist = (playlistaId: number) => {
+    router.push(`/playlista/${playlistaId}`);
+  };
+
+  const handleNavigateToArtist = (artistId: string) => {
+    router.push(`/izvodjac/${artistId}`);
   };
 
   const handlePlayAlbum = async (album: Album) => {
@@ -138,7 +158,7 @@ const Home: React.FC = () => {
   const renderSongItem = ({ item }: { item: Pjesma }) => (
     <TouchableOpacity 
       style={[styles.card, activeSongId === item.id && styles.activeCard]} 
-      onPress={() => handlePlaySong(item)}
+      onPress={() => handleNavigateToSong(item.id)}
     >
       <View style={styles.cardImageWrap}>
         <Image
@@ -146,7 +166,13 @@ const Home: React.FC = () => {
           style={styles.cardImage}
         />
         {item.putanjaAudio && (
-          <TouchableOpacity style={styles.playButton} onPress={() => handlePlaySong(item)}>
+          <TouchableOpacity 
+            style={styles.playButton} 
+            onPress={(e) => {
+              e.stopPropagation();
+              handlePlaySong(item);
+            }}
+          >
             <MaterialIcons name="play-arrow" size={24} color="#fff" />
           </TouchableOpacity>
         )}
@@ -154,54 +180,96 @@ const Home: React.FC = () => {
       <Text style={styles.cardTitle} numberOfLines={1}>
         {item.naziv}
       </Text>
-      <Text style={styles.cardDesc} numberOfLines={1}>
-        {item.korisnik?.korisnicko_ime || 'Unknown Artist'}
-      </Text>
+      <TouchableOpacity
+        onPress={() => {
+          if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
+        }}
+        disabled={!item.korisnikID}
+      >
+        <Text style={styles.cardDesc} numberOfLines={1}>
+          {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+        </Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderAlbumItem = ({ item }: { item: Album }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handlePlayAlbum(item)}>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => handleNavigateToAlbum(item.id)}
+    >
       <View style={styles.cardImageWrap}>
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
           style={styles.cardImage}
         />
-        <TouchableOpacity style={styles.playButton} onPress={() => handlePlayAlbum(item)}>
+        <TouchableOpacity 
+          style={styles.playButton} 
+          onPress={(e) => {
+            e.stopPropagation();
+            handlePlayAlbum(item);
+          }}
+        >
           <MaterialIcons name="play-arrow" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
       <Text style={styles.cardTitle} numberOfLines={1}>
         {item.naziv}
       </Text>
-      <Text style={styles.cardDesc} numberOfLines={1}>
-        {item.korisnik?.korisnicko_ime || 'Unknown Artist'}
-      </Text>
+      <TouchableOpacity
+        onPress={() => {
+          if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
+        }}
+        disabled={!item.korisnikID}
+      >
+        <Text style={styles.cardDesc} numberOfLines={1}>
+          {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+        </Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderPlaylistItem = ({ item }: { item: Playlista }) => (
-    <TouchableOpacity style={styles.card} onPress={() => handlePlayPlaylist(item)}>
+    <TouchableOpacity 
+      style={styles.card} 
+      onPress={() => handleNavigateToPlaylist(item.id)}
+    >
       <View style={styles.cardImageWrap}>
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
           style={styles.cardImage}
         />
-        <TouchableOpacity style={styles.playButton} onPress={() => handlePlayPlaylist(item)}>
+        <TouchableOpacity 
+          style={styles.playButton} 
+          onPress={(e) => {
+            e.stopPropagation();
+            handlePlayPlaylist(item);
+          }}
+        >
           <MaterialIcons name="play-arrow" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
       <Text style={styles.cardTitle} numberOfLines={1}>
         {item.naziv}
       </Text>
-      <Text style={styles.cardDesc} numberOfLines={1}>
-        {item.korisnik?.korisnicko_ime || 'Unknown User'}
-      </Text>
+      <TouchableOpacity
+        onPress={() => {
+          if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
+        }}
+        disabled={!item.korisnikID}
+      >
+        <Text style={styles.cardDesc} numberOfLines={1}>
+          {item.korisnik?.korisnicko_ime || t('unknown_user')}
+        </Text>
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderArtistItem = ({ item }: { item: Korisnik }) => (
-    <TouchableOpacity style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => handleNavigateToArtist(item.id)}
+    >
       <View style={styles.cardImageWrap2}>
         <Image
           source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/150' }}
@@ -217,7 +285,7 @@ const Home: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>{t('loading')}</Text>
       </View>
     );
   }
@@ -237,11 +305,11 @@ const Home: React.FC = () => {
       >
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Welcome to Decibel</Text>
+            <Text style={styles.headerTitle}>{t('welcome_to_decibel')}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Songs</Text>
+            <Text style={styles.sectionTitle}>{t('songs')}</Text>
             <FlatList
               data={songs}
               renderItem={renderSongItem}
@@ -253,7 +321,7 @@ const Home: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Albums</Text>
+            <Text style={styles.sectionTitle}>{t('albums')}</Text>
             <FlatList
               data={albums}
               renderItem={renderAlbumItem}
@@ -265,7 +333,7 @@ const Home: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Playlists</Text>
+            <Text style={styles.sectionTitle}>{t('playlists')}</Text>
             <FlatList
               data={playlists}
               renderItem={renderPlaylistItem}
@@ -277,7 +345,7 @@ const Home: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Artists</Text>
+            <Text style={styles.sectionTitle}>{t('artists')}</Text>
             <FlatList
               data={artists}
               renderItem={renderArtistItem}

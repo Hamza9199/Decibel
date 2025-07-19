@@ -11,6 +11,7 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Slider } from '@miblanchard/react-native-slider';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from '@/types';
@@ -42,6 +43,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   minimized,
   onExpand,
 }) => {
+  const { t } = useTranslation();
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -58,7 +60,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [currentSong, setCurrentSong] = useState<Pjesma | null>(null);
   const [currentOwner, setCurrentOwner] = useState<Korisnik | null>(null);
   const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const [globalPlaylist, setGlobalPlaylist] = useState<Pjesma[]>([]);
   const [playlistIdx, setPlaylistIdx] = useState(-1);
@@ -69,9 +70,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [lastLoadedSrc, setLastLoadedSrc] = useState<string | null>(null);
   const [seekValue, setSeekValue] = useState(0);
   const [isSeekingProgress, setIsSeekingProgress] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isSeekingVolume, setIsSeekingVolume] = useState(false);
-  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  const [showSpeedModal, setShowSpeedModal] = useState(false);
+  const [statistikaSent, setStatistikaSent] = useState(false);
 
   // Initialize audio
   useEffect(() => {
@@ -92,33 +93,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   // Check subscription - TEMPORARILY DISABLED
   useEffect(() => {
-    // checkPretplata(); // Temporarily commented out
     setPretplataValid(true); // Temporarily set to true for testing
   }, []);
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const checkPretplata = async () => {
-    try {
-      const userData = await AsyncStorage.getItem('korisnik');
-      if (!userData) {
-        setPretplataValid(false);
-        return;
-      }
-      const user = JSON.parse(userData);
-      const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
-      const svePretplate = res.data || [];
-      
-      const moja = (svePretplate as KorisnikPretplata[]).find((p) => p.korisnikID === user.id);
-      if (!moja || !moja.datumIsteka || new Date(moja.datumIsteka) < new Date()) {
-        setPretplataValid(false);
-      } else {
-        setPretplataValid(true);
-      }
-    } catch (error) {
-      console.error('Failed to check subscription:', error);
-      setPretplataValid(false);
-    }
-  };
 
   const handleEnded = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
@@ -135,6 +111,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         setPlaying(false);
         setPlaylistIdx(-1);
         setGlobalPlaylist([]);
+        setCurrentSong(null);
       }
     } else {
       if (repeatOne) {
@@ -207,7 +184,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         uri: src,
         headers: {
           'Accept': 'audio/*',
-          'Range': 'bytes=0-', // Add range header for streaming
+          'Range': 'bytes=0-',
         }
       };
 
@@ -232,7 +209,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       
       // Wait for the sound to be fully loaded before attempting to play
       let loadCheckAttempts = 0;
-      const maxLoadAttempts = 20; // 2 seconds max wait
+      const maxLoadAttempts = 20;
       
       const checkIfLoaded = async (): Promise<boolean> => {
         try {
@@ -267,7 +244,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           console.log('Playback started successfully');
         } catch (playError) {
           console.error('Error starting playback:', playError);
-          // Don't set playing to true if playback failed
           setPlaying(false);
         }
       } else {
@@ -294,6 +270,38 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   }, [src, volume, playbackRate, onPlaybackStatusUpdate, sound, isLoading, lastLoadedSrc, isLoaded, loadingAttempts]);
 
+  // When globalPlaylist and playlistIdx changes, load the current song
+  useEffect(() => {
+    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
+      const song = globalPlaylist[playlistIdx];
+      setCurrentSong(song);
+      if (song?.putanjaAudio) {
+        // Reset statistics for new song
+        setStatistikaSent(false);
+        // Load the new song
+        if (src !== song.putanjaAudio) {
+          // This will trigger the loadAudio effect
+          setLastLoadedSrc(null);
+        }
+      }
+    }
+  }, [playlistIdx, globalPlaylist, src]);
+
+  // Set currentSong from props when not in playlist mode
+  useEffect(() => {
+    if (globalPlaylist.length === 0 && visible && src && id) {
+      setCurrentSong({
+        id,
+        naziv: title || 'Unknown Song',
+        putanjaAudio: src,
+        putanjaGif,
+        putanjaSlika,
+        korisnikID,
+      } as Pjesma);
+      setStatistikaSent(false);
+    }
+  }, [visible, src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
+
   // Load audio when src changes and subscription is valid
   useEffect(() => {
     if (src && pretplataValid && visible) {
@@ -305,22 +313,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   }, [src, pretplataValid, visible, loadAudio, lastLoadedSrc]);
 
-  // Update current song when props change
-  useEffect(() => {
-    if (visible && src && id) {
-      setCurrentSong({
-        id,
-        naziv: title || 'Unknown Song',
-        putanjaAudio: src,
-        putanjaGif,
-        putanjaSlika,
-        korisnikID,
-      } as Pjesma);
-    }
-  }, [visible, src, id, title, putanjaGif, putanjaSlika, korisnikID]);
-
   // Improved play/pause handler
   const handlePlayPause = async () => {
+    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
+      // Playlist mode
+      setPlaying(prev => !prev);
+    } else if (globalPlaylist.length === 0 && src) {
+      // Single song mode
+      setPlaying(prev => !prev);
+    }
+
     if (!sound) {
       console.warn('No sound object available');
       return;
@@ -336,7 +338,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       
       if (!status.isLoaded) {
         console.warn('Sound is not loaded');
-        // Try to reload
         if (src) {
           loadAudio();
         }
@@ -346,15 +347,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       if (playing) {
         console.log('Pausing playback');
         await sound.pauseAsync();
-        setPlaying(false);
       } else {
         console.log('Starting playback');
         await sound.playAsync();
-        setPlaying(true);
       }
     } catch (error) {
       console.error('Error in play/pause:', error);
-      // Try to reload the audio if there's an error
       if (src) {
         console.log('Attempting to reload audio after play/pause error');
         setIsLoaded(false);
@@ -451,17 +449,19 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   }, [sound, isLoaded, isLoading, muted]);
 
   const handleRepeatToggle = () => {
-    setRepeatOne(!repeatOne);
-    if (!repeatOne) setPlaylistRepeat(false);
+    setRepeatOne(prev => {
+      if (!prev) setPlaylistRepeat(false);
+      return !prev;
+    });
   };
 
   const handleRepeatAllToggle = () => {
-    setPlaylistRepeat(!playlistRepeat);
-    if (!playlistRepeat) setRepeatOne(false);
+    setPlaylistRepeat(prev => {
+      if (!prev) setRepeatOne(false);
+      return !prev;
+    });
   };
 
- 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleLike = async () => {
     if (!pjesma || !korisnik?.id) return;
     
@@ -469,6 +469,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       if (liked) {
         await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`);
         setLiked(false);
+        Alert.alert(t('success'), t('removed_from_favorites'));
       } else {
         await axios.post(`${API_BASE}/korisnik_pjesma/`, {
           korisnikID: korisnik.id,
@@ -476,9 +477,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           kreiranDatumVrijeme: new Date().toISOString(),
         });
         setLiked(true);
+        Alert.alert(t('success'), t('added_to_favorites'));
       }
     } catch (error) {
       console.error('Error liking/unliking song:', error);
+      Alert.alert(t('error'), t('error_favorites'));
     }
   };
 
@@ -495,22 +498,40 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         playlistaID: playlistaID,
       });
       setShowPlaylistModal(false);
-      Alert.alert('Success', 'Pjesma dodana u playlistu!');
+      Alert.alert(t('success'), t('song_added_to_playlist'));
     } catch (error) {
-        console.error('Error adding song to playlist:', error);
+      console.error('Error adding song to playlist:', error);
       setShowPlaylistModal(false);
-      Alert.alert('Error', 'Greška pri dodavanju pjesme u playlistu.');
+      Alert.alert(t('error'), t('error_adding_to_playlist'));
     }
   };
 
-  // Load user data
+  // Load user data and check if song is liked
   useEffect(() => {
-    if (korisnikID) {
-      axios.get(`${API_BASE}/korisnici/${korisnikID}`)
-        .then(res => setKorisnik(res.data))
-        .catch(() => setKorisnik(null));
-    }
-  }, [korisnikID]);
+    const loadUserAndCheckLike = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('korisnik');
+        if (userData) {
+          const user = JSON.parse(userData);
+          setKorisnik(user);
+          
+          // Check if current song is liked
+          if (pjesma?.id && user.id) {
+            const response = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+            const likedSongs = response.data || [];
+            const isLiked = likedSongs.some((item: any) => 
+              item.korisnikID === user.id && item.pjesmaID === pjesma.id
+            );
+            setLiked(isLiked);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading user data or checking like status:', error);
+      }
+    };
+
+    loadUserAndCheckLike();
+  }, [pjesma?.id]);
 
   // Load playlists
   useEffect(() => {
@@ -521,20 +542,98 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   }, [korisnik?.id]);
 
-  // Load song data
+  // Load song data and check if it's liked
   useEffect(() => {
-    if (src) {
-      axios.get(`${API_BASE}/pjesme/`)
-        .then(res => {
-          const p = (res.data as Pjesma[]).find((p) => p.putanjaAudio === src);
-          setPjesma(p || null);
-          setCurrentSong(p || null);
-        })
-        .catch(() => {
-          setPjesma(null);
-          setCurrentSong(null);
-        });
+    if (!src) {
+      setPjesma(null);
+      setLiked(false);
+      return;
     }
+
+    axios.get(`${API_BASE}/pjesme/`)
+      .then(res => {
+        const p = (res.data as Pjesma[]).find((p) => p.putanjaAudio === src);
+        setPjesma(p || null);
+        
+        // Check if song is liked by current user
+        if (p && korisnik?.id) {
+          axios.get(`${API_BASE}/korisnik_pjesma/`)
+            .then(r => {
+              const veze = r.data as { korisnikID: string; pjesmaID: number }[];
+              setLiked(!!veze.find(v => v.korisnikID === korisnik.id && v.pjesmaID === p.id));
+            })
+            .catch(() => setLiked(false));
+        } else {
+          setLiked(false);
+        }
+      })
+      .catch(() => {
+        setPjesma(null);
+        setLiked(false);
+      });
+  }, [src, korisnik?.id]);
+
+  // Add to listening history
+  useEffect(() => {
+    if (!pjesma || !korisnik?.id || !src) return;
+    
+    const addToHistorija = async () => {
+      try {
+        // API će automatski obrisati postojeći zapis i dodati novi
+        await axios.post(`${API_BASE}/historija/`, {
+          korisnikID: korisnik.id,
+          pjesmaID: pjesma.id,
+          playlistaID: null,
+          kreiranDatumVrijeme: new Date().toISOString(),
+          trajanje: pjesma.trajanjeSekunde || 0,
+          kontekstPustanjaURL: null,
+          offline: false,
+          kontekstPustanja: null,
+        });
+      } catch (error) {
+        console.error('Error adding to history:', error);
+      }
+    };
+    
+    addToHistorija();
+  }, [pjesma, pjesma?.id, korisnik?.id, src]);
+
+  // Add statistics after 30 seconds of listening
+  useEffect(() => {
+    if (!pjesma || !korisnik?.id || !playing || !src) {
+      setStatistikaSent(false);
+      return;
+    }
+    if (progress < 30 || statistikaSent) return;
+
+    const sendStatistika = async () => {
+      try {
+        // Statistics
+        await axios.post(`${API_BASE}/statistika/`, {
+          korisnikID: korisnik.id,
+          pjesmaID: pjesma.id,
+          brojReprodukcija: 1,
+          ukupnoTrajanje: pjesma.trajanjeSekunde || 0,
+          zadnjePustanje: new Date().toISOString(),
+        }).catch(() => {});
+
+        // Increase play count on song
+        await axios.put(`${API_BASE}/pjesme/${pjesma.id}`, {
+          ...pjesma,
+          brojReprodukcija: (pjesma.brojReprodukcija || 0) + 1,
+        }).catch(() => {});
+      } catch (error) {
+        console.error('Failed to send statistics:', error);
+      }
+      setStatistikaSent(true);
+    };
+
+    sendStatistika();
+  }, [progress, pjesma, korisnik?.id, statistikaSent, src, playing]);
+
+  // Reset statistics when song changes
+  useEffect(() => {
+    setStatistikaSent(false);
   }, [src]);
 
   // Load current owner
@@ -553,10 +652,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Add handler to close dropdown when touching outside
+  const handleOutsidePress = () => {
+    if (showSpeedModal) {
+      setShowSpeedModal(false);
+    }
+  };
+
   // Subscription check UI - TEMPORARILY DISABLED
   if (pretplataValid === false) {
-    // Temporarily commented out subscription check UI
-    /*
     if (showNoSubMsg) {
       return (
         <View style={styles.subscriptionContainer}>
@@ -567,19 +671,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <MaterialIcons name="close" size={24} color="#ffe6ec" />
           </TouchableOpacity>
           <Text style={styles.subscriptionText}>
-            Za slušanje muzike morate imati aktivnu pretplatu.
+            {t('subscription_required')}
           </Text>
           <TouchableOpacity
             style={styles.subscriptionButton}
             onPress={() => {}}
           >
-            <Text style={styles.subscriptionButtonText}>Kupi pretplatu</Text>
+            <Text style={styles.subscriptionButtonText}>{t('buy_subscription')}</Text>
           </TouchableOpacity>
         </View>
       );
     }
     return null;
-    */
   }
 
   if (!visible && !minimized) return null;
@@ -593,7 +696,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           style={styles.miniPlayerImage}
         />
         <Text style={styles.miniPlayerText} numberOfLines={1}>
-          {currentSong?.naziv || 'Pjesma'}
+          {currentSong?.naziv || t('current_song')}
         </Text>
         <MaterialIcons name={playing ? 'pause' : 'play-arrow'} size={24} color="#ffe6ec" />
       </TouchableOpacity>
@@ -602,12 +705,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   // Main player - redesigned to match mobile web layout
   return (
-    <View style={styles.audioPlayerBar}>
+    <TouchableOpacity 
+      style={styles.audioPlayerBar} 
+      activeOpacity={1} 
+      onPress={handleOutsidePress}
+    >
       <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-        <MaterialIcons name="close" size={18} color="#ffe6ec" />
+        <MaterialIcons name="close" size={20} color="#ffe6ec" />
       </TouchableOpacity>
 
-      {/* Top Row - Image, Meta, and Main Play Button */}
+      {/* Top Row - Image, Meta, and Like Button */}
       <View style={styles.topRow}>
         <Image
           source={{ uri: currentSong?.putanjaGif || currentSong?.putanjaSlika || 'https://via.placeholder.com/150' }}
@@ -617,10 +724,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         <View style={styles.audioMeta}>
           <View style={styles.audioDetails}>
             <Text style={styles.audioArtist} numberOfLines={1}>
-              {currentOwner?.korisnicko_ime || 'Nepoznati korisnik'}
+              {currentOwner?.korisnicko_ime || t('unknown_user')}
             </Text>
             <Text style={styles.audioTitle} numberOfLines={1}>
-              {currentSong?.naziv || 'Trenutno nema pjesme'}
+              {currentSong?.naziv || t('no_current_song')}
             </Text>
           </View>
           <Text style={styles.audioTime}>
@@ -628,10 +735,23 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </Text>
           {isLoading && (
             <Text style={styles.loadingText}>
-              Loading{loadingAttempts > 1 ? ` (${loadingAttempts})` : ''}...
+              {t('loading')}{loadingAttempts > 1 ? ` (${loadingAttempts})` : ''}...
             </Text>
           )}
         </View>
+
+        {/* Like Button positioned to the right */}
+        <TouchableOpacity 
+          onPress={handleLike}
+          disabled={!isLoaded || isLoading || !korisnik?.id}
+          style={styles.likeButton}
+        >
+          <MaterialIcons 
+            name={liked ? 'favorite' : 'favorite-border'} 
+            size={20} 
+            color={liked ? "#e91e63" : (!isLoaded || isLoading || !korisnik?.id) ? "#666" : "#ffe6ec"} 
+          />
+        </TouchableOpacity>
       </View>
 
       {/* Controls Row - Play Button and Progress Bar */}
@@ -739,30 +859,54 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             />
           </TouchableOpacity>
 
-          {/* Playback Rate */}
-          <View style={styles.rateContainer}>
-            <Text style={styles.rateLabel}>Speed</Text>
-            <View style={styles.rateButtons}>
-              {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                <TouchableOpacity
-                  key={rate}
-                  style={[
-                    styles.rateButton,
-                    playbackRate === rate && styles.rateButtonActive,
-                    (!isLoaded || isLoading) && styles.rateButtonDisabled
-                  ]}
-                  onPress={() => handleRateChange(rate)}
-                  disabled={!isLoaded || isLoading}
-                >
-                  <Text style={[
-                    styles.rateButtonText,
-                    playbackRate === rate && styles.rateButtonTextActive
-                  ]}>
-                    {rate}x
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
+          {/* Playback Speed Select */}
+          <View style={styles.speedContainer}>
+            <TouchableOpacity 
+              onPress={() => setShowSpeedModal(true)}
+              disabled={!isLoaded || isLoading}
+              style={styles.speedSelector}
+            >
+              <Text style={[
+                styles.speedText,
+                (!isLoaded || isLoading) && styles.speedTextDisabled
+              ]}>
+                {playbackRate}x
+              </Text>
+              <MaterialIcons 
+                name="expand-more" 
+                size={16} 
+                color={(!isLoaded || isLoading) ? "#666" : "#ffe6ec"} 
+              />
+            </TouchableOpacity>
+
+            {/* Speed Dropdown */}
+            {showSpeedModal && (
+              <View style={styles.speedDropdown}>
+                {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                  <TouchableOpacity
+                    key={rate}
+                    style={[
+                      styles.speedDropdownItem,
+                      playbackRate === rate && styles.speedDropdownItemActive
+                    ]}
+                    onPress={() => {
+                      handleRateChange(rate);
+                      setShowSpeedModal(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.speedDropdownText,
+                      playbackRate === rate && styles.speedDropdownTextActive
+                    ]}>
+                      {rate}x
+                    </Text>
+                    {playbackRate === rate && (
+                      <MaterialIcons name="check" size={14} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -776,7 +920,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Dodaj u playlistu</Text>
+            <Text style={styles.modalTitle}>{t('add_to_playlist')}</Text>
             <FlatList
               data={playlists}
               keyExtractor={(item) => item.id.toString()}
@@ -793,14 +937,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
               style={styles.modalCloseBtn}
               onPress={() => setShowPlaylistModal(false)}
             >
-              <Text style={styles.modalCloseBtnText}>Zatvori</Text>
+              <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 export default AudioPlayer;
-              
+
+

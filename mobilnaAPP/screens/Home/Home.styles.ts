@@ -4,6 +4,8 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#181818',
+        marginBottom: 50,
+
   },
   scrollContainer: {
     flex: 1,
@@ -104,11 +106,14 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
     paddingHorizontal: 10,
     paddingTop: 10,
+    textDecorationLine: 'none',
   },
   cardDesc: {
-    color: '#888',
+    color: '#b3b3b3',
     fontSize: 12,
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+    textAlign: 'center',
+    marginBottom: 4,
+    textDecorationLine: 'none',
+    paddingBottom: 5,
   },
 });

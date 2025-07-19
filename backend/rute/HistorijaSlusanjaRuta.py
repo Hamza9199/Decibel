@@ -47,19 +47,19 @@ async def get_historija(historija_id: int, session: AsyncSession = Depends(get_s
 
 @router.post("/", response_model=HistorijaSlusanja)
 async def nova_historija(data: HistorijaSlusanjaCreate, session: AsyncSession = Depends(get_session)):
-    # Provjeri postoji li već zapis za korisnikID + pjesmaID
+    # Prvo obriši postojeći zapis za korisnikID + pjesmaID (ako postoji)
     result = await session.execute(
         select(HistorijaSlusanjaORM).where(
             HistorijaSlusanjaORM.korisnikID == data.korisnikID,
             HistorijaSlusanjaORM.pjesmaID == data.pjesmaID
         )
     )
-    postoji = result.scalar_one_or_none()
-    if postoji:
-        # Možeš vratiti postojeći zapis ili HTTP 409
-        # from fastapi import status
-        # raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Već postoji zapis za ovu pjesmu u historiji.")
-        return postoji
+    postojeci = result.scalar_one_or_none()
+    if postojeci:
+        await session.delete(postojeci)
+        await session.flush()  # Osiguraj da je brisanje izvršeno prije dodavanja novog
+    
+    # Kreiraj novi zapis
     db_obj = await create_historija(session, data)
     return db_obj
 

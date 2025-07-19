@@ -25,3 +25,29 @@ async def delete_historija(session: AsyncSession, historija_id: int):
     await session.delete(db_historija)
     await session.commit()
     return db_historija
+
+async def delete_existing_historija_for_user_song(session: AsyncSession, korisnik_id: str, pjesma_id: int):
+    """Obriši postojeći zapis historije za korisnika i pjesmu (ako postoji)"""
+    result = await session.execute(
+        select(HistorijaSlusanjaORM).where(
+            HistorijaSlusanjaORM.korisnikID == korisnik_id,
+            HistorijaSlusanjaORM.pjesmaID == pjesma_id
+        )
+    )
+    postojeci = result.scalar_one_or_none()
+    if postojeci:
+        await session.delete(postojeci)
+        await session.flush()
+    return postojeci
+
+async def create_historija_without_duplicates(session: AsyncSession, historija: HistorijaSlusanjaCreate):
+    """Kreiraj novu historiju, prethodno obrisavši postojeću za isti korisnik-pjesma par"""
+    # Prvo obriši postojeću
+    await delete_existing_historija_for_user_song(session, historija.korisnikID, historija.pjesmaID)
+    
+    # Kreiraj novu
+    db_historija = HistorijaSlusanjaORM(**historija.dict())
+    session.add(db_historija)
+    await session.commit()
+    await session.refresh(db_historija)
+    return db_historija

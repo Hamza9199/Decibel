@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, ForeignKey, DateTime, Integer, Boolean, String, UniqueConstraint
+from sqlalchemy import Column, BigInteger, ForeignKey, DateTime, Integer, Boolean, String
 from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy.orm import relationship
 from servisi.Baza import Base
@@ -24,10 +24,6 @@ class HistorijaSlusanjaORM(Base):
     pjesma = relationship("PjesmaORM", foreign_keys=[pjesmaID])
     playlista = relationship("PlaylistaORM", foreign_keys=[playlistaID])
 
-    __table_args__ = (
-        UniqueConstraint('korisnikID', 'pjesmaID', name='uq_historija_korisnik_pjesma'),
-    )
-
 # Pydantic modeli
 
 class HistorijaSlusanjaBase(BaseModel):
@@ -44,6 +40,10 @@ class HistorijaSlusanjaCreate(HistorijaSlusanjaBase):
     pass
 
 class HistorijaSlusanja(HistorijaSlusanjaBase):
+    id: int
+
+    class Config:
+        orm_mode = True
     id: int
 
     class Config:

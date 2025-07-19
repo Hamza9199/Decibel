@@ -18,19 +18,23 @@ export const styles = StyleSheet.create({
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
   },
+  
   closeBtn: {
     position: 'absolute',
-    top: 4,
-    right: 12,
-    zIndex: 10,
+    right: 5,
+    top: 5,
     padding: 8,
-    width: 28,
-    height: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
+    zIndex: 10,
+    backgroundColor: '#181818',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   
-  // Top Row Layout
+  // Top Row Layout - Updated
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -47,6 +51,7 @@ export const styles = StyleSheet.create({
   audioMeta: {
     flex: 1,
     justifyContent: 'flex-start',
+    marginRight: 8,
   },
   audioDetails: {
     marginBottom: 2,
@@ -160,48 +165,85 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  // Rate Controls
-  rateContainer: {
-    alignItems: 'center',
+  // Speed Controls - Updated
+  speedContainer: {
+    position: 'relative',
     marginLeft: 8,
   },
-  rateLabel: {
-    color: '#ffe6ec',
-    fontSize: 8,
-    marginBottom: 2,
-  },
-  rateButtons: {
+  speedSelector: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    maxWidth: 120,
-  },
-  rateButton: {
+    alignItems: 'center',
     backgroundColor: '#181818',
     borderWidth: 1,
     borderColor: '#b91d95',
-    paddingHorizontal: 4,
-    paddingVertical: 2,
-    borderRadius: 3,
-    margin: 1,
-    minWidth: 28,
-    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    minWidth: 48,
+    justifyContent: 'center',
   },
-  rateButtonActive: {
+  speedText: {
+    color: '#ffe6ec',
+    fontSize: 12,
+    fontWeight: '500',
+    marginRight: 2,
+  },
+  speedTextDisabled: {
+    color: '#666',
+  },
+
+  // Speed Dropdown - New compact design
+  speedDropdown: {
+    position: 'absolute',
+    bottom: '100%',
+    right: 0,
+    backgroundColor: '#232323',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#b91d95',
+    marginBottom: 4,
+    zIndex: 1000,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    minWidth: 80,
+  },
+  speedDropdownItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#444',
+  },
+  speedDropdownItemActive: {
     backgroundColor: '#b91d95',
   },
-  rateButtonDisabled: {
-    backgroundColor: '#333',
-    borderColor: '#666',
-    opacity: 0.5,
-  },
-  rateButtonText: {
+  speedDropdownText: {
     color: '#ffe6ec',
-    fontSize: 8,
+    fontSize: 14,
     fontWeight: '500',
   },
-  rateButtonTextActive: {
+  speedDropdownTextActive: {
     color: '#fff',
     fontWeight: '600',
+  },
+  likeButton: {
+    position: 'absolute',
+    left: 140,
+    top: 17,
+    padding: 8,
+    zIndex: 10,
+    backgroundColor: '#181818',
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
 
   // Mini Player

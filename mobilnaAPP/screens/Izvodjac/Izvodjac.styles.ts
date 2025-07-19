@@ -1,0 +1,170 @@
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#181818',
+    marginBottom: 50,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 100,
+  },
+  content: {
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(35, 35, 35, 0.97)',
+    borderRadius: 18,
+    padding: 24,
+    shadowColor: '#b91d95',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.13,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  artistMain: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  artistImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 16,
+  },
+  artistInfo: {
+    alignItems: 'center',
+  },
+  artistName: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  artistMeta: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    marginBottom: 12,
+    justifyContent: 'center',
+  },
+  metaItem: {
+    color: '#ffe6ec',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  artistBio: {
+    color: '#b3b3b3',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  followButton: {
+    backgroundColor: '#b91d95',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  followButtonFollowing: {
+    backgroundColor: '#e754a2',
+  },
+  followButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+    letterSpacing: 1,
+    paddingLeft: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#b91d95',
+  },
+  noItems: {
+    color: '#b3b3b3',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
+    fontStyle: 'italic',
+  },
+  itemCard: {
+    backgroundColor: '#232323',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  itemImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  itemInfo: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  itemTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  itemActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  actionButton: {
+    backgroundColor: '#b91d95',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#181818',
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 16,
+    marginTop: 16,
+  },
+  notFoundContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#181818',
+    paddingHorizontal: 20,
+  },
+  notFoundText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 16,
+  },
+});

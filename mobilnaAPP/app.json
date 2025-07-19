@@ -1,25 +1,30 @@
 {
   "expo": {
-    "name": "mobilnaAPP",
-    "slug": "mobilnaAPP",
+    "name": "Decibel",
+    "slug": "decibel-mobile",
     "version": "1.0.0",
     "updates": {
       "fallbackToCacheTimeout": 0
     },
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobilnaapp",
+    "scheme": "decibel",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gale9199.decibel"
     },
     "android": {
+      "package": "com.gale9199.decibel",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#333333"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": false,
+      "navigationBarBackgroundColor": "#232323",
+      "navigationBarStyle": "dark",
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",
@@ -34,7 +39,15 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#333"
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "position": "sticky",
+          "backgroundColor": "#333333",
+          "borderTopColor": "#333333"
         }
       ]
     ],

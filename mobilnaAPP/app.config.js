@@ -12,7 +12,7 @@ export default {
     splash: {
       image: "./assets//images/splash-icon.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff"
+      backgroundColor: "#333"
     },
     assetBundlePatterns: [
       "**/*"
@@ -25,7 +25,7 @@ export default {
       package: "com.gale9199.decibel",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff"
+        backgroundColor: "#333"
       }
     },
     web: {

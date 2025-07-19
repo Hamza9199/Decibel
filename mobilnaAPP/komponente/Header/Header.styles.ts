@@ -1,36 +1,61 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 
 export const styles = StyleSheet.create({
   header: {
-    width: '100%',
-    backgroundColor: '#232323',
-    padding: 18,
-    paddingTop: 50, // Account for status bar
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginTop: 15,
+    backgroundColor: '#232323',
+    borderBottomWidth: 1,
+    borderBottomColor: '#b91d95',
+    paddingTop: Platform.OS === 'ios' ? 50 : 16,
+  },
+  menuButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(185, 29, 149, 0.1)',
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    marginHorizontal: 16,
+    marginLeft: -8,
   },
   logoImg: {
-    height: 38,
-    width: 38,
-    marginRight: 14,
-    borderRadius: 19,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 10,
   },
   logo: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#fff',
-    letterSpacing: 2,
-    marginRight: 50,
+    color: '#ffe6ec',
+    letterSpacing: 1,
+  },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    marginRight: 5,
+  },
+  profileButton: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  profileImgMobile: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   searchContainer: {
     flex: 1,
@@ -68,12 +93,6 @@ export const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 20,
-  },
-  profileImgMobile: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    marginRight: 8,
   },
   logoutBtn: {
     backgroundColor: '#b91d95',

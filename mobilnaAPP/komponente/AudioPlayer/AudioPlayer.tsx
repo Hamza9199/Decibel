@@ -14,6 +14,7 @@ import { Slider } from '@miblanchard/react-native-slider';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './AudioPlayer.styles';
@@ -70,6 +71,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [lastLoadedSrc, setLastLoadedSrc] = useState<string | null>(null);
   const [seekValue, setSeekValue] = useState(0);
   const [isSeekingProgress, setIsSeekingProgress] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isSeekingVolume, setIsSeekingVolume] = useState(false);
   const [showSpeedModal, setShowSpeedModal] = useState(false);
   const [statistikaSent, setStatistikaSent] = useState(false);
@@ -573,6 +575,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       });
   }, [src, korisnik?.id]);
 
+  /*
   // Add to listening history
   useEffect(() => {
     if (!pjesma || !korisnik?.id || !src) return;
@@ -596,7 +599,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     };
     
     addToHistorija();
-  }, [pjesma, pjesma?.id, korisnik?.id, src]);
+  }, [pjesma, pjesma?.id, korisnik?.id, src]);*/
 
   // Add statistics after 30 seconds of listening
   useEffect(() => {

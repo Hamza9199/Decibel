@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     borderTopColor: '#b91d95',
     flexDirection: 'row',
     paddingBottom: 8,
-    paddingTop: 9,
+    paddingTop: 7,
     paddingHorizontal: 8,
   },
   tabBarItem: {

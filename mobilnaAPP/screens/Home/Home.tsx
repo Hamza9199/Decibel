@@ -15,7 +15,6 @@ import axios from 'axios';
 import { Image } from 'expo-image';
 import { Album, Korisnik, Pjesma, Playlista } from '@/types';
 import Header from '@/komponente/Header/Header';
-import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
 import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Home.styles';
@@ -31,8 +30,7 @@ const Home: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   
-  const { audioState, playAudio, closeAudio, expandAudio } = useAudio();
-
+  const { playAudio } = useAudio();
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -357,22 +355,9 @@ const Home: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-      
-      {/* Audio Player */}
-      <AudioPlayer
-        id={audioState.id}
-        src={audioState.src}
-        title={audioState.title}
-        putanjaGif={audioState.putanjaGif}
-        putanjaSlika={audioState.putanjaSlika}
-        korisnikID={audioState.korisnikID}
-        visible={audioState.visible}
-        minimized={audioState.minimized}
-        onClose={closeAudio}
-        onExpand={expandAudio}
-      />
     </View>
   );
 };
 
 export default Home;
+      

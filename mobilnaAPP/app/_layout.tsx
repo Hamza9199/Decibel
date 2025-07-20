@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useSegments, Stack } from 'expo-router';
 import '../i18n'; 
+import { AudioProvider, useAudio } from '@/context/AudioContext';
+import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
 
 export default function RootLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -43,25 +45,39 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" backgroundColor="#232323" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: '#181818' },
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="login" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen 
-          name="settings" 
-          options={{ 
+      <AudioProvider>
+        <StatusBar style="light" backgroundColor="#232323" />
+        <AudioPlayerWrapper />
+        <Stack
+          screenOptions={{
             headerShown: false,
-            presentation: 'modal',
-          }} 
-        />
-      </Stack>
+            contentStyle: { backgroundColor: '#181818' },
+          }}
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="register" options={{ headerShown: false }} />
+        </Stack>
+      </AudioProvider>
     </SafeAreaProvider>
   );
 }
 
+function AudioPlayerWrapper() {
+  const audio = useAudio();
+  return (
+    <AudioPlayer
+      id={audio.audioState.id}
+      src={audio.audioState.src}
+      title={audio.audioState.title}
+      putanjaGif={audio.audioState.putanjaGif}
+      putanjaSlika={audio.audioState.putanjaSlika}
+      korisnikID={audio.audioState.korisnikID}
+      visible={audio.audioState.visible}
+      minimized={audio.audioState.minimized}
+      onClose={audio.closeAudio}
+      onExpand={audio.expandAudio}
+    />
+  );
+}
+   

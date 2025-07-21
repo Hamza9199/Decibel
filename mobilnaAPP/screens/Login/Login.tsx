@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -30,24 +30,6 @@ const Login: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const checkIfLoggedIn = React.useCallback(async () => {
-    try {
-      const userData = await AsyncStorage.getItem('korisnik');
-      if (userData) {
-        const user = JSON.parse(userData);
-        if (user && user.id) {
-          router.replace('/');
-        }
-      }
-    } catch (error) {
-      console.error('Error checking login status:', error);
-    }
-  }, [router]);
-
-  useEffect(() => {
-    checkIfLoggedIn();
-  }, [checkIfLoggedIn]);
-
   const handleSubmit = async () => {
     if (!email.trim() || !lozinka.trim()) {
       setError(t('fill_all_fields') || 'Please fill all fields');
@@ -64,11 +46,9 @@ const Login: React.FC = () => {
       });
 
       if (response.data) {
-        // Save user data to AsyncStorage
         await AsyncStorage.setItem('korisnik', JSON.stringify(response.data));
         
-        // Navigate to home screen
-        router.replace('/');
+        router.replace('/(tabs)');
       } else {
         setError(t('login_failed') || 'Login failed');
       }
@@ -212,3 +192,4 @@ const Login: React.FC = () => {
 };
 
 export default Login;
+           

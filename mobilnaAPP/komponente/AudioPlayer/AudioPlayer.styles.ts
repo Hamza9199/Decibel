@@ -17,7 +17,6 @@ export const styles = StyleSheet.create({
     minHeight: 100,
     borderTopLeftRadius: 8,
     borderTopRightRadius: 8,
-    marginBottom: 110,
     zIndex: 10000,
   },
   
@@ -251,7 +250,7 @@ export const styles = StyleSheet.create({
   // Mini Player
   miniPlayer: {
     position: 'absolute',
-    bottom: 120,
+    bottom: 50,
     right: 16,
     backgroundColor: '#232323',
     borderRadius: 25,

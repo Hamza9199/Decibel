@@ -6,6 +6,7 @@ import {
   Modal,
   ScrollView,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -66,8 +67,12 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('korisnik');
-              onClose();
-              router.replace('/login');
+                onClose();
+              
+              setTimeout(() => {
+                router.replace('/login');
+              }, 300);
+
             } catch (error) {
               console.error('Error during logout:', error);
             }

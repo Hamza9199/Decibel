@@ -30,7 +30,7 @@ const Home: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   
-  const { playAudio } = useAudio();
+  const { playAudio, playPlaylist } = useAudio();
   useEffect(() => {
     loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -114,11 +114,8 @@ const Home: React.FC = () => {
         console.warn('Album has no playable songs');
         return;
       }
-      
-      // Play the first song
-      const firstSong = albumSongs[0];
-      setActiveSongId(firstSong.id);
-      playAudio(firstSong);
+      // Play cijelu playlistu albuma
+      playPlaylist(albumSongs, 0);
     } catch (error) {
       console.error('Failed to play album:', error);
     }
@@ -129,20 +126,19 @@ const Home: React.FC = () => {
       // Fetch playlist songs
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
       const songIds: number[] = res.data || [];
-      
       if (songIds.length === 0) {
         console.warn('Playlist is empty');
         return;
       }
-      
-      // Fetch first song details
-      const firstSongRes = await axios.get(`${API_BASE}/pjesme/${songIds[0]}`);
-      const firstSong = firstSongRes.data;
-      
-      if (firstSong && firstSong.putanjaAudio) {
-        setActiveSongId(firstSong.id);
-        playAudio(firstSong);
+      // Fetch sve pjesme iz playliste
+      const songResponses = await Promise.all(songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`)));
+      const playlistSongs = songResponses.map(r => r.data).filter(s => s && s.putanjaAudio && s.odobreno);
+      if (playlistSongs.length === 0) {
+        console.warn('No playable songs in playlist');
+        return;
       }
+      // Play cijelu playlistu
+      playPlaylist(playlistSongs, 0);
     } catch (error) {
       console.error('Failed to play playlist:', error);
     }
@@ -360,4 +356,5 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+  
       

@@ -39,7 +39,7 @@ const Register: React.FC = () => {
       if (userData) {
         const user = JSON.parse(userData);
         if (user && user.id) {
-          router.replace('/');
+          router.replace('/(tabs)');
         }
       }
     } catch (error) {
@@ -87,7 +87,7 @@ const Register: React.FC = () => {
         await AsyncStorage.setItem('korisnik', JSON.stringify(response.data));
         
         setTimeout(() => {
-          router.replace('/');
+          router.replace('/(tabs)');
         }, 1500);
       } else {
         setError(t('registration_failed') || 'Registration failed');

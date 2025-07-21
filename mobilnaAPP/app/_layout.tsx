@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useSegments, Stack } from 'expo-router';
+import { AppState } from 'react-native';
 import '../i18n'; 
 import { AudioProvider, useAudio } from '@/context/AudioContext';
 import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
@@ -12,19 +13,36 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
 
+  // Pozivaj checkAuthState na mount, promjenu rute i promjenu fokusa aplikacije
   useEffect(() => {
     checkAuthState();
+
+    const subscription = AppState.addEventListener('change', () => {
+      checkAuthState();
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
+
+  useEffect(() => {
+    checkAuthState();
+  }, [segments]);
 
   useEffect(() => {
     if (isLoggedIn === null) return; 
 
-    const inAuthGroup = segments[0] === 'login' || segments[0] === 'register';
-    
+    const currentRoute = segments.join('/');
+    const inAuthGroup = currentRoute === 'login' || currentRoute === 'register';
+
+    // Debug info
+    console.log('isLoggedIn:', isLoggedIn, 'segments:', segments, 'currentRoute:', currentRoute);
+
     if (!isLoggedIn && !inAuthGroup) {
       router.replace('/login');
     } else if (isLoggedIn && inAuthGroup) {
-      router.replace('/');
+      router.replace('/(tabs)');
     }
   }, [isLoggedIn, router, segments]);
 
@@ -46,9 +64,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AudioProvider>
-        <StatusBar style="light" backgroundColor="#232323" />
+        <StatusBar style="light" backgroundColor="#181818" />
         <AudioPlayerWrapper />
         <Stack
+          key={isLoggedIn === false ? 'loggedOut' : 'loggedIn'}
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: '#181818' },
@@ -80,4 +99,4 @@ function AudioPlayerWrapper() {
     />
   );
 }
-   
+

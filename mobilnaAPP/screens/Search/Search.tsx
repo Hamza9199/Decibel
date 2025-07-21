@@ -7,6 +7,8 @@ import {
   FlatList,
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -46,9 +48,9 @@ const Search: React.FC = () => {
     korisnici: [],
   });
   const [loading, setLoading] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
 
-  // Load current user
   useEffect(() => {
     const loadUser = async () => {
       try {
@@ -63,7 +65,6 @@ const Search: React.FC = () => {
     loadUser();
   }, []);
 
-  // Debounced search
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (searchTerm.trim()) {
@@ -91,7 +92,6 @@ const Search: React.FC = () => {
 
       const termLower = term.toLowerCase();
 
-      // Filter songs
       const filteredSongs = (pjesmeRes.data as Pjesma[])
         .filter(s => 
           s.odobreno && 
@@ -101,7 +101,6 @@ const Search: React.FC = () => {
         )
         .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0));
 
-      // Filter albums
       const filteredAlbums = (albumiRes.data as Album[])
         .filter(a => 
           a.odobreno && 
@@ -110,7 +109,6 @@ const Search: React.FC = () => {
         )
         .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0));
 
-      // Filter playlists
       const filteredPlaylists = (playlisteRes.data as Playlista[])
         .filter(p => 
           p.javno && 
@@ -119,7 +117,6 @@ const Search: React.FC = () => {
         )
         .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0));
 
-      // Filter users
       const filteredUsers = (korisniciceRes.data as Korisnik[])
         .filter(k => 
           k.statusKorisnika !== 'suspendovan' &&
@@ -236,7 +233,6 @@ const Search: React.FC = () => {
         });
         break;
       default:
-        // Add all items with section headers
         if (results.pjesme.length > 0) {
           items.push({ type: 'song', data: { id: -1, naziv: t('songs') } as Pjesma, id: 'header-songs' });
           results.pjesme.forEach(song => {
@@ -273,56 +269,6 @@ const Search: React.FC = () => {
 
   const filteredResults = getFilteredResults();
   const hasResults = filteredResults.length > 0;
-
-  const renderHeader = () => (
-    <View>
-      {/* Search Input */}
-      <View style={styles.searchContainer}>
-        <MaterialIcons name="search" size={24} color="#888" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('search_placeholder') || 'Search songs, albums, playlists...'}
-          placeholderTextColor="#888"
-          value={searchTerm}
-          onChangeText={setSearchTerm}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        {searchTerm.length > 0 && (
-          <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
-            <MaterialIcons name="clear" size={20} color="#888" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Filters */}
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtersContainer}
-        data={filters}
-        keyExtractor={(item) => item.key}
-        renderItem={({ item: filter }) => (
-          <TouchableOpacity
-            style={[
-              styles.filterButton,
-              activeFilter === filter.key && styles.filterButtonActive,
-            ]}
-            onPress={() => handleFilterPress(filter.key)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                activeFilter === filter.key && styles.filterButtonTextActive,
-              ]}
-            >
-              {filter.label}
-            </Text>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
-  );
 
   const renderEmptyState = () => {
     if (loading) {
@@ -362,7 +308,6 @@ const Search: React.FC = () => {
   };
 
   const renderResultItem = ({ item }: { item: ResultItem }) => {
-    // Render section headers
     if (item.id.startsWith('header-')) {
       return (
         <View style={styles.sectionHeader}>
@@ -474,17 +419,68 @@ const Search: React.FC = () => {
   );
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={0}
+    >
+      <View>
+        <View style={styles.searchContainer}>
+          <MaterialIcons name="search" size={24} color="#888" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('search_placeholder') || 'Search songs, albums, playlists...'}
+            placeholderTextColor="#888"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchTerm.length > 0 && (
+            <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
+              <MaterialIcons name="clear" size={20} color="#888" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersContainer}
+          data={filters}
+          keyExtractor={(item) => item.key}
+          renderItem={({ item: filter }) => (
+            <TouchableOpacity
+              style={[
+                styles.filterButton,
+                activeFilter === filter.key && styles.filterButtonActive,
+              ]}
+              onPress={() => handleFilterPress(filter.key)}
+            >
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  activeFilter === filter.key && styles.filterButtonTextActive,
+                ]}
+              >
+                {filter.label}
+              </Text>
+            </TouchableOpacity>
+          )}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+        />
+      </View>
       <FlatList
         data={hasResults ? filteredResults : []}
         renderItem={renderResultItem}
         keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={hasResults ? styles.resultsList : { flexGrow: 1 }}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 

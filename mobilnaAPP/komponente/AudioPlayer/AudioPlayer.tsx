@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './AudioPlayer.styles';
+import { useAudio } from '@/context/AudioContext';
 
 interface AudioPlayerProps {
   id?: number;
@@ -62,8 +63,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [currentOwner, setCurrentOwner] = useState<Korisnik | null>(null);
   const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
-  const [globalPlaylist, setGlobalPlaylist] = useState<Pjesma[]>([]);
-  const [playlistIdx, setPlaylistIdx] = useState(-1);
   const [playlistRepeat, setPlaylistRepeat] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -98,31 +97,36 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setPretplataValid(true); // Temporarily set to true for testing
   }, []);
 
+  // Dodaj useEffect za repeatOne (isLooping)
+  useEffect(() => {
+    if (sound && isLoaded) {
+      sound.setIsLoopingAsync(repeatOne);
+    }
+  }, [repeatOne, sound, isLoaded]);
+
+  const audioCtx = useAudio();
+
+  // Zamijeni lokalni state s context state
+  const playlistIdx = audioCtx.audioState.playlistIdx ?? -1;
+  const globalPlaylist = React.useMemo(
+    () => audioCtx.audioState.globalPlaylist ?? [],
+    [audioCtx.audioState.globalPlaylist]
+  );
+
   const handleEnded = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
-      if (repeatOne) {
-        sound?.replayAsync();
-        return;
-      }
       const nextIdx = playlistIdx + 1;
       if (nextIdx < globalPlaylist.length) {
-        setPlaylistIdx(nextIdx);
+        audioCtx.setPlaylistIdx(nextIdx);
       } else if (playlistRepeat) {
-        setPlaylistIdx(0);
+        audioCtx.setPlaylistIdx(0);
       } else {
         setPlaying(false);
-        setPlaylistIdx(-1);
-        setGlobalPlaylist([]);
-        setCurrentSong(null);
       }
     } else {
-      if (repeatOne) {
-        sound?.replayAsync();
-        return;
-      }
       setPlaying(false);
     }
-  }, [globalPlaylist, playlistIdx, repeatOne, sound, playlistRepeat]);
+  }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
 
   // Update the onPlaybackStatusUpdate callback
   const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
@@ -130,13 +134,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       setProgress(status.positionMillis / 1000);
       setDuration(status.durationMillis ? status.durationMillis / 1000 : 0);
       setPlaying(status.isPlaying);
-      
+
       if (!isLoaded) {
         setIsLoaded(true);
         console.log('Sound loaded via status update');
       }
 
-      if (status.didJustFinish) {
+      if ('didJustFinish' in status && status.didJustFinish) {
         console.log('Playback finished');
         handleEnded();
       }
@@ -145,8 +149,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         console.log('Sound unloaded');
         setIsLoaded(false);
       }
-      
-      if (status.error) {
+      if ('error' in status && status.error) {
         console.error('Audio playback error:', status.error);
         setIsLoaded(false);
         setPlaying(false);
@@ -157,10 +160,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
   // Load audio when src changes
   const loadAudio = useCallback(async () => {
     if (!src || isLoading) return;
+
     
+
     // Don't reload if it's the same source and already loaded
     if (src === lastLoadedSrc && isLoaded && sound) {
-      console.log('Audio already loaded for this source');
       return;
     }
     
@@ -272,22 +276,32 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   }, [src, volume, playbackRate, onPlaybackStatusUpdate, sound, isLoading, lastLoadedSrc, isLoaded, loadingAttempts]);
 
-  // When globalPlaylist and playlistIdx changes, load the current song
+  const lastPlaylistIdxRef = React.useRef<number | null>(null);
+  const lastPlaylistRepeatRef = React.useRef<boolean | null>(null);
+
   useEffect(() => {
-    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
+    if (
+      globalPlaylist.length > 0 &&
+      playlistIdx >= 0 &&
+      playlistIdx < globalPlaylist.length
+    ) {
       const song = globalPlaylist[playlistIdx];
       setCurrentSong(song);
-      if (song?.putanjaAudio) {
-        // Reset statistics for new song
-        setStatistikaSent(false);
-        // Load the new song
-        if (src !== song.putanjaAudio) {
-          // This will trigger the loadAudio effect
-          setLastLoadedSrc(null);
+
+      // Only call playPlaylist if playlistIdx or playlistRepeat actually changed
+      if (
+        lastPlaylistIdxRef.current !== playlistIdx ||
+        lastPlaylistRepeatRef.current !== playlistRepeat
+      ) {
+        if (song?.putanjaAudio) {
+          setStatistikaSent(false);
+          audioCtx.playPlaylist(globalPlaylist, playlistIdx, playlistRepeat);
         }
+        lastPlaylistIdxRef.current = playlistIdx;
+        lastPlaylistRepeatRef.current = playlistRepeat;
       }
     }
-  }, [playlistIdx, globalPlaylist, src]);
+  }, [playlistIdx, globalPlaylist, playlistRepeat, audioCtx]);
 
   // Set currentSong from props when not in playlist mode
   useEffect(() => {
@@ -363,24 +377,40 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  // Update seek value when progress changes (only if not actively seeking)
   useEffect(() => {
     if (!isSeekingProgress) {
       setSeekValue(progress);
     }
   }, [progress, isSeekingProgress]);
 
-  // Enhanced handleSeek with proper state management
   const handleSeek = useCallback(async (value: number) => {
-    if (!sound || !isLoaded || isLoading) return;
+  if (!sound || !isLoaded || isLoading) return;
 
-    try {
-      await sound.setPositionAsync(value * 1000);
-      setProgress(value);
-    } catch (error) {
-      console.error('Error seeking audio:', error);
+  try {
+    // Get current status
+    const status = await sound.getStatusAsync();
+    if (!status.isLoaded) return;
+
+    // Calculate seek position in milliseconds
+    const seekPosition = Math.max(0, Math.min(value, status.durationMillis ? status.durationMillis / 1000 : 0)) * 1000;
+    
+    // Remember if we were playing
+    const wasPlaying = status.isPlaying;
+    
+    // Seek to position
+    await sound.setPositionAsync(seekPosition);
+    
+    // If we were playing, resume playback
+    if (wasPlaying) {
+      await sound.playAsync();
     }
-  }, [sound, isLoaded, isLoading]);
+    
+    // Update progress state
+    setProgress(seekPosition / 1000);
+  } catch (error) {
+    console.error('Error seeking audio:', error);
+  }
+}, [sound, isLoaded, isLoading]);
 
   // Progress bar seeking handlers
   const handleProgressSeekStart = useCallback(() => {
@@ -575,14 +605,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
       });
   }, [src, korisnik?.id]);
 
-  /*
-  // Add to listening history
+  
   useEffect(() => {
     if (!pjesma || !korisnik?.id || !src) return;
     
     const addToHistorija = async () => {
       try {
-        // API će automatski obrisati postojeći zapis i dodati novi
+        await axios.delete(`${API_BASE}/historija/obrisi/${korisnik?.id}/${pjesma.id}`).catch(() => {});
+
         await axios.post(`${API_BASE}/historija/`, {
           korisnikID: korisnik.id,
           pjesmaID: pjesma.id,
@@ -593,13 +623,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
           offline: false,
           kontekstPustanja: null,
         });
-      } catch (error) {
-        console.error('Error adding to history:', error);
+      } catch  {
+        return;
       }
     };
     
     addToHistorija();
-  }, [pjesma, pjesma?.id, korisnik?.id, src]);*/
+  }, [pjesma, pjesma?.id, korisnik?.id, src]);
 
   // Add statistics after 30 seconds of listening
   useEffect(() => {
@@ -823,10 +853,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
         </View>
 
         <View style={styles.rightControls}>
-          {/* Repeat One */}
           <TouchableOpacity 
             onPress={handleRepeatToggle}
-            disabled={!isLoaded || isLoading}
+            
             style={styles.controlIcon}
           >
             <MaterialIcons 
@@ -836,10 +865,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
             />
           </TouchableOpacity>
 
-          {/* Repeat All */}
           <TouchableOpacity 
             onPress={handleRepeatAllToggle}
-            disabled={!isLoaded || isLoading}
             style={styles.controlIcon}
           >
             <MaterialIcons 
@@ -950,5 +977,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({
 };
 
 export default AudioPlayer;
+
 
 

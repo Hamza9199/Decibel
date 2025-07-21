@@ -344,5 +344,7 @@
   "enter_genre": "Unesite žanr",
   "enter_language": "Unesite jezik",
   "enter_license": "Unesite licencu",
-  "enter_playlist_name": "Unesite naziv playliste"
+  "enter_playlist_name": "Unesite naziv playliste",
+  "password": "Lozinka",
+  "no_results_description": "Pokušajte pretražiti nešto drugo"
 }

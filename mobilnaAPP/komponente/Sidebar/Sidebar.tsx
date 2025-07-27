@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,7 @@ import {
   Modal,
   ScrollView,
   Alert,
-  RefreshControl,
+  
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,7 +23,7 @@ interface SidebarProps {
 
 type Role = 'korisnik' | 'izvodac' | 'admin';
 
-const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
   const { t } = useTranslation();
   const router = useRouter();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,13 +33,8 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false);
   const [showSongsMenu, setShowSongsMenu] = useState(false);
   const [showAlbumsMenu, setShowAlbumsMenu] = useState(false);
-  const [showFavoritesMenu, setShowFavoritesMenu] = useState(false);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -50,9 +45,16 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+  }, []);
 
-  const handleLogout = () => {
+  // Load user data once when component becomes visible
+  useMemo(() => {
+    if (visible) {
+      loadUserData();
+    }
+  }, [visible, loadUserData]);
+
+  const handleLogout = useCallback(() => {
     Alert.alert(
       t('logout'),
       t('logout_confirmation') || 'Are you sure you want to logout?',
@@ -67,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('korisnik');
-                onClose();
+              onClose();
               
               setTimeout(() => {
                 router.replace('/login');
@@ -80,9 +82,9 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
         },
       ]
     );
-  };
+  }, [t, onClose, router]);
 
-  const handleNavPress = (route?: string, action?: () => void) => {
+  const handleNavPress = useCallback((route?: string, action?: () => void) => {
     if (action) {
       action();
     } else if (route) {
@@ -184,11 +186,40 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
       );
     }
     onClose();
-  };
+  }, [router, onClose, t]);
 
-  const renderIcon = (name: keyof typeof MaterialIcons.glyphMap, size = 22, color = '#ffe6ec') => (
+  const renderIcon = useCallback((name: keyof typeof MaterialIcons.glyphMap, size = 22, color = '#ffe6ec') => (
     <MaterialIcons name={name} size={size} color={color} />
-  );
+  ), []);
+
+  const handleProfileMenuToggle = useCallback(() => {
+    setShowProfileMenu(!showProfileMenu);
+  }, [showProfileMenu]);
+
+  const handlePlaylistMenuToggle = useCallback(() => {
+    setShowPlaylistMenu(!showPlaylistMenu);
+  }, [showPlaylistMenu]);
+
+  const handleSongsMenuToggle = useCallback(() => {
+    setShowSongsMenu(!showSongsMenu);
+  }, [showSongsMenu]);
+
+  const handleAlbumsMenuToggle = useCallback(() => {
+    setShowAlbumsMenu(!showAlbumsMenu);
+  }, [showAlbumsMenu]);
+
+  const handleLogoPress = useCallback(() => {
+    router.push('/(tabs)');
+  }, [router]);
+
+  const handleOfflinePress = useCallback(() => {
+    router.push('/offline');
+    onClose();
+  }, [router, onClose]);
+
+  // Memoize role-based sections
+  const isArtistOrAdmin = useMemo(() => role === 'izvodac' || role === 'admin', [role]);
+  const isAdmin = useMemo(() => role === 'admin', [role]);
 
   return (
     <Modal
@@ -197,12 +228,11 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
       transparent
       onRequestClose={onClose}
     >
-        
       <View style={{ flex: 1 }}>
         <TouchableOpacity style={styles.overlay} onPress={onClose} />
         <View style={styles.sidebar}>
           {/* Logo */}
-          <TouchableOpacity style={styles.logoWrap} onPress={() => router.push('/(tabs)')}>
+          <TouchableOpacity style={styles.logoWrap} onPress={handleLogoPress}>
             <Image
               source={require('../../assets/images/logo.gif')}
               style={styles.logoImg}
@@ -215,7 +245,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
             <View style={styles.profileMenu}>
               <TouchableOpacity
                 style={styles.navBtn}
-                onPress={() => setShowProfileMenu(!showProfileMenu)}
+                onPress={handleProfileMenuToggle}
               >
                 {renderIcon('person')}
                 <Text style={styles.navBtnText}>{t('profile')}</Text>
@@ -264,53 +294,22 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
               </Text>
             </TouchableOpacity>
 
-            {/* Favorites Menu */}
-            <View style={styles.profileMenu}>
-              <TouchableOpacity
-                style={styles.navBtn}
-                onPress={() => setShowFavoritesMenu(!showFavoritesMenu)}
-              >
-                {renderIcon('favorite')}
-                <Text style={styles.navBtnText}>{t('favorites')}</Text>
-              </TouchableOpacity>
-              {showFavoritesMenu && (
-                <View style={styles.subMenu}>
-                  <TouchableOpacity
-                    style={styles.subNavBtn}
-                    onPress={() => handleNavPress('/favorites/songs')}
-                  >
-                    {renderIcon('music-note', 18, '#ffe6ec')}
-                    <Text style={styles.subNavBtnText}>
-                      {t('songs')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.subNavBtn}
-                    onPress={() => handleNavPress('/favorites/playlists')}
-                  >
-                    {renderIcon('queue-music', 18, '#ffe6ec')}
-                    <Text style={styles.subNavBtnText}>
-                      {t('playlists')}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.subNavBtn}
-                    onPress={() => handleNavPress('/favorites/albums')}
-                  >
-                    {renderIcon('album', 18, '#ffe6ec')}
-                    <Text style={styles.subNavBtnText}>
-                      {t('albums')}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
+            {/* Offline mode */}
+            <TouchableOpacity
+              style={styles.navBtn}
+              onPress={handleOfflinePress}
+            >
+              {renderIcon('cloud-off')}
+              <Text style={styles.navBtnText}>
+                {t('offline_mode')}
+              </Text>
+            </TouchableOpacity>
 
             {/* Playlists Menu */}
             <View style={styles.profileMenu}>
               <TouchableOpacity
                 style={styles.navBtn}
-                onPress={() => setShowPlaylistMenu(!showPlaylistMenu)}
+                onPress={handlePlaylistMenuToggle}
               >
                 {renderIcon('queue-music')}
                 <Text style={styles.navBtnText}>{t('playlists')}</Text>
@@ -340,7 +339,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
             </View>
 
             {/* Artist/Producer Section */}
-            {(role === 'izvodac' || role === 'admin') && (
+            {isArtistOrAdmin && (
               <>
                 <Text style={styles.sectionTitle}>{t('artists') || 'Artists'}</Text>
                 
@@ -348,7 +347,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
                 <View style={styles.profileMenu}>
                   <TouchableOpacity
                     style={styles.navBtn}
-                    onPress={() => setShowSongsMenu(!showSongsMenu)}
+                    onPress={handleSongsMenuToggle}
                   >
                     {renderIcon('music-note')}
                     <Text style={styles.navBtnText}>{t('songs')}</Text>
@@ -381,7 +380,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
                 <View style={styles.profileMenu}>
                   <TouchableOpacity
                     style={styles.navBtn}
-                    onPress={() => setShowAlbumsMenu(!showAlbumsMenu)}
+                    onPress={handleAlbumsMenuToggle}
                   >
                     {renderIcon('album')}
                     <Text style={styles.navBtnText}>{t('albums')}</Text>
@@ -413,7 +412,7 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
             )}
 
             {/* Admin Section */}
-            {role === 'admin' && (
+            {isAdmin && (
               <>
                 <Text style={styles.sectionTitle}>Admin</Text>
                 
@@ -459,6 +458,8 @@ const Sidebar: React.FC<SidebarProps> = ({ visible, onClose }) => {
       </View>
     </Modal>
   );
-};
+});
+
+Sidebar.displayName = "Sidebar";
 
 export default Sidebar;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import { Album, Pjesma, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Album.styles';
 
-const AlbumScreen: React.FC = () => {
+const AlbumScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { albumId } = useLocalSearchParams();
   const [album, setAlbum] = useState<Album | null>(null);
@@ -38,30 +38,21 @@ const AlbumScreen: React.FC = () => {
   const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (albumId) {
-      loadAlbumData();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [albumId, korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadAlbumData = async () => {
+  const loadAlbumData = useCallback(async (userId?: string) => {
     if (!albumId) return;
     
     try {
@@ -79,7 +70,8 @@ const AlbumScreen: React.FC = () => {
       );
       setSongs(albumSongs);
 
-      if (korisnikID) {
+      const currentUserId = userId || korisnikID;
+      if (currentUserId) {
         // Load user's playlists
         const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
         setPlaylists(playlistsRes.data || []);
@@ -87,13 +79,13 @@ const AlbumScreen: React.FC = () => {
         // Check if user liked this album
         const albumLikesRes = await axios.get(`${API_BASE}/korisnik_album/`);
         const albumLikes = albumLikesRes.data as { korisnikID: string; albumID: number }[];
-        setLiked(!!albumLikes.find(v => v.korisnikID === korisnikID && String(v.albumID) === String(albumId)));
+        setLiked(!!albumLikes.find(v => v.korisnikID === currentUserId && String(v.albumID) === String(albumId)));
 
         // Load user's song likes
         const songLikesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
         const songLikes = songLikesRes.data as KorisnikPjesma[];
         const map: { [pjesmaId: number]: boolean } = {};
-        songLikes.filter(v => v.korisnikID === korisnikID).forEach(v => {
+        songLikes.filter(v => v.korisnikID === currentUserId).forEach(v => {
           map[v.pjesmaID] = true;
         });
         setLikeMap(map);
@@ -105,14 +97,23 @@ const AlbumScreen: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [albumId, korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and album data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (albumId) {
+        loadAlbumData(userId);
+      }
+    });
+  }, [albumId, loadUserData, loadAlbumData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadAlbumData();
-  };
+  }, [loadAlbumData]);
 
-  const handlePlaySong = (song: Pjesma) => {
+  const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
@@ -120,9 +121,9 @@ const AlbumScreen: React.FC = () => {
     
     // Dispatch audio play event
     console.log('Playing song:', song.naziv);
-  };
+  }, [t]);
 
-  const handlePlayAlbum = () => {
+  const handlePlayAlbum = useCallback(() => {
     if (songs.length === 0) {
       Alert.alert(t('error'), t('no_songs_in_album') || 'No songs in this album');
       return;
@@ -133,9 +134,9 @@ const AlbumScreen: React.FC = () => {
     if (firstSong?.putanjaAudio) {
       handlePlaySong(firstSong);
     }
-  };
+  }, [songs, handlePlaySong, t]);
 
-  const handleLikeAlbum = async () => {
+  const handleLikeAlbum = useCallback(async () => {
     if (!album || !korisnikID) return;
     
     try {
@@ -158,9 +159,9 @@ const AlbumScreen: React.FC = () => {
       console.error('Error liking album:', error);
       Alert.alert(t('error'), t('error_liking_album') || 'Error updating favorites');
     }
-  };
+  }, [album, korisnikID, liked, t]);
 
-  const handleLikeSong = async (songId: number) => {
+  const handleLikeSong = useCallback(async (songId: number) => {
     if (!korisnikID) return;
     
     try {
@@ -181,14 +182,14 @@ const AlbumScreen: React.FC = () => {
       console.error('Error liking song:', error);
       Alert.alert(t('error'), t('error_liking_song') || 'Error updating favorites');
     }
-  };
+  }, [korisnikID, likeMap, t]);
 
-  const handleAddToPlaylist = (song: Pjesma) => {
+  const handleAddToPlaylist = useCallback((song: Pjesma) => {
     setSelectedSong(song);
     setShowPlaylistModal(true);
-  };
+  }, []);
 
-  const handleSelectPlaylist = async (playlistId: number) => {
+  const handleSelectPlaylist = useCallback(async (playlistId: number) => {
     if (!selectedSong) return;
     
     try {
@@ -206,16 +207,24 @@ const AlbumScreen: React.FC = () => {
       setShowPlaylistModal(false);
       setSelectedSong(null);
     }
-  };
+  }, [selectedSong, t]);
 
-  const formatDuration = (seconds?: number): string => {
+  const handleRepeatToggle = useCallback(() => {
+    setRepeatAll(!repeatAll);
+  }, [repeatAll]);
+
+  const handleModalClose = useCallback(() => {
+    setShowPlaylistModal(false);
+  }, []);
+
+  const formatDuration = useCallback((seconds?: number): string => {
     if (!seconds) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const renderSongItem = ({ item, index }: { item: Pjesma; index: number }) => (
+  const renderSongItem = useCallback(({ item, index }: { item: Pjesma; index: number }) => (
     <View style={styles.songCard}>
       <View style={styles.songHeader}>
         <View style={styles.songInfo}>
@@ -261,7 +270,22 @@ const AlbumScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, likeMap, formatDuration, t]);
+
+  // Memoize album meta information
+  const albumMeta = useMemo(() => [
+    { label: t('songs'), value: songs.length },
+    { label: t('likes'), value: likeCount },
+  ], [songs.length, likeCount, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -290,13 +314,7 @@ const AlbumScreen: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           {/* Album Header */}
@@ -329,7 +347,7 @@ const AlbumScreen: React.FC = () => {
                 
                 <TouchableOpacity 
                   style={styles.repeatButton} 
-                  onPress={() => setRepeatAll(!repeatAll)}
+                  onPress={handleRepeatToggle}
                 >
                   <MaterialIcons 
                     name="repeat" 
@@ -350,12 +368,11 @@ const AlbumScreen: React.FC = () => {
                 </Text>
               )}
               <View style={styles.albumMeta}>
-                <Text style={styles.metaItem}>
-                  {t('songs')}: {songs.length}
-                </Text>
-                <Text style={styles.metaItem}>
-                  {t('likes')}: {likeCount}
-                </Text>
+                {albumMeta.map((meta, index) => (
+                  <Text key={index} style={styles.metaItem}>
+                    {meta.label}: {meta.value}
+                  </Text>
+                ))}
               </View>
             </View>
           </View>
@@ -387,7 +404,7 @@ const AlbumScreen: React.FC = () => {
         visible={showPlaylistModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowPlaylistModal(false)}
+        onRequestClose={handleModalClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -408,7 +425,7 @@ const AlbumScreen: React.FC = () => {
             />
             <TouchableOpacity
               style={styles.modalCloseBtn}
-              onPress={() => setShowPlaylistModal(false)}
+              onPress={handleModalClose}
             >
               <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
             </TouchableOpacity>
@@ -419,7 +436,9 @@ const AlbumScreen: React.FC = () => {
       <Tabs currentRoute="album" />
     </View>
   );
-};
+});
+
+AlbumScreen.displayName = "AlbumScreen";
 
 export default AlbumScreen;
 

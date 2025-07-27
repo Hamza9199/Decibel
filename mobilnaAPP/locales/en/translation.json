@@ -331,6 +331,23 @@
   "listening_history": "Listening History",
   "played_on": "Played on",
   "recently_played": "Recently Played",
-  "no_results": "No results found"
+  "no_results": "No results found",
+  "offline_mode": "Offline mode",
+  "offline_mode_description": "The app is in offline mode. Some features may not work.",
+  "enable_offline_mode": "Enable offline mode",
+  "no_offline_songs": "No songs available for offline listening.",
+  "download_songs": "Download songs for offline listening",
+  "offline_description": "In offline mode, you can listen to downloaded songs without an internet connection.",
+  "download": "Download",
+  "downloading": "Downloading...",
+  "offline_song_deleted": "Song has been deleted from offline mode",
+  "error_deleting_offline_song": "Error deleting song from offline mode",
+  "playing_offline_song": "Playing offline song",
+  "delete_offline_confirm": "Are you sure you want to delete this song from offline mode?",
+  "error_downloading_song": "Error downloading song",
+  "song_downloaded_offline": "Song has been downloaded for offline listening",
+  "song_already_downloaded": "Song is already downloaded for offline listening",
+  "error_adding_to_playlist": "Error adding song to playlist",
+  "follows": "Following"
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -35,7 +35,7 @@ interface ResultItem {
   id: string;
 }
 
-const Search: React.FC = () => {
+const Search: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { playAudio, playPlaylist } = useAudio();
   
@@ -48,37 +48,25 @@ const Search: React.FC = () => {
     korisnici: [],
   });
   const [loading, setLoading] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await AsyncStorage.getItem('korisnik');
-        if (userData) {
-          setKorisnik(JSON.parse(userData));
-        }
-      } catch (error) {
-        console.error('Error loading user:', error);
+  const loadUser = useCallback(async () => {
+    try {
+      const userData = await AsyncStorage.getItem('korisnik');
+      if (userData) {
+        setKorisnik(JSON.parse(userData));
       }
-    };
-    loadUser();
+    } catch (error) {
+      console.error('Error loading user:', error);
+    }
   }, []);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchTerm.trim()) {
-        performSearch(searchTerm.trim());
-      } else {
-        setResults({ pjesme: [], albumi: [], playliste: [], korisnici: [] });
-      }
-    }, 300);
+  // Load user when component mounts
+  useMemo(() => {
+    loadUser();
+  }, [loadUser]);
 
-    return () => clearTimeout(timeoutId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm]);
-
-  const performSearch = async (term: string) => {
+  const performSearch = useCallback(async (term: string) => {
     if (!term.trim()) return;
 
     setLoading(true);
@@ -138,7 +126,20 @@ const Search: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  // Memoize search with debounce
+  useMemo(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchTerm.trim()) {
+        performSearch(searchTerm.trim());
+      } else {
+        setResults({ pjesme: [], albumi: [], playliste: [], korisnici: [] });
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm, performSearch]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -195,20 +196,25 @@ const Search: React.FC = () => {
     }
   }, [playPlaylist, t]);
 
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setSearchTerm('');
     setResults({ pjesme: [], albumi: [], playliste: [], korisnici: [] });
-  };
+  }, []);
 
-  const filters: { key: SearchFilter; label: string }[] = [
-    { key: 'sve', label: t('all') },
-    { key: 'pjesme', label: t('songs') },
-    { key: 'albumi', label: t('albums') },
-    { key: 'playliste', label: t('playlists') },
-    { key: 'korisnici', label: t('users') },
-  ];
+  const handleFilterPress = useCallback((key: SearchFilter) => {
+    setActiveFilter(key);
+  }, []);
 
-  const getFilteredResults = (): ResultItem[] => {
+  // Memoize filters
+  const filters = useMemo(() => [
+    { key: 'sve' as SearchFilter, label: t('all') },
+    { key: 'pjesme' as SearchFilter, label: t('songs') },
+    { key: 'albumi' as SearchFilter, label: t('albums') },
+    { key: 'playliste' as SearchFilter, label: t('playlists') },
+    { key: 'korisnici' as SearchFilter, label: t('users') },
+  ], [t]);
+
+  const getFilteredResults = useCallback((): ResultItem[] => {
     const items: ResultItem[] = [];
 
     switch (activeFilter) {
@@ -261,16 +267,124 @@ const Search: React.FC = () => {
     }
 
     return items;
-  };
+  }, [activeFilter, results, t]);
 
-  const handleFilterPress = (key: SearchFilter) => {
-    setActiveFilter(key);
-  };
+  // Memoize filtered results
+  const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);
+  const hasResults = useMemo(() => filteredResults.length > 0, [filteredResults]);
 
-  const filteredResults = getFilteredResults();
-  const hasResults = filteredResults.length > 0;
+  const renderSongItem = useCallback((item: Pjesma) => (
+    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlaySong(item)}>
+      <Image
+        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
+        style={styles.resultImage}
+      />
+      <View style={styles.resultContent}>
+        <Text style={styles.resultTitle} numberOfLines={1}>
+          {item.naziv}
+        </Text>
+        <Text style={styles.resultSubtitle} numberOfLines={1}>
+          {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {item.zanr || 'Unknown'}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.playButton} onPress={() => handlePlaySong(item)}>
+        <MaterialIcons name="play-arrow" size={20} color="#fff" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ), [handlePlaySong, t]);
 
-  const renderEmptyState = () => {
+  const renderAlbumItem = useCallback((item: Album) => (
+    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlayAlbum(item)}>
+      <Image
+        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
+        style={styles.resultImage}
+      />
+      <View style={styles.resultContent}>
+        <Text style={styles.resultTitle} numberOfLines={1}>
+          {item.naziv}
+        </Text>
+        <Text style={styles.resultSubtitle} numberOfLines={1}>
+          {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {t('album')}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.playButton} onPress={() => handlePlayAlbum(item)}>
+        <MaterialIcons name="play-arrow" size={20} color="#fff" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ), [handlePlayAlbum, t]);
+
+  const renderPlaylistItem = useCallback((item: Playlista) => (
+    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlayPlaylist(item)}>
+      <Image
+        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
+        style={styles.resultImage}
+      />
+      <View style={styles.resultContent}>
+        <Text style={styles.resultTitle} numberOfLines={1}>
+          {item.naziv}
+        </Text>
+        <Text style={styles.resultSubtitle} numberOfLines={1}>
+          {item.korisnik?.korisnicko_ime || t('unknown_user')} • {t('playlist')}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.playButton} onPress={() => handlePlayPlaylist(item)}>
+        <MaterialIcons name="play-arrow" size={20} color="#fff" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ), [handlePlayPlaylist, t]);
+
+  const renderUserItem = useCallback((item: Korisnik) => (
+    <TouchableOpacity style={styles.resultItem}>
+      <Image
+        source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/60' }}
+        style={[styles.resultImage, styles.artistImage]}
+      />
+      <View style={styles.resultContent}>
+        <Text style={styles.resultTitle} numberOfLines={1}>
+          {item.korisnicko_ime}
+        </Text>
+        <Text style={styles.resultSubtitle} numberOfLines={1}>
+          {item.ime && item.prezime ? `${item.ime} ${item.prezime}` : item.rola || t('user')}
+        </Text>
+      </View>
+      <View style={styles.resultActions}>
+        <TouchableOpacity style={styles.actionButton}>
+          <MaterialIcons name="person" size={20} color="#b91d95" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  ), [t]);
+
+  const renderResultItem = useCallback(({ item }: { item: ResultItem }) => {
+    if (item.id.startsWith('header-')) {
+      return (
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {'naziv' in item.data && item.data.naziv
+              ? item.data.naziv
+              : 'korisnicko_ime' in item.data
+              ? item.data.korisnicko_ime
+              : ''}
+          </Text>
+        </View>
+      );
+    }
+
+    switch (item.type) {
+      case 'song':
+        return renderSongItem(item.data as Pjesma);
+      case 'album':
+        return renderAlbumItem(item.data as Album);
+      case 'playlist':
+        return renderPlaylistItem(item.data as Playlista);
+      case 'user':
+        return renderUserItem(item.data as Korisnik);
+      default:
+        return null;
+    }
+  }, [renderSongItem, renderAlbumItem, renderPlaylistItem, renderUserItem]);
+
+  const renderEmptyState = useCallback(() => {
     if (loading) {
       return (
         <View style={styles.loadingContainer}>
@@ -305,118 +419,26 @@ const Search: React.FC = () => {
     }
 
     return null;
-  };
+  }, [loading, searchTerm, hasResults, t]);
 
-  const renderResultItem = ({ item }: { item: ResultItem }) => {
-    if (item.id.startsWith('header-')) {
-      return (
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {'naziv' in item.data && item.data.naziv
-              ? item.data.naziv
-              : 'korisnicko_ime' in item.data
-              ? item.data.korisnicko_ime
-              : ''}
-          </Text>
-        </View>
-      );
-    }
-
-    switch (item.type) {
-      case 'song':
-        return renderSongItem(item.data as Pjesma);
-      case 'album':
-        return renderAlbumItem(item.data as Album);
-      case 'playlist':
-        return renderPlaylistItem(item.data as Playlista);
-      case 'user':
-        return renderUserItem(item.data as Korisnik);
-      default:
-        return null;
-    }
-  };
-
-  const renderSongItem = (item: Pjesma) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlaySong(item)}>
-      <Image
-        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
-        style={styles.resultImage}
-      />
-      <View style={styles.resultContent}>
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {item.naziv}
-        </Text>
-        <Text style={styles.resultSubtitle} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {item.zanr || 'Unknown'}
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => handlePlaySong(item)}>
-        <MaterialIcons name="play-arrow" size={20} color="#fff" />
-      </TouchableOpacity>
+  const renderFilterButton = useCallback(({ item: filter }: { item: typeof filters[0] }) => (
+    <TouchableOpacity
+      style={[
+        styles.filterButton,
+        activeFilter === filter.key && styles.filterButtonActive,
+      ]}
+      onPress={() => handleFilterPress(filter.key)}
+    >
+      <Text
+        style={[
+          styles.filterButtonText,
+          activeFilter === filter.key && styles.filterButtonTextActive,
+        ]}
+      >
+        {filter.label}
+      </Text>
     </TouchableOpacity>
-  );
-
-  const renderAlbumItem = (item: Album) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlayAlbum(item)}>
-      <Image
-        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
-        style={styles.resultImage}
-      />
-      <View style={styles.resultContent}>
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {item.naziv}
-        </Text>
-        <Text style={styles.resultSubtitle} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {t('album')}
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => handlePlayAlbum(item)}>
-        <MaterialIcons name="play-arrow" size={20} color="#fff" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
-  const renderPlaylistItem = (item: Playlista) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlayPlaylist(item)}>
-      <Image
-        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
-        style={styles.resultImage}
-      />
-      <View style={styles.resultContent}>
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {item.naziv}
-        </Text>
-        <Text style={styles.resultSubtitle} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_user')} • {t('playlist')}
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => handlePlayPlaylist(item)}>
-        <MaterialIcons name="play-arrow" size={20} color="#fff" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
-  const renderUserItem = (item: Korisnik) => (
-    <TouchableOpacity style={styles.resultItem}>
-      <Image
-        source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/60' }}
-        style={[styles.resultImage, styles.artistImage]}
-      />
-      <View style={styles.resultContent}>
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {item.korisnicko_ime}
-        </Text>
-        <Text style={styles.resultSubtitle} numberOfLines={1}>
-          {item.ime && item.prezime ? `${item.ime} ${item.prezime}` : item.rola || t('user')}
-        </Text>
-      </View>
-      <View style={styles.resultActions}>
-        <TouchableOpacity style={styles.actionButton}>
-          <MaterialIcons name="person" size={20} color="#b91d95" />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+  ), [activeFilter, handleFilterPress]);
 
   return (
     <KeyboardAvoidingView
@@ -448,24 +470,7 @@ const Search: React.FC = () => {
           contentContainerStyle={styles.filtersContainer}
           data={filters}
           keyExtractor={(item) => item.key}
-          renderItem={({ item: filter }) => (
-            <TouchableOpacity
-              style={[
-                styles.filterButton,
-                activeFilter === filter.key && styles.filterButtonActive,
-              ]}
-              onPress={() => handleFilterPress(filter.key)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  activeFilter === filter.key && styles.filterButtonTextActive,
-                ]}
-              >
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderFilterButton}
           keyboardShouldPersistTaps="always"
           keyboardDismissMode="none"
         />
@@ -482,6 +487,8 @@ const Search: React.FC = () => {
       />
     </KeyboardAvoidingView>
   );
-};
+});
+
+Search.displayName = "Search";
 
 export default Search;

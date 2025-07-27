@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Album, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediAlbum.styles';
 
-const UrediAlbum: React.FC = () => {
+const UrediAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { albumId } = useLocalSearchParams();
@@ -42,37 +42,23 @@ const UrediAlbum: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (albumId && korisnikID) {
-      loadData();
-    }
-  }, [albumId, korisnikID]);
-
-  useEffect(() => {
-    if (album) {
-      setNaziv(album.naziv || '');
-      setOpis(album.opis || '');
-    }
-  }, [album]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
-    if (!albumId || !korisnikID) {
+  const loadData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!albumId || !currentUserId) {
       setLoading(false);
       return;
     }
@@ -91,11 +77,17 @@ const UrediAlbum: React.FC = () => {
       // Filter songs for this album and available songs
       const albumSongs = allSongs.filter(p => String(p.albumID) === String(albumId));
       const availableSongs = allSongs.filter(p => 
-        p.korisnikID === korisnikID && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
+        p.korisnikID === currentUserId && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
       );
       
       setPjesmeAlbuma(albumSongs);
       setSvePjesme(availableSongs);
+
+      // Set form values
+      if (albumRes.data) {
+        setNaziv(albumRes.data.naziv || '');
+        setOpis(albumRes.data.opis || '');
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       setError(t('error_loading_album') || 'Error loading album');
@@ -103,14 +95,23 @@ const UrediAlbum: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [albumId, korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and album data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (albumId && userId) {
+        loadData(userId);
+      }
+    });
+  }, [albumId, loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handleImagePick = async () => {
+  const handleImagePick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/*',
@@ -124,9 +125,9 @@ const UrediAlbum: React.FC = () => {
       console.error('Error picking image:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleGifPick = async () => {
+  const handleGifPick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/gif',
@@ -140,9 +141,9 @@ const UrediAlbum: React.FC = () => {
       console.error('Error picking GIF:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!album || !korisnikID) return;
     
     setError(null);
@@ -187,9 +188,9 @@ const UrediAlbum: React.FC = () => {
       console.error('Error updating album:', error);
       setError(t('error_updating_album') || 'Error updating album');
     }
-  };
+  }, [album, korisnikID, naziv, opis, selectedImage, selectedGif, t, router]);
 
-  const handleRemoveSong = async (pjesmaId: number) => {
+  const handleRemoveSong = useCallback(async (pjesmaId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('remove_song_from_album') || 'Remove song from album?',
@@ -223,9 +224,9 @@ const UrediAlbum: React.FC = () => {
         }
       ]
     );
-  };
+  }, [t]);
 
-  const handleAddSong = async (pjesmaId: number) => {
+  const handleAddSong = useCallback(async (pjesmaId: number) => {
     setDodajuci(pjesmaId);
     try {
       const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
@@ -246,15 +247,15 @@ const UrediAlbum: React.FC = () => {
     } finally {
       setDodajuci(null);
     }
-  };
+  }, [albumId, t]);
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const renderSongItem = ({ item, isOnAlbum }: { item: Pjesma; isOnAlbum: boolean }) => (
+  const renderSongItem = useCallback(({ item, isOnAlbum }: { item: Pjesma; isOnAlbum: boolean }) => (
     <View style={styles.songItem}>
       <View style={styles.songInfo}>
         <Text style={styles.songName} numberOfLines={1}>
@@ -286,7 +287,21 @@ const UrediAlbum: React.FC = () => {
         </Text>
       </TouchableOpacity>
     </View>
-  );
+  ), [removing, dodajuci, handleRemoveSong, handleAddSong, formatDuration, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
+
+  // Memoize permission check
+  const hasPermission = useMemo(() => {
+    return album && album.korisnikID === korisnikID;
+  }, [album, korisnikID]);
 
   if (loading) {
     return (
@@ -311,7 +326,7 @@ const UrediAlbum: React.FC = () => {
     );
   }
 
-  if (album.korisnikID !== korisnikID) {
+  if (!hasPermission) {
     return (
       <View style={styles.container}>
         <Header />
@@ -330,13 +345,7 @@ const UrediAlbum: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('edit_album') || 'Edit Album'}</Text>
@@ -460,6 +469,8 @@ const UrediAlbum: React.FC = () => {
       <Tabs currentRoute="albums" />
     </View>
   );
-};
+});
+
+UrediAlbum.displayName = "UrediAlbum";
 
 export default UrediAlbum;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Izvodjac.styles';
 
-const Izvodjac: React.FC = () => {
+const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { izvodjacId } = useLocalSearchParams();
   const [artist, setArtist] = useState<Korisnik | null>(null);
@@ -33,17 +33,7 @@ const Izvodjac: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (izvodjacId) {
-      loadArtistData();
-    }
-  }, [izvodjacId, currentUserId]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -53,9 +43,9 @@ const Izvodjac: React.FC = () => {
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+  }, []);
 
-  const loadArtistData = async () => {
+  const loadArtistData = useCallback(async () => {
     if (!izvodjacId) return;
 
     try {
@@ -132,45 +122,52 @@ const Izvodjac: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [izvodjacId, currentUserId, t]);
 
-  const onRefresh = () => {
+  // Load user data and artist data when component mounts or izvodjacId changes
+  useMemo(() => {
+    loadUserData().then(() => {
+      if (izvodjacId) {
+        loadArtistData();
+      }
+    });
+  }, [izvodjacId, loadUserData, loadArtistData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadArtistData();
-  };
+  }, [loadArtistData]);
 
-  const handleFollow = async () => {
+  const handleFollow = useCallback(async () => {
     if (!currentUserId || !izvodjacId) return;
 
     try {
       if (following) {
         await axios.delete(`${API_BASE}/pratioci/${izvodjacId}/${currentUserId}`);
         setFollowing(false);
-        Alert.alert(t('success'), t('unfollowed_artist'));
       } else {
         await axios.post(`${API_BASE}/pratioci/`, {
           korisnikID: izvodjacId,
           pratilacID: currentUserId,
         });
         setFollowing(true);
-        Alert.alert(t('success'), t('followed_artist'));
       }
     } catch (error) {
       console.error('Error following/unfollowing artist:', error);
       Alert.alert(t('error'), t('error_follow'));
     }
-  };
+  }, [currentUserId, izvodjacId, following, t]);
 
-  const handlePlaySong = (song: Pjesma) => {
+  const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       Alert.alert(t('error'), t('no_audio_file'));
       return;
     }
     
     console.log('Playing song:', song.naziv);
-  };
+  }, [t]);
 
-  const handlePlayAlbum = (album: Album) => {
+  const handlePlayAlbum = useCallback((album: Album) => {
     const albumSongs = songs.filter(s => s.albumID === album.id && s.putanjaAudio);
     if (albumSongs.length === 0) {
       Alert.alert(t('error'), t('no_songs_in_album'));
@@ -180,9 +177,9 @@ const Izvodjac: React.FC = () => {
     console.log('Playing album:', album.naziv);
     // Play first song
     handlePlaySong(albumSongs[0]);
-  };
+  }, [songs, handlePlaySong, t]);
 
-  const handlePlayPlaylist = async (playlist: Playlista) => {
+  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
     try {
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
       const songIds: number[] = res.data || [];
@@ -202,9 +199,9 @@ const Izvodjac: React.FC = () => {
       console.error('Error playing playlist:', error);
       Alert.alert(t('error'), t('error_playing_playlist'));
     }
-  };
+  }, [handlePlaySong, t]);
 
-  const renderSongItem = ({ item }: { item: Pjesma }) => (
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <View style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <Image
@@ -228,9 +225,9 @@ const Izvodjac: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [handlePlaySong]);
 
-  const renderAlbumItem = ({ item }: { item: Album }) => (
+  const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <View style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <Image
@@ -254,9 +251,9 @@ const Izvodjac: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [handlePlayAlbum]);
 
-  const renderPlaylistItem = ({ item }: { item: Playlista }) => (
+  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <View style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <Image
@@ -280,7 +277,31 @@ const Izvodjac: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [handlePlayPlaylist]);
+
+  // Memoize artist meta information
+  const artistMeta = useMemo(() => {
+    if (!artist) return [];
+    return [
+      { label: t('name'), value: artist.ime },
+      { label: t('surname'), value: artist.prezime },
+      { label: t('followers'), value: artist.brojPratilaca || 0 },
+    ];
+  }, [artist, t]);
+
+  // Memoize follow button visibility
+  const showFollowButton = useMemo(() => {
+    return currentUserId && currentUserId !== artist?.id;
+  }, [currentUserId, artist?.id]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -309,13 +330,7 @@ const Izvodjac: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           {/* Artist Header */}
@@ -329,15 +344,11 @@ const Izvodjac: React.FC = () => {
               <Text style={styles.artistName}>{artist.korisnicko_ime}</Text>
               
               <View style={styles.artistMeta}>
-                <Text style={styles.metaItem}>
-                  {t('name')}: {artist.ime}
-                </Text>
-                <Text style={styles.metaItem}>
-                  {t('surname')}: {artist.prezime}
-                </Text>
-                <Text style={styles.metaItem}>
-                  {t('followers')}: {artist.brojPratilaca || 0}
-                </Text>
+                {artistMeta.map((meta, index) => (
+                  <Text key={index} style={styles.metaItem}>
+                    {meta.label}: {meta.value}
+                  </Text>
+                ))}
               </View>
               
               {artist.bio && (
@@ -346,7 +357,7 @@ const Izvodjac: React.FC = () => {
                 </Text>
               )}
               
-              {currentUserId && currentUserId !== artist.id && (
+              {showFollowButton && (
                 <TouchableOpacity
                   style={[
                     styles.followButton,
@@ -355,7 +366,7 @@ const Izvodjac: React.FC = () => {
                   onPress={handleFollow}
                 >
                   <Text style={styles.followButtonText}>
-                    {following ? t('following') : t('follow')}
+                    {following ? t('follows') : t('follow')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -412,6 +423,8 @@ const Izvodjac: React.FC = () => {
       <Tabs currentRoute="artist" />
     </View>
   );
-};
+});
+
+Izvodjac.displayName = "Izvodjac";
 
 export default Izvodjac;

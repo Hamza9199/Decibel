@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const getApiBaseUrl = (): string => {
   const apiUrl = process.env.EXPO_PUBLIC_API_BASE_URL;
   
@@ -14,11 +16,8 @@ export const API_BASE = getApiBaseUrl();
 export const apiClient = {
   get: async (endpoint: string) => {
     try {
-      const response = await fetch(`${API_BASE}${endpoint}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      const response = await axios.get(`${API_BASE}${endpoint}`);
+      return response.data;
     } catch (error) {
       console.error(`API GET error for ${endpoint}:`, error);
       throw error;
@@ -27,17 +26,12 @@ export const apiClient = {
   
   post: async (endpoint: string, data: any) => {
     try {
-      const response = await fetch(`${API_BASE}${endpoint}`, {
-        method: 'POST',
+      const response = await axios.post(`${API_BASE}${endpoint}`, data, {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
       });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      return await response.json();
+      return response.data;
     } catch (error) {
       console.error(`API POST error for ${endpoint}:`, error);
       throw error;

@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
+    bottom: 112,
     backgroundColor: '#232323',
     padding: 12,
     paddingBottom: 8,
@@ -250,7 +250,7 @@ export const styles = StyleSheet.create({
   // Mini Player
   miniPlayer: {
     position: 'absolute',
-    bottom: 50,
+    bottom: 120,
     right: 16,
     backgroundColor: '#232323',
     borderRadius: 25,

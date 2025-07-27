@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Album, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SviAlbumi.styles';
 
-const SviAlbumi: React.FC = () => {
+const SviAlbumi: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [albumi, setAlbumi] = useState<Album[]>([]);
@@ -31,30 +31,23 @@ const SviAlbumi: React.FC = () => {
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (korisnikID) {
-      loadData();
-    }
-  }, [korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
-    if (!korisnikID) {
+  const loadData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!currentUserId) {
       setAlbumi([]);
       setLoading(false);
       return;
@@ -66,7 +59,7 @@ const SviAlbumi: React.FC = () => {
       // Load user's albums
       const albumsResponse = await axios.get(`${API_BASE}/albumi/`);
       const mojiAlbumi = (albumsResponse.data || []).filter(
-        (a: Album) => a.korisnikID === korisnikID
+        (a: Album) => a.korisnikID === currentUserId
       );
       setAlbumi(mojiAlbumi);
 
@@ -82,14 +75,23 @@ const SviAlbumi: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and albums when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (userId) {
+        loadData(userId);
+      }
+    });
+  }, [loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handlePlayAlbum = async (albumId: number) => {
+  const handlePlayAlbum = useCallback(async (albumId: number) => {
     try {
       const albumSongs = pjesme.filter(p => p.albumID === albumId && p.putanjaAudio);
       
@@ -108,13 +110,13 @@ const SviAlbumi: React.FC = () => {
       console.error('Error playing album:', error);
       Alert.alert(t('error'), t('error_playing_album') || 'Error playing album');
     }
-  };
+  }, [pjesme, t]);
 
-  const handleEdit = (albumId: number) => {
+  const handleEdit = useCallback((albumId: number) => {
     router.push(`/uredi-album/${albumId}`);
-  };
+  }, [router]);
 
-  const handleDelete = (albumId: number) => {
+  const handleDelete = useCallback((albumId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('confirm_delete_album') || 'Are you sure you want to delete this album?',
@@ -136,12 +138,32 @@ const SviAlbumi: React.FC = () => {
         }
       ]
     );
-  };
+  }, [t]);
 
-  // Filter albums based on search
-  const filtriraniAlbumi = albumi.filter(a =>
-    a.naziv.toLowerCase().includes(search.toLowerCase())
+  const handleNavigateToAlbum = useCallback((albumId: number) => {
+    router.push(`/album/${albumId}`);
+  }, [router]);
+
+  const handleNavigateToArtist = useCallback((artistId: string) => {
+    router.push(`/izvodjac/${artistId}`);
+  }, [router]);
+
+  // Memoize filtered albums
+  const filtriraniAlbumi = useMemo(() => 
+    albumi.filter(a =>
+      a.naziv.toLowerCase().includes(search.toLowerCase())
+    ),
+    [albumi, search]
   );
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -157,13 +179,7 @@ const SviAlbumi: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('my_albums') || 'My Albums'}</Text>
@@ -202,13 +218,13 @@ const SviAlbumi: React.FC = () => {
                     </TouchableOpacity>
                   </View>
                   
-                  <TouchableOpacity onPress={() => router.push(`/album/${album.id}`)}>
+                  <TouchableOpacity onPress={() => handleNavigateToAlbum(album.id)}>
                     <Text style={styles.cardTitle} numberOfLines={2}>
                       {album.naziv}
                     </Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity onPress={() => router.push(`/izvodjac/${album.korisnikID}`)}>
+                  <TouchableOpacity onPress={() => handleNavigateToArtist(album.korisnikID ?? '')} disabled={!album.korisnikID}>
                     <Text style={styles.cardDesc} numberOfLines={1}>
                       {album.korisnik?.korisnicko_ime || t('unknown_user')}
                     </Text>
@@ -239,6 +255,8 @@ const SviAlbumi: React.FC = () => {
       <Tabs currentRoute="albums" />
     </View>
   );
-};
+});
+
+SviAlbumi.displayName = "SviAlbumi";
 
 export default SviAlbumi;

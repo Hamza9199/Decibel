@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import { Pjesma, Korisnik, Komentar } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pjesma.styles';
 
-const PjesmePage: React.FC = () => {
+const PjesmePage: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { pjesmaId } = useLocalSearchParams<{ pjesmaId: string }>();
   
@@ -42,29 +42,47 @@ const PjesmePage: React.FC = () => {
   const [likeCount, setLikeCount] = useState<number>(0);
   const [mojID, setMojID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (pjesmaId) {
-      loadData();
-    }
-  }, [pjesmaId, mojID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setMojID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
+  const loadComments = useCallback(async () => {
+    if (!pjesmaId) return;
+
+    try {
+      const commentsRes = await axios.get(`${API_BASE}/komentari/`);
+      const allComments: Komentar[] = commentsRes.data || [];
+      const songComments = allComments.filter(k => String(k.pjesmaID) === String(pjesmaId));
+      setKomentari(songComments);
+
+      // Load comment users
+      const userIds = Array.from(new Set(songComments.map(k => k.korisnikID)));
+      const usersObj: { [id: string]: Korisnik } = {};
+      
+      await Promise.all(
+        userIds.map(userId =>
+          axios.get(`${API_BASE}/korisnici/${userId}`)
+            .then(r => { usersObj[userId] = r.data; })
+            .catch(() => {})
+        )
+      );
+      setKorisniciKomentara(usersObj);
+    } catch (error) {
+      console.error('Error loading comments:', error);
+    }
+  }, [pjesmaId]);
+
+  const loadData = useCallback(async (userId?: string) => {
     if (!pjesmaId) {
       setLoading(false);
       return;
@@ -79,11 +97,12 @@ const PjesmePage: React.FC = () => {
       setPjesma(songData);
       setLikeCount(songData.brojLajkova || 0);
 
+      const currentUserId = userId || mojID;
       // Check if user liked the song
-      if (mojID) {
+      if (currentUserId) {
         const likesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
         const veze = likesRes.data as { korisnikID: string; pjesmaID: number }[];
-        setLiked(!!veze.find(v => v.korisnikID === mojID && String(v.pjesmaID) === String(pjesmaId)));
+        setLiked(!!veze.find(v => v.korisnikID === currentUserId && String(v.pjesmaID) === String(pjesmaId)));
       }
 
       // Load publisher
@@ -125,40 +144,23 @@ const PjesmePage: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [pjesmaId, mojID, loadComments, t]);
 
-  const loadComments = async () => {
-    if (!pjesmaId) return;
+  // Load user data and song data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (pjesmaId) {
+        loadData(userId);
+      }
+    });
+  }, [pjesmaId, loadUserData, loadData]);
 
-    try {
-      const commentsRes = await axios.get(`${API_BASE}/komentari/`);
-      const allComments: Komentar[] = commentsRes.data || [];
-      const songComments = allComments.filter(k => String(k.pjesmaID) === String(pjesmaId));
-      setKomentari(songComments);
-
-      // Load comment users
-      const userIds = Array.from(new Set(songComments.map(k => k.korisnikID)));
-      const usersObj: { [id: string]: Korisnik } = {};
-      
-      await Promise.all(
-        userIds.map(userId =>
-          axios.get(`${API_BASE}/korisnici/${userId}`)
-            .then(r => { usersObj[userId] = r.data; })
-            .catch(() => {})
-        )
-      );
-      setKorisniciKomentara(usersObj);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    }
-  };
-
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handlePlay = (song: Pjesma) => {
+  const handlePlay = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
@@ -166,9 +168,9 @@ const PjesmePage: React.FC = () => {
     
     // Play song logic
     console.log('Playing song:', song.naziv);
-  };
+  }, [t]);
 
-  const handleLike = async () => {
+  const handleLike = useCallback(async () => {
     if (!pjesma || !mojID) return;
 
     try {
@@ -191,9 +193,9 @@ const PjesmePage: React.FC = () => {
       console.error('Error liking song:', error);
       Alert.alert(t('error'), t('error_favorites'));
     }
-  };
+  }, [pjesma, mojID, liked, t]);
 
-  const handleDodajKomentar = async () => {
+  const handleDodajKomentar = useCallback(async () => {
     setKomentarError(null);
     if (!mojID || !pjesmaId || !noviKomentar.trim()) {
       setKomentarError(t('comment_required') || 'Comment cannot be empty');
@@ -215,9 +217,9 @@ const PjesmePage: React.FC = () => {
       console.error('Error adding comment:', error);
       setKomentarError(t('error_adding_comment') || 'Error adding comment');
     }
-  };
+  }, [mojID, pjesmaId, noviKomentar, loadComments, t]);
 
-  const handleUrediKomentar = async (id: number) => {
+  const handleUrediKomentar = useCallback(async (id: number) => {
     setKomentarError(null);
     if (!editKomentarTekst.trim()) {
       setKomentarError(t('comment_required') || 'Comment cannot be empty');
@@ -236,16 +238,26 @@ const PjesmePage: React.FC = () => {
       console.error('Error updating comment:', error);
       setKomentarError(t('error_updating_comment') || 'Error updating comment');
     }
-  };
+  }, [editKomentarTekst, loadComments, t]);
 
-  const formatDuration = (seconds?: number): string => {
+  const handleEditCancel = useCallback(() => {
+    setEditKomentarId(null);
+    setEditKomentarTekst('');
+  }, []);
+
+  const handleEditStart = useCallback((id: number, text: string) => {
+    setEditKomentarId(id);
+    setEditKomentarTekst(text);
+  }, []);
+
+  const formatDuration = useCallback((seconds?: number): string => {
     if (!seconds) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const renderRecommendedItem = ({ item }: { item: Pjesma }) => (
+  const renderRecommendedItem = useCallback(({ item }: { item: Pjesma }) => (
     <View style={styles.recommendedCard}>
       <View style={styles.recommendedImageWrap}>
         <Image
@@ -269,9 +281,9 @@ const PjesmePage: React.FC = () => {
         {item.korisnik?.korisnicko_ime || t('unknown_artist')}
       </Text>
     </View>
-  );
+  ), [handlePlay, t]);
 
-  const renderCommentItem = ({ item }: { item: Komentar }) => {
+  const renderCommentItem = useCallback(({ item }: { item: Komentar }) => {
     const user = korisniciKomentara[item.korisnikID];
     const isOwn = item.korisnikID === mojID;
     
@@ -313,10 +325,7 @@ const PjesmePage: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => {
-                  setEditKomentarId(null);
-                  setEditKomentarTekst('');
-                }}
+                onPress={handleEditCancel}
               >
                 <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
@@ -328,10 +337,7 @@ const PjesmePage: React.FC = () => {
             {isOwn && (
               <TouchableOpacity
                 style={styles.editButton}
-                onPress={() => {
-                  setEditKomentarId(item.id);
-                  setEditKomentarTekst(item.tekst);
-                }}
+                onPress={() => handleEditStart(item.id, item.tekst)}
               >
                 <Text style={styles.editButtonText}>{t('edit')}</Text>
               </TouchableOpacity>
@@ -340,15 +346,31 @@ const PjesmePage: React.FC = () => {
         )}
       </View>
     );
-  };
+  }, [korisniciKomentara, mojID, editKomentarId, editKomentarTekst, handleUrediKomentar, handleEditCancel, handleEditStart, t]);
 
-  // Sort comments to show owner's comment first
-  const komentariSortirani = React.useMemo(() => {
+  // Memoize sorted comments to show owner's comment first
+  const komentariSortirani = useMemo(() => {
     if (!mojID) return komentari;
     const vlasnikKomentar = komentari.find(k => k.korisnikID === mojID);
     const ostali = komentari.filter(k => k.korisnikID !== mojID);
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
   }, [komentari, mojID]);
+
+  // Memoize song meta data
+  const songMeta = useMemo(() => [
+    { label: t('duration'), value: formatDuration(pjesma?.trajanjeSekunde) },
+    ...(pjesma?.zanr ? [{ label: t('genre'), value: pjesma.zanr }] : []),
+    { label: t('likes'), value: likeCount.toString() },
+  ], [pjesma?.trajanjeSekunde, pjesma?.zanr, likeCount, formatDuration, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -377,13 +399,7 @@ const PjesmePage: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           {/* Song Main Section */}
@@ -426,22 +442,12 @@ const PjesmePage: React.FC = () => {
               )}
 
               <View style={styles.songMeta}>
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>{t('duration')}:</Text>
-                  <Text style={styles.metaValue}>{formatDuration(pjesma.trajanjeSekunde)}</Text>
-                </View>
-                
-                {pjesma.zanr && (
-                  <View style={styles.metaRow}>
-                    <Text style={styles.metaLabel}>{t('genre')}:</Text>
-                    <Text style={styles.metaValue}>{pjesma.zanr}</Text>
+                {songMeta.map((meta, index) => (
+                  <View key={index} style={styles.metaRow}>
+                    <Text style={styles.metaLabel}>{meta.label}:</Text>
+                    <Text style={styles.metaValue}>{meta.value}</Text>
                   </View>
-                )}
-                
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>{t('likes')}:</Text>
-                  <Text style={styles.metaValue}>{likeCount}</Text>
-                </View>
+                ))}
               </View>
 
               {/* Artists Section */}
@@ -477,7 +483,7 @@ const PjesmePage: React.FC = () => {
                         <Text style={styles.artistName}>{artist.korisnicko_ime}</Text>
                       </View>
                     ))
-                  )}
+)}
                 </View>
               </View>
             </View>
@@ -536,7 +542,8 @@ const PjesmePage: React.FC = () => {
       <Tabs currentRoute="song" />
     </View>
   );
-};
+});
+
+PjesmePage.displayName = "PjesmePage";
 
 export default PjesmePage;
-                            

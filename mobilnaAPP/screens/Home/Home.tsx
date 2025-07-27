@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Home.styles';
 
-const Home: React.FC = () => {
+const Home: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [songs, setSongs] = useState<Pjesma[]>([]);
@@ -31,12 +31,13 @@ const Home: React.FC = () => {
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   
   const { playAudio, playPlaylist } = useAudio();
-  useEffect(() => {
-    loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  const getRandomItems = useCallback(<T,>(arr: T[], count: number): T[] => {
+    const shuffled = [...arr].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
   }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       console.log('Loading data from API...'); // Debug log
       
@@ -73,14 +74,19 @@ const Home: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [getRandomItems, t]);
 
-  const getRandomItems = <T,>(arr: T[], count: number): T[] => {
-    const shuffled = [...arr].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, count);
-  };
+  // Load data when component mounts
+  useMemo(() => {
+    loadData();
+  }, [loadData]);
 
-  const handlePlaySong = (song: Pjesma) => {
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadData();
+  }, [loadData]);
+
+  const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       console.warn('Song has no audio file');
       return;
@@ -88,25 +94,25 @@ const Home: React.FC = () => {
     
     setActiveSongId(song.id);
     playAudio(song);
-  };
+  }, [playAudio]);
 
-  const handleNavigateToSong = (songId: number) => {
+  const handleNavigateToSong = useCallback((songId: number) => {
     router.push(`/pjesma/${songId}`);
-  };
+  }, [router]);
 
-  const handleNavigateToAlbum = (albumId: number) => {
+  const handleNavigateToAlbum = useCallback((albumId: number) => {
     router.push(`/album/${albumId}`);
-  };
+  }, [router]);
 
-  const handleNavigateToPlaylist = (playlistaId: number) => {
+  const handleNavigateToPlaylist = useCallback((playlistaId: number) => {
     router.push(`/playlista/${playlistaId}`);
-  };
+  }, [router]);
 
-  const handleNavigateToArtist = (artistId: string) => {
+  const handleNavigateToArtist = useCallback((artistId: string) => {
     router.push(`/izvodjac/${artistId}`);
-  };
+  }, [router]);
 
-  const handlePlayAlbum = async (album: Album) => {
+  const handlePlayAlbum = useCallback(async (album: Album) => {
     try {
       // Fetch all songs from this album
       const albumSongs = songs.filter(s => s.albumID === album.id && s.putanjaAudio && s.odobreno);
@@ -119,9 +125,9 @@ const Home: React.FC = () => {
     } catch (error) {
       console.error('Failed to play album:', error);
     }
-  };
+  }, [songs, playPlaylist]);
 
-  const handlePlayPlaylist = async (playlist: Playlista) => {
+  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
     try {
       // Fetch playlist songs
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
@@ -142,14 +148,9 @@ const Home: React.FC = () => {
     } catch (error) {
       console.error('Failed to play playlist:', error);
     }
-  };
+  }, [playPlaylist]);
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData();
-  };
-
-  const renderSongItem = ({ item }: { item: Pjesma }) => (
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <TouchableOpacity 
       style={[styles.card, activeSongId === item.id && styles.activeCard]} 
       onPress={() => handleNavigateToSong(item.id)}
@@ -170,6 +171,7 @@ const Home: React.FC = () => {
             <MaterialIcons name="play-arrow" size={24} color="#fff" />
           </TouchableOpacity>
         )}
+       
       </View>
       <Text style={styles.cardTitle} numberOfLines={1}>
         {item.naziv}
@@ -185,9 +187,9 @@ const Home: React.FC = () => {
         </Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  );
+  ), [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t]);
 
-  const renderAlbumItem = ({ item }: { item: Album }) => (
+  const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <TouchableOpacity 
       style={styles.card} 
       onPress={() => handleNavigateToAlbum(item.id)}
@@ -221,9 +223,9 @@ const Home: React.FC = () => {
         </Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  );
+  ), [handleNavigateToAlbum, handlePlayAlbum, handleNavigateToArtist, t]);
 
-  const renderPlaylistItem = ({ item }: { item: Playlista }) => (
+  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <TouchableOpacity 
       style={styles.card} 
       onPress={() => handleNavigateToPlaylist(item.id)}
@@ -257,9 +259,9 @@ const Home: React.FC = () => {
         </Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  );
+  ), [handleNavigateToPlaylist, handlePlayPlaylist, handleNavigateToArtist, t]);
 
-  const renderArtistItem = ({ item }: { item: Korisnik }) => (
+  const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
     <TouchableOpacity 
       style={styles.card}
       onPress={() => handleNavigateToArtist(item.id)}
@@ -274,7 +276,16 @@ const Home: React.FC = () => {
         {item.korisnicko_ime}
       </Text>
     </TouchableOpacity>
-  );
+  ), [handleNavigateToArtist]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95ff"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -287,15 +298,10 @@ const Home: React.FC = () => {
   return (
     <View style={styles.container}>
       <Header />
+      
       <ScrollView
         style={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <View style={styles.header}>
@@ -353,8 +359,10 @@ const Home: React.FC = () => {
       </ScrollView>
     </View>
   );
-};
+});
+
+Home.displayName = "Home";
 
 export default Home;
-  
-      
+
+

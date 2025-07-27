@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './Postavke.styles';
 
-const Postavke: React.FC = () => {
+const Postavke: React.FC = React.memo(() => {
   const { t, i18n } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [poruka, setPoruka] = useState('');
@@ -25,11 +25,7 @@ const Postavke: React.FC = () => {
   const [jezik, setJezik] = useState(i18n.language || 'bs');
   const [tema, setTema] = useState('dark');
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const savedLang = await AsyncStorage.getItem('decibel_lang');
       const savedTheme = await AsyncStorage.getItem('decibel_tema');
@@ -43,27 +39,32 @@ const Postavke: React.FC = () => {
     } catch (error) {
       console.error('Error loading settings:', error);
     }
-  };
+  }, []);
 
-  const handleOpenModal = () => {
+  // Load settings when component mounts
+  useMemo(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const handleOpenModal = useCallback(() => {
     setShowModal(true);
     setBrisanje(false);
     setPoruka('');
-  };
+  }, []);
 
-  const handleOpenBrisanje = () => {
+  const handleOpenBrisanje = useCallback(() => {
     setShowModal(true);
     setBrisanje(true);
     setPoruka('');
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setPoruka('');
     setBrisanje(false);
-  };
+  }, []);
 
-  const handleJezikChange = async (itemValue: string) => {
+  const handleJezikChange = useCallback(async (itemValue: string) => {
     setJezik(itemValue);
     i18n.changeLanguage(itemValue);
     try {
@@ -71,18 +72,18 @@ const Postavke: React.FC = () => {
     } catch (error) {
       console.error('Error saving language:', error);
     }
-  };
+  }, [i18n]);
 
-  const handleTemaChange = async (itemValue: string) => {
+  const handleTemaChange = useCallback(async (itemValue: string) => {
     setTema(itemValue);
     try {
       await AsyncStorage.setItem('decibel_tema', itemValue);
     } catch (error) {
       console.error('Error saving theme:', error);
     }
-  };
+  }, []);
 
-  const handleSendApplication = async () => {
+  const handleSendApplication = useCallback(async () => {
     if (!poruka.trim()) {
       Alert.alert(t('error'), t('fill_all_fields') || 'Please enter a message');
       return;
@@ -115,9 +116,9 @@ const Postavke: React.FC = () => {
       console.error('Error sending application:', error);
       Alert.alert(t('error'), t('application_error') || 'Error sending application');
     }
-  };
+  }, [poruka, t, handleCloseModal]);
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = useCallback(async () => {
     Alert.alert(
       t('deactivate_account') || 'Deactivate Account',
       t('account_deactivated_info') || 'Are you sure you want to deactivate your account? This action cannot be undone.',
@@ -170,7 +171,19 @@ const Postavke: React.FC = () => {
         },
       ]
     );
-  };
+  }, [t, handleCloseModal]);
+
+  // Memoize picker items
+  const themePickerItems = useMemo(() => [
+    <Picker.Item key="dark" label={t('dark_mode')} value="dark" />,
+    <Picker.Item key="light" label={t('white_mode')} value="light" />
+  ], [t]);
+
+  const languagePickerItems = useMemo(() => [
+    <Picker.Item key="bs" label="Bosanski/Srpski/Hrvatski" value="bs" />,
+    <Picker.Item key="en" label="English" value="en" />,
+    <Picker.Item key="de" label="German" value="de" />
+  ], []);
 
   return (
     <View style={styles.container}>
@@ -191,8 +204,7 @@ const Postavke: React.FC = () => {
               style={styles.picker}
               itemStyle={styles.pickerItem}
             >
-              <Picker.Item label={t('dark_mode')} value="dark" />
-              <Picker.Item label={t('white_mode')} value="light" />
+              {themePickerItems}
             </Picker>
           </View>
 
@@ -205,9 +217,7 @@ const Postavke: React.FC = () => {
               style={styles.picker}
               itemStyle={styles.pickerItem}
             >
-              <Picker.Item label="Bosanski/Srpski/Hrvatski" value="bs" />
-              <Picker.Item label="English" value="en" />
-              <Picker.Item label="German" value="de" />
+              {languagePickerItems}
             </Picker>
           </View>
 
@@ -311,7 +321,9 @@ const Postavke: React.FC = () => {
       </Modal>
     </View>
   );
-};
+});
+
+Postavke.displayName = "Postavke";
 
 export default Postavke;
-                  
+

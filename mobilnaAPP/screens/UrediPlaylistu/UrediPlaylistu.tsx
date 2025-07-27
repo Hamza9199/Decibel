@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import { Playlista, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediPlaylistu.styles';
 
-const UrediPlaylistu: React.FC = () => {
+const UrediPlaylistu: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { playlistaId } = useLocalSearchParams();
@@ -42,38 +42,23 @@ const UrediPlaylistu: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (playlistaId && korisnikID) {
-      loadData();
-    }
-  }, [playlistaId, korisnikID]);
-
-  useEffect(() => {
-    if (playlista) {
-      setNaziv(playlista.naziv || '');
-      setOpis(playlista.opis || '');
-      setJavno(!!playlista.javno);
-    }
-  }, [playlista]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
-    if (!playlistaId || !korisnikID) {
+  const loadData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!playlistaId || !currentUserId) {
       setLoading(false);
       return;
     }
@@ -84,6 +69,13 @@ const UrediPlaylistu: React.FC = () => {
       // Load playlist data
       const playlistRes = await axios.get(`${API_BASE}/playliste/${playlistaId}`);
       setPlaylista(playlistRes.data);
+
+      // Set form values
+      if (playlistRes.data) {
+        setNaziv(playlistRes.data.naziv || '');
+        setOpis(playlistRes.data.opis || '');
+        setJavno(!!playlistRes.data.javno);
+      }
 
       // Load playlist songs
       const songsOrderRes = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
@@ -108,14 +100,23 @@ const UrediPlaylistu: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [playlistaId, korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and playlist data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (playlistaId && userId) {
+        loadData(userId);
+      }
+    });
+  }, [playlistaId, loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handleImagePick = async () => {
+  const handleImagePick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/*',
@@ -129,9 +130,9 @@ const UrediPlaylistu: React.FC = () => {
       console.error('Error picking image:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleGifPick = async () => {
+  const handleGifPick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/gif',
@@ -145,9 +146,9 @@ const UrediPlaylistu: React.FC = () => {
       console.error('Error picking GIF:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!playlista || !korisnikID) return;
     
     setError(null);
@@ -191,9 +192,9 @@ const UrediPlaylistu: React.FC = () => {
       console.error('Error updating playlist:', error);
       setError(t('error_updating_playlist') || 'Error updating playlist');
     }
-  };
+  }, [playlista, korisnikID, naziv, opis, javno, selectedImage, selectedGif, t, router]);
 
-  const handleRemoveSong = async (pjesmaId: number) => {
+  const handleRemoveSong = useCallback(async (pjesmaId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('remove_song_from_playlist') || 'Remove song from playlist?',
@@ -224,15 +225,15 @@ const UrediPlaylistu: React.FC = () => {
         }
       ]
     );
-  };
+  }, [playlistaId, t]);
 
-  const formatDuration = (seconds: number) => {
+  const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const renderSongItem = ({ item }: { item: Pjesma }) => (
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <View style={styles.songItem}>
       <View style={styles.songInfo}>
         <Text style={styles.songName} numberOfLines={1}>
@@ -260,7 +261,21 @@ const UrediPlaylistu: React.FC = () => {
         </Text>
       </TouchableOpacity>
     </View>
-  );
+  ), [removing, handleRemoveSong, formatDuration, t]);
+
+  // Memoize permission check
+  const hasPermission = useMemo(() => {
+    return playlista && playlista.korisnikID === korisnikID;
+  }, [playlista, korisnikID]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -285,7 +300,7 @@ const UrediPlaylistu: React.FC = () => {
     );
   }
 
-  if (playlista.korisnikID !== korisnikID) {
+  if (!hasPermission) {
     return (
       <View style={styles.container}>
         <Header />
@@ -304,13 +319,7 @@ const UrediPlaylistu: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('edit_playlist') || 'Edit Playlist'}</Text>
@@ -426,6 +435,8 @@ const UrediPlaylistu: React.FC = () => {
       <Tabs currentRoute="playlists" />
     </View>
   );
-};
+});
+
+UrediPlaylistu.displayName = "UrediPlaylistu";
 
 export default UrediPlaylistu;

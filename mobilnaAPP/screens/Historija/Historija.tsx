@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Historija.styles';
 
-const Historija: React.FC = () => {
+const Historija: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [history, setHistory] = useState<HistorijaSlusanja[]>([]);
   const [songs, setSongs] = useState<Pjesma[]>([]);
@@ -32,30 +32,23 @@ const Historija: React.FC = () => {
   const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (korisnikID) {
-      loadHistoryData();
-    }
-  }, [korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadHistoryData = async () => {
-    if (!korisnikID) {
+  const loadHistoryData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!currentUserId) {
       setLoading(false);
       return;
     }
@@ -69,7 +62,7 @@ const Historija: React.FC = () => {
       
       // Filter and sort by date (newest first)
       const userHistory = allHistory
-        .filter((h) => h.korisnikID === korisnikID)
+        .filter((h) => h.korisnikID === currentUserId)
         .sort((a, b) => 
           new Date(b.kreiranDatumVrijeme || '').getTime() - 
           new Date(a.kreiranDatumVrijeme || '').getTime()
@@ -88,7 +81,7 @@ const Historija: React.FC = () => {
       const likesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
       const likes = likesRes.data as KorisnikPjesma[];
       const map: { [pjesmaId: number]: boolean } = {};
-      likes.filter(v => v.korisnikID === korisnikID).forEach(v => {
+      likes.filter(v => v.korisnikID === currentUserId).forEach(v => {
         map[v.pjesmaID] = true;
       });
       setLikeMap(map);
@@ -100,14 +93,23 @@ const Historija: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and history data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (userId) {
+        loadHistoryData(userId);
+      }
+    });
+  }, [loadUserData, loadHistoryData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadHistoryData();
-  };
+  }, [loadHistoryData]);
 
-  const handleLikeSong = async (songId: number) => {
+  const handleLikeSong = useCallback(async (songId: number) => {
     if (!korisnikID) return;
 
     try {
@@ -128,9 +130,9 @@ const Historija: React.FC = () => {
       console.error('Error liking/unliking song:', error);
       Alert.alert(t('error'), t('error_favorites'));
     }
-  };
+  }, [korisnikID, likeMap, t]);
 
-  const handlePlaySong = (song: Pjesma) => {
+  const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       Alert.alert(t('error'), t('no_audio_file'));
       return;
@@ -138,9 +140,9 @@ const Historija: React.FC = () => {
     
     // Play song logic here
     console.log('Playing song:', song.naziv);
-  };
+  }, [t]);
 
-  const handleAddToPlaylist = async (songId: number, playlistId: number) => {
+  const handleAddToPlaylist = useCallback(async (songId: number, playlistId: number) => {
     try {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
         pjesmaID: songId,
@@ -153,26 +155,33 @@ const Historija: React.FC = () => {
       setShowPlaylistModal(null);
       Alert.alert(t('error'), t('error_adding_to_playlist'));
     }
-  };
+  }, [t]);
 
-  const formatDate = (dateString?: string): string => {
+  const handleModalClose = useCallback(() => {
+    setShowPlaylistModal(null);
+  }, []);
+
+  const formatDate = useCallback((dateString?: string): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
-  };
+  }, []);
 
-  // Combine history with song data
-  const historySongs = history
-    .map((h) => ({
-      ...h,
-      song: songs.find((s) => s.id === h.pjesmaID),
-    }))
-    .filter((h) => h.song && h.song.odobreno); // Show only approved songs
+  // Memoize combined history with song data
+  const historySongs = useMemo(() => 
+    history
+      .map((h) => ({
+        ...h,
+        song: songs.find((s) => s.id === h.pjesmaID),
+      }))
+      .filter((h) => h.song && h.song.odobreno),
+    [history, songs]
+  );
 
-  const renderHistoryItem = ({ item, index }: { item: any; index: number }) => (
+  const renderHistoryItem = useCallback(({ item, index }: { item: any; index: number }) => (
     <View style={styles.songCard}>
       <View style={styles.songHeader}>
         <Image
@@ -223,7 +232,16 @@ const Historija: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [handlePlaySong, handleLikeSong, likeMap, formatDate, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -239,13 +257,7 @@ const Historija: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('history')}</Text>
@@ -270,7 +282,7 @@ const Historija: React.FC = () => {
         visible={showPlaylistModal !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowPlaylistModal(null)}
+        onRequestClose={handleModalClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -291,7 +303,7 @@ const Historija: React.FC = () => {
             />
             <TouchableOpacity
               style={styles.modalCloseBtn}
-              onPress={() => setShowPlaylistModal(null)}
+              onPress={handleModalClose}
             >
               <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
             </TouchableOpacity>
@@ -302,8 +314,10 @@ const Historija: React.FC = () => {
       <Tabs currentRoute="history" />
     </View>
   );
-};
+});
+
+Historija.displayName = "Historija";
 
 export default Historija;
 
-         
+

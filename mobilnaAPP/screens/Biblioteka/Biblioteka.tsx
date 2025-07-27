@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -30,7 +30,7 @@ interface LibraryData {
   playliste: Playlista[];
 }
 
-const Biblioteka: React.FC = () => {
+const Biblioteka: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { playAudio, playPlaylist } = useAudio();
@@ -45,128 +45,181 @@ const Biblioteka: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
+  const [loadedFilters, setLoadedFilters] = useState<Set<LibraryFilter>>(new Set());
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (korisnik?.id) {
-      loadLibraryData();
-    }
-  }, [korisnik?.id]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
-        setKorisnik(JSON.parse(userData));
+        const user = JSON.parse(userData);
+        setKorisnik(user);
+        return user;
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return null;
+  }, []);
 
-  const loadLibraryData = async () => {
-    if (!korisnik?.id) return;
+  // Load only specific filter data
+  const loadFilterData = useCallback(async (filter: LibraryFilter, user?: Korisnik) => {
+    const currentUser = user || korisnik;
+    if (!currentUser?.id) return;
+
+    if (loadedFilters.has(filter)) return; // Already loaded
 
     try {
-      setLoading(true);
+      switch (filter) {
+        case 'prateci': {
+          const followingRes = await axios.get(`${API_BASE}/pratioci/`);
+          const followingLinks = followingRes.data || [];
+          const followedIds = followingLinks
+            .filter((p: any) => p.pratilacID === currentUser.id)
+            .map((p: any) => p.korisnikID);
 
-      // Load followed artists
-      const followingRes = await axios.get(`${API_BASE}/pratioci/`);
-      const followingLinks = followingRes.data || [];
-      const followedIds = followingLinks
-        .filter((p: any) => p.pratilacID === korisnik.id)
-        .map((p: any) => p.korisnikID);
+          if (followedIds.length > 0) {
+            // Load in batches of 5 to avoid overwhelming the server
+            const batchSize = 5;
+            const followedArtists: Korisnik[] = [];
+            
+            for (let i = 0; i < followedIds.length; i += batchSize) {
+              const batch = followedIds.slice(i, i + batchSize);
+              const artistPromises = batch.map((id: string) =>
+                axios.get(`${API_BASE}/korisnici/${id}`)
+                  .then(res => res.data)
+                  .catch(() => null)
+              );
+              const artists = await Promise.all(artistPromises);
+              followedArtists.push(...artists.filter(Boolean));
+            }
+            
+            setData(prev => ({ ...prev, prateci: followedArtists }));
+          }
+          break;
+        }
 
-      const followedArtists = [];
-      if (followedIds.length > 0) {
-        const artistPromises = followedIds.map((id: string) =>
-          axios.get(`${API_BASE}/korisnici/${id}`)
-            .then(res => res.data)
-            .catch(() => null)
-        );
-        const artists = await Promise.all(artistPromises);
-        followedArtists.push(...artists.filter(Boolean));
+        case 'pjesme': {
+          const likedSongsRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+          const likedSongLinks = likedSongsRes.data || [];
+          const likedSongIds = likedSongLinks
+            .filter((l: any) => l.korisnikID === currentUser.id)
+            .map((l: any) => l.pjesmaID);
+
+          if (likedSongIds.length > 0) {
+            const batchSize = 10;
+            const likedSongs: Pjesma[] = [];
+            
+            for (let i = 0; i < likedSongIds.length; i += batchSize) {
+              const batch = likedSongIds.slice(i, i + batchSize);
+              const songPromises = batch.map((id: number) =>
+                axios.get(`${API_BASE}/pjesme/${id}`)
+                  .then(res => res.data)
+                  .catch(() => null)
+              );
+              const songs = await Promise.all(songPromises);
+              likedSongs.push(...songs.filter(s => s && s.odobreno));
+            }
+            
+            setData(prev => ({ ...prev, pjesme: likedSongs }));
+          }
+          break;
+        }
+
+        case 'albumi': {
+          const likedAlbumsRes = await axios.get(`${API_BASE}/korisnik_album/`);
+          const likedAlbumLinks = likedAlbumsRes.data || [];
+          const likedAlbumIds = likedAlbumLinks
+            .filter((l: any) => l.korisnikID === currentUser.id)
+            .map((l: any) => l.albumID);
+
+          if (likedAlbumIds.length > 0) {
+            const batchSize = 10;
+            const likedAlbums: Album[] = [];
+            
+            for (let i = 0; i < likedAlbumIds.length; i += batchSize) {
+              const batch = likedAlbumIds.slice(i, i + batchSize);
+              const albumPromises = batch.map((id: number) =>
+                axios.get(`${API_BASE}/albumi/${id}`)
+                  .then(res => res.data)
+                  .catch(() => null)
+              );
+              const albums = await Promise.all(albumPromises);
+              likedAlbums.push(...albums.filter(a => a && a.odobreno));
+            }
+            
+            setData(prev => ({ ...prev, albumi: likedAlbums }));
+          }
+          break;
+        }
+
+        case 'playliste': {
+          const likedPlaylistsRes = await axios.get(`${API_BASE}/korisnik_playlista/`);
+          const likedPlaylistLinks = likedPlaylistsRes.data || [];
+          const likedPlaylistIds = likedPlaylistLinks
+            .filter((l: any) => l.korisnikID === currentUser.id)
+            .map((l: any) => l.playlistaID);
+
+          if (likedPlaylistIds.length > 0) {
+            const batchSize = 10;
+            const likedPlaylists: Playlista[] = [];
+            
+            for (let i = 0; i < likedPlaylistIds.length; i += batchSize) {
+              const batch = likedPlaylistIds.slice(i, i + batchSize);
+              const playlistPromises = batch.map((id: number) =>
+                axios.get(`${API_BASE}/playliste/${id}`)
+                  .then(res => res.data)
+                  .catch(() => null)
+              );
+              const playlists = await Promise.all(playlistPromises);
+              likedPlaylists.push(...playlists.filter(p => p && p.javno));
+            }
+            
+            setData(prev => ({ ...prev, playliste: likedPlaylists }));
+          }
+          break;
+        }
       }
 
-      // Load liked songs
-      const likedSongsRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const likedSongLinks = likedSongsRes.data || [];
-      const likedSongIds = likedSongLinks
-        .filter((l: any) => l.korisnikID === korisnik.id)
-        .map((l: any) => l.pjesmaID);
-
-      const likedSongs = [];
-      if (likedSongIds.length > 0) {
-        const songPromises = likedSongIds.map((id: number) =>
-          axios.get(`${API_BASE}/pjesme/${id}`)
-            .then(res => res.data)
-            .catch(() => null)
-        );
-        const songs = await Promise.all(songPromises);
-        likedSongs.push(...songs.filter(s => s && s.odobreno));
-      }
-
-      // Load liked albums
-      const likedAlbumsRes = await axios.get(`${API_BASE}/korisnik_album/`);
-      const likedAlbumLinks = likedAlbumsRes.data || [];
-      const likedAlbumIds = likedAlbumLinks
-        .filter((l: any) => l.korisnikID === korisnik.id)
-        .map((l: any) => l.albumID);
-
-      const likedAlbums = [];
-      if (likedAlbumIds.length > 0) {
-        const albumPromises = likedAlbumIds.map((id: number) =>
-          axios.get(`${API_BASE}/albumi/${id}`)
-            .then(res => res.data)
-            .catch(() => null)
-        );
-        const albums = await Promise.all(albumPromises);
-        likedAlbums.push(...albums.filter(a => a && a.odobreno));
-      }
-
-      // Load liked playlists
-      const likedPlaylistsRes = await axios.get(`${API_BASE}/korisnik_playlista/`);
-      const likedPlaylistLinks = likedPlaylistsRes.data || [];
-      const likedPlaylistIds = likedPlaylistLinks
-        .filter((l: any) => l.korisnikID === korisnik.id)
-        .map((l: any) => l.playlistaID);
-
-      const likedPlaylists = [];
-      if (likedPlaylistIds.length > 0) {
-        const playlistPromises = likedPlaylistIds.map((id: number) =>
-          axios.get(`${API_BASE}/playliste/${id}`)
-            .then(res => res.data)
-            .catch(() => null)
-        );
-        const playlists = await Promise.all(playlistPromises);
-        likedPlaylists.push(...playlists.filter(p => p && p.javno));
-      }
-
-      setData({
-        prateci: followedArtists,
-        pjesme: likedSongs,
-        albumi: likedAlbums,
-        playliste: likedPlaylists,
-      });
-
+      setLoadedFilters(prev => new Set([...prev, filter]));
     } catch (error) {
-      console.error('Error loading library data:', error);
-      Alert.alert(t('error'), t('error_loading_library'));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      console.error(`Error loading ${filter} data:`, error);
     }
-  };
+  }, [korisnik, loadedFilters]);
 
-  const onRefresh = () => {
+  // Load initial data only for the active filter
+  useMemo(() => {
+    loadUserData().then(user => {
+      if (user) {
+        loadFilterData(activeFilter, user).finally(() => {
+          setLoading(false);
+        });
+      }
+    });
+  }, [loadUserData, loadFilterData, activeFilter]);
+
+  // Load data when filter changes
+  const handleFilterChange = useCallback((filter: LibraryFilter) => {
+    setActiveFilter(filter);
+    if (!loadedFilters.has(filter)) {
+      loadFilterData(filter);
+    }
+  }, [loadedFilters, loadFilterData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadLibraryData();
-  };
+    setLoadedFilters(new Set());
+    setData({
+      prateci: [],
+      pjesme: [],
+      albumi: [],
+      playliste: [],
+    });
+    loadFilterData(activeFilter).finally(() => {
+      setRefreshing(false);
+    });
+  }, [loadFilterData, activeFilter]);
 
-  const handleUnfollow = async (artistId: string) => {
+  const handleUnfollow = useCallback(async (artistId: string) => {
     if (!korisnik?.id) return;
 
     Alert.alert(
@@ -193,9 +246,9 @@ const Biblioteka: React.FC = () => {
         }
       ]
     );
-  };
+  }, [korisnik?.id, t]);
 
-  const handleUnlikeSong = async (songId: number) => {
+  const handleUnlikeSong = useCallback(async (songId: number) => {
     if (!korisnik?.id) return;
 
     try {
@@ -209,9 +262,9 @@ const Biblioteka: React.FC = () => {
       console.error('Error unliking song:', error);
       Alert.alert(t('error'), t('error_removing_favorite'));
     }
-  };
+  }, [korisnik?.id, t]);
 
-  const handleUnlikeAlbum = async (albumId: number) => {
+  const handleUnlikeAlbum = useCallback(async (albumId: number) => {
     if (!korisnik?.id) return;
 
     try {
@@ -225,9 +278,9 @@ const Biblioteka: React.FC = () => {
       console.error('Error unliking album:', error);
       Alert.alert(t('error'), t('error_removing_favorite'));
     }
-  };
+  }, [korisnik?.id, t]);
 
-  const handleUnlikePlaylist = async (playlistId: number) => {
+  const handleUnlikePlaylist = useCallback(async (playlistId: number) => {
     if (!korisnik?.id) return;
 
     try {
@@ -241,7 +294,7 @@ const Biblioteka: React.FC = () => {
       console.error('Error unliking playlist:', error);
       Alert.alert(t('error'), t('error_removing_favorite'));
     }
-  };
+  }, [korisnik?.id, t]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -298,20 +351,21 @@ const Biblioteka: React.FC = () => {
     }
   }, [playPlaylist, t]);
 
-  const filters: { key: LibraryFilter; label: string; icon: string }[] = [
-    { key: 'prateci', label: t('following'), icon: 'people' },
-    { key: 'pjesme', label: t('liked_songs'), icon: 'favorite' },
-    { key: 'albumi', label: t('liked_albums'), icon: 'album' },
-    { key: 'playliste', label: t('liked_playlists'), icon: 'queue-music' },
-  ];
+  // Memoize filters
+  const filters = useMemo(() => [
+    { key: 'prateci' as LibraryFilter, label: t('following'), icon: 'people' },
+    { key: 'pjesme' as LibraryFilter, label: t('liked_songs'), icon: 'favorite' },
+    { key: 'albumi' as LibraryFilter, label: t('liked_albums'), icon: 'album' },
+    { key: 'playliste' as LibraryFilter, label: t('liked_playlists'), icon: 'queue-music' },
+  ], [t]);
 
-  const renderFilterButton = ({ item }: { item: typeof filters[0] }) => (
+  const renderFilterButton = useCallback(({ item }: { item: typeof filters[0] }) => (
     <TouchableOpacity
       style={[
         styles.filterButton,
         activeFilter === item.key && styles.filterButtonActive,
       ]}
-      onPress={() => setActiveFilter(item.key)}
+      onPress={() => handleFilterChange(item.key)}
     >
       <Text
         style={[
@@ -322,9 +376,9 @@ const Biblioteka: React.FC = () => {
         {item.label}
       </Text>
     </TouchableOpacity>
-  );
+  ), [activeFilter, handleFilterChange]);
 
-  const renderArtistItem = ({ item }: { item: Korisnik }) => (
+  const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
@@ -352,9 +406,9 @@ const Biblioteka: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [router, t, handleUnfollow]);
 
-  const renderSongItem = ({ item }: { item: Pjesma }) => (
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
@@ -388,9 +442,9 @@ const Biblioteka: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [router, t, handlePlaySong, handleUnlikeSong]);
 
-  const renderAlbumItem = ({ item }: { item: Album }) => (
+  const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
@@ -424,9 +478,9 @@ const Biblioteka: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [router, t, handlePlayAlbum, handleUnlikeAlbum]);
 
-  const renderPlaylistItem = ({ item }: { item: Playlista }) => (
+  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
@@ -460,39 +514,63 @@ const Biblioteka: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [router, t, handlePlayPlaylist, handleUnlikePlaylist]);
 
-  const renderContent = () => {
-    const currentData = data[activeFilter];
-    
+  // Memoize current data and empty state
+  const currentData = useMemo(() => data[activeFilter], [data, activeFilter]);
+  
+  const emptyStateConfig = useMemo(() => {
+    const activeFilterData = filters.find(f => f.key === activeFilter);
+    return {
+      icon: activeFilterData?.icon || 'inbox',
+      title: {
+        'prateci': t('no_following'),
+        'pjesme': t('no_liked_songs'),
+        'albumi': t('no_liked_albums'),
+        'playliste': t('no_liked_playlists'),
+      }[activeFilter],
+      subtitle: {
+        'prateci': t('no_following_description'),
+        'pjesme': t('no_liked_songs_description'),
+        'albumi': t('no_liked_albums_description'),
+        'playliste': t('no_liked_playlists_description'),
+      }[activeFilter],
+    };
+  }, [activeFilter, filters, t]);
+
+  const renderContent = useMemo(() => {
+    // Show loading indicator if current filter is not loaded yet
+    if (!loadedFilters.has(activeFilter) && !loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#b91d95" />
+          <Text style={styles.loadingText}>{t('loading')}</Text>
+        </View>
+      );
+    }
+
     if (currentData.length === 0) {
       return (
         <View style={styles.emptyContainer}>
           <MaterialIcons 
-            name={filters.find(f => f.key === activeFilter)?.icon as any || 'inbox'} 
+            name={emptyStateConfig.icon as any} 
             size={64} 
             color="#444" 
             style={styles.emptyIcon} 
           />
           <Text style={styles.emptyTitle}>
-            {activeFilter === 'prateci' && t('no_following')}
-            {activeFilter === 'pjesme' && t('no_liked_songs')}
-            {activeFilter === 'albumi' && t('no_liked_albums')}
-            {activeFilter === 'playliste' && t('no_liked_playlists')}
+            {emptyStateConfig.title}
           </Text>
           <Text style={styles.emptySubtitle}>
-            {activeFilter === 'prateci' && t('no_following_description')}
-            {activeFilter === 'pjesme' && t('no_liked_songs_description')}
-            {activeFilter === 'albumi' && t('no_liked_albums_description')}
-            {activeFilter === 'playliste' && t('no_liked_playlists_description')}
+            {emptyStateConfig.subtitle}
           </Text>
         </View>
       );
     }
 
-    return (
-      <>
-        {activeFilter === 'prateci' && (
+    switch (activeFilter) {
+      case 'prateci':
+        return (
           <FlatList<Korisnik>
             data={data.prateci}
             keyExtractor={(item) => `prateci-${item.id}`}
@@ -500,8 +578,9 @@ const Biblioteka: React.FC = () => {
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
           />
-        )}
-        {activeFilter === 'pjesme' && (
+        );
+      case 'pjesme':
+        return (
           <FlatList<Pjesma>
             data={data.pjesme}
             keyExtractor={(item) => `pjesme-${item.id}`}
@@ -509,8 +588,9 @@ const Biblioteka: React.FC = () => {
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
           />
-        )}
-        {activeFilter === 'albumi' && (
+        );
+      case 'albumi':
+        return (
           <FlatList<Album>
             data={data.albumi}
             keyExtractor={(item) => `albumi-${item.id}`}
@@ -518,8 +598,9 @@ const Biblioteka: React.FC = () => {
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
           />
-        )}
-        {activeFilter === 'playliste' && (
+        );
+      case 'playliste':
+        return (
           <FlatList<Playlista>
             data={data.playliste}
             keyExtractor={(item) => `playliste-${item.id}`}
@@ -527,10 +608,20 @@ const Biblioteka: React.FC = () => {
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
           />
-        )}
-      </>
-    );
-  };
+        );
+      default:
+        return null;
+    }
+  }, [loadedFilters, activeFilter, loading, currentData, data, emptyStateConfig, renderArtistItem, renderSongItem, renderAlbumItem, renderPlaylistItem, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -546,13 +637,7 @@ const Biblioteka: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('my_library')}</Text>
@@ -568,11 +653,13 @@ const Biblioteka: React.FC = () => {
           />
 
           {/* Content */}
-          {renderContent()}
+          {renderContent}
         </View>
       </ScrollView>
     </View>
   );
-};
+});
+
+Biblioteka.displayName = "Biblioteka";
 
 export default Biblioteka;

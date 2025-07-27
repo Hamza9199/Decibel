@@ -328,6 +328,23 @@
   "error_loading_history": "Fehler beim Laden der Geschichte",
   "listening_history": "Hörgeschichte",
   "played_on": "Gespielt am",
-  "recently_played": "Kürzlich gespielt"
+  "recently_played": "Kürzlich gespielt",
+  "offline_mode": "Offline-Modus",
+  "offline_mode_description": "Die App befindet sich im Offline-Modus. Einige Funktionen sind möglicherweise nicht verfügbar.",
+  "enable_offline_mode": "Offline-Modus aktivieren",
+  "no_offline_songs": "Keine Songs für das Offline-Hören verfügbar.",
+  "download_songs": "Laden Sie Songs für das Offline-Hören herunter",
+  "offline_description": "Im Offline-Modus können Sie heruntergeladene Songs ohne Internetverbindung hören.",
+  "download": "Herunterladen",
+  "downloading": "Herunterladen...",
+  "offline_song_deleted": "Song wurde aus dem Offline-Modus entfernt",
+  "error_deleting_offline_song": "Fehler beim Entfernen des Songs aus dem Offline-Modus",
+  "playing_offline_song": "Offline-Song wird abgespielt",
+  "delete_offline_confirm": "Sind Sie sicher, dass Sie diesen Song aus dem Offline-Modus entfernen möchten?",
+  "error_downloading_song": "Fehler beim Herunterladen des Songs",
+  "song_downloaded_offline": "Song wurde erfolgreich für das Offline-Hören heruntergeladen",
+  "song_already_downloaded": "Song ist bereits für das Offline-Hören heruntergeladen",
+  "follows": "Folgt"
+
 }
 

@@ -36,7 +36,8 @@ export default {
       eas: {
         projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID
       }
-    }
+    },
+    scheme: "decibel"
   }
 };
 

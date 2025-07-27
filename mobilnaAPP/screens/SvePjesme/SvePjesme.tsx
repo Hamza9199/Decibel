@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SvePjesme.styles';
 
-const SvePjesme: React.FC = () => {
+const SvePjesme: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
@@ -31,30 +31,23 @@ const SvePjesme: React.FC = () => {
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (korisnikID) {
-      loadData();
-    }
-  }, [korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
-    if (!korisnikID) {
+  const loadData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!currentUserId) {
       setPjesme([]);
       setLoading(false);
       return;
@@ -66,7 +59,7 @@ const SvePjesme: React.FC = () => {
       
       // Filter songs by current user
       const mojePjesme = (response.data || []).filter(
-        (p: Pjesma) => p.korisnikID === korisnikID
+        (p: Pjesma) => p.korisnikID === currentUserId
       );
       setPjesme(mojePjesme);
     } catch (error) {
@@ -77,14 +70,23 @@ const SvePjesme: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and songs when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (userId) {
+        loadData(userId);
+      }
+    });
+  }, [loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handlePlay = (song: Pjesma) => {
+  const handlePlay = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
@@ -93,13 +95,13 @@ const SvePjesme: React.FC = () => {
     setActiveSongId(song.id);
     console.log('Playing song:', song.naziv);
     // Add audio player integration here
-  };
+  }, [t]);
 
-  const handleEdit = (songId: number) => {
+  const handleEdit = useCallback((songId: number) => {
     router.push(`/uredi-pjesmu/${songId}`);
-  };
+  }, [router]);
 
-  const handleDelete = (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('delete_song_confirm') || 'Are you sure you want to delete this song?',
@@ -121,12 +123,32 @@ const SvePjesme: React.FC = () => {
         }
       ]
     );
-  };
+  }, [t]);
 
-  // Filter songs based on search
-  const filtriranePjesme = pjesme.filter(p =>
-    p.naziv.toLowerCase().includes(search.toLowerCase())
+  const handleNavigateToSong = useCallback((songId: number) => {
+    router.push(`/pjesma/${songId}`);
+  }, [router]);
+
+  const handleNavigateToArtist = useCallback((artistId: string) => {
+    router.push(`/izvodjac/${artistId}`);
+  }, [router]);
+
+  // Memoize filtered songs
+  const filtriranePjesme = useMemo(() => 
+    pjesme.filter(p =>
+      p.naziv.toLowerCase().includes(search.toLowerCase())
+    ),
+    [pjesme, search]
   );
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -142,13 +164,7 @@ const SvePjesme: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('my_songs') || 'My Songs'}</Text>
@@ -192,13 +208,18 @@ const SvePjesme: React.FC = () => {
                     )}
                   </View>
                   
-                  <TouchableOpacity onPress={() => router.push(`/pjesma/${song.id}`)}>
+                  <TouchableOpacity onPress={() => handleNavigateToSong(song.id)}>
                     <Text style={styles.cardTitle} numberOfLines={2}>
                       {song.naziv}
                     </Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity onPress={() => router.push(`/izvodjac/${song.korisnikID}`)}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (song.korisnikID) handleNavigateToArtist(song.korisnikID);
+                    }}
+                    disabled={!song.korisnikID}
+                  >
                     <Text style={styles.cardDesc} numberOfLines={1}>
                       {song.korisnik?.korisnicko_ime || t('unknown_artist')}
                     </Text>
@@ -229,6 +250,8 @@ const SvePjesme: React.FC = () => {
       <Tabs currentRoute="songs" />
     </View>
   );
-};
+});
+
+SvePjesme.displayName = "SvePjesme";
 
 export default SvePjesme;

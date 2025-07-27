@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ interface HeaderProps {
   onLogoPress?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
+const Header: React.FC<HeaderProps> = React.memo(({ 
   onSearchPress, 
   onProfilePress, 
   onLogoPress 
@@ -29,14 +29,9 @@ const Header: React.FC<HeaderProps> = ({
   const { ready } = useTranslation();
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -51,8 +46,28 @@ const Header: React.FC<HeaderProps> = ({
       console.error('Failed to load user data:', error);
       setIsLoggedIn(false);
     }
-  };
+  }, []);
 
+  // Load user data once when component mounts
+  useMemo(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  const handleMenuPress = useCallback(() => {
+    setShowSidebar(true);
+  }, []);
+
+  const handleSidebarClose = useCallback(() => {
+    setShowSidebar(false);
+  }, []);
+
+  const handleProfilePress = useCallback(() => {
+    router.push('/edit-profile');
+  }, []);
+
+  const profileImageUri = useMemo(() => {
+    return korisnik?.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
+  }, [korisnik?.putanjaProfilneSlike]);
 
   if (!ready) {
     return (
@@ -68,7 +83,7 @@ const Header: React.FC<HeaderProps> = ({
         {/* Menu Button */}
         <TouchableOpacity 
           style={styles.menuButton}
-          onPress={() => setShowSidebar(true)}
+          onPress={handleMenuPress}
         >
           <MaterialIcons name="menu" size={24} color="#ffe6ec" />
         </TouchableOpacity>
@@ -76,6 +91,7 @@ const Header: React.FC<HeaderProps> = ({
         {/* Logo */}
         <TouchableOpacity  
           style={styles.logoContainer}
+          onPress={onLogoPress}
         >
           <Image
             source={require('../../assets/images/logo.gif')}
@@ -89,12 +105,10 @@ const Header: React.FC<HeaderProps> = ({
           {/* Profile Button */}
           <TouchableOpacity 
             style={styles.profileButton} 
-            onPress={() => router.push('/edit-profile')}
+            onPress={handleProfilePress}
           >
             <Image
-              source={{ 
-                uri: korisnik?.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' 
-              }}
+              source={{ uri: profileImageUri }}
               style={styles.profileImgMobile}
               contentFit="cover"
             />
@@ -105,10 +119,12 @@ const Header: React.FC<HeaderProps> = ({
       {/* Sidebar */}
       <Sidebar 
         visible={showSidebar} 
-        onClose={() => setShowSidebar(false)} 
+        onClose={handleSidebarClose} 
       />
     </>
   );
-};
+});
+
+Header.displayName = "Header";
 
 export default Header;

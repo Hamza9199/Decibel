@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import { Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPretplata.styles';
 
-const NovaPretplata: React.FC = () => {
+const NovaPretplata: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { pretplataId } = useLocalSearchParams();
@@ -38,17 +38,7 @@ const NovaPretplata: React.FC = () => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (pretplataId) {
-      loadPretplataData();
-    }
-  }, [pretplataId]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -58,9 +48,9 @@ const NovaPretplata: React.FC = () => {
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+  }, []);
 
-  const loadPretplataData = async () => {
+  const loadPretplataData = useCallback(async () => {
     if (!pretplataId) {
       setLoading(false);
       return;
@@ -77,9 +67,18 @@ const NovaPretplata: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pretplataId, t]);
 
-  const validateCard = (): string | null => {
+  // Load user data and subscription data when component mounts
+  useMemo(() => {
+    loadUserData().then(() => {
+      if (pretplataId) {
+        loadPretplataData();
+      }
+    });
+  }, [pretplataId, loadUserData, loadPretplataData]);
+
+  const validateCard = useCallback((): string | null => {
     if (!cardNumber.match(/^\d{16}$/)) {
       return t('card_number_invalid') || 'Card number must have 16 digits';
     }
@@ -93,9 +92,9 @@ const NovaPretplata: React.FC = () => {
       return t('card_cvc_invalid') || 'CVC must have 3 or 4 digits';
     }
     return null;
-  };
+  }, [cardNumber, cardName, cardExp, cardCvc, t]);
 
-  const handleConfirmPurchase = async () => {
+  const handleConfirmPurchase = useCallback(async () => {
     setError(null);
     setSuccess(null);
 
@@ -140,23 +139,61 @@ const NovaPretplata: React.FC = () => {
     } finally {
       setPurchasing(false);
     }
-  };
+  }, [korisnikID, validateCard, pretplata?.id, t, router]);
 
-  const formatCardNumber = (value: string): string => {
+  const formatCardNumber = useCallback((value: string): string => {
     return value.replace(/\D/g, '').slice(0, 16);
-  };
+  }, []);
 
-  const formatCardExp = (value: string): string => {
+  const formatCardExp = useCallback((value: string): string => {
     const cleanValue = value.replace(/\D/g, '');
     if (cleanValue.length >= 2) {
       return cleanValue.slice(0, 2) + '/' + cleanValue.slice(2, 4);
     }
     return cleanValue;
-  };
+  }, []);
 
-  const formatCardCvc = (value: string): string => {
+  const formatCardCvc = useCallback((value: string): string => {
     return value.replace(/\D/g, '').slice(0, 4);
-  };
+  }, []);
+
+  const handleCardNumberChange = useCallback((text: string) => {
+    setCardNumber(formatCardNumber(text));
+  }, [formatCardNumber]);
+
+  const handleCardExpChange = useCallback((text: string) => {
+    setCardExp(formatCardExp(text));
+  }, [formatCardExp]);
+
+  const handleCardCvcChange = useCallback((text: string) => {
+    setCardCvc(formatCardCvc(text));
+  }, [formatCardCvc]);
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  // Memoize subscription details
+  const subscriptionDetails = useMemo(() => [
+    { label: t('price'), value: `${pretplata?.cijena} KM / ${t('month')}` },
+    { label: t('description'), value: pretplata?.opis || '' },
+  ], [pretplata?.cijena, pretplata?.opis, t]);
 
   if (loading) {
     return (
@@ -191,14 +228,12 @@ const NovaPretplata: React.FC = () => {
 
           {/* Subscription Details */}
           <View style={styles.subscriptionDetails}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>{t('price')}:</Text>
-              <Text style={styles.detailValue}>{pretplata.cijena} KM / {t('month')}</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>{t('description')}:</Text>
-              <Text style={styles.detailValue}>{pretplata.opis}</Text>
-            </View>
+            {subscriptionDetails.map((detail, index) => (
+              <View key={index} style={styles.detailRow}>
+                <Text style={styles.detailLabel}>{detail.label}:</Text>
+                <Text style={styles.detailValue}>{detail.value}</Text>
+              </View>
+            ))}
           </View>
 
           {/* Payment Form */}
@@ -212,9 +247,9 @@ const NovaPretplata: React.FC = () => {
                   focusedField === 'cardNumber' && styles.inputFocused,
                 ]}
                 value={cardNumber}
-                onChangeText={(text) => setCardNumber(formatCardNumber(text))}
-                onFocus={() => setFocusedField('cardNumber')}
-                onBlur={() => setFocusedField(null)}
+                onChangeText={handleCardNumberChange}
+                onFocus={() => handleFocus('cardNumber')}
+                onBlur={handleBlur}
                 placeholder="1234567890123456"
                 placeholderTextColor="#888"
                 keyboardType="numeric"
@@ -232,8 +267,8 @@ const NovaPretplata: React.FC = () => {
                 ]}
                 value={cardName}
                 onChangeText={setCardName}
-                onFocus={() => setFocusedField('cardName')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('cardName')}
+                onBlur={handleBlur}
                 placeholder={t('card_name_placeholder') || 'JOHN DOE'}
                 placeholderTextColor="#888"
                 autoCapitalize="characters"
@@ -251,9 +286,9 @@ const NovaPretplata: React.FC = () => {
                     focusedField === 'cardExp' && styles.inputFocused,
                   ]}
                   value={cardExp}
-                  onChangeText={(text) => setCardExp(formatCardExp(text))}
-                  onFocus={() => setFocusedField('cardExp')}
-                  onBlur={() => setFocusedField(null)}
+                  onChangeText={handleCardExpChange}
+                  onFocus={() => handleFocus('cardExp')}
+                  onBlur={handleBlur}
                   placeholder="MM/YY"
                   placeholderTextColor="#888"
                   keyboardType="numeric"
@@ -269,9 +304,9 @@ const NovaPretplata: React.FC = () => {
                     focusedField === 'cardCvc' && styles.inputFocused,
                   ]}
                   value={cardCvc}
-                  onChangeText={(text) => setCardCvc(formatCardCvc(text))}
-                  onFocus={() => setFocusedField('cardCvc')}
-                  onBlur={() => setFocusedField(null)}
+                  onChangeText={handleCardCvcChange}
+                  onFocus={() => handleFocus('cardCvc')}
+                  onBlur={handleBlur}
                   placeholder="123"
                   placeholderTextColor="#888"
                   keyboardType="numeric"
@@ -303,8 +338,8 @@ const NovaPretplata: React.FC = () => {
                   purchasing && styles.buttonDisabled,
                 ]}
                 onPress={handleConfirmPurchase}
-                onPressIn={() => setButtonPressed(true)}
-                onPressOut={() => setButtonPressed(false)}
+                onPressIn={handleButtonPressIn}
+                onPressOut={handleButtonPressOut}
                 disabled={purchasing}
                 activeOpacity={0.8}
               >
@@ -315,7 +350,7 @@ const NovaPretplata: React.FC = () => {
 
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => router.back()}
+                onPress={handleBack}
                 disabled={purchasing}
               >
                 <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
@@ -328,6 +363,8 @@ const NovaPretplata: React.FC = () => {
       <Tabs currentRoute="subscription" />
     </View>
   );
-};
+});
+
+NovaPretplata.displayName = "NovaPretplata";
 
 export default NovaPretplata;

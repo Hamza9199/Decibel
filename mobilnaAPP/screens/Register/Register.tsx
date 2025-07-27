@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '@/config/api';
 import { styles } from './Register.styles';
 
-const Register: React.FC = () => {
+const Register: React.FC = React.memo(() => {
   const [ime, setIme] = useState('');
   const [prezime, setPrezime] = useState('');
   const [korisnicko_ime, setKorisnickoIme] = useState('');
@@ -33,7 +33,7 @@ const Register: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const checkIfLoggedIn = React.useCallback(async () => {
+  const checkIfLoggedIn = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -47,11 +47,12 @@ const Register: React.FC = () => {
     }
   }, [router]);
 
-  useEffect(() => {
+  // Check if user is already logged in when component mounts
+  useMemo(() => {
     checkIfLoggedIn();
   }, [checkIfLoggedIn]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!ime.trim() || !prezime.trim() || !korisnicko_ime.trim() || !email.trim() || !lozinka.trim()) {
       setError(t('fill_all_fields') || 'Please fill all fields');
       return;
@@ -104,11 +105,27 @@ const Register: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ime, prezime, korisnicko_ime, email, lozinka, t, router]);
 
-  const navigateToLogin = () => {
+  const navigateToLogin = useCallback(() => {
     router.push('/login');
-  };
+  }, [router]);
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
 
   if (loading) {
     return (
@@ -158,8 +175,8 @@ const Register: React.FC = () => {
                   placeholderTextColor="#888"
                   value={ime}
                   onChangeText={setIme}
-                  onFocus={() => setFocusedField('ime')}
-                  onBlur={() => setFocusedField(null)}
+                  onFocus={() => handleFocus('ime')}
+                  onBlur={handleBlur}
                   autoCapitalize="words"
                   autoCorrect={false}
                 />
@@ -174,8 +191,8 @@ const Register: React.FC = () => {
                   placeholderTextColor="#888"
                   value={prezime}
                   onChangeText={setPrezime}
-                  onFocus={() => setFocusedField('prezime')}
-                  onBlur={() => setFocusedField(null)}
+                  onFocus={() => handleFocus('prezime')}
+                  onBlur={handleBlur}
                   autoCapitalize="words"
                   autoCorrect={false}
                 />
@@ -192,8 +209,8 @@ const Register: React.FC = () => {
                 placeholderTextColor="#888"
                 value={korisnicko_ime}
                 onChangeText={setKorisnickoIme}
-                onFocus={() => setFocusedField('username')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('username')}
+                onBlur={handleBlur}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
@@ -209,8 +226,8 @@ const Register: React.FC = () => {
                 placeholderTextColor="#888"
                 value={email}
                 onChangeText={setEmail}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('email')}
+                onBlur={handleBlur}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -228,8 +245,8 @@ const Register: React.FC = () => {
                 placeholderTextColor="#888"
                 value={lozinka}
                 onChangeText={setLozinka}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('password')}
+                onBlur={handleBlur}
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -255,8 +272,8 @@ const Register: React.FC = () => {
                 buttonPressed && styles.buttonPressed,
               ]}
               onPress={handleSubmit}
-              onPressIn={() => setButtonPressed(true)}
-              onPressOut={() => setButtonPressed(false)}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -280,6 +297,8 @@ const Register: React.FC = () => {
       </KeyboardAvoidingView>
     </LinearGradient>
   );
-};
+});
+
+Register.displayName = "Register";
 
 export default Register;

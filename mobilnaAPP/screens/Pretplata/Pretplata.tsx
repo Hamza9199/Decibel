@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import { KorisnikPretplata, Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pretplata.styles';
 
-const PretplataScreen: React.FC = () => {
+const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -28,11 +28,7 @@ const PretplataScreen: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [kupovinaLoading, setKupovinaLoading] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const getKorisnikID = async (): Promise<string> => {
+  const getKorisnikID = useCallback(async (): Promise<string> => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -44,9 +40,9 @@ const PretplataScreen: React.FC = () => {
       console.error('Error getting user ID:', error);
       return '';
     }
-  };
+  }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const korisnikID = await getKorisnikID();
       
@@ -82,14 +78,19 @@ const PretplataScreen: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [getKorisnikID, t]);
 
-  const onRefresh = () => {
+  // Load data when component mounts
+  useMemo(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handleOtkaziPretplatu = async () => {
+  const handleOtkaziPretplatu = useCallback(async () => {
     if (!korisnikPretplata) return;
     
     Alert.alert(
@@ -123,16 +124,38 @@ const PretplataScreen: React.FC = () => {
         }
       ]
     );
-  };
+  }, [korisnikPretplata, t, loadData]);
 
-  const handleObnoviPretplatu = () => {
+  const handleObnoviPretplatu = useCallback(() => {
     if (!korisnikPretplata?.pretplataID) return;
     router.push(`/nova-pretplata/${korisnikPretplata.pretplataID}`);
-  };
+  }, [korisnikPretplata?.pretplataID, router]);
 
-  const handleKupiPretplatu = (pretplataId: string) => {
+  const handleKupiPretplatu = useCallback((pretplataId: string) => {
     router.push(`/nova-pretplata/${pretplataId}`);
-  };
+  }, [router]);
+
+  // Memoize subscription status display
+  const subscriptionStatus = useMemo(() => {
+    if (!korisnikPretplata) return null;
+    
+    return {
+      status: korisnikPretplata.pretplataStatus,
+      package: korisnikPretplata.pretplata?.naziv || t('no_data'),
+      description: korisnikPretplata.pretplata?.opis,
+      price: korisnikPretplata.pretplata?.cijena,
+      expires: korisnikPretplata.datumIsteka ? new Date(korisnikPretplata.datumIsteka).toLocaleDateString() : null,
+    };
+  }, [korisnikPretplata, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -148,13 +171,7 @@ const PretplataScreen: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('subscription')}</Text>
@@ -163,27 +180,27 @@ const PretplataScreen: React.FC = () => {
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
             </View>
-          ) : korisnikPretplata ? (
+          ) : subscriptionStatus ? (
             // Active subscription view
             <View style={styles.infoBox}>
               <Text style={styles.statusText}>
-                {t('status')}: <Text style={styles.boldText}>{korisnikPretplata.pretplataStatus}</Text>
+                {t('status')}: <Text style={styles.boldText}>{subscriptionStatus.status}</Text>
               </Text>
               <Text style={styles.packageText}>
-                {t('package')}: <Text style={styles.boldText}>{korisnikPretplata.pretplata?.naziv || t('no_data')}</Text>
+                {t('package')}: <Text style={styles.boldText}>{subscriptionStatus.package}</Text>
               </Text>
-              {korisnikPretplata.pretplata?.opis && (
+              {subscriptionStatus.description && (
                 <Text style={styles.descriptionText}>
-                  {korisnikPretplata.pretplata.opis}
+                  {subscriptionStatus.description}
                 </Text>
               )}
               <Text style={styles.priceText}>
-                {t('price')}: <Text style={styles.boldText}>{korisnikPretplata.pretplata?.cijena} KM / {t('month')}</Text>
+                {t('price')}: <Text style={styles.boldText}>{subscriptionStatus.price} KM / {t('month')}</Text>
               </Text>
-              {korisnikPretplata.datumIsteka && (
+              {subscriptionStatus.expires && (
                 <Text style={styles.expiresText}>
                   {t('expires')}: <Text style={styles.boldText}>
-                    {new Date(korisnikPretplata.datumIsteka).toLocaleDateString()}
+                    {subscriptionStatus.expires}
                   </Text>
                 </Text>
               )}
@@ -260,7 +277,8 @@ const PretplataScreen: React.FC = () => {
       <Tabs currentRoute="subscription" />
     </View>
   );
-};
+});
+
+PretplataScreen.displayName = "PretplataScreen";
 
 export default PretplataScreen;
-  

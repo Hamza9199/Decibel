@@ -64,8 +64,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AudioProvider>
-        <StatusBar style="light" backgroundColor="#181818" />
-        <AudioPlayerWrapper />
+        <StatusBar style="dark" />
         <Stack
           key={isLoggedIn === false ? 'loggedOut' : 'loggedIn'}
           screenOptions={{
@@ -77,6 +76,8 @@ export default function RootLayout() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="register" options={{ headerShown: false }} />
         </Stack>
+                <AudioPlayerWrapper />
+
       </AudioProvider>
     </SafeAreaProvider>
   );

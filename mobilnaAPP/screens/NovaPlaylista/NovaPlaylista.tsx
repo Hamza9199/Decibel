@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPlaylista.styles';
 
-const NovaPlaylista: React.FC = () => {
+const NovaPlaylista: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -34,11 +34,7 @@ const NovaPlaylista: React.FC = () => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -48,9 +44,14 @@ const NovaPlaylista: React.FC = () => {
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  // Load user data when component mounts
+  useMemo(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  const handleSubmit = useCallback(async () => {
     if (!naziv.trim()) {
       setError(t('fill_required_fields') || 'Please fill required fields');
       return;
@@ -113,9 +114,9 @@ const NovaPlaylista: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [naziv, korisnikID, opis, javno, imageFile, gifFile, t, router]);
 
-  const handleFilePicker = async (type: 'image' | 'gif') => {
+  const handleFilePicker = useCallback(async (type: 'image' | 'gif') => {
     try {
       let options: any = {
         multiple: false,
@@ -148,11 +149,54 @@ const NovaPlaylista: React.FC = () => {
       console.error('Error picking file:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const toggleCheckbox = () => {
+  const toggleCheckbox = useCallback(() => {
     setJavno(!javno);
-  };
+  }, [javno]);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
+
+  // Memoize file picker buttons
+  const imagePickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('image')}
+    >
+      <Text style={styles.fileButtonText}>
+        {imageFile ? t('change_image') : t('select_image')}
+      </Text>
+    </TouchableOpacity>
+  ), [imageFile, handleFilePicker, t]);
+
+  const gifPickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('gif')}
+    >
+      <Text style={styles.fileButtonText}>
+        {gifFile ? t('change_gif') : t('select_gif')}
+      </Text>
+    </TouchableOpacity>
+  ), [gifFile, handleFilePicker, t]);
 
   if (loading) {
     return (
@@ -181,8 +225,8 @@ const NovaPlaylista: React.FC = () => {
                 ]}
                 value={naziv}
                 onChangeText={setNaziv}
-                onFocus={() => setFocusedField('naziv')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('naziv')}
+                onBlur={handleBlur}
                 placeholder={t('playlist_name')}
                 placeholderTextColor="#888"
                 autoCapitalize="words"
@@ -200,8 +244,8 @@ const NovaPlaylista: React.FC = () => {
                 ]}
                 value={opis}
                 onChangeText={setOpis}
-                onFocus={() => setFocusedField('opis')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('opis')}
+                onBlur={handleBlur}
                 placeholder={t('description')}
                 placeholderTextColor="#888"
                 multiline
@@ -212,14 +256,7 @@ const NovaPlaylista: React.FC = () => {
             {/* Image File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('image')}:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('image')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {imageFile ? t('change_image') : t('select_image')}
-                </Text>
-              </TouchableOpacity>
+              {imagePickerButton}
               {imageFile && (
                 <Text style={styles.fileName}>{imageFile.name}</Text>
               )}
@@ -228,14 +265,7 @@ const NovaPlaylista: React.FC = () => {
             {/* GIF File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>GIF:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('gif')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {gifFile ? t('change_gif') : t('select_gif')}
-                </Text>
-              </TouchableOpacity>
+              {gifPickerButton}
               {gifFile && (
                 <Text style={styles.fileName}>{gifFile.name}</Text>
               )}
@@ -272,8 +302,8 @@ const NovaPlaylista: React.FC = () => {
                 loading && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
-              onPressIn={() => setButtonPressed(true)}
-              onPressOut={() => setButtonPressed(false)}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -285,7 +315,7 @@ const NovaPlaylista: React.FC = () => {
             {/* Cancel Button */}
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => router.back()}
+              onPress={handleBack}
               disabled={loading}
             >
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
@@ -297,6 +327,8 @@ const NovaPlaylista: React.FC = () => {
       <Tabs currentRoute="create" />
     </View>
   );
-};
+});
+
+NovaPlaylista.displayName = "NovaPlaylista";
 
 export default NovaPlaylista;

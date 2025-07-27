@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
 import axios from 'axios';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
@@ -21,9 +20,8 @@ import { styles } from './AdminPanel.styles';
 
 type ActiveTab = 'songs' | 'albums' | 'playlists';
 
-const AdminPanel: React.FC = () => {
+const AdminPanel: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [songs, setSongs] = useState<Pjesma[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
@@ -34,11 +32,7 @@ const AdminPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('songs');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const [songsRes, albumsRes, playlistsRes] = await Promise.all([
         axios.get(`${API_BASE}/pjesme/`),
@@ -56,14 +50,19 @@ const AdminPanel: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [t]);
 
-  const onRefresh = () => {
+  // Load data when component mounts
+  useMemo(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handleApproveSong = async (song: Pjesma, approved: boolean) => {
+  const handleApproveSong = useCallback(async (song: Pjesma, approved: boolean) => {
     setError(null);
     setSuccess(null);
     
@@ -82,9 +81,9 @@ const AdminPanel: React.FC = () => {
       console.error('Error updating song status:', error);
       setError(t('error_updating_song') || 'Error updating song status');
     }
-  };
+  }, [t]);
 
-  const handleApproveAlbum = async (album: Album, approved: boolean) => {
+  const handleApproveAlbum = useCallback(async (album: Album, approved: boolean) => {
     setError(null);
     setSuccess(null);
     
@@ -103,9 +102,9 @@ const AdminPanel: React.FC = () => {
       console.error('Error updating album status:', error);
       setError(t('error_updating_album') || 'Error updating album status');
     }
-  };
+  }, [t]);
 
-  const handleDeleteSong = async (songId: number) => {
+  const handleDeleteSong = useCallback(async (songId: number) => {
     Alert.alert(
       t('confirm_delete') || 'Confirm Delete',
       t('confirm_delete_song') || 'Are you sure you want to delete this song?',
@@ -127,9 +126,9 @@ const AdminPanel: React.FC = () => {
         },
       ]
     );
-  };
+  }, [t]);
 
-  const handleDeleteAlbum = async (albumId: number) => {
+  const handleDeleteAlbum = useCallback(async (albumId: number) => {
     Alert.alert(
       t('confirm_delete') || 'Confirm Delete',
       t('confirm_delete_album') || 'Are you sure you want to delete this album?',
@@ -151,9 +150,9 @@ const AdminPanel: React.FC = () => {
         },
       ]
     );
-  };
+  }, [t]);
 
-  const handleDeletePlaylist = async (playlistId: number) => {
+  const handleDeletePlaylist = useCallback(async (playlistId: number) => {
     Alert.alert(
       t('confirm_delete') || 'Confirm Delete',
       t('confirm_delete_playlist') || 'Are you sure you want to delete this playlist?',
@@ -175,20 +174,30 @@ const AdminPanel: React.FC = () => {
         },
       ]
     );
-  };
+  }, [t]);
 
-  // Filter functions
-  const filteredSongs = songs.filter(s =>
-    s.naziv.toLowerCase().includes(search.toLowerCase())
-  );
-  const filteredAlbums = albums.filter(a =>
-    a.naziv.toLowerCase().includes(search.toLowerCase())
-  );
-  const filteredPlaylists = playlists.filter(p =>
-    p.naziv.toLowerCase().includes(search.toLowerCase())
+  const handleTabChange = useCallback((tab: ActiveTab) => {
+    setActiveTab(tab);
+    setSearch('');
+  }, []);
+
+  // Memoize filtered data
+  const filteredSongs = useMemo(() => 
+    songs.filter(s => s.naziv.toLowerCase().includes(search.toLowerCase())),
+    [songs, search]
   );
 
-  const renderSongItem = (song: Pjesma) => (
+  const filteredAlbums = useMemo(() => 
+    albums.filter(a => a.naziv.toLowerCase().includes(search.toLowerCase())),
+    [albums, search]
+  );
+
+  const filteredPlaylists = useMemo(() => 
+    playlists.filter(p => p.naziv.toLowerCase().includes(search.toLowerCase())),
+    [playlists, search]
+  );
+
+  const renderSongItem = useCallback((song: Pjesma) => (
     <View key={song.id} style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
@@ -236,9 +245,9 @@ const AdminPanel: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [t, handleApproveSong, handleDeleteSong]);
 
-  const renderAlbumItem = (album: Album) => (
+  const renderAlbumItem = useCallback((album: Album) => (
     <View key={album.id} style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
@@ -287,9 +296,9 @@ const AdminPanel: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [t, handleApproveAlbum, handleDeleteAlbum]);
 
-  const renderPlaylistItem = (playlist: Playlista) => (
+  const renderPlaylistItem = useCallback((playlist: Playlista) => (
     <View key={playlist.id} style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
@@ -320,7 +329,23 @@ const AdminPanel: React.FC = () => {
         </TouchableOpacity>
       </View>
     </View>
-  );
+  ), [t, handleDeletePlaylist]);
+
+  // Memoize search placeholder
+  const searchPlaceholder = useMemo(() => {
+    return activeTab === 'songs' ? t('search_songs') :
+           activeTab === 'albums' ? t('search_albums') :
+           t('search_playlists');
+  }, [activeTab, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -336,17 +361,10 @@ const AdminPanel: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <View style={styles.headerRow}>
-           
             <Text style={styles.title}>{t('admin_panel')}</Text>
             <View style={styles.spacer} />
           </View>
@@ -355,10 +373,7 @@ const AdminPanel: React.FC = () => {
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'songs' && styles.activeTab]}
-              onPress={() => {
-                setActiveTab('songs');
-                setSearch('');
-              }}
+              onPress={() => handleTabChange('songs')}
             >
               <Text style={[
                 styles.tabText,
@@ -370,10 +385,7 @@ const AdminPanel: React.FC = () => {
             
             <TouchableOpacity
               style={[styles.tab, activeTab === 'albums' && styles.activeTab]}
-              onPress={() => {
-                setActiveTab('albums');
-                setSearch('');
-              }}
+              onPress={() => handleTabChange('albums')}
             >
               <Text style={[
                 styles.tabText,
@@ -385,10 +397,7 @@ const AdminPanel: React.FC = () => {
             
             <TouchableOpacity
               style={[styles.tab, activeTab === 'playlists' && styles.activeTab]}
-              onPress={() => {
-                setActiveTab('playlists');
-                setSearch('');
-              }}
+              onPress={() => handleTabChange('playlists')}
             >
               <Text style={[
                 styles.tabText,
@@ -402,11 +411,7 @@ const AdminPanel: React.FC = () => {
           {/* Search */}
           <TextInput
             style={styles.searchInput}
-            placeholder={
-              activeTab === 'songs' ? t('search_songs') :
-              activeTab === 'albums' ? t('search_albums') :
-              t('search_playlists')
-            }
+            placeholder={searchPlaceholder}
             placeholderTextColor="#888"
             value={search}
             onChangeText={setSearch}
@@ -481,7 +486,8 @@ const AdminPanel: React.FC = () => {
       <Tabs currentRoute="admin" />
     </View>
   );
-};
+});
+
+AdminPanel.displayName = "AdminPanel";
 
 export default AdminPanel;
-                       

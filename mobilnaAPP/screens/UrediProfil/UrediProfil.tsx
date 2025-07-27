@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,7 +20,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediProfil.styles';
 
-const UrediProfil: React.FC = () => {
+const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -39,12 +39,7 @@ const UrediProfil: React.FC = () => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (!userData) {
@@ -79,9 +74,14 @@ const UrediProfil: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t, router]);
 
-  const handleSubmit = async () => {
+  // Load user data when component mounts
+  useMemo(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  const handleSubmit = useCallback(async () => {
     if (!ime.trim() || !prezime.trim() || !korisnickoIme.trim() || !email.trim()) {
       setError(t('fill_all_fields') || 'Please fill all required fields');
       return;
@@ -128,37 +128,9 @@ const UrediProfil: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ime, prezime, korisnickoIme, email, korisnikID, rola, bio, slika, t]);
 
-  const handleImagePicker = async () => {
-    try {
-      // Request permission
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (permissionResult.granted === false) {
-        Alert.alert(t('permission_required'), t('photo_permission_required'));
-        return;
-      }
-
-      // Pick image
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets[0]) {
-        const imageUri = result.assets[0].uri;
-        await uploadImage(imageUri);
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-      setSlikaError(t('error_picking_image') || 'Error picking image');
-    }
-  };
-
-  const uploadImage = async (imageUri: string) => {
+  const uploadImage = useCallback(async (imageUri: string) => {
     setSlikaError(null);
     setSlikaSuccess(null);
 
@@ -186,7 +158,56 @@ const UrediProfil: React.FC = () => {
       console.error('Error uploading image:', error);
       setSlikaError(t('error_uploading_image') || 'Error uploading image');
     }
-  };
+  }, [korisnikID, t]);
+
+  const handleImagePicker = useCallback(async () => {
+    try {
+      // Request permission
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert(t('permission_required'), t('photo_permission_required'));
+        return;
+      }
+
+      // Pick image
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        await uploadImage(imageUri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      setSlikaError(t('error_picking_image') || 'Error picking image');
+    }
+  }, [uploadImage, t]);
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
+
+  // Memoize profile image URI
+  const profileImageUri = useMemo(() => {
+    return slika || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
+  }, [slika]);
 
   if (loading && !ime) {
     return (
@@ -203,7 +224,6 @@ const UrediProfil: React.FC = () => {
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <View style={styles.headerRow}>
-            
             <Text style={styles.title}>{t('edit_profile')}</Text>
             <View style={styles.spacer} />
           </View>
@@ -219,8 +239,8 @@ const UrediProfil: React.FC = () => {
                 ]}
                 value={ime}
                 onChangeText={setIme}
-                onFocus={() => setFocusedField('ime')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('ime')}
+                onBlur={handleBlur}
                 placeholder={t('name')}
                 placeholderTextColor="#888"
                 autoCapitalize="words"
@@ -238,8 +258,8 @@ const UrediProfil: React.FC = () => {
                 ]}
                 value={prezime}
                 onChangeText={setPrezime}
-                onFocus={() => setFocusedField('prezime')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('prezime')}
+                onBlur={handleBlur}
                 placeholder={t('surname')}
                 placeholderTextColor="#888"
                 autoCapitalize="words"
@@ -257,8 +277,8 @@ const UrediProfil: React.FC = () => {
                 ]}
                 value={korisnickoIme}
                 onChangeText={setKorisnickoIme}
-                onFocus={() => setFocusedField('korisnicko_ime')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('korisnicko_ime')}
+                onBlur={handleBlur}
                 placeholder={t('username')}
                 placeholderTextColor="#888"
                 autoCapitalize="none"
@@ -276,8 +296,8 @@ const UrediProfil: React.FC = () => {
                 ]}
                 value={email}
                 onChangeText={setEmail}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('email')}
+                onBlur={handleBlur}
                 placeholder={t('email')}
                 placeholderTextColor="#888"
                 keyboardType="email-address"
@@ -297,8 +317,8 @@ const UrediProfil: React.FC = () => {
                 ]}
                 value={bio}
                 onChangeText={setBio}
-                onFocus={() => setFocusedField('bio')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('bio')}
+                onBlur={handleBlur}
                 placeholder="Tell us about yourself..."
                 placeholderTextColor="#888"
                 multiline
@@ -327,8 +347,8 @@ const UrediProfil: React.FC = () => {
                 loading && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
-              onPressIn={() => setButtonPressed(true)}
-              onPressOut={() => setButtonPressed(false)}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -343,9 +363,7 @@ const UrediProfil: React.FC = () => {
             <Text style={styles.subtitle}>{t('profile_image')}</Text>
             <View style={styles.profileImageWrap}>
               <Image
-                source={{ 
-                  uri: slika || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8'
-                }}
+                source={{ uri: profileImageUri }}
                 style={styles.profileImage}
                 contentFit="cover"
               />
@@ -380,6 +398,8 @@ const UrediProfil: React.FC = () => {
       <Tabs currentRoute="profile" />
     </View>
   );
-};
+});
+
+UrediProfil.displayName = "UrediProfil";
 
 export default UrediProfil;

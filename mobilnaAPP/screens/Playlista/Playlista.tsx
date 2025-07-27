@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,7 +22,7 @@ import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Playlista.styles';
 
-const Playlista: React.FC = () => {
+const Playlista: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { playlistaId } = useLocalSearchParams<{ playlistaId: string }>();
   
@@ -39,33 +39,27 @@ const Playlista: React.FC = () => {
   const [isOwner, setIsOwner] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (playlistaId && korisnikID) {
-      loadData();
-    }
-  }, [playlistaId, korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async (userId?: string) => {
     if (!playlistaId) {
       setLoading(false);
       return;
     }
+
+    const currentUserId = userId || korisnikID;
 
     try {
       setLoading(true);
@@ -75,7 +69,7 @@ const Playlista: React.FC = () => {
       const playlistData = playlistRes.data;
       setPlaylista(playlistData);
       setLikeCount(playlistData.brojLajkova || 0);
-      setIsOwner(playlistData.korisnikID === korisnikID);
+      setIsOwner(playlistData.korisnikID === currentUserId);
 
       // Load songs in playlist using order from backend
       const songsOrderRes = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
@@ -93,25 +87,25 @@ const Playlista: React.FC = () => {
         setPjesme(songsData.filter(Boolean));
       }
 
-      // Load user's liked songs
-      const likedSongsRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const userLikedSongs = likedSongsRes.data as KorisnikPjesma[];
-      const likeMap: { [pjesmaId: number]: boolean } = {};
-      userLikedSongs
-        .filter(v => v.korisnikID === korisnikID)
-        .forEach(v => { likeMap[v.pjesmaID] = true; });
-      setLikeMap(likeMap);
+      if (currentUserId) {
+        // Load user's liked songs
+        const likedSongsRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+        const userLikedSongs = likedSongsRes.data as KorisnikPjesma[];
+        const likeMap: { [pjesmaId: number]: boolean } = {};
+        userLikedSongs
+          .filter(v => v.korisnikID === currentUserId)
+          .forEach(v => { likeMap[v.pjesmaID] = true; });
+        setLikeMap(likeMap);
 
-      // Load all playlists for modal
-      const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
-      setPlaylists(playlistsRes.data || []);
+        // Load all playlists for modal
+        const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
+        setPlaylists(playlistsRes.data || []);
 
-      // Check if user liked this playlist
-      if (korisnikID && playlistaId) {
+        // Check if user liked this playlist
         const likedPlaylistsRes = await axios.get(`${API_BASE}/korisnik_playlista/`);
         const userLikedPlaylists = likedPlaylistsRes.data as { korisnikID: string; playlistaID: number }[];
         setLikePlaylist(!!userLikedPlaylists.find(v => 
-          v.korisnikID === korisnikID && String(v.playlistaID) === String(playlistaId)
+          v.korisnikID === currentUserId && String(v.playlistaID) === String(playlistaId)
         ));
       }
 
@@ -123,14 +117,23 @@ const Playlista: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [playlistaId, korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and playlist data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (playlistaId) {
+        loadData(userId);
+      }
+    });
+  }, [playlistaId, loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handlePlaySong = (song: Pjesma) => {
+  const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
@@ -138,9 +141,9 @@ const Playlista: React.FC = () => {
     
     // Play song logic
     console.log('Playing song:', song.naziv);
-  };
+  }, [t]);
 
-  const handlePlayPlaylist = () => {
+  const handlePlayPlaylist = useCallback(() => {
     if (pjesme.length === 0) {
       Alert.alert(t('error'), t('empty_playlist') || 'Playlist is empty');
       return;
@@ -151,9 +154,9 @@ const Playlista: React.FC = () => {
     if (firstSong?.putanjaAudio) {
       handlePlaySong(firstSong);
     }
-  };
+  }, [pjesme, handlePlaySong, t]);
 
-  const handleLikeSong = async (pjesmaId: number) => {
+  const handleLikeSong = useCallback(async (pjesmaId: number) => {
     if (!korisnikID || !pjesmaId) return;
     
     try {
@@ -174,9 +177,9 @@ const Playlista: React.FC = () => {
       console.error('Error liking/unliking song:', error);
       Alert.alert(t('error'), t('error_favorites'));
     }
-  };
+  }, [korisnikID, likeMap, t]);
 
-  const handleLikeThisPlaylist = async () => {
+  const handleLikeThisPlaylist = useCallback(async () => {
     if (!korisnikID || !playlistaId) return;
     
     try {
@@ -199,9 +202,9 @@ const Playlista: React.FC = () => {
       console.error('Error liking/unliking playlist:', error);
       Alert.alert(t('error'), t('error_favorites'));
     }
-  };
+  }, [korisnikID, playlistaId, likePlaylist, t]);
 
-  const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
+  const handleAddToPlaylist = useCallback(async (pjesmaID: number, playlistaID: number) => {
     try {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
         pjesmaID,
@@ -214,9 +217,9 @@ const Playlista: React.FC = () => {
       setShowPlaylistModal(null);
       Alert.alert(t('error'), t('error_adding_to_playlist') || 'Error adding song to playlist');
     }
-  };
+  }, [t]);
 
-  const handleRemoveSong = async (pjesmaId: number) => {
+  const handleRemoveSong = useCallback(async (pjesmaId: number) => {
     if (!playlistaId) return;
     
     Alert.alert(
@@ -240,16 +243,20 @@ const Playlista: React.FC = () => {
         }
       ]
     );
-  };
+  }, [playlistaId, t]);
 
-  const formatDuration = (seconds?: number): string => {
+  const handleModalClose = useCallback(() => {
+    setShowPlaylistModal(null);
+  }, []);
+
+  const formatDuration = useCallback((seconds?: number): string => {
     if (!seconds) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const renderSongItem = ({ item, index }: { item: Pjesma; index: number }) => (
+  const renderSongItem = useCallback(({ item, index }: { item: Pjesma; index: number }) => (
     <View style={styles.songItem}>
       <View style={styles.songHeader}>
         <Text style={styles.songNumber}>{index + 1}</Text>
@@ -305,6 +312,28 @@ const Playlista: React.FC = () => {
         )}
       </View>
     </View>
+  ), [handlePlaySong, handleLikeSong, likeMap, isOwner, handleRemoveSong, formatDuration, t]);
+
+  // Memoize playlist meta information
+  const playlistMeta = useMemo(() => [
+    { label: t('number_of_songs'), value: pjesme.length },
+    { label: t('number_of_likes'), value: likeCount },
+    { label: t('public_playlist'), value: playlista?.javno ? t('yes') : t('no') },
+  ], [pjesme.length, likeCount, playlista?.javno, t]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
+
+  // Memoize filtered playlists for modal
+  const filteredPlaylists = useMemo(() => 
+    playlists.filter(pl => String(pl.id) !== String(playlistaId)),
+    [playlists, playlistaId]
   );
 
   if (loading) {
@@ -334,13 +363,7 @@ const Playlista: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           {/* Playlist Main Section */}
@@ -388,22 +411,12 @@ const Playlista: React.FC = () => {
               )}
 
               <View style={styles.playlistMeta}>
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>{t('number_of_songs')}:</Text>
-                  <Text style={styles.metaValue}>{pjesme.length}</Text>
-                </View>
-                
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>{t('number_of_likes')}:</Text>
-                  <Text style={styles.metaValue}>{likeCount}</Text>
-                </View>
-                
-                <View style={styles.metaRow}>
-                  <Text style={styles.metaLabel}>{t('public_playlist')}:</Text>
-                  <Text style={styles.metaValue}>
-                    {playlista.javno ? t('yes') : t('no')}
-                  </Text>
-                </View>
+                {playlistMeta.map((meta, index) => (
+                  <View key={index} style={styles.metaRow}>
+                    <Text style={styles.metaLabel}>{meta.label}:</Text>
+                    <Text style={styles.metaValue}>{meta.value}</Text>
+                  </View>
+                ))}
               </View>
             </View>
           </View>
@@ -434,7 +447,7 @@ const Playlista: React.FC = () => {
         visible={showPlaylistModal !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowPlaylistModal(null)}
+        onRequestClose={handleModalClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -442,7 +455,7 @@ const Playlista: React.FC = () => {
               {t('add_to_playlist') || 'Add to Playlist'}
             </Text>
             <FlatList
-              data={playlists.filter(pl => String(pl.id) !== String(playlistaId))}
+              data={filteredPlaylists}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -455,7 +468,7 @@ const Playlista: React.FC = () => {
             />
             <TouchableOpacity
               style={styles.modalCloseBtn}
-              onPress={() => setShowPlaylistModal(null)}
+              onPress={handleModalClose}
             >
               <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
             </TouchableOpacity>
@@ -466,7 +479,8 @@ const Playlista: React.FC = () => {
       <Tabs currentRoute="playlist" />
     </View>
   );
-};
+});
+
+Playlista.displayName = "Playlista";
 
 export default Playlista;
-                                 

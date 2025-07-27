@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Korisnik, PrijavaIzvodjaca } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SviKorisnici.styles';
 
-const SviKorisnici: React.FC = () => {
+const SviKorisnici: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,11 +37,7 @@ const SviKorisnici: React.FC = () => {
     vrijemeDo: string;
   } | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const [korisniciData, prijaveData] = await Promise.all([
@@ -58,14 +54,19 @@ const SviKorisnici: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [t]);
 
-  const onRefresh = () => {
+  // Load data when component mounts
+  useMemo(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handleChange = async (
+  const handleChange = useCallback(async (
     korisnik: Korisnik,
     field: 'rola' | 'statusKorisnika',
     value: string
@@ -121,9 +122,9 @@ const SviKorisnici: React.FC = () => {
       console.error('Error updating user:', error);
       setError(t('error_updating_user') || 'Error updating user');
     }
-  };
+  }, [t]);
 
-  const handleConfirmSuspension = async () => {
+  const handleConfirmSuspension = useCallback(async () => {
     if (!suspendModal) return;
     
     if (!suspendModal.poruka.trim() || !suspendModal.vrijemeDo.trim()) {
@@ -161,9 +162,9 @@ const SviKorisnici: React.FC = () => {
       console.error('Error suspending user:', error);
       setError(t('error_suspending_user') || 'Error suspending user');
     }
-  };
+  }, [suspendModal, t]);
 
-  const handleCancelSuspension = () => {
+  const handleCancelSuspension = useCallback(() => {
     if (!suspendModal) return;
     // Reset select to "active" without sending to backend
     setKorisnici(prev =>
@@ -174,9 +175,9 @@ const SviKorisnici: React.FC = () => {
       )
     );
     setSuspendModal(null);
-  };
+  }, [suspendModal]);
 
-  const handleDeleteApplication = async (prijavaId: number) => {
+  const handleDeleteApplication = useCallback(async (prijavaId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('confirm_delete_application') || 'Are you sure you want to delete this application?',
@@ -199,14 +200,29 @@ const SviKorisnici: React.FC = () => {
         }
       ]
     );
-  };
+  }, [t]);
 
-  // Filter users based on search
-  const filtriraniKorisnici = korisnici.filter(k =>
-    k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
+  const handleModalClose = useCallback(() => {
+    setPrijavaModal(null);
+  }, []);
+
+  const handleSuspendModalPorukaChange = useCallback((text: string) => {
+    setSuspendModal(prev => prev ? { ...prev, poruka: text } : prev);
+  }, []);
+
+  const handleSuspendModalVrijemeDoChange = useCallback((text: string) => {
+    setSuspendModal(prev => prev ? { ...prev, vrijemeDo: text } : prev);
+  }, []);
+
+  // Memoize filtered users
+  const filtriraniKorisnici = useMemo(() => 
+    korisnici.filter(k =>
+      k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
+    ),
+    [korisnici, search]
   );
 
-  const renderUserItem = ({ item }: { item: Korisnik }) => {
+  const renderUserItem = useCallback(({ item }: { item: Korisnik }) => {
     const prijava = prijave.find(p => p.korisnikID === item.id);
     
     return (
@@ -290,7 +306,22 @@ const SviKorisnici: React.FC = () => {
         </View>
       </View>
     );
-  };
+  }, [prijave, handleChange, t]);
+
+  // Memoize user in modal
+  const modalUser = useMemo(() => {
+    if (!prijavaModal) return null;
+    return korisnici.find(k => k.id === prijavaModal.korisnikID);
+  }, [prijavaModal, korisnici]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -306,13 +337,7 @@ const SviKorisnici: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('all_users') || 'All Users'}</Text>
@@ -360,7 +385,7 @@ const SviKorisnici: React.FC = () => {
         visible={prijavaModal !== null}
         transparent
         animationType="fade"
-        onRequestClose={() => setPrijavaModal(null)}
+        onRequestClose={handleModalClose}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -370,12 +395,9 @@ const SviKorisnici: React.FC = () => {
               <>
                 <Text style={styles.modalText}>
                   <Text style={{ fontWeight: 'bold' }}>{t('user')}:</Text>{' '}
-                  {(() => {
-                    const korisnik = korisnici.find(k => k.id === prijavaModal.korisnikID);
-                    return korisnik
-                      ? `${korisnik.korisnicko_ime} (${korisnik.ime} ${korisnik.prezime})`
-                      : prijavaModal.korisnikID;
-                  })()}
+                  {modalUser
+                    ? `${modalUser.korisnicko_ime} (${modalUser.ime} ${modalUser.prezime})`
+                    : prijavaModal.korisnikID}
                 </Text>
 
                 <Text style={styles.modalText}>
@@ -406,7 +428,7 @@ const SviKorisnici: React.FC = () => {
                   
                   <TouchableOpacity
                     style={[styles.modalButton, styles.modalButtonSecondary]}
-                    onPress={() => setPrijavaModal(null)}
+                    onPress={handleModalClose}
                   >
                     <Text style={styles.modalButtonText}>{t('close')}</Text>
                   </TouchableOpacity>
@@ -443,11 +465,7 @@ const SviKorisnici: React.FC = () => {
                   placeholder={t('enter_suspension_reason') || 'Enter reason for suspension'}
                   placeholderTextColor="#888"
                   value={suspendModal.poruka}
-                  onChangeText={(text) =>
-                    setSuspendModal(prev =>
-                      prev ? { ...prev, poruka: text } : prev
-                    )
-                  }
+                  onChangeText={handleSuspendModalPorukaChange}
                   multiline
                 />
 
@@ -459,11 +477,7 @@ const SviKorisnici: React.FC = () => {
                   placeholder="2024-12-31T23:59"
                   placeholderTextColor="#888"
                   value={suspendModal.vrijemeDo}
-                  onChangeText={(text) =>
-                    setSuspendModal(prev =>
-                      prev ? { ...prev, vrijemeDo: text } : prev
-                    )
-                  }
+                  onChangeText={handleSuspendModalVrijemeDoChange}
                 />
 
                 <View style={styles.modalButtons}>
@@ -492,6 +506,8 @@ const SviKorisnici: React.FC = () => {
       <Tabs currentRoute="users" />
     </View>
   );
-};
+});
+
+SviKorisnici.displayName = "SviKorisnici";
 
 export default SviKorisnici;

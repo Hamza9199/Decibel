@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { Statistika, Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Statistika.styles';
 
-const StatistikaScreen: React.FC = () => {
+const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
   const [albumi, setAlbumi] = useState<Album[]>([]);
@@ -25,11 +25,7 @@ const StatistikaScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -52,47 +48,48 @@ const StatistikaScreen: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
-  const onRefresh = () => {
+  // Load data when component mounts
+  useMemo(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  // Calculate top songs by likes
-  const topPjesme = React.useMemo(() => {
+  // Memoize calculated data
+  const topPjesme = useMemo(() => {
     return [...pjesme]
       .filter(p => typeof p.brojLajkova === 'number')
       .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
       .slice(0, 10);
   }, [pjesme]);
 
-  // Calculate top albums by likes
-  const topAlbumi = React.useMemo(() => {
+  const topAlbumi = useMemo(() => {
     return [...albumi]
       .filter(a => typeof a.brojLajkova === 'number')
       .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
       .slice(0, 10);
   }, [albumi]);
 
-  // Calculate top playlists by likes
-  const topPlayliste = React.useMemo(() => {
+  const topPlayliste = useMemo(() => {
     return [...playliste]
       .filter(pl => typeof pl.brojLajkova === 'number')
       .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
       .slice(0, 10);
   }, [playliste]);
 
-  // Calculate top artists by followers
-  const topIzvodjaci = React.useMemo(() => {
+  const topIzvodjaci = useMemo(() => {
     return [...korisnici]
       .filter(k => k.rola === 'izvodac' || k.rola === 'admin')
       .sort((a, b) => (b.brojPratilaca || 0) - (a.brojPratilaca || 0))
       .slice(0, 10);
   }, [korisnici]);
 
-  // Find most popular artist
-  const najpoznatijiIzvodjac = React.useMemo(() => {
+  const najpoznatijiIzvodjac = useMemo(() => {
     return korisnici
       .filter(k => k.rola === 'izvodac' || k.rola === 'admin')
       .reduce((max, k) => 
@@ -101,8 +98,7 @@ const StatistikaScreen: React.FC = () => {
       );
   }, [korisnici]);
 
-  // Calculate songs by genre
-  const songsbyGenre = React.useMemo(() => {
+  const songsbyGenre = useMemo(() => {
     const zanrovi = ['pop', 'rock', 'hip_hop', 'jazz', 'electronic', 'klasicna', 'metal', 'alternativni', 'rap'];
     const maxCount = Math.max(...zanrovi.map(z => 
       pjesme.filter(p => (p.zanr || '').toLowerCase() === z).length
@@ -118,8 +114,7 @@ const StatistikaScreen: React.FC = () => {
     }).filter(item => item.count > 0);
   }, [pjesme]);
 
-  // Calculate top played songs
-  const topSlusane = React.useMemo(() => {
+  const topSlusane = useMemo(() => {
     if (statistika.length > 0) {
       return statistika
         .map((s: Statistika) => ({
@@ -138,6 +133,15 @@ const StatistikaScreen: React.FC = () => {
     }
   }, [pjesme, statistika]);
 
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -152,13 +156,7 @@ const StatistikaScreen: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('platform_statistics') || 'Platform Statistics'}</Text>
@@ -295,6 +293,8 @@ const StatistikaScreen: React.FC = () => {
       <Tabs currentRoute="statistics" />
     </View>
   );
-};
+});
+
+StatistikaScreen.displayName = "StatistikaScreen";
 
 export default StatistikaScreen;

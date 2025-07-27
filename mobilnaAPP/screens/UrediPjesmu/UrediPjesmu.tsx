@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -23,7 +23,7 @@ import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediPjesmu.styles';
 
-const UrediPjesmu: React.FC = () => {
+const UrediPjesmu: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { pjesmaId } = useLocalSearchParams();
@@ -54,42 +54,23 @@ const UrediPjesmu: React.FC = () => {
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (pjesmaId && korisnikID) {
-      loadData();
-    }
-  }, [pjesmaId, korisnikID]);
-
-  useEffect(() => {
-    if (pjesma) {
-      setNaziv(pjesma.naziv || '');
-      setOpis(pjesma.opis || '');
-      setZanr(pjesma.zanr || '');
-      setJezikPjesme(pjesma.jezikPjesme || '');
-      setLicenca(pjesma.licenca || '');
-      setEksplicitniSadrzaj(!!pjesma.eksplicitniSadrzaj);
-      setAlbumID(pjesma.albumID ? pjesma.albumID.toString() : '');
-    }
-  }, [pjesma]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
-    if (!pjesmaId || !korisnikID) {
+  const loadData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!pjesmaId || !currentUserId) {
       setLoading(false);
       return;
     }
@@ -101,9 +82,20 @@ const UrediPjesmu: React.FC = () => {
       const songRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
       setPjesma(songRes.data);
 
+      // Set form values
+      if (songRes.data) {
+        setNaziv(songRes.data.naziv || '');
+        setOpis(songRes.data.opis || '');
+        setZanr(songRes.data.zanr || '');
+        setJezikPjesme(songRes.data.jezikPjesme || '');
+        setLicenca(songRes.data.licenca || '');
+        setEksplicitniSadrzaj(!!songRes.data.eksplicitniSadrzaj);
+        setAlbumID(songRes.data.albumID ? songRes.data.albumID.toString() : '');
+      }
+
       // Load user's albums
       const albumsRes = await axios.get(`${API_BASE}/albumi/`);
-      const userAlbums = (albumsRes.data || []).filter((a: Album) => a.korisnikID === korisnikID);
+      const userAlbums = (albumsRes.data || []).filter((a: Album) => a.korisnikID === currentUserId);
       setAlbumi(userAlbums);
 
       // Load all users for artist search
@@ -129,14 +121,23 @@ const UrediPjesmu: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [pjesmaId, korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and song data when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (pjesmaId && userId) {
+        loadData(userId);
+      }
+    });
+  }, [pjesmaId, loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handleImagePick = async () => {
+  const handleImagePick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/*',
@@ -150,9 +151,9 @@ const UrediPjesmu: React.FC = () => {
       console.error('Error picking image:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleGifPick = async () => {
+  const handleGifPick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'image/gif',
@@ -166,9 +167,9 @@ const UrediPjesmu: React.FC = () => {
       console.error('Error picking GIF:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleAudioPick = async () => {
+  const handleAudioPick = useCallback(async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: 'audio/*',
@@ -182,19 +183,19 @@ const UrediPjesmu: React.FC = () => {
       console.error('Error picking audio:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const handleAddIzvodjac = (korisnik: Korisnik) => {
+  const handleAddIzvodjac = useCallback((korisnik: Korisnik) => {
     if (!izabraniIzvodjaci.find((k) => k.id === korisnik.id)) {
       setIzabraniIzvodjaci((prev) => [...prev, korisnik]);
     }
-  };
+  }, [izabraniIzvodjaci]);
 
-  const handleRemoveIzvodjac = (korisnikId: string) => {
+  const handleRemoveIzvodjac = useCallback((korisnikId: string) => {
     setIzabraniIzvodjaci((prev) => prev.filter((k) => k.id !== korisnikId));
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!pjesma || !korisnikID) return;
     
     setError(null);
@@ -269,21 +270,39 @@ const UrediPjesmu: React.FC = () => {
       console.error('Error updating song:', error);
       setError(t('error_updating_song') || 'Error updating song');
     }
-  };
+  }, [pjesma, korisnikID, naziv, opis, jezikPjesme, licenca, eksplicitniSadrzaj, zanr, albumID, selectedImage, selectedGif, selectedAudio, izabraniIzvodjaci, t, router]);
 
-  const filteredArtists = sviIzvodjaci.filter((k) =>
-    k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()) &&
-    !izabraniIzvodjaci.find((iz) => iz.id === k.id)
-  ).slice(0, 8);
+  // Memoize filtered artists
+  const filteredArtists = useMemo(() => 
+    sviIzvodjaci.filter((k) =>
+      k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()) &&
+      !izabraniIzvodjaci.find((iz) => iz.id === k.id)
+    ).slice(0, 8),
+    [sviIzvodjaci, search, izabraniIzvodjaci]
+  );
 
-  const renderArtistItem = ({ item }: { item: Korisnik }) => (
+  const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
     <TouchableOpacity
       style={styles.artistItem}
       onPress={() => handleAddIzvodjac(item)}
     >
       <Text style={styles.artistItemText}>{item.korisnicko_ime}</Text>
     </TouchableOpacity>
-  );
+  ), [handleAddIzvodjac]);
+
+  // Memoize permission check
+  const hasPermission = useMemo(() => {
+    return pjesma && pjesma.korisnikID === korisnikID;
+  }, [pjesma, korisnikID]);
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -308,7 +327,7 @@ const UrediPjesmu: React.FC = () => {
     );
   }
 
-  if (pjesma.korisnikID !== korisnikID) {
+  if (!hasPermission) {
     return (
       <View style={styles.container}>
         <Header />
@@ -327,13 +346,7 @@ const UrediPjesmu: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('edit_song') || 'Edit Song'}</Text>
@@ -540,6 +553,8 @@ const UrediPjesmu: React.FC = () => {
       <Tabs currentRoute="songs" />
     </View>
   );
-};
+});
+
+UrediPjesmu.displayName = "UrediPjesmu";
 
 export default UrediPjesmu;

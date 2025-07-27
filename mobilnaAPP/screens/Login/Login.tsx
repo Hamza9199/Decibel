@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '@/config/api';
 import { styles } from './Login.styles';
 
-const Login: React.FC = () => {
+const Login: React.FC = React.memo(() => {
   const [email, setEmail] = useState('');
   const [lozinka, setLozinka] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +30,7 @@ const Login: React.FC = () => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!email.trim() || !lozinka.trim()) {
       setError(t('fill_all_fields') || 'Please fill all fields');
       return;
@@ -64,11 +64,39 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [email, lozinka, t, router]);
 
-  const navigateToRegister = () => {
+  const navigateToRegister = useCallback(() => {
     router.push('/register');
-  };
+  }, [router]);
+
+  const handleEmailFocus = useCallback(() => {
+    setEmailFocused(true);
+  }, []);
+
+  const handleEmailBlur = useCallback(() => {
+    setEmailFocused(false);
+  }, []);
+
+  const handlePasswordFocus = useCallback(() => {
+    setPasswordFocused(true);
+  }, []);
+
+  const handlePasswordBlur = useCallback(() => {
+    setPasswordFocused(false);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
+
+  const logoSource = useMemo(() => ({
+    uri: '../../assets/images/logo.gif',
+  }), []);
 
   if (loading) {
     return (
@@ -98,7 +126,7 @@ const Login: React.FC = () => {
           {/* Logo Section */}
           <View style={styles.logoContainer}>
             <Image
-              source={{ uri: 'https://via.placeholder.com/100/b91d95/ffffff?text=D' }}
+              source={logoSource}
               style={styles.logo}
               contentFit="cover"
             />
@@ -120,8 +148,8 @@ const Login: React.FC = () => {
                 placeholderTextColor="#888"
                 value={email}
                 onChangeText={setEmail}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => setEmailFocused(false)}
+                onFocus={handleEmailFocus}
+                onBlur={handleEmailBlur}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -140,8 +168,8 @@ const Login: React.FC = () => {
                 placeholderTextColor="#888"
                 value={lozinka}
                 onChangeText={setLozinka}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => setPasswordFocused(false)}
+                onFocus={handlePasswordFocus}
+                onBlur={handlePasswordBlur}
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -163,8 +191,8 @@ const Login: React.FC = () => {
                 buttonPressed && styles.buttonPressed,
               ]}
               onPress={handleSubmit}
-              onPressIn={() => setButtonPressed(true)}
-              onPressOut={() => setButtonPressed(false)}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -189,7 +217,9 @@ const Login: React.FC = () => {
       </KeyboardAvoidingView>
     </LinearGradient>
   );
-};
+});
+
+Login.displayName = "Login";
 
 export default Login;
-           
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPjesma.styles';
 
-const NovaPjesma: React.FC = () => {
+const NovaPjesma: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -37,11 +37,7 @@ const NovaPjesma: React.FC = () => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
@@ -51,9 +47,14 @@ const NovaPjesma: React.FC = () => {
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  // Load user data when component mounts
+  useMemo(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  const handleSubmit = useCallback(async () => {
     if (!naziv.trim() || !audioFile) {
       setError(t('fill_required_fields') || 'Please fill required fields');
       return;
@@ -132,9 +133,9 @@ const NovaPjesma: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [naziv, audioFile, korisnikID, opis, genre, trajanjeSekunde, javno, imageFile, gifFile, t, router]);
 
-  const handleFilePicker = async (type: 'audio' | 'image' | 'gif') => {
+  const handleFilePicker = useCallback(async (type: 'audio' | 'image' | 'gif') => {
     try {
       let options: any = {
         multiple: false,
@@ -173,11 +174,65 @@ const NovaPjesma: React.FC = () => {
       console.error('Error picking file:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const toggleCheckbox = () => {
+  const toggleCheckbox = useCallback(() => {
     setJavno(!javno);
-  };
+  }, [javno]);
+
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
+
+  // Memoize file picker buttons
+  const audioPickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('audio')}
+    >
+      <Text style={styles.fileButtonText}>
+        {audioFile ? t('change_audio') : t('select_audio')}
+      </Text>
+    </TouchableOpacity>
+  ), [audioFile, handleFilePicker, t]);
+
+  const imagePickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('image')}
+    >
+      <Text style={styles.fileButtonText}>
+        {imageFile ? t('change_image') : t('select_image')}
+      </Text>
+    </TouchableOpacity>
+  ), [imageFile, handleFilePicker, t]);
+
+  const gifPickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('gif')}
+    >
+      <Text style={styles.fileButtonText}>
+        {gifFile ? t('change_gif') : t('select_gif')}
+      </Text>
+    </TouchableOpacity>
+  ), [gifFile, handleFilePicker, t]);
 
   if (loading) {
     return (
@@ -206,8 +261,8 @@ const NovaPjesma: React.FC = () => {
                 ]}
                 value={naziv}
                 onChangeText={setNaziv}
-                onFocus={() => setFocusedField('naziv')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('naziv')}
+                onBlur={handleBlur}
                 placeholder={t('song_name')}
                 placeholderTextColor="#888"
                 autoCapitalize="words"
@@ -225,8 +280,8 @@ const NovaPjesma: React.FC = () => {
                 ]}
                 value={opis}
                 onChangeText={setOpis}
-                onFocus={() => setFocusedField('opis')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('opis')}
+                onBlur={handleBlur}
                 placeholder={t('description')}
                 placeholderTextColor="#888"
                 multiline
@@ -244,8 +299,8 @@ const NovaPjesma: React.FC = () => {
                 ]}
                 value={genre}
                 onChangeText={setGenre}
-                onFocus={() => setFocusedField('genre')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('genre')}
+                onBlur={handleBlur}
                 placeholder={t('genre')}
                 placeholderTextColor="#888"
                 autoCapitalize="words"
@@ -263,8 +318,8 @@ const NovaPjesma: React.FC = () => {
                 ]}
                 value={trajanjeSekunde}
                 onChangeText={setTrajanjeSekunde}
-                onFocus={() => setFocusedField('trajanje')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('trajanje')}
+                onBlur={handleBlur}
                 placeholder="180"
                 placeholderTextColor="#888"
                 keyboardType="numeric"
@@ -274,14 +329,7 @@ const NovaPjesma: React.FC = () => {
             {/* Audio File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('audio_file')} *:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('audio')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {audioFile ? t('change_audio') : t('select_audio')}
-                </Text>
-              </TouchableOpacity>
+              {audioPickerButton}
               {audioFile && (
                 <Text style={styles.fileName}>{audioFile.name}</Text>
               )}
@@ -290,14 +338,7 @@ const NovaPjesma: React.FC = () => {
             {/* Image File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('image')}:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('image')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {imageFile ? t('change_image') : t('select_image')}
-                </Text>
-              </TouchableOpacity>
+              {imagePickerButton}
               {imageFile && (
                 <Text style={styles.fileName}>{imageFile.name}</Text>
               )}
@@ -306,14 +347,7 @@ const NovaPjesma: React.FC = () => {
             {/* GIF File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>GIF:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('gif')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {gifFile ? t('change_gif') : t('select_gif')}
-                </Text>
-              </TouchableOpacity>
+              {gifPickerButton}
               {gifFile && (
                 <Text style={styles.fileName}>{gifFile.name}</Text>
               )}
@@ -350,8 +384,8 @@ const NovaPjesma: React.FC = () => {
                 loading && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
-              onPressIn={() => setButtonPressed(true)}
-              onPressOut={() => setButtonPressed(false)}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -363,7 +397,7 @@ const NovaPjesma: React.FC = () => {
             {/* Cancel Button */}
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => router.back()}
+              onPress={handleBack}
               disabled={loading}
             >
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
@@ -375,7 +409,8 @@ const NovaPjesma: React.FC = () => {
       <Tabs currentRoute="create" />
     </View>
   );
-};
+});
+
+NovaPjesma.displayName = "NovaPjesma";
 
 export default NovaPjesma;
-            

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SvePlayliste.styles';
 
-const SvePlayliste: React.FC = () => {
+const SvePlayliste: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [playliste, setPlayliste] = useState<Playlista[]>([]);
@@ -30,30 +30,23 @@ const SvePlayliste: React.FC = () => {
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (korisnikID) {
-      loadData();
-    }
-  }, [korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadData = async () => {
-    if (!korisnikID) {
+  const loadData = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!currentUserId) {
       setPlayliste([]);
       setLoading(false);
       return;
@@ -65,7 +58,7 @@ const SvePlayliste: React.FC = () => {
       
       // Filter playlists by current user
       const mojePlayliste = (response.data || []).filter(
-        (pl: Playlista) => pl.korisnikID === korisnikID
+        (pl: Playlista) => pl.korisnikID === currentUserId
       );
       setPlayliste(mojePlayliste);
     } catch (error) {
@@ -76,14 +69,23 @@ const SvePlayliste: React.FC = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [korisnikID, t]);
 
-  const onRefresh = () => {
+  // Load user data and playlists when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (userId) {
+        loadData(userId);
+      }
+    });
+  }, [loadUserData, loadData]);
+
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  };
+  }, [loadData]);
 
-  const handlePlayPlaylist = async (playlistId: number) => {
+  const handlePlayPlaylist = useCallback(async (playlistId: number) => {
     try {
       // Fetch playlist order from backend
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
@@ -117,13 +119,13 @@ const SvePlayliste: React.FC = () => {
       console.error('Error playing playlist:', error);
       Alert.alert(t('error'), t('error_playing_playlist') || 'Error playing playlist');
     }
-  };
+  }, [t]);
 
-  const handleEdit = (playlistId: number) => {
+  const handleEdit = useCallback((playlistId: number) => {
     router.push(`/uredi-playlistu/${playlistId}`);
-  };
+  }, [router]);
 
-  const handleDelete = (playlistId: number) => {
+  const handleDelete = useCallback((playlistId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('confirm_delete_playlist') || 'Are you sure you want to delete this playlist?',
@@ -145,12 +147,32 @@ const SvePlayliste: React.FC = () => {
         }
       ]
     );
-  };
+  }, [t]);
 
-  // Filter playlists based on search
-  const filtriranePlayliste = playliste.filter(pl =>
-    pl.naziv.toLowerCase().includes(search.toLowerCase())
+  const handleNavigateToPlaylist = useCallback((playlistId: number) => {
+    router.push(`/playlista/${playlistId}`);
+  }, [router]);
+
+  const handleNavigateToUser = useCallback((userId: string) => {
+    router.push(`/izvodjac/${userId}`);
+  }, [router]);
+
+  // Memoize filtered playlists
+  const filtriranePlayliste = useMemo(() => 
+    playliste.filter(pl =>
+      pl.naziv.toLowerCase().includes(search.toLowerCase())
+    ),
+    [playliste, search]
   );
+
+  // Memoize refresh control
+  const refreshControl = useMemo(() => (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor="#b91d95"
+    />
+  ), [refreshing, onRefresh]);
 
   if (loading) {
     return (
@@ -166,13 +188,7 @@ const SvePlayliste: React.FC = () => {
       <Header />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor="#b91d95"
-          />
-        }
+        refreshControl={refreshControl}
       >
         <View style={styles.content}>
           <Text style={styles.title}>{t('my_playlists') || 'My Playlists'}</Text>
@@ -211,13 +227,13 @@ const SvePlayliste: React.FC = () => {
                     </TouchableOpacity>
                   </View>
                   
-                  <TouchableOpacity onPress={() => router.push(`/playlista/${playlist.id}`)}>
+                  <TouchableOpacity onPress={() => handleNavigateToPlaylist(playlist.id)}>
                     <Text style={styles.cardTitle} numberOfLines={2}>
                       {playlist.naziv}
                     </Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity onPress={() => router.push(`/izvodjac/${playlist.korisnikID}`)}>
+                  <TouchableOpacity onPress={() => handleNavigateToUser(playlist.korisnikID ?? '')} disabled={!playlist.korisnikID}>
                     <Text style={styles.cardDesc} numberOfLines={1}>
                       {playlist.korisnik?.korisnicko_ime || t('unknown_user')}
                     </Text>
@@ -248,6 +264,8 @@ const SvePlayliste: React.FC = () => {
       <Tabs currentRoute="playlists" />
     </View>
   );
-};
+});
+
+SvePlayliste.displayName = "SvePlayliste";
 
 export default SvePlayliste;

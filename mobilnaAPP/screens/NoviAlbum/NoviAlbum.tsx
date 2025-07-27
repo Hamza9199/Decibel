@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,7 @@ import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NoviAlbum.styles';
 
-const NoviAlbum: React.FC = () => {
+const NoviAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -37,53 +37,55 @@ const NoviAlbum: React.FC = () => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
-
-  useEffect(() => {
-    if (korisnikID) {
-      loadUserSongs();
-    }
-  }, [korisnikID]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
         setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
+    return '';
+  }, []);
 
-  const loadUserSongs = async () => {
-    if (!korisnikID) return;
+  const loadUserSongs = useCallback(async (userId?: string) => {
+    const currentUserId = userId || korisnikID;
+    if (!currentUserId) return;
     
     try {
       const response = await axios.get(`${API_BASE}/pjesme/`);
       // Show only user's songs that are not already on an album
       const userSongs = (response.data || []).filter(
-        (p: Pjesma) => p.korisnikID === korisnikID && !p.albumID
+        (p: Pjesma) => p.korisnikID === currentUserId && !p.albumID
       );
       setSvePjesme(userSongs);
     } catch (error) {
       console.error('Error loading user songs:', error);
       setSvePjesme([]);
     }
-  };
+  }, [korisnikID]);
 
-  const handleTogglePjesma = (pjesmaId: number) => {
+  // Load user data and songs when component mounts
+  useMemo(() => {
+    loadUserData().then(userId => {
+      if (userId) {
+        loadUserSongs(userId);
+      }
+    });
+  }, [loadUserData, loadUserSongs]);
+
+  const handleTogglePjesma = useCallback((pjesmaId: number) => {
     setOdabranePjesme(prev =>
       prev.includes(pjesmaId)
         ? prev.filter(id => id !== pjesmaId)
         : [...prev, pjesmaId]
     );
-  };
+  }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     if (!naziv.trim()) {
       setError(t('fill_required_fields') || 'Please fill required fields');
       return;
@@ -164,9 +166,9 @@ const NoviAlbum: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [naziv, korisnikID, opis, imageFile, gifFile, odabranePjesme, svePjesme, t, router]);
 
-  const handleFilePicker = async (type: 'image' | 'gif') => {
+  const handleFilePicker = useCallback(async (type: 'image' | 'gif') => {
     try {
       let options: any = {
         multiple: false,
@@ -199,16 +201,36 @@ const NoviAlbum: React.FC = () => {
       console.error('Error picking file:', error);
       Alert.alert(t('error'), t('error_picking_file') || 'Error picking file');
     }
-  };
+  }, [t]);
 
-  const formatDuration = (seconds?: number): string => {
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
+  const handleFocus = useCallback((field: string) => {
+    setFocusedField(field);
+  }, []);
+
+  const handleBlur = useCallback(() => {
+    setFocusedField(null);
+  }, []);
+
+  const handleButtonPressIn = useCallback(() => {
+    setButtonPressed(true);
+  }, []);
+
+  const handleButtonPressOut = useCallback(() => {
+    setButtonPressed(false);
+  }, []);
+
+  const formatDuration = useCallback((seconds?: number): string => {
     if (!seconds) return '';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
-  const renderSongItem = ({ item }: { item: Pjesma }) => {
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
     const isSelected = odabranePjesme.includes(item.id);
     
     return (
@@ -231,7 +253,30 @@ const NoviAlbum: React.FC = () => {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [odabranePjesme, handleTogglePjesma, formatDuration]);
+
+  // Memoize file picker buttons
+  const imagePickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('image')}
+    >
+      <Text style={styles.fileButtonText}>
+        {imageFile ? t('change_image') : t('select_image')}
+      </Text>
+    </TouchableOpacity>
+  ), [imageFile, handleFilePicker, t]);
+
+  const gifPickerButton = useMemo(() => (
+    <TouchableOpacity
+      style={styles.fileButton}
+      onPress={() => handleFilePicker('gif')}
+    >
+      <Text style={styles.fileButtonText}>
+        {gifFile ? t('change_gif') : t('select_gif')}
+      </Text>
+    </TouchableOpacity>
+  ), [gifFile, handleFilePicker, t]);
 
   if (loading) {
     return (
@@ -260,8 +305,8 @@ const NoviAlbum: React.FC = () => {
                 ]}
                 value={naziv}
                 onChangeText={setNaziv}
-                onFocus={() => setFocusedField('naziv')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('naziv')}
+                onBlur={handleBlur}
                 placeholder={t('album_name')}
                 placeholderTextColor="#888"
                 autoCapitalize="words"
@@ -279,8 +324,8 @@ const NoviAlbum: React.FC = () => {
                 ]}
                 value={opis}
                 onChangeText={setOpis}
-                onFocus={() => setFocusedField('opis')}
-                onBlur={() => setFocusedField(null)}
+                onFocus={() => handleFocus('opis')}
+                onBlur={handleBlur}
                 placeholder={t('description')}
                 placeholderTextColor="#888"
                 multiline
@@ -291,14 +336,7 @@ const NoviAlbum: React.FC = () => {
             {/* Image File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('image')}:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('image')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {imageFile ? t('change_image') : t('select_image')}
-                </Text>
-              </TouchableOpacity>
+              {imagePickerButton}
               {imageFile && (
                 <Text style={styles.fileName}>{imageFile.name}</Text>
               )}
@@ -307,14 +345,7 @@ const NoviAlbum: React.FC = () => {
             {/* GIF File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>GIF:</Text>
-              <TouchableOpacity
-                style={styles.fileButton}
-                onPress={() => handleFilePicker('gif')}
-              >
-                <Text style={styles.fileButtonText}>
-                  {gifFile ? t('change_gif') : t('select_gif')}
-                </Text>
-              </TouchableOpacity>
+              {gifPickerButton}
               {gifFile && (
                 <Text style={styles.fileName}>{gifFile.name}</Text>
               )}
@@ -361,8 +392,8 @@ const NoviAlbum: React.FC = () => {
                 loading && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
-              onPressIn={() => setButtonPressed(true)}
-              onPressOut={() => setButtonPressed(false)}
+              onPressIn={handleButtonPressIn}
+              onPressOut={handleButtonPressOut}
               disabled={loading}
               activeOpacity={0.8}
             >
@@ -374,7 +405,7 @@ const NoviAlbum: React.FC = () => {
             {/* Cancel Button */}
             <TouchableOpacity
               style={styles.cancelButton}
-              onPress={() => router.back()}
+              onPress={handleBack}
               disabled={loading}
             >
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
@@ -386,6 +417,8 @@ const NoviAlbum: React.FC = () => {
       <Tabs currentRoute="create" />
     </View>
   );
-};
+});
+
+NoviAlbum.displayName = "NoviAlbum";
 
 export default NoviAlbum;

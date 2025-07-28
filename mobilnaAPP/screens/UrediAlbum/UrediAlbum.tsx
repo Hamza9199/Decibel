@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,18 +20,15 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { Album, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediAlbum.styles';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const UrediAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { albumId } = useLocalSearchParams();
-  const [album, setAlbum] = useState<Album | null>(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [pjesmeAlbuma, setPjesmeAlbuma] = useState<Pjesma[]>([]);
-  const [svePjesme, setSvePjesme] = useState<Pjesma[]>([]);
   const [removing, setRemoving] = useState<number | null>(null);
   const [dodajuci, setDodajuci] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
@@ -42,12 +39,13 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
+  const queryClient = useQueryClient();
+
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -56,60 +54,125 @@ const UrediAlbum: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadData = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!albumId || !currentUserId) {
-      setLoading(false);
-      return;
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
+
+  // Query for album data
+  const albumQuery = useQuery({
+    queryKey: ['album', albumId],
+    queryFn: async () => {
+      if (!albumId) throw new Error('No album ID');
+      const response = await axios.get(`${API_BASE}/albumi/${albumId}`);
+      return response.data;
+    },
+    enabled: !!albumId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for songs data
+  const songsQuery = useQuery({
+    queryKey: ['songs'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/pjesme/`);
+      return response.data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Set form values when album data is loaded
+  useEffect(() => {
+    if (albumQuery.data) {
+      setNaziv(albumQuery.data.naziv || '');
+      setOpis(albumQuery.data.opis || '');
     }
+  }, [albumQuery.data]);
 
-    try {
-      setLoading(true);
+  // Mutation for updating album
+  const updateAlbumMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      if (!albumQuery.data) throw new Error('No album data');
+      return await axios.put(`${API_BASE}/albumi/${albumQuery.data.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['album', albumId] });
+      setSuccess(t('album_updated_successfully') || 'Album updated successfully');
       
-      // Load album
-      const albumRes = await axios.get(`${API_BASE}/albumi/${albumId}`);
-      setAlbum(albumRes.data);
-
-      // Load songs
-      const songsRes = await axios.get(`${API_BASE}/pjesme/`);
-      const allSongs: Pjesma[] = songsRes.data || [];
-      
-      // Filter songs for this album and available songs
-      const albumSongs = allSongs.filter(p => String(p.albumID) === String(albumId));
-      const availableSongs = allSongs.filter(p => 
-        p.korisnikID === currentUserId && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
-      );
-      
-      setPjesmeAlbuma(albumSongs);
-      setSvePjesme(availableSongs);
-
-      // Set form values
-      if (albumRes.data) {
-        setNaziv(albumRes.data.naziv || '');
-        setOpis(albumRes.data.opis || '');
-      }
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setError(t('error_loading_album') || 'Error loading album');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setTimeout(() => {
+        router.push(`/album/${albumQuery.data?.id}`);
+      }, 1500);
+    },
+    onError: (error) => {
+      console.error('Error updating album:', error);
+      setError(t('error_updating_album') || 'Error updating album');
     }
-  }, [albumId, korisnikID, t]);
+  });
 
-  // Load user data and album data when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (albumId && userId) {
-        loadData(userId);
-      }
-    });
-  }, [albumId, loadUserData, loadData]);
+  // Mutation for removing song from album
+  const removeSongMutation = useMutation({
+    mutationFn: async (pjesmaId: number) => {
+      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
+      const pjesma = pjesmaRes.data;
+      
+      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
+        ...pjesma,
+        albumID: null,
+      });
+      
+      return { pjesmaId, pjesma };
+    },
+    onSuccess: ({ pjesmaId }) => {
+      queryClient.invalidateQueries({ queryKey: ['songs'] });
+      queryClient.invalidateQueries({ queryKey: ['album', albumId] });
+      Alert.alert(t('success'), t('song_removed_from_album') || 'Song removed from album');
+    },
+    onError: (error) => {
+      console.error('Error removing song:', error);
+      Alert.alert(t('error'), t('error_removing_song') || 'Error removing song');
+    }
+  });
+
+  // Mutation for adding song to album
+  const addSongMutation = useMutation({
+    mutationFn: async (pjesmaId: number) => {
+      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
+      const pjesma = pjesmaRes.data;
+      
+      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
+        ...pjesma,
+        albumID: Number(albumId),
+      });
+      
+      return { pjesmaId, pjesma };
+    },
+    onSuccess: ({ pjesmaId }) => {
+      queryClient.invalidateQueries({ queryKey: ['songs'] });
+      queryClient.invalidateQueries({ queryKey: ['album', albumId] });
+      Alert.alert(t('success'), t('song_added_to_album') || 'Song added to album');
+    },
+    onError: (error) => {
+      console.error('Error adding song:', error);
+      Alert.alert(t('error'), t('error_adding_song') || 'Error adding song');
+    }
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['album', albumId] }),
+      queryClient.invalidateQueries({ queryKey: ['songs'] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, albumId]);
 
   const handleImagePick = useCallback(async () => {
     try {
@@ -143,54 +206,41 @@ const UrediAlbum: React.FC = React.memo(() => {
     }
   }, [t]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!album || !korisnikID) return;
+  const handleSubmit = useCallback(() => {
+    if (!albumQuery.data || !korisnikID) return;
     
     setError(null);
     setSuccess(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('korisnikID', korisnikID);
-      formData.append('naziv', naziv);
-      formData.append('opis', opis);
-      formData.append('kreiranDatumVrijeme', album.kreiranDatumVrijeme || '');
-      formData.append('odobreno', String(album.odobreno || false));
-      formData.append('javno', String(album.javno || false));
-      formData.append('brojLajkova', String(album.brojLajkova || 0));
+    const formData = new FormData();
+    formData.append('korisnikID', korisnikID);
+    formData.append('naziv', naziv);
+    formData.append('opis', opis);
+    formData.append('kreiranDatumVrijeme', albumQuery.data.kreiranDatumVrijeme || '');
+    formData.append('odobreno', String(albumQuery.data.odobreno || false));
+    formData.append('javno', String(albumQuery.data.javno || false));
+    formData.append('brojLajkova', String(albumQuery.data.brojLajkova || 0));
 
-      if (selectedImage) {
-        formData.append('file_slika', {
-          uri: selectedImage.uri,
-          type: selectedImage.mimeType || 'image/jpeg',
-          name: selectedImage.name || 'image.jpg',
-        } as any);
-      }
-
-      if (selectedGif) {
-        formData.append('file_gif', {
-          uri: selectedGif.uri,
-          type: selectedGif.mimeType || 'image/gif',
-          name: selectedGif.name || 'animation.gif',
-        } as any);
-      }
-
-      await axios.put(`${API_BASE}/albumi/${album.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      setSuccess(t('album_updated_successfully') || 'Album updated successfully');
-      
-      setTimeout(() => {
-        router.push(`/album/${album.id}`);
-      }, 1500);
-    } catch (error) {
-      console.error('Error updating album:', error);
-      setError(t('error_updating_album') || 'Error updating album');
+    if (selectedImage) {
+      formData.append('file_slika', {
+        uri: selectedImage.uri,
+        type: selectedImage.mimeType || 'image/jpeg',
+        name: selectedImage.name || 'image.jpg',
+      } as any);
     }
-  }, [album, korisnikID, naziv, opis, selectedImage, selectedGif, t, router]);
 
-  const handleRemoveSong = useCallback(async (pjesmaId: number) => {
+    if (selectedGif) {
+      formData.append('file_gif', {
+        uri: selectedGif.uri,
+        type: selectedGif.mimeType || 'image/gif',
+        name: selectedGif.name || 'animation.gif',
+      } as any);
+    }
+
+    updateAlbumMutation.mutate(formData);
+  }, [albumQuery.data, korisnikID, naziv, opis, selectedImage, selectedGif, updateAlbumMutation]);
+
+  const handleRemoveSong = useCallback((pjesmaId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('remove_song_from_album') || 'Remove song from album?',
@@ -199,55 +249,39 @@ const UrediAlbum: React.FC = React.memo(() => {
         {
           text: t('remove'),
           style: 'destructive',
-          onPress: async () => {
+          onPress: () => {
             setRemoving(pjesmaId);
-            try {
-              const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-              const pjesma = pjesmaRes.data;
-              
-              await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
-                ...pjesma,
-                albumID: null,
-              });
-              
-              setPjesmeAlbuma(prev => prev.filter(p => p.id !== pjesmaId));
-              setSvePjesme(prev => [...prev, pjesma]);
-              
-              Alert.alert(t('success'), t('song_removed_from_album') || 'Song removed from album');
-            } catch (error) {
-              console.error('Error removing song:', error);
-              Alert.alert(t('error'), t('error_removing_song') || 'Error removing song');
-            } finally {
-              setRemoving(null);
-            }
+            removeSongMutation.mutate(pjesmaId, {
+              onSettled: () => setRemoving(null)
+            });
           }
         }
       ]
     );
-  }, [t]);
+  }, [removeSongMutation, t]);
 
-  const handleAddSong = useCallback(async (pjesmaId: number) => {
+  const handleAddSong = useCallback((pjesmaId: number) => {
     setDodajuci(pjesmaId);
-    try {
-      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      const pjesma = pjesmaRes.data;
-      
-      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
-        ...pjesma,
-        albumID: Number(albumId),
-      });
-      
-      setPjesmeAlbuma(prev => [...prev, pjesma]);
-      setSvePjesme(prev => prev.filter(p => p.id !== pjesmaId));
-      
-      Alert.alert(t('success'), t('song_added_to_album') || 'Song added to album');
-    } catch (error) {
-      console.error('Error adding song:', error);
-      Alert.alert(t('error'), t('error_adding_song') || 'Error adding song');
-    } finally {
-      setDodajuci(null);
-    }
-  }, [albumId, t]);
+    addSongMutation.mutate(pjesmaId, {
+      onSettled: () => setDodajuci(null)
+    });
+  }, [addSongMutation]);
+
+  // Memoize processed song data
+  const { pjesmeAlbuma, svePjesme } = useMemo(() => {
+    const allSongs = songsQuery.data || [];
+    
+    // Filter songs for this album and available songs
+    const albumSongs = allSongs.filter((p: Pjesma) => String(p.albumID) === String(albumId));
+    const availableSongs = allSongs.filter((p: Pjesma) => 
+      p.korisnikID === korisnikID && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
+    );
+    
+    return {
+      pjesmeAlbuma: albumSongs,
+      svePjesme: availableSongs
+    };
+  }, [songsQuery.data, albumId, korisnikID]);
 
   const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -300,8 +334,10 @@ const UrediAlbum: React.FC = React.memo(() => {
 
   // Memoize permission check
   const hasPermission = useMemo(() => {
-    return album && album.korisnikID === korisnikID;
-  }, [album, korisnikID]);
+    return albumQuery.data && albumQuery.data.korisnikID === korisnikID;
+  }, [albumQuery.data, korisnikID]);
+
+  const loading = albumQuery.isLoading || songsQuery.isLoading;
 
   if (loading) {
     return (
@@ -312,7 +348,7 @@ const UrediAlbum: React.FC = React.memo(() => {
     );
   }
 
-  if (!album) {
+  if (!albumQuery.data) {
     return (
       <View style={styles.container}>
         <Header />
@@ -415,9 +451,16 @@ const UrediAlbum: React.FC = React.memo(() => {
               </View>
             )}
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <TouchableOpacity 
+              style={styles.submitButton} 
+              onPress={handleSubmit}
+              disabled={updateAlbumMutation.isPending}
+            >
               <Text style={styles.submitButtonText}>
-                {t('save_changes') || 'Save Changes'}
+                {updateAlbumMutation.isPending 
+                  ? t('saving') || 'Saving...'
+                  : t('save_changes') || 'Save Changes'
+                }
               </Text>
             </TouchableOpacity>
           </View>

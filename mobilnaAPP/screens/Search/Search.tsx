@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Search.styles';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
@@ -41,13 +42,7 @@ const Search: React.FC = React.memo(() => {
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('sve');
-  const [results, setResults] = useState<SearchResults>({
-    pjesme: [],
-    albumi: [],
-    playliste: [],
-    korisnici: [],
-  });
-  const [loading, setLoading] = useState(false);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
 
   const loadUser = useCallback(async () => {
@@ -61,16 +56,28 @@ const Search: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Load user when component mounts
-  useMemo(() => {
+  // Replace useMemo with useEffect for loading user data
+  useEffect(() => {
     loadUser();
   }, [loadUser]);
 
-  const performSearch = useCallback(async (term: string) => {
-    if (!term.trim()) return;
+  // Debounce search term
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, 300);
 
-    setLoading(true);
-    try {
+    return () => clearTimeout(timeoutId);
+  }, [searchTerm]);
+
+  // Query for search results
+  const searchQuery = useQuery({
+    queryKey: ['search', debouncedSearchTerm],
+    queryFn: async () => {
+      if (!debouncedSearchTerm) {
+        return { pjesme: [], albumi: [], playliste: [], korisnici: [] };
+      }
+
       const [pjesmeRes, albumiRes, playlisteRes, korisniciceRes] = await Promise.all([
         axios.get(`${API_BASE}/pjesme/`),
         axios.get(`${API_BASE}/albumi/`),
@@ -78,7 +85,7 @@ const Search: React.FC = React.memo(() => {
         axios.get(`${API_BASE}/korisnici/`),
       ]);
 
-      const termLower = term.toLowerCase();
+      const termLower = debouncedSearchTerm.toLowerCase();
 
       const filteredSongs = (pjesmeRes.data as Pjesma[])
         .filter(s => 
@@ -114,68 +121,48 @@ const Search: React.FC = React.memo(() => {
         )
         .sort((a, b) => (b.brojPratilaca || 0) - (a.brojPratilaca || 0));
 
-      setResults({
+      return {
         pjesme: filteredSongs,
         albumi: filteredAlbums,
         playliste: filteredPlaylists,
         korisnici: filteredUsers,
-      });
-    } catch (error) {
-      console.error('Search error:', error);
-      Alert.alert(t('error'), 'Failed to perform search');
-    } finally {
-      setLoading(false);
-    }
-  }, [t]);
+      };
+    },
+    enabled: true,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  // Memoize search with debounce
-  useMemo(() => {
-    const timeoutId = setTimeout(() => {
-      if (searchTerm.trim()) {
-        performSearch(searchTerm.trim());
-      } else {
-        setResults({ pjesme: [], albumi: [], playliste: [], korisnici: [] });
-      }
-    }, 300);
-
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, performSearch]);
-
-  const handlePlaySong = useCallback((song: Pjesma) => {
-    if (!song.putanjaAudio) {
-      Alert.alert(t('error'), 'Song has no audio file');
-      return;
-    }
-    playAudio(song);
-  }, [playAudio, t]);
-
-  const handlePlayAlbum = useCallback(async (album: Album) => {
-    try {
+  // Mutation for playing album
+  const playAlbumMutation = useMutation({
+    mutationFn: async (album: Album) => {
       const response = await axios.get(`${API_BASE}/pjesme/`);
       const albumSongs = (response.data as Pjesma[])
         .filter(s => s.albumID === album.id && s.odobreno && s.putanjaAudio)
         .sort((a, b) => a.id - b.id);
 
       if (albumSongs.length === 0) {
-        Alert.alert(t('error'), 'Album has no playable songs');
-        return;
+        throw new Error('Album has no playable songs');
       }
 
-      playPlaylist(albumSongs, 0);
-    } catch (error) {
+      return albumSongs;
+    },
+    onSuccess: (songs) => {
+      playPlaylist(songs, 0);
+    },
+    onError: (error) => {
       console.error('Error playing album:', error);
       Alert.alert(t('error'), 'Failed to play album');
     }
-  }, [playPlaylist, t]);
+  });
 
-  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
-    try {
+  // Mutation for playing playlist
+  const playPlaylistMutation = useMutation({
+    mutationFn: async (playlist: Playlista) => {
       const response = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
       const songIds: number[] = response.data || [];
 
       if (songIds.length === 0) {
-        Alert.alert(t('error'), 'Playlist is empty');
-        return;
+        throw new Error('Playlist is empty');
       }
 
       const songPromises = songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`));
@@ -185,20 +172,39 @@ const Search: React.FC = React.memo(() => {
         .filter(song => song && song.odobreno && song.putanjaAudio);
 
       if (songs.length === 0) {
-        Alert.alert(t('error'), 'No playable songs in playlist');
-        return;
+        throw new Error('No playable songs in playlist');
       }
 
+      return songs;
+    },
+    onSuccess: (songs) => {
       playPlaylist(songs, 0);
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error('Error playing playlist:', error);
       Alert.alert(t('error'), 'Failed to play playlist');
     }
-  }, [playPlaylist, t]);
+  });
+
+  const handlePlaySong = useCallback((song: Pjesma) => {
+    if (!song.putanjaAudio) {
+      Alert.alert(t('error'), 'Song has no audio file');
+      return;
+    }
+    playAudio(song);
+  }, [playAudio, t]);
+
+  const handlePlayAlbum = useCallback((album: Album) => {
+    playAlbumMutation.mutate(album);
+  }, [playAlbumMutation]);
+
+  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
+    playPlaylistMutation.mutate(playlist);
+  }, [playPlaylistMutation]);
 
   const clearSearch = useCallback(() => {
     setSearchTerm('');
-    setResults({ pjesme: [], albumi: [], playliste: [], korisnici: [] });
+    setDebouncedSearchTerm('');
   }, []);
 
   const handleFilterPress = useCallback((key: SearchFilter) => {
@@ -215,6 +221,7 @@ const Search: React.FC = React.memo(() => {
   ], [t]);
 
   const getFilteredResults = useCallback((): ResultItem[] => {
+    const results = searchQuery.data || { pjesme: [], albumi: [], playliste: [], korisnici: [] };
     const items: ResultItem[] = [];
 
     switch (activeFilter) {
@@ -267,7 +274,7 @@ const Search: React.FC = React.memo(() => {
     }
 
     return items;
-  }, [activeFilter, results, t]);
+  }, [activeFilter, searchQuery.data, t]);
 
   // Memoize filtered results
   const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);
@@ -385,7 +392,7 @@ const Search: React.FC = React.memo(() => {
   }, [renderSongItem, renderAlbumItem, renderPlaylistItem, renderUserItem]);
 
   const renderEmptyState = useCallback(() => {
-    if (loading) {
+    if (searchQuery.isLoading) {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#b91d95" />
@@ -419,7 +426,7 @@ const Search: React.FC = React.memo(() => {
     }
 
     return null;
-  }, [loading, searchTerm, hasResults, t]);
+  }, [searchQuery.isLoading, searchTerm, hasResults, t]);
 
   const renderFilterButton = useCallback(({ item: filter }: { item: typeof filters[0] }) => (
     <TouchableOpacity

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,11 +18,11 @@ import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPjesma.styles';
+import { useMutation } from '@tanstack/react-query';
 
 const NovaPjesma: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [trajanjeSekunde, setTrajanjeSekunde] = useState('');
@@ -49,69 +49,23 @@ const NovaPjesma: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Load user data when component mounts
-  useMemo(() => {
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
     loadUserData();
   }, [loadUserData]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!naziv.trim() || !audioFile) {
-      setError(t('fill_required_fields') || 'Please fill required fields');
-      return;
-    }
-
-    if (!korisnikID) {
-      setError(t('must_be_logged_in') || 'You must be logged in');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const formData = new FormData();
-      formData.append('korisnikID', korisnikID);
-      formData.append('naziv', naziv.trim());
-      formData.append('opis', opis.trim());
-      formData.append('genre', genre.trim());
-      formData.append('javno', String(javno));
-      
-      if (trajanjeSekunde) {
-        formData.append('trajanjeSekunde', trajanjeSekunde);
-      }
-
-      if (audioFile) {
-        formData.append('file_audio', {
-          uri: audioFile.uri,
-          type: audioFile.mimeType || 'audio/mpeg',
-          name: audioFile.name || 'audio.mp3',
-        } as any);
-      }
-
-      if (imageFile) {
-        formData.append('file_slika', {
-          uri: imageFile.uri,
-          type: imageFile.mimeType || 'image/jpeg',
-          name: imageFile.name || 'image.jpg',
-        } as any);
-      }
-
-      if (gifFile) {
-        formData.append('file_gif', {
-          uri: gifFile.uri,
-          type: gifFile.mimeType || 'image/gif',
-          name: gifFile.name || 'animation.gif',
-        } as any);
-      }
-
-      await axios.post(`${API_BASE}/pjesme/`, formData, {
+  // Mutation for creating song
+  const createSongMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await axios.post(`${API_BASE}/pjesme/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-
+    },
+    onSuccess: () => {
       setSuccess(t('song_created_successfully') || 'Song created successfully!');
+      setError(null);
       
       // Reset form
       setNaziv('');
@@ -126,14 +80,65 @@ const NovaPjesma: React.FC = React.memo(() => {
       setTimeout(() => {
         router.back();
       }, 2000);
-
-    } catch (error: any) {
+    },
+    onError: (error: any) => {
       console.error('Error creating song:', error);
       setError(t('error_creating_song') || 'Error creating song');
-    } finally {
-      setLoading(false);
+      setSuccess(null);
     }
-  }, [naziv, audioFile, korisnikID, opis, genre, trajanjeSekunde, javno, imageFile, gifFile, t, router]);
+  });
+
+  const handleSubmit = useCallback(async () => {
+    if (!naziv.trim() || !audioFile) {
+      setError(t('fill_required_fields') || 'Please fill required fields');
+      return;
+    }
+
+    if (!korisnikID) {
+      setError(t('must_be_logged_in') || 'You must be logged in');
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData();
+    formData.append('korisnikID', korisnikID);
+    formData.append('naziv', naziv.trim());
+    formData.append('opis', opis.trim());
+    formData.append('genre', genre.trim());
+    formData.append('javno', String(javno));
+    
+    if (trajanjeSekunde) {
+      formData.append('trajanjeSekunde', trajanjeSekunde);
+    }
+
+    if (audioFile) {
+      formData.append('file_audio', {
+        uri: audioFile.uri,
+        type: audioFile.mimeType || 'audio/mpeg',
+        name: audioFile.name || 'audio.mp3',
+      } as any);
+    }
+
+    if (imageFile) {
+      formData.append('file_slika', {
+        uri: imageFile.uri,
+        type: imageFile.mimeType || 'image/jpeg',
+        name: imageFile.name || 'image.jpg',
+      } as any);
+    }
+
+    if (gifFile) {
+      formData.append('file_gif', {
+        uri: gifFile.uri,
+        type: gifFile.mimeType || 'image/gif',
+        name: gifFile.name || 'animation.gif',
+      } as any);
+    }
+
+    createSongMutation.mutate(formData);
+  }, [naziv, audioFile, korisnikID, opis, genre, trajanjeSekunde, javno, imageFile, gifFile, createSongMutation, t]);
 
   const handleFilePicker = useCallback(async (type: 'audio' | 'image' | 'gif') => {
     try {
@@ -234,7 +239,7 @@ const NovaPjesma: React.FC = React.memo(() => {
     </TouchableOpacity>
   ), [gifFile, handleFilePicker, t]);
 
-  if (loading) {
+  if (createSongMutation.isPending) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#b91d95" />
@@ -381,16 +386,16 @@ const NovaPjesma: React.FC = React.memo(() => {
               style={[
                 styles.button,
                 buttonPressed && styles.buttonPressed,
-                loading && styles.buttonDisabled,
+                createSongMutation.isPending && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
               onPressIn={handleButtonPressIn}
               onPressOut={handleButtonPressOut}
-              disabled={loading}
+              disabled={createSongMutation.isPending}
               activeOpacity={0.8}
             >
               <Text style={styles.buttonText}>
-                {loading ? t('creating') || 'Creating...' : t('create_song')}
+                {createSongMutation.isPending ? t('creating') || 'Creating...' : t('create_song')}
               </Text>
             </TouchableOpacity>
 
@@ -398,7 +403,7 @@ const NovaPjesma: React.FC = React.memo(() => {
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleBack}
-              disabled={loading}
+              disabled={createSongMutation.isPending}
             >
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>

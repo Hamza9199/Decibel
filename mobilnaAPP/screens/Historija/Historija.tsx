@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,27 +17,25 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Historija.styles';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Historija: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const [history, setHistory] = useState<HistorijaSlusanja[]>([]);
-  const [songs, setSongs] = useState<Pjesma[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
-  const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -46,91 +44,139 @@ const Historija: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadHistoryData = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!currentUserId) {
-      setLoading(false);
-      return;
-    }
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
-      setLoading(true);
-
-      // Load listening history
-      const historyRes = await axios.get(`${API_BASE}/historija/`);
-      const allHistory: HistorijaSlusanja[] = historyRes.data || [];
+  // Query for history data
+  const historyQuery = useQuery({
+    queryKey: ['history', korisnikID],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/historija/`);
+      const allHistory: HistorijaSlusanja[] = response.data || [];
       
-      // Filter and sort by date (newest first)
-      const userHistory = allHistory
-        .filter((h) => h.korisnikID === currentUserId)
+      return allHistory
+        .filter((h) => h.korisnikID === korisnikID)
         .sort((a, b) => 
           new Date(b.kreiranDatumVrijeme || '').getTime() - 
           new Date(a.kreiranDatumVrijeme || '').getTime()
         );
-      setHistory(userHistory);
+    },
+    enabled: !!korisnikID,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-      // Load all songs
-      const songsRes = await axios.get(`${API_BASE}/pjesme/`);
-      setSongs(songsRes.data || []);
+  // Query for songs data
+  const songsQuery = useQuery({
+    queryKey: ['songs'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/pjesme/`);
+      return response.data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      // Load user playlists
-      const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
-      setPlaylists(playlistsRes.data || []);
+  // Query for playlists data
+  const playlistsQuery = useQuery({
+    queryKey: ['playlists'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/playliste/`);
+      return response.data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      // Load user's song likes
-      const likesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const likes = likesRes.data as KorisnikPjesma[];
+  // Query for user's song likes
+  const likesQuery = useQuery({
+    queryKey: ['likes', korisnikID],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+      const likes = response.data as KorisnikPjesma[];
       const map: { [pjesmaId: number]: boolean } = {};
-      likes.filter(v => v.korisnikID === currentUserId).forEach(v => {
+      likes.filter(v => v.korisnikID === korisnikID).forEach(v => {
         map[v.pjesmaID] = true;
       });
-      setLikeMap(map);
+      return map;
+    },
+    enabled: !!korisnikID,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    } catch (error) {
-      console.error('Error loading history data:', error);
-      Alert.alert(t('error'), t('error_loading_data') || 'Error loading data');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [korisnikID, t]);
-
-  // Load user data and history data when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (userId) {
-        loadHistoryData(userId);
-      }
-    });
-  }, [loadUserData, loadHistoryData]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadHistoryData();
-  }, [loadHistoryData]);
-
-  const handleLikeSong = useCallback(async (songId: number) => {
-    if (!korisnikID) return;
-
-    try {
-      if (likeMap[songId]) {
+  // Mutation for liking/unliking songs
+  const likeMutation = useMutation({
+    mutationFn: async ({ songId, isLiked }: { songId: number; isLiked: boolean }) => {
+      if (!korisnikID) throw new Error('No user ID');
+      
+      if (isLiked) {
         await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${songId}`);
-        setLikeMap(prev => ({ ...prev, [songId]: false }));
-        Alert.alert(t('success'), t('removed_from_favorites'));
+        return { songId, liked: false };
       } else {
         await axios.post(`${API_BASE}/korisnik_pjesma/`, {
           korisnikID,
           pjesmaID: songId,
           kreiranDatumVrijeme: new Date().toISOString(),
         });
-        setLikeMap(prev => ({ ...prev, [songId]: true }));
-        Alert.alert(t('success'), t('added_to_favorites'));
+        return { songId, liked: true };
       }
-    } catch (error) {
+    },
+    onSuccess: ({ songId, liked }) => {
+      queryClient.setQueryData(['likes', korisnikID], (old: any) => ({
+        ...old,
+        [songId]: liked
+      }));
+      Alert.alert(
+        t('success'), 
+        liked ? t('added_to_favorites') : t('removed_from_favorites')
+      );
+    },
+    onError: (error) => {
       console.error('Error liking/unliking song:', error);
       Alert.alert(t('error'), t('error_favorites'));
     }
-  }, [korisnikID, likeMap, t]);
+  });
+
+  // Mutation for adding song to playlist
+  const addToPlaylistMutation = useMutation({
+    mutationFn: async ({ songId, playlistId }: { songId: number; playlistId: number }) => {
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
+        pjesmaID: songId,
+        playlistaID: playlistId,
+      });
+      return { songId, playlistId };
+    },
+    onSuccess: () => {
+      setShowPlaylistModal(null);
+      Alert.alert(t('success'), t('song_added_to_playlist'));
+    },
+    onError: (error) => {
+      console.error('Error adding song to playlist:', error);
+      setShowPlaylistModal(null);
+      Alert.alert(t('error'), t('error_adding_to_playlist'));
+    }
+  });
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['history', korisnikID] }),
+      queryClient.invalidateQueries({ queryKey: ['songs'] }),
+      queryClient.invalidateQueries({ queryKey: ['playlists'] }),
+      queryClient.invalidateQueries({ queryKey: ['likes', korisnikID] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, korisnikID]);
+
+  const handleLikeSong = useCallback((songId: number) => {
+    const isLiked = likesQuery.data?.[songId] || false;
+    likeMutation.mutate({ songId, isLiked });
+  }, [likesQuery.data, likeMutation]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -142,20 +188,9 @@ const Historija: React.FC = React.memo(() => {
     console.log('Playing song:', song.naziv);
   }, [t]);
 
-  const handleAddToPlaylist = useCallback(async (songId: number, playlistId: number) => {
-    try {
-      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
-        pjesmaID: songId,
-        playlistaID: playlistId,
-      });
-      setShowPlaylistModal(null);
-      Alert.alert(t('success'), t('song_added_to_playlist'));
-    } catch (error) {
-      console.error('Error adding song to playlist:', error);
-      setShowPlaylistModal(null);
-      Alert.alert(t('error'), t('error_adding_to_playlist'));
-    }
-  }, [t]);
+  const handleAddToPlaylist = useCallback((songId: number, playlistId: number) => {
+    addToPlaylistMutation.mutate({ songId, playlistId });
+  }, [addToPlaylistMutation]);
 
   const handleModalClose = useCallback(() => {
     setShowPlaylistModal(null);
@@ -171,15 +206,16 @@ const Historija: React.FC = React.memo(() => {
   }, []);
 
   // Memoize combined history with song data
-  const historySongs = useMemo(() => 
-    history
+  const historySongs = useMemo(() => {
+    if (!historyQuery.data || !songsQuery.data) return [];
+    
+    return historyQuery.data
       .map((h) => ({
         ...h,
-        song: songs.find((s) => s.id === h.pjesmaID),
+        song: songsQuery.data.find((s: Pjesma) => s.id === h.pjesmaID),
       }))
-      .filter((h) => h.song && h.song.odobreno),
-    [history, songs]
-  );
+      .filter((h) => h.song && h.song.odobreno);
+  }, [historyQuery.data, songsQuery.data]);
 
   const renderHistoryItem = useCallback(({ item, index }: { item: any; index: number }) => (
     <View style={styles.songCard}>
@@ -213,12 +249,12 @@ const Historija: React.FC = React.memo(() => {
         <TouchableOpacity
           style={[
             styles.actionButton,
-            likeMap[item.pjesmaID] && styles.actionButtonLiked
+            likesQuery.data?.[item.pjesmaID] && styles.actionButtonLiked
           ]}
           onPress={() => handleLikeSong(item.pjesmaID)}
         >
           <MaterialIcons 
-            name={likeMap[item.pjesmaID] ? "favorite" : "favorite-border"} 
+            name={likesQuery.data?.[item.pjesmaID] ? "favorite" : "favorite-border"} 
             size={18} 
             color="#fff" 
           />
@@ -232,7 +268,7 @@ const Historija: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlaySong, handleLikeSong, likeMap, formatDate, t]);
+  ), [handlePlaySong, handleLikeSong, likesQuery.data, formatDate, t]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -242,6 +278,8 @@ const Historija: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = historyQuery.isLoading || songsQuery.isLoading || playlistsQuery.isLoading || likesQuery.isLoading;
 
   if (loading) {
     return (
@@ -290,7 +328,7 @@ const Historija: React.FC = React.memo(() => {
               {t('add_to_playlist') || 'Add to Playlist'}
             </Text>
             <FlatList
-              data={playlists}
+              data={playlistsQuery.data || []}
               keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity

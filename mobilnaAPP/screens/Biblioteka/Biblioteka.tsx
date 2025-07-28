@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { useAudio } from '@/context/AudioContext';
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Biblioteka.styles';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type LibraryFilter = 'prateci' | 'pjesme' | 'albumi' | 'playliste';
 
@@ -186,15 +187,17 @@ const Biblioteka: React.FC = React.memo(() => {
     }
   }, [korisnik, loadedFilters]);
 
-  // Load initial data only for the active filter
-  useMemo(() => {
-    loadUserData().then(user => {
+  // Replace useMemo with useEffect for initial data loading
+  useEffect(() => {
+    const initializeData = async () => {
+      const user = await loadUserData();
       if (user) {
-        loadFilterData(activeFilter, user).finally(() => {
-          setLoading(false);
-        });
+        await loadFilterData(activeFilter, user);
+        setLoading(false);
       }
-    });
+    };
+    
+    initializeData();
   }, [loadUserData, loadFilterData, activeFilter]);
 
   // Load data when filter changes
@@ -219,9 +222,127 @@ const Biblioteka: React.FC = React.memo(() => {
     });
   }, [loadFilterData, activeFilter]);
 
-  const handleUnfollow = useCallback(async (artistId: string) => {
-    if (!korisnik?.id) return;
+  // Add query client for invalidating queries
+  const queryClient = useQueryClient();
 
+  // Mutation for unfollowing artists
+  const unfollowMutation = useMutation({
+    mutationFn: async (artistId: string) => {
+      if (!korisnik?.id) throw new Error('No user ID');
+      await axios.delete(`${API_BASE}/pratioci/${artistId}/${korisnik.id}`);
+      return artistId;
+    },
+    onSuccess: (artistId) => {
+      setData(prev => ({
+        ...prev,
+        prateci: prev.prateci.filter(a => a.id !== artistId)
+      }));
+      Alert.alert(t('success'), t('unfollowed_artist'));
+    },
+    onError: (error) => {
+      console.error('Error unfollowing artist:', error);
+      Alert.alert(t('error'), t('error_unfollowing'));
+    }
+  });
+
+  // Mutation for unliking songs
+  const unlikeSongMutation = useMutation({
+    mutationFn: async (songId: number) => {
+      if (!korisnik?.id) throw new Error('No user ID');
+      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${songId}`);
+      return songId;
+    },
+    onSuccess: (songId) => {
+      setData(prev => ({
+        ...prev,
+        pjesme: prev.pjesme.filter(s => s.id !== songId)
+      }));
+      Alert.alert(t('success'), t('removed_from_favorites'));
+    },
+    onError: (error) => {
+      console.error('Error unliking song:', error);
+      Alert.alert(t('error'), t('error_removing_favorite'));
+    }
+  });
+
+  // Mutation for unliking albums
+  const unlikeAlbumMutation = useMutation({
+    mutationFn: async (albumId: number) => {
+      if (!korisnik?.id) throw new Error('No user ID');
+      await axios.delete(`${API_BASE}/korisnik_album/${korisnik.id}/${albumId}`);
+      return albumId;
+    },
+    onSuccess: (albumId) => {
+      setData(prev => ({
+        ...prev,
+        albumi: prev.albumi.filter(a => a.id !== albumId)
+      }));
+      Alert.alert(t('success'), t('removed_from_favorites'));
+    },
+    onError: (error) => {
+      console.error('Error unliking album:', error);
+      Alert.alert(t('error'), t('error_removing_favorite'));
+    }
+  });
+
+  // Mutation for unliking playlists
+  const unlikePlaylistMutation = useMutation({
+    mutationFn: async (playlistId: number) => {
+      if (!korisnik?.id) throw new Error('No user ID');
+      await axios.delete(`${API_BASE}/korisnik_playlista/${korisnik.id}/${playlistId}`);
+      return playlistId;
+    },
+    onSuccess: (playlistId) => {
+      setData(prev => ({
+        ...prev,
+        playliste: prev.playliste.filter(p => p.id !== playlistId)
+      }));
+      Alert.alert(t('success'), t('removed_from_favorites'));
+    },
+    onError: (error) => {
+      console.error('Error unliking playlist:', error);
+      Alert.alert(t('error'), t('error_removing_favorite'));
+    }
+  });
+
+  // Query for album songs when playing album
+  const useAlbumSongs = (albumId: number, enabled: boolean = false) => {
+    return useQuery({
+      queryKey: ['albumSongs', albumId],
+      queryFn: async () => {
+        const response = await axios.get(`${API_BASE}/pjesme/`);
+        return (response.data as Pjesma[])
+          .filter(s => s.albumID === albumId && s.odobreno && s.putanjaAudio)
+          .sort((a, b) => a.id - b.id);
+      },
+      enabled,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+  };
+
+  // Query for playlist songs when playing playlist
+  const usePlaylistSongs = (playlistId: number, enabled: boolean = false) => {
+    return useQuery({
+      queryKey: ['playlistSongs', playlistId],
+      queryFn: async () => {
+        const response = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+        const songIds: number[] = response.data || [];
+
+        if (songIds.length === 0) return [];
+
+        const songPromises = songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`));
+        const songResponses = await Promise.all(songPromises);
+        return songResponses
+          .map(res => res.data)
+          .filter(song => song && song.odobreno && song.putanjaAudio);
+      },
+      enabled,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+  };
+
+  // Update handlers to use mutations
+  const handleUnfollow = useCallback((artistId: string) => {
     Alert.alert(
       t('confirm_action'),
       t('confirm_unfollow'),
@@ -230,126 +351,71 @@ const Biblioteka: React.FC = React.memo(() => {
         {
           text: t('unfollow'),
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/pratioci/${artistId}/${korisnik.id}`);
-              setData(prev => ({
-                ...prev,
-                prateci: prev.prateci.filter(a => a.id !== artistId)
-              }));
-              Alert.alert(t('success'), t('unfollowed_artist'));
-            } catch (error) {
-              console.error('Error unfollowing artist:', error);
-              Alert.alert(t('error'), t('error_unfollowing'));
-            }
-          }
+          onPress: () => unfollowMutation.mutate(artistId)
         }
       ]
     );
-  }, [korisnik?.id, t]);
+  }, [unfollowMutation, t]);
 
-  const handleUnlikeSong = useCallback(async (songId: number) => {
-    if (!korisnik?.id) return;
+  const handleUnlikeSong = useCallback((songId: number) => {
+    unlikeSongMutation.mutate(songId);
+  }, [unlikeSongMutation]);
 
-    try {
-      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${songId}`);
-      setData(prev => ({
-        ...prev,
-        pjesme: prev.pjesme.filter(s => s.id !== songId)
-      }));
-      Alert.alert(t('success'), t('removed_from_favorites'));
-    } catch (error) {
-      console.error('Error unliking song:', error);
-      Alert.alert(t('error'), t('error_removing_favorite'));
-    }
-  }, [korisnik?.id, t]);
+  const handleUnlikeAlbum = useCallback((albumId: number) => {
+    unlikeAlbumMutation.mutate(albumId);
+  }, [unlikeAlbumMutation]);
 
-  const handleUnlikeAlbum = useCallback(async (albumId: number) => {
-    if (!korisnik?.id) return;
+  const handleUnlikePlaylist = useCallback((playlistId: number) => {
+    unlikePlaylistMutation.mutate(playlistId);
+  }, [unlikePlaylistMutation]);
 
-    try {
-      await axios.delete(`${API_BASE}/korisnik_album/${korisnik.id}/${albumId}`);
-      setData(prev => ({
-        ...prev,
-        albumi: prev.albumi.filter(a => a.id !== albumId)
-      }));
-      Alert.alert(t('success'), t('removed_from_favorites'));
-    } catch (error) {
-      console.error('Error unliking album:', error);
-      Alert.alert(t('error'), t('error_removing_favorite'));
-    }
-  }, [korisnik?.id, t]);
+  // Update album play handler to use query
+  const [playingAlbumId, setPlayingAlbumId] = useState<number | null>(null);
+  const albumSongsQuery = useAlbumSongs(playingAlbumId || 0, !!playingAlbumId);
 
-  const handleUnlikePlaylist = useCallback(async (playlistId: number) => {
-    if (!korisnik?.id) return;
+  const handlePlayAlbum = useCallback((album: Album) => {
+    setPlayingAlbumId(album.id);
+  }, []);
 
-    try {
-      await axios.delete(`${API_BASE}/korisnik_playlista/${korisnik.id}/${playlistId}`);
-      setData(prev => ({
-        ...prev,
-        playliste: prev.playliste.filter(p => p.id !== playlistId)
-      }));
-      Alert.alert(t('success'), t('removed_from_favorites'));
-    } catch (error) {
-      console.error('Error unliking playlist:', error);
-      Alert.alert(t('error'), t('error_removing_favorite'));
-    }
-  }, [korisnik?.id, t]);
-
-  const handlePlaySong = useCallback((song: Pjesma) => {
-    if (!song.putanjaAudio) {
-      Alert.alert(t('error'), t('no_audio_file'));
-      return;
-    }
-    playAudio(song);
-  }, [playAudio, t]);
-
-  const handlePlayAlbum = useCallback(async (album: Album) => {
-    try {
-      const response = await axios.get(`${API_BASE}/pjesme/`);
-      const albumSongs = (response.data as Pjesma[])
-        .filter(s => s.albumID === album.id && s.odobreno && s.putanjaAudio)
-        .sort((a, b) => a.id - b.id);
-
-      if (albumSongs.length === 0) {
+  useEffect(() => {
+    if (albumSongsQuery.data && playingAlbumId) {
+      if (albumSongsQuery.data.length === 0) {
         Alert.alert(t('error'), t('no_songs_in_album'));
-        return;
+      } else {
+        playPlaylist(albumSongsQuery.data, 0);
       }
-
-      playPlaylist(albumSongs, 0);
-    } catch (error) {
-      console.error('Error playing album:', error);
+      setPlayingAlbumId(null);
+    }
+    if (albumSongsQuery.error && playingAlbumId) {
+      console.error('Error playing album:', albumSongsQuery.error);
       Alert.alert(t('error'), t('error_playing_album'));
+      setPlayingAlbumId(null);
     }
-  }, [playPlaylist, t]);
+  }, [albumSongsQuery.data, albumSongsQuery.error, playingAlbumId, playPlaylist, t]);
 
-  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
-    try {
-      const response = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
-      const songIds: number[] = response.data || [];
+  // Update playlist play handler to use query
+  const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
+  const playlistSongsQuery = usePlaylistSongs(playingPlaylistId || 0, !!playingPlaylistId);
 
-      if (songIds.length === 0) {
+  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
+    setPlayingPlaylistId(playlist.id);
+  }, []);
+
+  useEffect(() => {
+    if (playlistSongsQuery.data && playingPlaylistId) {
+      if (playlistSongsQuery.data.length === 0) {
         Alert.alert(t('error'), t('empty_playlist'));
-        return;
+      } else {
+        playPlaylist(playlistSongsQuery.data, 0);
       }
-
-      const songPromises = songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`));
-      const songResponses = await Promise.all(songPromises);
-      const songs = songResponses
-        .map(res => res.data)
-        .filter(song => song && song.odobreno && song.putanjaAudio);
-
-      if (songs.length === 0) {
-        Alert.alert(t('error'), t('no_playable_songs'));
-        return;
-      }
-
-      playPlaylist(songs, 0);
-    } catch (error) {
-      console.error('Error playing playlist:', error);
-      Alert.alert(t('error'), t('error_playing_playlist'));
+      setPlayingPlaylistId(null);
     }
-  }, [playPlaylist, t]);
+    if (playlistSongsQuery.error && playingPlaylistId) {
+      console.error('Error playing playlist:', playlistSongsQuery.error);
+      Alert.alert(t('error'), t('error_playing_playlist'));
+      setPlayingPlaylistId(null);
+    }
+  }, [playlistSongsQuery.data, playlistSongsQuery.error, playingPlaylistId, playPlaylist, t]);
 
   // Memoize filters
   const filters = useMemo(() => [
@@ -407,6 +473,10 @@ const Biblioteka: React.FC = React.memo(() => {
       </View>
     </View>
   ), [router, t, handleUnfollow]);
+
+  const handlePlaySong = useCallback((song: Pjesma) => {
+    playAudio(song);
+  }, [playAudio]);
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <View style={styles.itemCard}>

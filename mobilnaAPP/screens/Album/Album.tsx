@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Album, Pjesma, Playlista, KorisnikPjesma } from '@/types';
@@ -25,93 +26,183 @@ import { styles } from './Album.styles';
 const AlbumScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { albumId } = useLocalSearchParams();
-  const [album, setAlbum] = useState<Album | null>(null);
-  const [songs, setSongs] = useState<Pjesma[]>([]);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const [repeatAll, setRepeatAll] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState<number>(0);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
-  const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
-  const [korisnikID, setKorisnikID] = useState<string>('');
 
-  const loadUserData = useCallback(async () => {
-    try {
+  // Load user data with useQuery
+  const { data: userData } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
-        const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
-        return user?.id || '';
+        return JSON.parse(userData);
       }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    }
-    return '';
-  }, []);
+      return null;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  const loadAlbumData = useCallback(async (userId?: string) => {
-    if (!albumId) return;
-    
-    try {
-      setLoading(true);
-      
-      // Load album details
+  // Load album data with useQuery
+  const { data: album, isLoading: albumLoading } = useQuery({
+    queryKey: ['album', albumId],
+    queryFn: async () => {
+      if (!albumId) return null;
       const albumRes = await axios.get(`${API_BASE}/albumi/${albumId}`);
-      setAlbum(albumRes.data);
-      setLikeCount(albumRes.data.brojLajkova || 0);
+      return albumRes.data;
+    },
+    enabled: !!albumId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-      // Load songs for this album
+  // Load songs for this album with useQuery
+  const { data: songs = [] } = useQuery({
+    queryKey: ['album-songs', albumId],
+    queryFn: async () => {
+      if (!albumId) return [];
       const songsRes = await axios.get(`${API_BASE}/pjesme/`);
       const albumSongs = (songsRes.data || []).filter(
         (p: Pjesma) => String(p.albumID) === String(albumId)
       );
-      setSongs(albumSongs);
+      return albumSongs;
+    },
+    enabled: !!albumId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-      const currentUserId = userId || korisnikID;
-      if (currentUserId) {
-        // Load user's playlists
-        const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
-        setPlaylists(playlistsRes.data || []);
+  // Load user's playlists with useQuery
+  const { data: playlists = [] } = useQuery({
+    queryKey: ['playlists', userData?.id],
+    queryFn: async () => {
+      if (!userData?.id) return [];
+      const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
+      return playlistsRes.data || [];
+    },
+    enabled: !!userData?.id,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-        // Check if user liked this album
-        const albumLikesRes = await axios.get(`${API_BASE}/korisnik_album/`);
-        const albumLikes = albumLikesRes.data as { korisnikID: string; albumID: number }[];
-        setLiked(!!albumLikes.find(v => v.korisnikID === currentUserId && String(v.albumID) === String(albumId)));
+  // Check if user liked this album with useQuery
+  const { data: albumLiked = false } = useQuery({
+    queryKey: ['album-like', albumId, userData?.id],
+    queryFn: async () => {
+      if (!albumId || !userData?.id) return false;
+      const albumLikesRes = await axios.get(`${API_BASE}/korisnik_album/`);
+      const albumLikes = albumLikesRes.data as { korisnikID: string; albumID: number }[];
+      return !!albumLikes.find(v => v.korisnikID === userData.id && String(v.albumID) === String(albumId));
+    },
+    enabled: !!albumId && !!userData?.id,
+    staleTime: 30 * 1000, // 30 seconds
+  });
 
-        // Load user's song likes
-        const songLikesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-        const songLikes = songLikesRes.data as KorisnikPjesma[];
-        const map: { [pjesmaId: number]: boolean } = {};
-        songLikes.filter(v => v.korisnikID === currentUserId).forEach(v => {
-          map[v.pjesmaID] = true;
+  // Load user's song likes with useQuery
+  const { data: songLikes = {} } = useQuery({
+    queryKey: ['song-likes', userData?.id],
+    queryFn: async () => {
+      if (!userData?.id) return {};
+      const songLikesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+      const songLikes = songLikesRes.data as KorisnikPjesma[];
+      const map: { [pjesmaId: number]: boolean } = {};
+      songLikes.filter(v => v.korisnikID === userData.id).forEach(v => {
+        map[v.pjesmaID] = true;
+      });
+      return map;
+    },
+    enabled: !!userData?.id,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+
+  // Album like/unlike mutation
+  const albumLikeMutation = useMutation({
+    mutationFn: async ({ action, albumId, userId }: { action: 'like' | 'unlike', albumId: string, userId: string }) => {
+      if (action === 'like') {
+        return axios.post(`${API_BASE}/korisnik_album/`, {
+          korisnikID: userId,
+          albumID: albumId,
+          kreiranDatumVrijeme: new Date().toISOString(),
         });
-        setLikeMap(map);
+      } else {
+        return axios.delete(`${API_BASE}/korisnik_album/${userId}/${albumId}`);
       }
-    } catch (error) {
-      console.error('Error loading album data:', error);
-      Alert.alert(t('error'), t('error_loading_album') || 'Error loading album');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [albumId, korisnikID, t]);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['album-like', variables.albumId, variables.userId] });
+      Alert.alert(
+        t('success'),
+        variables.action === 'like' ? t('added_to_favorites') : t('removed_from_favorites')
+      );
+    },
+    onError: () => {
+      Alert.alert(t('error'), t('error_liking_album') || 'Error updating favorites');
+    },
+  });
 
-  // Load user data and album data when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (albumId) {
-        loadAlbumData(userId);
+  // Song like/unlike mutation
+  const songLikeMutation = useMutation({
+    mutationFn: async ({ action, songId, userId }: { action: 'like' | 'unlike', songId: number, userId: string }) => {
+      if (action === 'like') {
+        return axios.post(`${API_BASE}/korisnik_pjesma/`, {
+          korisnikID: userId,
+          pjesmaID: songId,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+      } else {
+        return axios.delete(`${API_BASE}/korisnik_pjesma/${userId}/${songId}`);
       }
-    });
-  }, [albumId, loadUserData, loadAlbumData]);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['song-likes', variables.userId] });
+      Alert.alert(
+        t('success'),
+        variables.action === 'like' ? t('added_to_favorites') : t('removed_from_favorites')
+      );
+    },
+    onError: () => {
+      Alert.alert(t('error'), t('error_liking_song') || 'Error updating favorites');
+    },
+  });
+
+  // Add to playlist mutation
+  const addToPlaylistMutation = useMutation({
+    mutationFn: async ({ songId, playlistId }: { songId: number, playlistId: number }) => {
+      return axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
+        pjesmaID: songId,
+        playlistaID: playlistId,
+      });
+    },
+    onSuccess: () => {
+      setShowPlaylistModal(false);
+      setSelectedSong(null);
+      Alert.alert(t('success'), t('song_added_to_playlist') || 'Song added to playlist!');
+    },
+    onError: (error: any) => {
+      console.error('Error adding song to playlist:', error);
+      const errorMsg = error.response?.data?.detail || t('error_adding_to_playlist') || 'Error adding song to playlist';
+      Alert.alert(t('error'), errorMsg);
+      setShowPlaylistModal(false);
+      setSelectedSong(null);
+    },
+  });
+
+  const loading = albumLoading;
+  const refreshing = albumLikeMutation.isPending || songLikeMutation.isPending || addToPlaylistMutation.isPending;
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadAlbumData();
-  }, [loadAlbumData]);
+    queryClient.invalidateQueries({ queryKey: ['album', albumId] });
+    queryClient.invalidateQueries({ queryKey: ['album-songs', albumId] });
+    queryClient.invalidateQueries({ queryKey: ['album-like', albumId, userData?.id] });
+    queryClient.invalidateQueries({ queryKey: ['song-likes', userData?.id] });
+  }, [queryClient, albumId, userData?.id]);
+
+  useEffect(() => {
+    if (userData?.id && albumId) {
+      queryClient.invalidateQueries({ queryKey: ['album', albumId] });
+      queryClient.invalidateQueries({ queryKey: ['album-songs', albumId] });
+      queryClient.invalidateQueries({ queryKey: ['album-like', albumId, userData.id] });
+      queryClient.invalidateQueries({ queryKey: ['song-likes', userData.id] });
+    }
+  }, [userData, albumId, queryClient]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -137,52 +228,18 @@ const AlbumScreen: React.FC = React.memo(() => {
   }, [songs, handlePlaySong, t]);
 
   const handleLikeAlbum = useCallback(async () => {
-    if (!album || !korisnikID) return;
+    if (!album || !userData?.id) return;
     
-    try {
-      if (liked) {
-        await axios.delete(`${API_BASE}/korisnik_album/${korisnikID}/${album.id}`);
-        setLiked(false);
-        setLikeCount(prev => prev - 1);
-        Alert.alert(t('success'), t('removed_from_favorites') || 'Removed from favorites');
-      } else {
-        await axios.post(`${API_BASE}/korisnik_album/`, {
-          korisnikID,
-          albumID: album.id,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        });
-        setLiked(true);
-        setLikeCount(prev => prev + 1);
-        Alert.alert(t('success'), t('added_to_favorites') || 'Added to favorites');
-      }
-    } catch (error) {
-      console.error('Error liking album:', error);
-      Alert.alert(t('error'), t('error_liking_album') || 'Error updating favorites');
-    }
-  }, [album, korisnikID, liked, t]);
+    const action = albumLiked ? 'unlike' : 'like';
+    albumLikeMutation.mutate({ action, albumId: String(album.id), userId: userData.id });
+  }, [album, userData, albumLiked, albumLikeMutation]);
 
   const handleLikeSong = useCallback(async (songId: number) => {
-    if (!korisnikID) return;
+    if (!userData?.id) return;
     
-    try {
-      if (likeMap[songId]) {
-        await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${songId}`);
-        setLikeMap(prev => ({ ...prev, [songId]: false }));
-        Alert.alert(t('success'), t('removed_from_favorites') || 'Removed from favorites');
-      } else {
-        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-          korisnikID,
-          pjesmaID: songId,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        });
-        setLikeMap(prev => ({ ...prev, [songId]: true }));
-        Alert.alert(t('success'), t('added_to_favorites') || 'Added to favorites');
-      }
-    } catch (error) {
-      console.error('Error liking song:', error);
-      Alert.alert(t('error'), t('error_liking_song') || 'Error updating favorites');
-    }
-  }, [korisnikID, likeMap, t]);
+    const action = songLikes[songId] ? 'unlike' : 'like';
+    songLikeMutation.mutate({ action, songId, userId: userData.id });
+  }, [userData, songLikes, songLikeMutation]);
 
   const handleAddToPlaylist = useCallback((song: Pjesma) => {
     setSelectedSong(song);
@@ -192,22 +249,8 @@ const AlbumScreen: React.FC = React.memo(() => {
   const handleSelectPlaylist = useCallback(async (playlistId: number) => {
     if (!selectedSong) return;
     
-    try {
-      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
-        pjesmaID: selectedSong.id,
-        playlistaID: playlistId,
-      });
-      setShowPlaylistModal(false);
-      setSelectedSong(null);
-      Alert.alert(t('success'), t('song_added_to_playlist') || 'Song added to playlist!');
-    } catch (error: any) {
-      console.error('Error adding song to playlist:', error);
-      const errorMsg = error.response?.data?.detail || t('error_adding_to_playlist') || 'Error adding song to playlist';
-      Alert.alert(t('error'), errorMsg);
-      setShowPlaylistModal(false);
-      setSelectedSong(null);
-    }
-  }, [selectedSong, t]);
+    addToPlaylistMutation.mutate({ songId: selectedSong.id, playlistId });
+  }, [selectedSong, addToPlaylistMutation]);
 
   const handleRepeatToggle = useCallback(() => {
     setRepeatAll(!repeatAll);
@@ -251,12 +294,12 @@ const AlbumScreen: React.FC = React.memo(() => {
         <TouchableOpacity
           style={[
             styles.actionButton,
-            likeMap[item.id] && styles.actionButtonLiked
+            songLikes[item.id] && styles.actionButtonLiked
           ]}
           onPress={() => handleLikeSong(item.id)}
         >
           <MaterialIcons 
-            name={likeMap[item.id] ? "favorite" : "favorite-border"} 
+            name={songLikes[item.id] ? "favorite" : "favorite-border"} 
             size={18} 
             color="#fff" 
           />
@@ -270,13 +313,13 @@ const AlbumScreen: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, likeMap, formatDuration, t]);
+  ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, songLikes, formatDuration, t]);
 
   // Memoize album meta information
   const albumMeta = useMemo(() => [
     { label: t('songs'), value: songs.length },
-    { label: t('likes'), value: likeCount },
-  ], [songs.length, likeCount, t]);
+    { label: t('likes'), value: album?.brojLajkova || 0 },
+  ], [songs.length, album?.brojLajkova, t]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -321,7 +364,7 @@ const AlbumScreen: React.FC = React.memo(() => {
           <View style={styles.albumMain}>
             <View style={styles.albumImageWrap}>
               <Image
-                source={{ uri: album.putanjaSlika || 'https://via.placeholder.com/300' }}
+                source={{ uri: album?.putanjaSlika || 'https://via.placeholder.com/300' }}
                 style={styles.albumImage}
                 contentFit="cover"
               />
@@ -334,35 +377,26 @@ const AlbumScreen: React.FC = React.memo(() => {
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
-                  style={[styles.likeButton, liked && styles.likeButtonLiked]} 
+                  style={[styles.likeButton, albumLiked && styles.likeButtonLiked]} 
                   onPress={handleLikeAlbum}
                 >
                   <MaterialIcons 
-                    name={liked ? "favorite" : "favorite-border"} 
+                    name={albumLiked ? "favorite" : "favorite-border"} 
                     size={20} 
                     color="#fff" 
                   />
-                  <Text style={styles.likeCount}>{likeCount}</Text>
+                  <Text style={styles.likeCount}>{album?.brojLajkova || 0}</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity 
-                  style={styles.repeatButton} 
-                  onPress={handleRepeatToggle}
-                >
-                  <MaterialIcons 
-                    name="repeat" 
-                    size={20} 
-                    color={repeatAll ? "#fff" : "#ccc"} 
-                  />
-                </TouchableOpacity>
+                
               </View>
             </View>
             
             <View style={styles.albumInfo}>
               <Text style={styles.albumTitle} numberOfLines={2}>
-                {album.naziv}
+                {album?.naziv}
               </Text>
-              {album.opis && (
+              {album?.opis && (
                 <Text style={styles.albumDescription} numberOfLines={3}>
                   {album.opis}
                 </Text>

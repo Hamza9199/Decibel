@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 112,
+    bottom: 70,
     backgroundColor: '#232323',
     padding: 12,
     paddingBottom: 8,

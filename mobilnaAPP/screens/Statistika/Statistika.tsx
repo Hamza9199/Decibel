@@ -9,26 +9,24 @@ import {
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Statistika, Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Statistika.styles';
 
 const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [albumi, setAlbumi] = useState<Album[]>([]);
-  const [playliste, setPlayliste] = useState<Playlista[]>([]);
-  const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
-  const [statistika, setStatistika] = useState<Statistika[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      
+  const queryClient = useQueryClient();
+
+  // Query for statistics data
+  const statisticsQuery = useQuery({
+    queryKey: ['statistics'],
+    queryFn: async () => {
       const [pjesmeData, albumiData, playlisteData, korisniciData, statistikaData] = await Promise.all([
         axios.get(`${API_BASE}/pjesme/`).then((res) => res.data).catch(() => []),
         axios.get(`${API_BASE}/albumi/`).then((res) => res.data).catch(() => []),
@@ -37,28 +35,30 @@ const StatistikaScreen: React.FC = React.memo(() => {
         axios.get(`${API_BASE}/statistika/`).then((res) => res.data).catch(() => []),
       ]);
 
-      setPjesme(pjesmeData);
-      setAlbumi(albumiData);
-      setPlayliste(playlisteData);
-      setKorisnici(korisniciData);
-      setStatistika(statistikaData);
-    } catch (error) {
-      console.error('Error loading statistics data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
-
-  // Load data when component mounts
-  useMemo(() => {
-    loadData();
-  }, [loadData]);
+      return {
+        pjesme: pjesmeData,
+        albumi: albumiData,
+        playliste: playlisteData,
+        korisnici: korisniciData,
+        statistika: statistikaData,
+      };
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    queryClient.invalidateQueries({ queryKey: ['statistics'] }).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient]);
+
+  // Extract data from query
+  const pjesme = useMemo(() => statisticsQuery.data?.pjesme || [], [statisticsQuery.data?.pjesme]);
+  const albumi = useMemo(() => statisticsQuery.data?.albumi || [], [statisticsQuery.data?.albumi]);
+  const playliste = useMemo(() => statisticsQuery.data?.playliste || [], [statisticsQuery.data?.playliste]);
+  const korisnici = useMemo(() => statisticsQuery.data?.korisnici || [], [statisticsQuery.data?.korisnici]);
+  const statistika = useMemo(() => statisticsQuery.data?.statistika || [], [statisticsQuery.data?.statistika]);
 
   // Memoize calculated data
   const topPjesme = useMemo(() => {
@@ -84,28 +84,28 @@ const StatistikaScreen: React.FC = React.memo(() => {
 
   const topIzvodjaci = useMemo(() => {
     return [...korisnici]
-      .filter(k => k.rola === 'izvodac' || k.rola === 'admin')
+      .filter((k: Korisnik) => k.rola === 'izvodac' || k.rola === 'admin')
       .sort((a, b) => (b.brojPratilaca || 0) - (a.brojPratilaca || 0))
       .slice(0, 10);
   }, [korisnici]);
 
   const najpoznatijiIzvodjac = useMemo(() => {
     return korisnici
-      .filter(k => k.rola === 'izvodac' || k.rola === 'admin')
-      .reduce((max, k) => 
+      .filter((k: Korisnik) => k.rola === 'izvodac' || k.rola === 'admin')
+      .reduce((max: Korisnik | undefined, k: Korisnik) => 
         (k.brojPratilaca || 0) > (max?.brojPratilaca || 0) ? k : max, 
-        korisnici.find(k => k.rola === 'izvodac' || k.rola === 'admin')
+        korisnici.find((k: Korisnik) => k.rola === 'izvodac' || k.rola === 'admin')
       );
   }, [korisnici]);
 
   const songsbyGenre = useMemo(() => {
     const zanrovi = ['pop', 'rock', 'hip_hop', 'jazz', 'electronic', 'klasicna', 'metal', 'alternativni', 'rap'];
     const maxCount = Math.max(...zanrovi.map(z => 
-      pjesme.filter(p => (p.zanr || '').toLowerCase() === z).length
+      pjesme.filter((p: Pjesma) => (p.zanr || '').toLowerCase() === z).length
     ));
     
     return zanrovi.map(zanr => {
-      const count = pjesme.filter(p => (p.zanr || '').toLowerCase() === zanr).length;
+      const count = pjesme.filter((p: Pjesma) => (p.zanr || '').toLowerCase() === zanr).length;
       return {
         genre: zanr,
         count,
@@ -118,11 +118,11 @@ const StatistikaScreen: React.FC = React.memo(() => {
     if (statistika.length > 0) {
       return statistika
         .map((s: Statistika) => ({
-          pjesma: s.pjesma || pjesme.find((p) => p.id === s.pjesmaID),
+          pjesma: s.pjesma || pjesme.find((p: Pjesma) => p.id === s.pjesmaID),
           brojReprodukcija: s.brojReprodukcija || 0,
         }))
-        .filter((s): s is { pjesma: Pjesma; brojReprodukcija: number } => !!s.pjesma)
-        .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0))
+        .filter((s: { pjesma: Pjesma | undefined; brojReprodukcija: number }) : s is { pjesma: Pjesma; brojReprodukcija: number } => !!s.pjesma)
+        .sort((a: { pjesma: Pjesma; brojReprodukcija: number }, b: { pjesma: Pjesma; brojReprodukcija: number }) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0))
         .slice(0, 10);
     } else {
       return [...pjesme]
@@ -141,6 +141,8 @@ const StatistikaScreen: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = statisticsQuery.isLoading;
 
   if (loading) {
     return (
@@ -277,7 +279,7 @@ const StatistikaScreen: React.FC = React.memo(() => {
             {topSlusane.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              topSlusane.map((item, index) => (
+              topSlusane.map((item: { pjesma: Pjesma; brojReprodukcija: number }, index: number) => (
                 <View key={item.pjesma?.id || index} style={styles.listItem}>
                   <Text style={styles.listItemTitle} numberOfLines={1}>
                     {index + 1}. {item.pjesma?.naziv || 'Unknown'}

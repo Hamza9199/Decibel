@@ -363,5 +363,8 @@
   "song_downloaded_offline": "Pjesma je uspješno preuzeta",
   "song_already_downloaded": "Pjesma je već preuzeta",
   "error_adding_to_playlist": "Greška pri dodavanju pjesme u playlistu",
-  "follows": "Pratim"
+  "follows": "Pratim",
+  "create_song": "Kreiraj pjesmu",
+  "public_song": "Javna pjesma",
+  "my_albums": "Moji albumi"
 }

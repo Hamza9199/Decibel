@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,18 +21,16 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { Playlista, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediPlaylistu.styles';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const UrediPlaylistu: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { playlistaId } = useLocalSearchParams();
-  const [playlista, setPlaylista] = useState<Playlista | null>(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
   const [removing, setRemoving] = useState<number | null>(null);
 
   // Form state
@@ -42,12 +40,13 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
+  const queryClient = useQueryClient();
+
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -56,65 +55,113 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadData = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!playlistaId || !currentUserId) {
-      setLoading(false);
-      return;
-    }
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
-      setLoading(true);
+  // Query for playlist data
+  const playlistQuery = useQuery({
+    queryKey: ['playlist', playlistaId],
+    queryFn: async () => {
+      if (!playlistaId) throw new Error('No playlist ID');
+      const response = await axios.get(`${API_BASE}/playliste/${playlistaId}`);
+      return response.data;
+    },
+    enabled: !!playlistaId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for playlist songs
+  const songsQuery = useQuery({
+    queryKey: ['playlistSongs', playlistaId],
+    queryFn: async () => {
+      if (!playlistaId) return [];
       
-      // Load playlist data
-      const playlistRes = await axios.get(`${API_BASE}/playliste/${playlistaId}`);
-      setPlaylista(playlistRes.data);
-
-      // Set form values
-      if (playlistRes.data) {
-        setNaziv(playlistRes.data.naziv || '');
-        setOpis(playlistRes.data.opis || '');
-        setJavno(!!playlistRes.data.javno);
-      }
-
-      // Load playlist songs
       const songsOrderRes = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
       const songIds: number[] = songsOrderRes.data || [];
       
-      if (songIds.length === 0) {
-        setPjesme([]);
-      } else {
-        const songsPromises = songIds.map(id =>
-          axios.get(`${API_BASE}/pjesme/${id}`)
-            .then(r => r.data)
-            .catch(() => null)
-        );
-        const songs = (await Promise.all(songsPromises)).filter(Boolean);
-        setPjesme(songs);
-      }
+      if (songIds.length === 0) return [];
+      
+      const songsPromises = songIds.map(id =>
+        axios.get(`${API_BASE}/pjesme/${id}`)
+          .then(r => r.data)
+          .catch(() => null)
+      );
+      const songs = (await Promise.all(songsPromises)).filter(Boolean);
+      return songs;
+    },
+    enabled: !!playlistaId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setError(t('error_loading_playlist') || 'Error loading playlist');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // Set form values when playlist data is loaded
+  useEffect(() => {
+    if (playlistQuery.data) {
+      const playlist = playlistQuery.data;
+      setNaziv(playlist.naziv || '');
+      setOpis(playlist.opis || '');
+      setJavno(!!playlist.javno);
     }
-  }, [playlistaId, korisnikID, t]);
+  }, [playlistQuery.data]);
 
-  // Load user data and playlist data when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (playlistaId && userId) {
-        loadData(userId);
-      }
-    });
-  }, [playlistaId, loadUserData, loadData]);
+  // Mutation for updating playlist
+  const updatePlaylistMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      if (!playlistQuery.data) throw new Error('No playlist data');
+      return await axios.put(`${API_BASE}/playliste/${playlistQuery.data.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['playlist', playlistaId] });
+      setSuccess(t('playlist_updated_successfully') || 'Playlist updated successfully');
+      setError(null);
+      
+      setTimeout(() => {
+        router.push(`/playlista/${playlistQuery.data?.id}`);
+      }, 1500);
+    },
+    onError: (error) => {
+      console.error('Error updating playlist:', error);
+      setError(t('error_updating_playlist') || 'Error updating playlist');
+      setSuccess(null);
+    }
+  });
+
+  // Mutation for removing song from playlist
+  const removeSongMutation = useMutation({
+    mutationFn: async (pjesmaId: number) => {
+      if (!playlistaId) throw new Error('No playlist ID');
+      await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
+      return pjesmaId;
+    },
+    onSuccess: (pjesmaId) => {
+      queryClient.setQueryData(['playlistSongs', playlistaId], (old: any) => 
+        old ? old.filter((p: any) => p.id !== pjesmaId) : []
+      );
+      Alert.alert(t('success'), t('song_removed_from_playlist') || 'Song removed from playlist');
+    },
+    onError: (error) => {
+      console.error('Error removing song:', error);
+      Alert.alert(t('error'), t('error_removing_song') || 'Error removing song');
+    }
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['playlist', playlistaId] }),
+      queryClient.invalidateQueries({ queryKey: ['playlistSongs', playlistaId] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, playlistaId]);
 
   const handleImagePick = useCallback(async () => {
     try {
@@ -148,53 +195,40 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     }
   }, [t]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!playlista || !korisnikID) return;
+  const handleSubmit = useCallback(() => {
+    if (!playlistQuery.data || !korisnikID) return;
     
     setError(null);
     setSuccess(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('korisnikID', korisnikID);
-      formData.append('naziv', naziv);
-      formData.append('opis', opis);
-      formData.append('kreiranDatumVrijeme', playlista.kreiranDatumVrijeme || '');
-      formData.append('javno', String(javno));
-      formData.append('brojLajkova', String(playlista.brojLajkova || 0));
+    const formData = new FormData();
+    formData.append('korisnikID', korisnikID);
+    formData.append('naziv', naziv);
+    formData.append('opis', opis);
+    formData.append('kreiranDatumVrijeme', playlistQuery.data.kreiranDatumVrijeme || '');
+    formData.append('javno', String(javno));
+    formData.append('brojLajkova', String(playlistQuery.data.brojLajkova || 0));
 
-      if (selectedImage) {
-        formData.append('file_slika', {
-          uri: selectedImage.uri,
-          type: selectedImage.mimeType || 'image/jpeg',
-          name: selectedImage.name || 'image.jpg',
-        } as any);
-      }
-
-      if (selectedGif) {
-        formData.append('file_gif', {
-          uri: selectedGif.uri,
-          type: selectedGif.mimeType || 'image/gif',
-          name: selectedGif.name || 'animation.gif',
-        } as any);
-      }
-
-      await axios.put(`${API_BASE}/playliste/${playlista.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      setSuccess(t('playlist_updated_successfully') || 'Playlist updated successfully');
-      
-      setTimeout(() => {
-        router.push(`/playlista/${playlista.id}`);
-      }, 1500);
-    } catch (error) {
-      console.error('Error updating playlist:', error);
-      setError(t('error_updating_playlist') || 'Error updating playlist');
+    if (selectedImage) {
+      formData.append('file_slika', {
+        uri: selectedImage.uri,
+        type: selectedImage.mimeType || 'image/jpeg',
+        name: selectedImage.name || 'image.jpg',
+      } as any);
     }
-  }, [playlista, korisnikID, naziv, opis, javno, selectedImage, selectedGif, t, router]);
 
-  const handleRemoveSong = useCallback(async (pjesmaId: number) => {
+    if (selectedGif) {
+      formData.append('file_gif', {
+        uri: selectedGif.uri,
+        type: selectedGif.mimeType || 'image/gif',
+        name: selectedGif.name || 'animation.gif',
+      } as any);
+    }
+
+    updatePlaylistMutation.mutate(formData);
+  }, [playlistQuery.data, korisnikID, naziv, opis, javno, selectedImage, selectedGif, updatePlaylistMutation]);
+
+  const handleRemoveSong = useCallback((pjesmaId: number) => {
     Alert.alert(
       t('confirm_action') || 'Confirm Action',
       t('remove_song_from_playlist') || 'Remove song from playlist?',
@@ -203,29 +237,16 @@ const UrediPlaylistu: React.FC = React.memo(() => {
         {
           text: t('remove'),
           style: 'destructive',
-          onPress: async () => {
+          onPress: () => {
             setRemoving(pjesmaId);
-            try {
-              if (!playlistaId) {
-                setRemoving(null);
-                return;
-              }
-              
-              await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
-              setPjesme(prev => prev.filter(p => p.id !== pjesmaId));
-              
-              Alert.alert(t('success'), t('song_removed_from_playlist') || 'Song removed from playlist');
-            } catch (error) {
-              console.error('Error removing song:', error);
-              Alert.alert(t('error'), t('error_removing_song') || 'Error removing song');
-            } finally {
-              setRemoving(null);
-            }
+            removeSongMutation.mutate(pjesmaId, {
+              onSettled: () => setRemoving(null)
+            });
           }
         }
       ]
     );
-  }, [playlistaId, t]);
+  }, [removeSongMutation, t]);
 
   const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -265,8 +286,8 @@ const UrediPlaylistu: React.FC = React.memo(() => {
 
   // Memoize permission check
   const hasPermission = useMemo(() => {
-    return playlista && playlista.korisnikID === korisnikID;
-  }, [playlista, korisnikID]);
+    return playlistQuery.data && playlistQuery.data.korisnikID === korisnikID;
+  }, [playlistQuery.data, korisnikID]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -276,6 +297,10 @@ const UrediPlaylistu: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = playlistQuery.isLoading || songsQuery.isLoading;
+  const playlista = playlistQuery.data;
+  const pjesme = songsQuery.data || [];
 
   if (loading) {
     return (
@@ -402,9 +427,16 @@ const UrediPlaylistu: React.FC = React.memo(() => {
               </View>
             )}
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <TouchableOpacity 
+              style={styles.submitButton} 
+              onPress={handleSubmit}
+              disabled={updatePlaylistMutation.isPending}
+            >
               <Text style={styles.submitButtonText}>
-                {t('save_changes') || 'Save Changes'}
+                {updatePlaylistMutation.isPending 
+                  ? t('saving') || 'Saving...'
+                  : t('save_changes') || 'Save Changes'
+                }
               </Text>
             </TouchableOpacity>
           </View>

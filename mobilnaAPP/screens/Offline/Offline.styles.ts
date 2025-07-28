@@ -38,6 +38,7 @@ export const styles = StyleSheet.create({
   },
   songList: {
     marginTop: 8,
+    marginBottom: 50,
   },
   songCard: {
     flexDirection: 'row',

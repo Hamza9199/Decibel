@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -47,8 +47,8 @@ const Register: React.FC = React.memo(() => {
     }
   }, [router]);
 
-  // Check if user is already logged in when component mounts
-  useMemo(() => {
+  // Replace useMemo with useEffect for checking login status
+  useEffect(() => {
     checkIfLoggedIn();
   }, [checkIfLoggedIn]);
 

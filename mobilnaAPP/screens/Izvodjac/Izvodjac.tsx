@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,8 +15,10 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Izvodjac.styles';
@@ -24,45 +26,60 @@ import { styles } from './Izvodjac.styles';
 const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { izvodjacId } = useLocalSearchParams();
-  const [artist, setArtist] = useState<Korisnik | null>(null);
-  const [songs, setSongs] = useState<Pjesma[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
-  const [following, setFollowing] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  
+
+  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setCurrentUserId(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
+    return '';
   }, []);
 
-  const loadArtistData = useCallback(async () => {
-    if (!izvodjacId) return;
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setCurrentUserId(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
-      setLoading(true);
+  // Query for artist details
+  const artistQuery = useQuery({
+    queryKey: ['artist', izvodjacId],
+    queryFn: async () => {
+      if (!izvodjacId) throw new Error('No artist ID');
+      const response = await axios.get(`${API_BASE}/korisnici/${izvodjacId}`);
+      return response.data;
+    },
+    enabled: !!izvodjacId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      // Load artist details
-      const artistRes = await axios.get(`${API_BASE}/korisnici/${izvodjacId}`);
-      setArtist(artistRes.data);
-
-      // Load artist's songs (owned and featured)
+  // Query for artist's songs
+  const songsQuery = useQuery({
+    queryKey: ['artistSongs', izvodjacId],
+    queryFn: async () => {
+      if (!izvodjacId) return [];
+      
+      // Load owned songs
       const songsRes = await axios.get(`${API_BASE}/pjesme/`);
       const ownedSongs = (songsRes.data || []).filter(
         (p: Pjesma) => p.korisnikID === izvodjacId && p.odobreno
       );
-      setSongs(ownedSongs);
 
-      // Load featured songs via izvodjac_pjesma relationship
+      // Load featured songs
       try {
         const featuredRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
         const featuredLinks = featuredRes.data || [];
@@ -79,84 +96,116 @@ const Izvodjac: React.FC = React.memo(() => {
             )
           );
           
-          setSongs(prev => {
-            const ids = new Set(prev.map(p => p.id));
-            return [
-              ...prev,
-              ...featuredSongs.filter(p => p && !ids.has(p.id) && p.odobreno)
-            ];
-          });
+          const ids = new Set(ownedSongs.map((p: Pjesma) => p.id));
+          const validFeaturedSongs = featuredSongs.filter(p => p && !ids.has(p.id) && p.odobreno);
+          
+          return [...ownedSongs, ...validFeaturedSongs];
         }
-      } catch (error) {
+      } catch  {
         console.log('No featured songs found');
       }
 
-      // Load approved albums
-      const albumsRes = await axios.get(`${API_BASE}/albumi/`);
-      const artistAlbums = (albumsRes.data || []).filter(
+      return ownedSongs;
+    },
+    enabled: !!izvodjacId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for artist's albums
+  const albumsQuery = useQuery({
+    queryKey: ['artistAlbums', izvodjacId],
+    queryFn: async () => {
+      if (!izvodjacId) return [];
+      
+      const response = await axios.get(`${API_BASE}/albumi/`);
+      return (response.data || []).filter(
         (a: Album) => a.korisnikID === izvodjacId && a.odobreno
       );
-      setAlbums(artistAlbums);
+    },
+    enabled: !!izvodjacId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      // Load public playlists
-      const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
-      const artistPlaylists = (playlistsRes.data || []).filter(
+  // Query for artist's playlists
+  const playlistsQuery = useQuery({
+    queryKey: ['artistPlaylists', izvodjacId],
+    queryFn: async () => {
+      if (!izvodjacId) return [];
+      
+      const response = await axios.get(`${API_BASE}/playliste/`);
+      return (response.data || []).filter(
         (pl: Playlista) => pl.korisnikID === izvodjacId && pl.javno
       );
-      setPlaylists(artistPlaylists);
+    },
+    enabled: !!izvodjacId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      // Check if following
-      if (currentUserId && izvodjacId) {
-        try {
-          await axios.get(`${API_BASE}/pratioci/${izvodjacId}/${currentUserId}`);
-          setFollowing(true);
-        } catch {
-          setFollowing(false);
-        }
+  // Query for follow status
+  const followQuery = useQuery({
+    queryKey: ['followStatus', izvodjacId, currentUserId],
+    queryFn: async () => {
+      if (!currentUserId || !izvodjacId) return false;
+      
+      try {
+        await axios.get(`${API_BASE}/pratioci/${izvodjacId}/${currentUserId}`);
+        return true;
+      } catch {
+        return false;
       }
+    },
+    enabled: !!(currentUserId && izvodjacId),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-    } catch (error) {
-      console.error('Error loading artist data:', error);
-      Alert.alert(t('error'), t('error_loading_artist'));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [izvodjacId, currentUserId, t]);
+  const artist = artistQuery.data;
+  const songs = useMemo(() => songsQuery.data || [], [songsQuery.data]);
+  const albums = albumsQuery.data || [];
+  const playlists = playlistsQuery.data || [];
+  const following = followQuery.data || false;
 
-  // Load user data and artist data when component mounts or izvodjacId changes
-  useMemo(() => {
-    loadUserData().then(() => {
-      if (izvodjacId) {
-        loadArtistData();
-      }
-    });
-  }, [izvodjacId, loadUserData, loadArtistData]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadArtistData();
-  }, [loadArtistData]);
-
-  const handleFollow = useCallback(async () => {
-    if (!currentUserId || !izvodjacId) return;
-
-    try {
-      if (following) {
-        await axios.delete(`${API_BASE}/pratioci/${izvodjacId}/${currentUserId}`);
-        setFollowing(false);
-      } else {
+  // Mutation for follow/unfollow
+  const followMutation = useMutation({
+    mutationFn: async ({ follow }: { follow: boolean }) => {
+      if (!currentUserId || !izvodjacId) throw new Error('Missing IDs');
+      
+      if (follow) {
         await axios.post(`${API_BASE}/pratioci/`, {
           korisnikID: izvodjacId,
           pratilacID: currentUserId,
         });
-        setFollowing(true);
+        return true;
+      } else {
+        await axios.delete(`${API_BASE}/pratioci/${izvodjacId}/${currentUserId}`);
+        return false;
       }
-    } catch (error) {
+    },
+    onSuccess: (isFollowing) => {
+      queryClient.setQueryData(['followStatus', izvodjacId, currentUserId], isFollowing);
+    },
+    onError: (error) => {
       console.error('Error following/unfollowing artist:', error);
       Alert.alert(t('error'), t('error_follow'));
     }
-  }, [currentUserId, izvodjacId, following, t]);
+  });
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['artist', izvodjacId] }),
+      queryClient.invalidateQueries({ queryKey: ['artistSongs', izvodjacId] }),
+      queryClient.invalidateQueries({ queryKey: ['artistAlbums', izvodjacId] }),
+      queryClient.invalidateQueries({ queryKey: ['artistPlaylists', izvodjacId] }),
+      queryClient.invalidateQueries({ queryKey: ['followStatus', izvodjacId, currentUserId] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, izvodjacId, currentUserId]);
+
+  const handleFollow = useCallback(() => {
+    const isFollowing = followQuery.data || false;
+    followMutation.mutate({ follow: !isFollowing });
+  }, [followQuery.data, followMutation]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -168,7 +217,7 @@ const Izvodjac: React.FC = React.memo(() => {
   }, [t]);
 
   const handlePlayAlbum = useCallback((album: Album) => {
-    const albumSongs = songs.filter(s => s.albumID === album.id && s.putanjaAudio);
+    const albumSongs = songs.filter((s: Pjesma) => s.albumID === album.id && s.putanjaAudio);
     if (albumSongs.length === 0) {
       Alert.alert(t('error'), t('no_songs_in_album'));
       return;
@@ -281,18 +330,19 @@ const Izvodjac: React.FC = React.memo(() => {
 
   // Memoize artist meta information
   const artistMeta = useMemo(() => {
-    if (!artist) return [];
+    if (!artistQuery.data) return [];
+    const artist = artistQuery.data;
     return [
       { label: t('name'), value: artist.ime },
       { label: t('surname'), value: artist.prezime },
       { label: t('followers'), value: artist.brojPratilaca || 0 },
     ];
-  }, [artist, t]);
+  }, [artistQuery.data, t]);
 
   // Memoize follow button visibility
   const showFollowButton = useMemo(() => {
-    return currentUserId && currentUserId !== artist?.id;
-  }, [currentUserId, artist?.id]);
+    return currentUserId && currentUserId !== artistQuery.data?.id;
+  }, [currentUserId, artistQuery.data?.id]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -303,6 +353,9 @@ const Izvodjac: React.FC = React.memo(() => {
     />
   ), [refreshing, onRefresh]);
 
+  const loading = artistQuery.isLoading || songsQuery.isLoading || albumsQuery.isLoading || playlistsQuery.isLoading;
+  const error = artistQuery.error || songsQuery.error || albumsQuery.error || playlistsQuery.error;
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -312,7 +365,7 @@ const Izvodjac: React.FC = React.memo(() => {
     );
   }
 
-  if (!artist) {
+  if (error || !artistQuery.data) {
     return (
       <View style={styles.notFoundContainer}>
         <Header />
@@ -324,6 +377,8 @@ const Izvodjac: React.FC = React.memo(() => {
       </View>
     );
   }
+
+ 
 
   return (
     <View style={styles.container}>
@@ -364,6 +419,7 @@ const Izvodjac: React.FC = React.memo(() => {
                     following && styles.followButtonFollowing
                   ]}
                   onPress={handleFollow}
+                  disabled={followMutation.isPending}
                 >
                   <Text style={styles.followButtonText}>
                     {following ? t('follows') : t('follow')}

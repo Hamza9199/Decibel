@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Korisnik, Komentar } from '@/types';
@@ -26,28 +27,20 @@ const PjesmePage: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { pjesmaId } = useLocalSearchParams<{ pjesmaId: string }>();
   
-  const [pjesma, setPjesma] = useState<Pjesma | null>(null);
-  const [izvodjaci, setIzvodjaci] = useState<Korisnik[]>([]);
-  const [topPjesme, setTopPjesme] = useState<Pjesma[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [komentari, setKomentari] = useState<Komentar[]>([]);
-  const [korisniciKomentara, setKorisniciKomentara] = useState<{ [id: string]: Korisnik }>({});
   const [noviKomentar, setNoviKomentar] = useState('');
   const [editKomentarId, setEditKomentarId] = useState<number | null>(null);
   const [editKomentarTekst, setEditKomentarTekst] = useState('');
   const [komentarError, setKomentarError] = useState<string | null>(null);
-  const [izdavac, setIzdavac] = useState<Korisnik | null>(null);
-  const [liked, setLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState<number>(0);
   const [mojID, setMojID] = useState<string>('');
+
+  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setMojID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -56,14 +49,86 @@ const PjesmePage: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadComments = useCallback(async () => {
-    if (!pjesmaId) return;
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setMojID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
+  // Query for song details
+  const songQuery = useQuery({
+    queryKey: ['song', pjesmaId],
+    queryFn: async () => {
+      if (!pjesmaId) throw new Error('No song ID');
+      const response = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
+      return response.data;
+    },
+    enabled: !!pjesmaId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for publisher/user data
+  const publisherQuery = useQuery({
+    queryKey: ['publisher', songQuery.data?.korisnikID],
+    queryFn: async () => {
+      if (!songQuery.data?.korisnikID) return null;
+      const response = await axios.get(`${API_BASE}/korisnici/${songQuery.data.korisnikID}`);
+      return response.data;
+    },
+    enabled: !!songQuery.data?.korisnikID,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for song artists
+  const artistsQuery = useQuery({
+    queryKey: ['songArtists', pjesmaId],
+    queryFn: async () => {
+      if (!pjesmaId) return [];
+      
+      const artistsRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      const artistConnections = artistsRes.data.filter((v: any) => String(v.pjesmaID) === String(pjesmaId));
+      
+      if (artistConnections.length === 0) return [];
+      
+      const artistPromises = artistConnections.map((v: any) =>
+        axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`)
+          .then(r => r.data)
+          .catch(() => null)
+      );
+      const artists = await Promise.all(artistPromises);
+      return artists.filter(Boolean);
+    },
+    enabled: !!pjesmaId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for recommended songs
+  const recommendedQuery = useQuery({
+    queryKey: ['recommendedSongs', pjesmaId],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/pjesme/`);
+      return (response.data || [])
+        .filter((p: Pjesma) => String(p.id) !== String(pjesmaId) && p.odobreno)
+        .sort((a: Pjesma, b: Pjesma) => (b.brojLajkova || 0) - (a.brojLajkova || 0))
+        .slice(0, 6);
+    },
+    enabled: !!pjesmaId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for comments
+  const commentsQuery = useQuery({
+    queryKey: ['comments', pjesmaId],
+    queryFn: async () => {
+      if (!pjesmaId) return { comments: [], users: {} };
+      
       const commentsRes = await axios.get(`${API_BASE}/komentari/`);
       const allComments: Komentar[] = commentsRes.data || [];
       const songComments = allComments.filter(k => String(k.pjesmaID) === String(pjesmaId));
-      setKomentari(songComments);
 
       // Load comment users
       const userIds = Array.from(new Set(songComments.map(k => k.korisnikID)));
@@ -76,89 +141,120 @@ const PjesmePage: React.FC = React.memo(() => {
             .catch(() => {})
         )
       );
-      setKorisniciKomentara(usersObj);
-    } catch (error) {
-      console.error('Error loading comments:', error);
-    }
-  }, [pjesmaId]);
 
-  const loadData = useCallback(async (userId?: string) => {
-    if (!pjesmaId) {
-      setLoading(false);
-      return;
-    }
+      return { comments: songComments, users: usersObj };
+    },
+    enabled: !!pjesmaId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-    try {
-      setLoading(true);
-
-      // Load song details
-      const songRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      const songData = songRes.data;
-      setPjesma(songData);
-      setLikeCount(songData.brojLajkova || 0);
-
-      const currentUserId = userId || mojID;
-      // Check if user liked the song
-      if (currentUserId) {
-        const likesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-        const veze = likesRes.data as { korisnikID: string; pjesmaID: number }[];
-        setLiked(!!veze.find(v => v.korisnikID === currentUserId && String(v.pjesmaID) === String(pjesmaId)));
-      }
-
-      // Load publisher
-      if (songData.korisnikID) {
-        const publisherRes = await axios.get(`${API_BASE}/korisnici/${songData.korisnikID}`);
-        setIzdavac(publisherRes.data);
-      }
-
-      // Load artists for song
-      const artistsRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
-      const artistConnections = artistsRes.data.filter((v: any) => String(v.pjesmaID) === String(pjesmaId));
+  // Query for like status
+  const likeQuery = useQuery({
+    queryKey: ['songLike', pjesmaId, mojID],
+    queryFn: async () => {
+      if (!mojID || !pjesmaId) return false;
       
-      if (artistConnections.length > 0) {
-        const artistPromises = artistConnections.map((v: any) =>
-          axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`)
-            .then(r => r.data)
-            .catch(() => null)
-        );
-        const artists = await Promise.all(artistPromises);
-        setIzvodjaci(artists.filter(Boolean));
+      const likesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+      const veze = likesRes.data as { korisnikID: string; pjesmaID: number }[];
+      return !!veze.find(v => v.korisnikID === mojID && String(v.pjesmaID) === String(pjesmaId));
+    },
+    enabled: !!(mojID && pjesmaId),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Mutation for like/unlike
+  const likeMutation = useMutation({
+    mutationFn: async ({ isLiked }: { isLiked: boolean }) => {
+      if (!mojID || !pjesmaId) throw new Error('Missing data');
+      
+      if (isLiked) {
+        await axios.delete(`${API_BASE}/korisnik_pjesma/${mojID}/${pjesmaId}`);
+        return false;
+      } else {
+        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+          korisnikID: mojID,
+          pjesmaID: Number(pjesmaId),
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+        return true;
       }
-
-      // Load recommended songs
-      const allSongsRes = await axios.get(`${API_BASE}/pjesme/`);
-      const topSongs = (allSongsRes.data || [])
-        .filter((p: Pjesma) => String(p.id) !== String(pjesmaId) && p.odobreno)
-        .sort((a: Pjesma, b: Pjesma) => (b.brojLajkova || 0) - (a.brojLajkova || 0))
-        .slice(0, 6);
-      setTopPjesme(topSongs);
-
-      // Load comments
-      await loadComments();
-
-    } catch (error) {
-      console.error('Error loading song data:', error);
-      Alert.alert(t('error'), t('error_loading_song') || 'Error loading song');
-      setPjesma(null);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    },
+    onSuccess: (liked) => {
+      queryClient.setQueryData(['songLike', pjesmaId, mojID], liked);
+      // Update song data to reflect new like count
+      queryClient.setQueryData(['song', pjesmaId], (old: any) => ({
+        ...old,
+        brojLajkova: (old?.brojLajkova || 0) + (liked ? 1 : -1)
+      }));
+      Alert.alert(
+        t('success'), 
+        liked ? t('added_to_favorites') : t('removed_from_favorites')
+      );
+    },
+    onError: (error) => {
+      console.error('Error liking song:', error);
+      Alert.alert(t('error'), t('error_favorites'));
     }
-  }, [pjesmaId, mojID, loadComments, t]);
+  });
 
-  // Load user data and song data when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (pjesmaId) {
-        loadData(userId);
-      }
-    });
-  }, [pjesmaId, loadUserData, loadData]);
+  // Mutation for adding comment
+  const addCommentMutation = useMutation({
+    mutationFn: async (commentText: string) => {
+      if (!mojID || !pjesmaId) throw new Error('Missing data');
+      
+      await axios.post(`${API_BASE}/komentari/`, {
+        korisnikID: mojID,
+        pjesmaID: Number(pjesmaId),
+        tekst: commentText.trim(),
+        vrijemePjesmeSekunde: 0,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      setNoviKomentar('');
+      setKomentarError(null);
+      queryClient.invalidateQueries({ queryKey: ['comments', pjesmaId] });
+      Alert.alert(t('success'), t('comment_added') || 'Comment added successfully');
+    },
+    onError: (error) => {
+      console.error('Error adding comment:', error);
+      setKomentarError(t('error_adding_comment') || 'Error adding comment');
+    }
+  });
+
+  // Mutation for editing comment
+  const editCommentMutation = useMutation({
+    mutationFn: async ({ id, text }: { id: number; text: string }) => {
+      await axios.put(`${API_BASE}/komentari/${id}`, {
+        tekst: text.trim(),
+      });
+    },
+    onSuccess: () => {
+      setEditKomentarId(null);
+      setEditKomentarTekst('');
+      setKomentarError(null);
+      queryClient.invalidateQueries({ queryKey: ['comments', pjesmaId] });
+      Alert.alert(t('success'), t('comment_updated') || 'Comment updated successfully');
+    },
+    onError: (error) => {
+      console.error('Error updating comment:', error);
+      setKomentarError(t('error_updating_comment') || 'Error updating comment');
+    }
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['song', pjesmaId] }),
+      queryClient.invalidateQueries({ queryKey: ['publisher'] }),
+      queryClient.invalidateQueries({ queryKey: ['songArtists', pjesmaId] }),
+      queryClient.invalidateQueries({ queryKey: ['recommendedSongs', pjesmaId] }),
+      queryClient.invalidateQueries({ queryKey: ['comments', pjesmaId] }),
+      queryClient.invalidateQueries({ queryKey: ['songLike', pjesmaId, mojID] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, pjesmaId, mojID]);
 
   const handlePlay = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -170,75 +266,30 @@ const PjesmePage: React.FC = React.memo(() => {
     console.log('Playing song:', song.naziv);
   }, [t]);
 
-  const handleLike = useCallback(async () => {
-    if (!pjesma || !mojID) return;
+  const handleLike = useCallback(() => {
+    const isLiked = likeQuery.data || false;
+    likeMutation.mutate({ isLiked });
+  }, [likeQuery.data, likeMutation]);
 
-    try {
-      if (liked) {
-        await axios.delete(`${API_BASE}/korisnik_pjesma/${mojID}/${pjesma.id}`);
-        setLiked(false);
-        setLikeCount(prev => prev - 1);
-        Alert.alert(t('success'), t('removed_from_favorites'));
-      } else {
-        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-          korisnikID: mojID,
-          pjesmaID: pjesma.id,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        });
-        setLiked(true);
-        setLikeCount(prev => prev + 1);
-        Alert.alert(t('success'), t('added_to_favorites'));
-      }
-    } catch (error) {
-      console.error('Error liking song:', error);
-      Alert.alert(t('error'), t('error_favorites'));
-    }
-  }, [pjesma, mojID, liked, t]);
-
-  const handleDodajKomentar = useCallback(async () => {
+  const handleDodajKomentar = useCallback(() => {
     setKomentarError(null);
     if (!mojID || !pjesmaId || !noviKomentar.trim()) {
       setKomentarError(t('comment_required') || 'Comment cannot be empty');
       return;
     }
 
-    try {
-      await axios.post(`${API_BASE}/komentari/`, {
-        korisnikID: mojID,
-        pjesmaID: Number(pjesmaId),
-        tekst: noviKomentar.trim(),
-        vrijemePjesmeSekunde: 0,
-        kreiranDatumVrijeme: new Date().toISOString(),
-      });
-      setNoviKomentar('');
-      await loadComments();
-      Alert.alert(t('success'), t('comment_added') || 'Comment added successfully');
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      setKomentarError(t('error_adding_comment') || 'Error adding comment');
-    }
-  }, [mojID, pjesmaId, noviKomentar, loadComments, t]);
+    addCommentMutation.mutate(noviKomentar);
+  }, [mojID, pjesmaId, noviKomentar, addCommentMutation, t]);
 
-  const handleUrediKomentar = useCallback(async (id: number) => {
+  const handleUrediKomentar = useCallback((id: number) => {
     setKomentarError(null);
     if (!editKomentarTekst.trim()) {
       setKomentarError(t('comment_required') || 'Comment cannot be empty');
       return;
     }
 
-    try {
-      await axios.put(`${API_BASE}/komentari/${id}`, {
-        tekst: editKomentarTekst.trim(),
-      });
-      setEditKomentarId(null);
-      setEditKomentarTekst('');
-      await loadComments();
-      Alert.alert(t('success'), t('comment_updated') || 'Comment updated successfully');
-    } catch (error) {
-      console.error('Error updating comment:', error);
-      setKomentarError(t('error_updating_comment') || 'Error updating comment');
-    }
-  }, [editKomentarTekst, loadComments, t]);
+    editCommentMutation.mutate({ id, text: editKomentarTekst });
+  }, [editKomentarTekst, editCommentMutation, t]);
 
   const handleEditCancel = useCallback(() => {
     setEditKomentarId(null);
@@ -284,7 +335,7 @@ const PjesmePage: React.FC = React.memo(() => {
   ), [handlePlay, t]);
 
   const renderCommentItem = useCallback(({ item }: { item: Komentar }) => {
-    const user = korisniciKomentara[item.korisnikID];
+    const user = commentsQuery.data?.users[item.korisnikID];
     const isOwn = item.korisnikID === mojID;
     
     return (
@@ -346,22 +397,28 @@ const PjesmePage: React.FC = React.memo(() => {
         )}
       </View>
     );
-  }, [korisniciKomentara, mojID, editKomentarId, editKomentarTekst, handleUrediKomentar, handleEditCancel, handleEditStart, t]);
+  }, [commentsQuery.data?.users, mojID, editKomentarId, editKomentarTekst, handleUrediKomentar, handleEditCancel, handleEditStart, t]);
 
   // Memoize sorted comments to show owner's comment first
   const komentariSortirani = useMemo(() => {
+    const komentari = commentsQuery.data?.comments || [];
     if (!mojID) return komentari;
     const vlasnikKomentar = komentari.find(k => k.korisnikID === mojID);
     const ostali = komentari.filter(k => k.korisnikID !== mojID);
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
-  }, [komentari, mojID]);
+  }, [commentsQuery.data?.comments, mojID]);
 
   // Memoize song meta data
-  const songMeta = useMemo(() => [
-    { label: t('duration'), value: formatDuration(pjesma?.trajanjeSekunde) },
-    ...(pjesma?.zanr ? [{ label: t('genre'), value: pjesma.zanr }] : []),
-    { label: t('likes'), value: likeCount.toString() },
-  ], [pjesma?.trajanjeSekunde, pjesma?.zanr, likeCount, formatDuration, t]);
+  const songMeta = useMemo(() => {
+    const pjesma = songQuery.data;
+    const likeCount = pjesma?.brojLajkova || 0;
+    
+    return [
+      { label: t('duration'), value: formatDuration(pjesma?.trajanjeSekunde) },
+      ...(pjesma?.zanr ? [{ label: t('genre'), value: pjesma.zanr }] : []),
+      { label: t('likes'), value: likeCount.toString() },
+    ];
+  }, [songQuery.data, formatDuration, t]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -371,6 +428,14 @@ const PjesmePage: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = songQuery.isLoading || publisherQuery.isLoading || artistsQuery.isLoading || recommendedQuery.isLoading || commentsQuery.isLoading;
+  const pjesma = songQuery.data;
+  const izdavac = publisherQuery.data;
+  const izvodjaci = artistsQuery.data || [];
+  const topPjesme = recommendedQuery.data || [];
+  const liked = likeQuery.data || false;
+  const likeCount = pjesma?.brojLajkova || 0;
 
   if (loading) {
     return (
@@ -483,7 +548,7 @@ const PjesmePage: React.FC = React.memo(() => {
                         <Text style={styles.artistName}>{artist.korisnicko_ime}</Text>
                       </View>
                     ))
-)}
+                  )}
                 </View>
               </View>
             </View>
@@ -520,8 +585,11 @@ const PjesmePage: React.FC = React.memo(() => {
               <TouchableOpacity
                 style={styles.commentButton}
                 onPress={handleDodajKomentar}
+                disabled={addCommentMutation.isPending}
               >
-                <Text style={styles.commentButtonText}>{t('add_comment')}</Text>
+                <Text style={styles.commentButtonText}>
+                  {addCommentMutation.isPending ? t('adding') : t('add_comment')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

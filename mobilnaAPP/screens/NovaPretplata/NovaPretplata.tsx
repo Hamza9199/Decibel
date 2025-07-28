@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,10 @@ import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPretplata.styles';
@@ -23,9 +25,6 @@ const NovaPretplata: React.FC = React.memo(() => {
   const router = useRouter();
   const { pretplataId } = useLocalSearchParams();
   
-  const [pretplata, setPretplata] = useState<Pretplata | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [purchasing, setPurchasing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
@@ -43,40 +42,71 @@ const NovaPretplata: React.FC = React.memo(() => {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
+        return user?.id || '';
       }
     } catch (error) {
       console.error('Error loading user data:', error);
     }
+    return '';
   }, []);
 
-  const loadPretplataData = useCallback(async () => {
-    if (!pretplataId) {
-      setLoading(false);
-      return;
-    }
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
     
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE}/pretplate/${pretplataId}`);
-      setPretplata(response.data);
-    } catch (error) {
-      console.error('Error loading subscription:', error);
-      setPretplata(null);
-      setError(t('error_loading_subscription') || 'Error loading subscription');
-    } finally {
-      setLoading(false);
-    }
-  }, [pretplataId, t]);
+    initializeUser();
+  }, [loadUserData]);
 
-  // Load user data and subscription data when component mounts
-  useMemo(() => {
-    loadUserData().then(() => {
-      if (pretplataId) {
-        loadPretplataData();
-      }
-    });
-  }, [pretplataId, loadUserData, loadPretplataData]);
+  // Query for subscription data
+  const subscriptionQuery = useQuery({
+    queryKey: ['subscription', pretplataId],
+    queryFn: async () => {
+      if (!pretplataId) throw new Error('No subscription ID');
+      const response = await axios.get(`${API_BASE}/pretplate/${pretplataId}`);
+      return response.data;
+    },
+    enabled: !!pretplataId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Mutation for purchasing subscription
+  const purchaseMutation = useMutation({
+    mutationFn: async () => {
+      if (!korisnikID) throw new Error('No user ID');
+      if (!subscriptionQuery.data?.id) throw new Error('No subscription data');
+      
+      await axios.post(`${API_BASE}/korisnik_pretplata/`, {
+        korisnikID,
+        pretplataID: subscriptionQuery.data.id,
+        pretplataStatus: 'aktivna',
+      });
+    },
+    onSuccess: () => {
+      setSuccess(t('subscription_purchased_successfully') || 'Subscription purchased successfully!');
+      setError(null);
+      
+      // Clear form
+      setCardNumber('');
+      setCardName('');
+      setCardExp('');
+      setCardCvc('');
+
+      setTimeout(() => {
+        router.back();
+      }, 2000);
+    },
+    onError: (error: any) => {
+      console.error('Error purchasing subscription:', error);
+      const errorMessage = error.response?.data?.detail || 
+                          t('error_purchasing_subscription') || 
+                          'Error purchasing subscription';
+      setError(errorMessage);
+      setSuccess(null);
+    }
+  });
 
   const validateCard = useCallback((): string | null => {
     if (!cardNumber.match(/^\d{16}$/)) {
@@ -109,37 +139,8 @@ const NovaPretplata: React.FC = React.memo(() => {
       return;
     }
 
-    setPurchasing(true);
-
-    try {
-      await axios.post(`${API_BASE}/korisnik_pretplata/`, {
-        korisnikID,
-        pretplataID: pretplata?.id,
-        pretplataStatus: 'aktivna',
-      });
-
-      setSuccess(t('subscription_purchased_successfully') || 'Subscription purchased successfully!');
-      
-      // Clear form
-      setCardNumber('');
-      setCardName('');
-      setCardExp('');
-      setCardCvc('');
-
-      setTimeout(() => {
-        router.back();
-      }, 2000);
-
-    } catch (error: any) {
-      console.error('Error purchasing subscription:', error);
-      const errorMessage = error.response?.data?.detail || 
-                          t('error_purchasing_subscription') || 
-                          'Error purchasing subscription';
-      setError(errorMessage);
-    } finally {
-      setPurchasing(false);
-    }
-  }, [korisnikID, validateCard, pretplata?.id, t, router]);
+    purchaseMutation.mutate();
+  }, [korisnikID, validateCard, purchaseMutation, t]);
 
   const formatCardNumber = useCallback((value: string): string => {
     return value.replace(/\D/g, '').slice(0, 16);
@@ -190,10 +191,17 @@ const NovaPretplata: React.FC = React.memo(() => {
   }, [router]);
 
   // Memoize subscription details
-  const subscriptionDetails = useMemo(() => [
-    { label: t('price'), value: `${pretplata?.cijena} KM / ${t('month')}` },
-    { label: t('description'), value: pretplata?.opis || '' },
-  ], [pretplata?.cijena, pretplata?.opis, t]);
+  const subscriptionDetails = useMemo(() => {
+    if (!subscriptionQuery.data) return [];
+    
+    return [
+      { label: t('price'), value: `${subscriptionQuery.data.cijena} KM / ${t('month')}` },
+      { label: t('description'), value: subscriptionQuery.data.opis || '' },
+    ];
+  }, [subscriptionQuery.data, t]);
+
+  const loading = subscriptionQuery.isLoading;
+  const pretplata = subscriptionQuery.data;
 
   if (loading) {
     return (
@@ -204,7 +212,7 @@ const NovaPretplata: React.FC = React.memo(() => {
     );
   }
 
-  if (!pretplata) {
+  if (subscriptionQuery.error || !pretplata) {
     return (
       <View style={styles.notFoundContainer}>
         <Header />
@@ -335,23 +343,23 @@ const NovaPretplata: React.FC = React.memo(() => {
                 style={[
                   styles.button,
                   buttonPressed && styles.buttonPressed,
-                  purchasing && styles.buttonDisabled,
+                  purchaseMutation.isPending && styles.buttonDisabled,
                 ]}
                 onPress={handleConfirmPurchase}
                 onPressIn={handleButtonPressIn}
                 onPressOut={handleButtonPressOut}
-                disabled={purchasing}
+                disabled={purchaseMutation.isPending}
                 activeOpacity={0.8}
               >
                 <Text style={styles.buttonText}>
-                  {purchasing ? t('buying') || 'Buying...' : t('confirm_purchase')}
+                  {purchaseMutation.isPending ? t('buying') || 'Buying...' : t('confirm_purchase')}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={handleBack}
-                disabled={purchasing}
+                disabled={purchaseMutation.isPending}
               >
                 <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>

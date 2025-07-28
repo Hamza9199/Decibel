@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Album, Playlista } from '@/types';
@@ -22,89 +23,148 @@ type ActiveTab = 'songs' | 'albums' | 'playlists';
 
 const AdminPanel: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const [songs, setSongs] = useState<Pjesma[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('songs');
   const [search, setSearch] = useState('');
 
-  const loadData = useCallback(async () => {
-    try {
-      const [songsRes, albumsRes, playlistsRes] = await Promise.all([
-        axios.get(`${API_BASE}/pjesme/`),
-        axios.get(`${API_BASE}/albumi/`),
-        axios.get(`${API_BASE}/playliste/`),
-      ]);
+  // Load songs with useQuery
+  const { data: songs = [], isLoading: songsLoading, refetch: refetchSongs } = useQuery({
+    queryKey: ['admin-songs'],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/pjesme/`);
+      return res.data || [];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-      setSongs(songsRes.data || []);
-      setAlbums(albumsRes.data || []);
-      setPlaylists(playlistsRes.data || []);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setError(t('error_loading_data') || 'Error loading data');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [t]);
+  // Load albums with useQuery
+  const { data: albums = [], isLoading: albumsLoading, refetch: refetchAlbums } = useQuery({
+    queryKey: ['admin-albums'],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/albumi/`);
+      return res.data || [];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  // Load data when component mounts
-  useMemo(() => {
-    loadData();
-  }, [loadData]);
+  // Load playlists with useQuery
+  const { data: playlists = [], isLoading: playlistsLoading, refetch: refetchPlaylists } = useQuery({
+    queryKey: ['admin-playlists'],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/playliste/`);
+      return res.data || [];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadData();
-  }, [loadData]);
-
-  const handleApproveSong = useCallback(async (song: Pjesma, approved: boolean) => {
-    setError(null);
-    setSuccess(null);
-    
-    try {
-      await axios.put(`${API_BASE}/pjesme/${song.id}`, {
+  // Song approval mutation
+  const songApprovalMutation = useMutation({
+    mutationFn: async ({ song, approved }: { song: Pjesma, approved: boolean }) => {
+      return axios.put(`${API_BASE}/pjesme/${song.id}`, {
         ...song,
         odobreno: approved,
       });
-      
-      setSongs(prev => prev.map(s => 
-        s.id === song.id ? { ...s, odobreno: approved } : s
-      ));
-      
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-songs'] });
       setSuccess(t('song_status_updated') || 'Song status updated successfully');
-    } catch (error) {
-      console.error('Error updating song status:', error);
+      setError(null);
+    },
+    onError: () => {
       setError(t('error_updating_song') || 'Error updating song status');
-    }
-  }, [t]);
+      setSuccess(null);
+    },
+  });
 
-  const handleApproveAlbum = useCallback(async (album: Album, approved: boolean) => {
-    setError(null);
-    setSuccess(null);
-    
-    try {
-      await axios.put(`${API_BASE}/albumi/${album.id}`, {
+  // Album approval mutation
+  const albumApprovalMutation = useMutation({
+    mutationFn: async ({ album, approved }: { album: Album, approved: boolean }) => {
+      return axios.put(`${API_BASE}/albumi/${album.id}`, {
         ...album,
         odobreno: approved,
       });
-      
-      setAlbums(prev => prev.map(a => 
-        a.id === album.id ? { ...a, odobreno: approved } : a
-      ));
-      
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-albums'] });
       setSuccess(t('album_status_updated') || 'Album status updated successfully');
-    } catch (error) {
-      console.error('Error updating album status:', error);
+      setError(null);
+    },
+    onError: () => {
       setError(t('error_updating_album') || 'Error updating album status');
-    }
-  }, [t]);
+      setSuccess(null);
+    },
+  });
 
-  const handleDeleteSong = useCallback(async (songId: number) => {
+  // Song delete mutation
+  const deleteSongMutation = useMutation({
+    mutationFn: async (songId: number) => {
+      return axios.delete(`${API_BASE}/pjesme/${songId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-songs'] });
+      setSuccess(t('song_deleted') || 'Song deleted successfully');
+      setError(null);
+    },
+    onError: () => {
+      setError(t('error_deleting_song') || 'Error deleting song');
+      setSuccess(null);
+    },
+  });
+
+  // Album delete mutation
+  const deleteAlbumMutation = useMutation({
+    mutationFn: async (albumId: number) => {
+      return axios.delete(`${API_BASE}/albumi/${albumId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-albums'] });
+      setSuccess(t('album_deleted') || 'Album deleted successfully');
+      setError(null);
+    },
+    onError: () => {
+      setError(t('error_deleting_album') || 'Error deleting album');
+      setSuccess(null);
+    },
+  });
+
+  // Playlist delete mutation
+  const deletePlaylistMutation = useMutation({
+    mutationFn: async (playlistId: number) => {
+      return axios.delete(`${API_BASE}/playliste/${playlistId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-playlists'] });
+      setSuccess(t('playlist_deleted') || 'Playlist deleted successfully');
+      setError(null);
+    },
+    onError: () => {
+      setError(t('error_deleting_playlist') || 'Error deleting playlist');
+      setSuccess(null);
+    },
+  });
+
+  const loading = songsLoading || albumsLoading || playlistsLoading;
+  const refreshing = songApprovalMutation.isPending || albumApprovalMutation.isPending || 
+                    deleteSongMutation.isPending || deleteAlbumMutation.isPending || 
+                    deletePlaylistMutation.isPending;
+
+  const onRefresh = useCallback(() => {
+    refetchSongs();
+    refetchAlbums();
+    refetchPlaylists();
+  }, [refetchSongs, refetchAlbums, refetchPlaylists]);
+
+  const handleApproveSong = useCallback((song: Pjesma, approved: boolean) => {
+    songApprovalMutation.mutate({ song, approved });
+  }, [songApprovalMutation]);
+
+  const handleApproveAlbum = useCallback((album: Album, approved: boolean) => {
+    albumApprovalMutation.mutate({ album, approved });
+  }, [albumApprovalMutation]);
+
+  const handleDeleteSong = useCallback((songId: number) => {
     Alert.alert(
       t('confirm_delete') || 'Confirm Delete',
       t('confirm_delete_song') || 'Are you sure you want to delete this song?',
@@ -113,22 +173,13 @@ const AdminPanel: React.FC = React.memo(() => {
         {
           text: t('delete') || 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/pjesme/${songId}`);
-              setSongs(prev => prev.filter(s => s.id !== songId));
-              setSuccess(t('song_deleted') || 'Song deleted successfully');
-            } catch (error) {
-              console.error('Error deleting song:', error);
-              setError(t('error_deleting_song') || 'Error deleting song');
-            }
-          },
+          onPress: () => deleteSongMutation.mutate(songId),
         },
       ]
     );
-  }, [t]);
+  }, [t, deleteSongMutation]);
 
-  const handleDeleteAlbum = useCallback(async (albumId: number) => {
+  const handleDeleteAlbum = useCallback((albumId: number) => {
     Alert.alert(
       t('confirm_delete') || 'Confirm Delete',
       t('confirm_delete_album') || 'Are you sure you want to delete this album?',
@@ -137,22 +188,13 @@ const AdminPanel: React.FC = React.memo(() => {
         {
           text: t('delete') || 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/albumi/${albumId}`);
-              setAlbums(prev => prev.filter(a => a.id !== albumId));
-              setSuccess(t('album_deleted') || 'Album deleted successfully');
-            } catch (error) {
-              console.error('Error deleting album:', error);
-              setError(t('error_deleting_album') || 'Error deleting album');
-            }
-          },
+          onPress: () => deleteAlbumMutation.mutate(albumId),
         },
       ]
     );
-  }, [t]);
+  }, [t, deleteAlbumMutation]);
 
-  const handleDeletePlaylist = useCallback(async (playlistId: number) => {
+  const handleDeletePlaylist = useCallback((playlistId: number) => {
     Alert.alert(
       t('confirm_delete') || 'Confirm Delete',
       t('confirm_delete_playlist') || 'Are you sure you want to delete this playlist?',
@@ -161,39 +203,25 @@ const AdminPanel: React.FC = React.memo(() => {
         {
           text: t('delete') || 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/playliste/${playlistId}`);
-              setPlaylists(prev => prev.filter(p => p.id !== playlistId));
-              setSuccess(t('playlist_deleted') || 'Playlist deleted successfully');
-            } catch (error) {
-              console.error('Error deleting playlist:', error);
-              setError(t('error_deleting_playlist') || 'Error deleting playlist');
-            }
-          },
+          onPress: () => deletePlaylistMutation.mutate(playlistId),
         },
       ]
     );
-  }, [t]);
-
-  const handleTabChange = useCallback((tab: ActiveTab) => {
-    setActiveTab(tab);
-    setSearch('');
-  }, []);
+  }, [t, deletePlaylistMutation]);
 
   // Memoize filtered data
   const filteredSongs = useMemo(() => 
-    songs.filter(s => s.naziv.toLowerCase().includes(search.toLowerCase())),
+    songs.filter((s: Pjesma) => s.naziv.toLowerCase().includes(search.toLowerCase())),
     [songs, search]
   );
 
   const filteredAlbums = useMemo(() => 
-    albums.filter(a => a.naziv.toLowerCase().includes(search.toLowerCase())),
+    albums.filter((a: Album) => a.naziv.toLowerCase().includes(search.toLowerCase())),
     [albums, search]
   );
 
   const filteredPlaylists = useMemo(() => 
-    playlists.filter(p => p.naziv.toLowerCase().includes(search.toLowerCase())),
+    playlists.filter((p: Playlista) => p.naziv.toLowerCase().includes(search.toLowerCase())),
     [playlists, search]
   );
 
@@ -330,6 +358,12 @@ const AdminPanel: React.FC = React.memo(() => {
       </View>
     </View>
   ), [t, handleDeletePlaylist]);
+
+  // Tab change handler
+  const handleTabChange = useCallback((tab: ActiveTab) => {
+    setActiveTab(tab);
+    setSearch('');
+  }, []);
 
   // Memoize search placeholder
   const searchPlaceholder = useMemo(() => {

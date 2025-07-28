@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Album, Pjesma } from '@/types';
@@ -24,19 +25,17 @@ import { styles } from './SviAlbumi.styles';
 const SviAlbumi: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [albumi, setAlbumi] = useState<Album[]>([]);
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -45,55 +44,74 @@ const SviAlbumi: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadData = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!currentUserId) {
-      setAlbumi([]);
-      setLoading(false);
-      return;
-    }
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
-      setLoading(true);
+  // Query for user albums
+  const albumsQuery = useQuery({
+    queryKey: ['userAlbums', korisnikID],
+    queryFn: async () => {
+      if (!korisnikID) return [];
       
-      // Load user's albums
-      const albumsResponse = await axios.get(`${API_BASE}/albumi/`);
-      const mojiAlbumi = (albumsResponse.data || []).filter(
-        (a: Album) => a.korisnikID === currentUserId
+      const response = await axios.get(`${API_BASE}/albumi/`);
+      // Filter albums by current user
+      return (response.data || []).filter(
+        (a: Album) => a.korisnikID === korisnikID
       );
-      setAlbumi(mojiAlbumi);
+    },
+    enabled: !!korisnikID,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-      // Load all songs for album playback
-      const songsResponse = await axios.get(`${API_BASE}/pjesme/`);
-      setPjesme(songsResponse.data || []);
-    } catch (error) {
-      console.error('Error loading albums:', error);
-      Alert.alert(t('error'), t('error_loading_data') || 'Error loading data');
-      setAlbumi([]);
-      setPjesme([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // Query for songs data for album playback
+  const songsQuery = useQuery({
+    queryKey: ['songs'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/pjesme/`);
+      return response.data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Mutation for deleting albums
+  const deleteAlbumMutation = useMutation({
+    mutationFn: async (albumId: number) => {
+      await axios.delete(`${API_BASE}/albumi/${albumId}`);
+      return albumId;
+    },
+    onSuccess: (albumId) => {
+      queryClient.setQueryData(['userAlbums', korisnikID], (old: any) => 
+        old ? old.filter((a: Album) => a.id !== albumId) : []
+      );
+      Alert.alert(t('success'), t('album_deleted') || 'Album deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Error deleting album:', error);
+      Alert.alert(t('error'), t('error_deleting_album') || 'Error deleting album');
     }
-  }, [korisnikID, t]);
-
-  // Load user data and albums when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (userId) {
-        loadData(userId);
-      }
-    });
-  }, [loadUserData, loadData]);
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['userAlbums', korisnikID] }),
+      queryClient.invalidateQueries({ queryKey: ['songs'] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, korisnikID]);
 
   const handlePlayAlbum = useCallback(async (albumId: number) => {
     try {
-      const albumSongs = pjesme.filter(p => p.albumID === albumId && p.putanjaAudio);
+      const pjesme = songsQuery.data || [];
+      const albumSongs = pjesme.filter((p: Pjesma) => p.albumID === albumId && p.putanjaAudio);
       
       if (albumSongs.length === 0) {
         Alert.alert(t('info'), t('empty_album') || 'Album has no playable songs');
@@ -110,7 +128,7 @@ const SviAlbumi: React.FC = React.memo(() => {
       console.error('Error playing album:', error);
       Alert.alert(t('error'), t('error_playing_album') || 'Error playing album');
     }
-  }, [pjesme, t]);
+  }, [songsQuery.data, t]);
 
   const handleEdit = useCallback((albumId: number) => {
     router.push(`/uredi-album/${albumId}`);
@@ -125,20 +143,11 @@ const SviAlbumi: React.FC = React.memo(() => {
         {
           text: t('delete') || 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/albumi/${albumId}`);
-              setAlbumi(prev => prev.filter(a => a.id !== albumId));
-              Alert.alert(t('success'), t('album_deleted') || 'Album deleted successfully');
-            } catch (error) {
-              console.error('Error deleting album:', error);
-              Alert.alert(t('error'), t('error_deleting_album') || 'Error deleting album');
-            }
-          }
+          onPress: () => deleteAlbumMutation.mutate(albumId)
         }
       ]
     );
-  }, [t]);
+  }, [deleteAlbumMutation, t]);
 
   const handleNavigateToAlbum = useCallback((albumId: number) => {
     router.push(`/album/${albumId}`);
@@ -149,12 +158,12 @@ const SviAlbumi: React.FC = React.memo(() => {
   }, [router]);
 
   // Memoize filtered albums
-  const filtriraniAlbumi = useMemo(() => 
-    albumi.filter(a =>
+  const filtriraniAlbumi = useMemo(() => {
+    const albumi = albumsQuery.data || [];
+    return albumi.filter((a: Album) =>
       a.naziv.toLowerCase().includes(search.toLowerCase())
-    ),
-    [albumi, search]
-  );
+    );
+  }, [albumsQuery.data, search]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -164,6 +173,9 @@ const SviAlbumi: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = albumsQuery.isLoading || songsQuery.isLoading;
+  const albumi = albumsQuery.data || [];
 
   if (loading) {
     return (
@@ -200,7 +212,7 @@ const SviAlbumi: React.FC = React.memo(() => {
             </Text>
           ) : (
             <View style={styles.albumGrid}>
-              {filtriraniAlbumi.map((album) => (
+              {filtriraniAlbumi.map((album: Album) => (
                 <View key={album.id} style={styles.card}>
                   <View style={styles.cardImageWrap}>
                     <Image
@@ -241,8 +253,11 @@ const SviAlbumi: React.FC = React.memo(() => {
                     <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={() => handleDelete(album.id)}
+                      disabled={deleteAlbumMutation.isPending}
                     >
-                      <Text style={styles.buttonText}>{t('delete')}</Text>
+                      <Text style={styles.buttonText}>
+                        {deleteAlbumMutation.isPending ? t('deleting') : t('delete')}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>

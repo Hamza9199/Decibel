@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { Image } from 'expo-image';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Korisnik, PrijavaIzvodjaca } from '@/types';
@@ -23,12 +24,9 @@ import { styles } from './SviKorisnici.styles';
 
 const SviKorisnici: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [prijave, setPrijave] = useState<PrijavaIzvodjaca[]>([]);
   const [search, setSearch] = useState('');
   const [prijavaModal, setPrijavaModal] = useState<{ korisnikID: string; prijava: PrijavaIzvodjaca } | null>(null);
   const [suspendModal, setSuspendModal] = useState<{
@@ -37,34 +35,161 @@ const SviKorisnici: React.FC = React.memo(() => {
     vrijemeDo: string;
   } | null>(null);
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const [korisniciData, prijaveData] = await Promise.all([
-        axios.get(`${API_BASE}/korisnici/`).then(res => res.data || []).catch(() => []),
-        axios.get(`${API_BASE}/prijave_izvodjaca/`).then(res => res.data || []).catch(() => []),
-      ]);
-      
-      setKorisnici(korisniciData);
-      setPrijave(prijaveData);
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setError(t('error_loading_data') || 'Error loading users or applications');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [t]);
+  const queryClient = useQueryClient();
 
-  // Load data when component mounts
-  useMemo(() => {
-    loadData();
-  }, [loadData]);
+  // Query for users data
+  const usersQuery = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/korisnici/`);
+      return response.data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Query for applications data
+  const applicationsQuery = useQuery({
+    queryKey: ['applications'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/prijave_izvodjaca/`);
+      return response.data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Mutation for updating user
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ 
+      korisnik, 
+      field, 
+      value 
+    }: { 
+      korisnik: Korisnik; 
+      field: 'rola' | 'statusKorisnika'; 
+      value: string 
+    }) => {
+      const updatedUser = {
+        ...korisnik,
+        rola: field === 'rola' ? value : korisnik.rola,
+        statusKorisnika: field === 'statusKorisnika' ? value : korisnik.statusKorisnika,
+      };
+
+      await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, updatedUser);
+
+      // If status changes to active or inactive, delete suspension if exists
+      if (
+        field === 'statusKorisnika' &&
+        (value === 'aktivan' || value === 'neaktivan')
+      ) {
+        try {
+          const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${korisnik.id}`);
+          if (res.data && res.data.id) {
+            await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
+          }
+        } catch {
+          // No suspension exists, ignore error
+        }
+      }
+
+      return { korisnik, field, value };
+    },
+    onSuccess: ({ korisnik, field, value }) => {
+      queryClient.setQueryData(['users'], (old: any) =>
+        old ? old.map((k: Korisnik) =>
+          k.id === korisnik.id
+            ? {
+                ...k,
+                rola: field === 'rola' ? value : k.rola,
+                statusKorisnika: field === 'statusKorisnika' ? value : k.statusKorisnika,
+              }
+            : k
+        ) : []
+      );
+      setSuccess(t('successfully_updated') || 'Successfully updated');
+      setError(null);
+    },
+    onError: (error) => {
+      console.error('Error updating user:', error);
+      setError(t('error_updating_user') || 'Error updating user');
+      setSuccess(null);
+    }
+  });
+
+  // Mutation for suspending user
+  const suspendUserMutation = useMutation({
+    mutationFn: async ({ 
+      korisnik, 
+      poruka, 
+      vrijemeDo 
+    }: { 
+      korisnik: Korisnik; 
+      poruka: string; 
+      vrijemeDo: string 
+    }) => {
+      // First update user to suspended
+      await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, {
+        ...korisnik,
+        statusKorisnika: 'suspendovan',
+      });
+      
+      // Then create suspension record
+      await axios.post(`${API_BASE}/suspendovani/`, {
+        korisnikID: korisnik.id,
+        vrijemeDo,
+        poruka,
+      });
+
+      return korisnik;
+    },
+    onSuccess: (korisnik) => {
+      queryClient.setQueryData(['users'], (old: any) =>
+        old ? old.map((k: Korisnik) =>
+          k.id === korisnik.id
+            ? { ...k, statusKorisnika: 'suspendovan' }
+            : k
+        ) : []
+      );
+      setSuccess(t('user_suspended') || 'User has been suspended');
+      setError(null);
+      setSuspendModal(null);
+    },
+    onError: (error) => {
+      console.error('Error suspending user:', error);
+      setError(t('error_suspending_user') || 'Error suspending user');
+      setSuccess(null);
+    }
+  });
+
+  // Mutation for deleting application
+  const deleteApplicationMutation = useMutation({
+    mutationFn: async (prijavaId: number) => {
+      await axios.delete(`${API_BASE}/prijave_izvodjaca/${prijavaId}`);
+      return prijavaId;
+    },
+    onSuccess: (prijavaId) => {
+      queryClient.setQueryData(['applications'], (old: any) =>
+        old ? old.filter((p: PrijavaIzvodjaca) => Number(p.id) !== prijavaId) : []
+      );
+      setPrijavaModal(null);
+      setSuccess(t('application_deleted') || 'Application deleted successfully');
+      setError(null);
+    },
+    onError: (error) => {
+      console.error('Error deleting application:', error);
+      setError(t('error_deleting_application') || 'Error deleting application');
+      setSuccess(null);
+    }
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['users'] }),
+      queryClient.invalidateQueries({ queryKey: ['applications'] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient]);
 
   const handleChange = useCallback(async (
     korisnik: Korisnik,
@@ -84,45 +209,8 @@ const SviKorisnici: React.FC = React.memo(() => {
       return;
     }
 
-    try {
-      await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, {
-        ...korisnik,
-        rola: field === 'rola' ? value : korisnik.rola,
-        statusKorisnika: field === 'statusKorisnika' ? value : korisnik.statusKorisnika,
-      });
-
-      // If status changes to active or inactive, delete suspension if exists
-      if (
-        field === 'statusKorisnika' &&
-        (value === 'aktivan' || value === 'neaktivan')
-      ) {
-        try {
-          const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${korisnik.id}`);
-          if (res.data && res.data.id) {
-            await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
-          }
-        } catch {
-          // No suspension exists, ignore error
-        }
-      }
-
-      setSuccess(t('successfully_updated') || 'Successfully updated');
-      setKorisnici(prev =>
-        prev.map(k =>
-          k.id === korisnik.id
-            ? {
-                ...k,
-                rola: field === 'rola' ? value : k.rola,
-                statusKorisnika: field === 'statusKorisnika' ? value : k.statusKorisnika,
-              }
-            : k
-        )
-      );
-    } catch (error) {
-      console.error('Error updating user:', error);
-      setError(t('error_updating_user') || 'Error updating user');
-    }
-  }, [t]);
+    updateUserMutation.mutate({ korisnik, field, value });
+  }, [updateUserMutation]);
 
   const handleConfirmSuspension = useCallback(async () => {
     if (!suspendModal) return;
@@ -135,47 +223,25 @@ const SviKorisnici: React.FC = React.memo(() => {
     setError(null);
     setSuccess(null);
     
-    try {
-      // First update user to suspended
-      await axios.put(`${API_BASE}/korisnici/${suspendModal.korisnik.id}`, {
-        ...suspendModal.korisnik,
-        statusKorisnika: 'suspendovan',
-      });
-      
-      // Then create suspension record
-      await axios.post(`${API_BASE}/suspendovani/`, {
-        korisnikID: suspendModal.korisnik.id,
-        vrijemeDo: suspendModal.vrijemeDo,
-        poruka: suspendModal.poruka,
-      });
-      
-      setSuccess(t('user_suspended') || 'User has been suspended');
-      setKorisnici(prev =>
-        prev.map(k =>
-          k.id === suspendModal.korisnik.id
-            ? { ...k, statusKorisnika: 'suspendovan' }
-            : k
-        )
-      );
-      setSuspendModal(null);
-    } catch (error) {
-      console.error('Error suspending user:', error);
-      setError(t('error_suspending_user') || 'Error suspending user');
-    }
-  }, [suspendModal, t]);
+    suspendUserMutation.mutate({
+      korisnik: suspendModal.korisnik,
+      poruka: suspendModal.poruka,
+      vrijemeDo: suspendModal.vrijemeDo,
+    });
+  }, [suspendModal, suspendUserMutation, t]);
 
   const handleCancelSuspension = useCallback(() => {
     if (!suspendModal) return;
     // Reset select to "active" without sending to backend
-    setKorisnici(prev =>
-      prev.map(k =>
+    queryClient.setQueryData(['users'], (old: any) =>
+      old ? old.map((k: Korisnik) =>
         k.id === suspendModal.korisnik.id
           ? { ...k, statusKorisnika: 'aktivan' }
           : k
-      )
+      ) : []
     );
     setSuspendModal(null);
-  }, [suspendModal]);
+  }, [suspendModal, queryClient]);
 
   const handleDeleteApplication = useCallback(async (prijavaId: number) => {
     Alert.alert(
@@ -186,21 +252,11 @@ const SviKorisnici: React.FC = React.memo(() => {
         {
           text: t('delete'),
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/prijave_izvodjaca/${prijavaId}`);
-              setPrijave(prev => prev.filter(p => Number(p.id) !== prijavaId));
-              setPrijavaModal(null);
-              Alert.alert(t('success'), t('application_deleted') || 'Application deleted successfully');
-            } catch (error) {
-              console.error('Error deleting application:', error);
-              Alert.alert(t('error'), t('error_deleting_application') || 'Error deleting application');
-            }
-          }
+          onPress: () => deleteApplicationMutation.mutate(prijavaId)
         }
       ]
     );
-  }, [t]);
+  }, [deleteApplicationMutation, t]);
 
   const handleModalClose = useCallback(() => {
     setPrijavaModal(null);
@@ -215,15 +271,16 @@ const SviKorisnici: React.FC = React.memo(() => {
   }, []);
 
   // Memoize filtered users
-  const filtriraniKorisnici = useMemo(() => 
-    korisnici.filter(k =>
+  const filtriraniKorisnici = useMemo(() => {
+    const korisnici = usersQuery.data || [];
+    return korisnici.filter((k: Korisnik) =>
       k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
-    ),
-    [korisnici, search]
-  );
+    );
+  }, [usersQuery.data, search]);
 
   const renderUserItem = useCallback(({ item }: { item: Korisnik }) => {
-    const prijava = prijave.find(p => p.korisnikID === item.id);
+    const prijave = applicationsQuery.data || [];
+    const prijava = prijave.find((p: PrijavaIzvodjaca) => p.korisnikID === item.id);
     
     return (
       <View style={styles.userCard}>
@@ -306,13 +363,14 @@ const SviKorisnici: React.FC = React.memo(() => {
         </View>
       </View>
     );
-  }, [prijave, handleChange, t]);
+  }, [applicationsQuery.data, handleChange, t]);
 
   // Memoize user in modal
   const modalUser = useMemo(() => {
     if (!prijavaModal) return null;
-    return korisnici.find(k => k.id === prijavaModal.korisnikID);
-  }, [prijavaModal, korisnici]);
+    const korisnici = usersQuery.data || [];
+    return korisnici.find((k: Korisnik) => k.id === prijavaModal.korisnikID);
+  }, [prijavaModal, usersQuery.data]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -322,6 +380,8 @@ const SviKorisnici: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = usersQuery.isLoading || applicationsQuery.isLoading;
 
   if (loading) {
     return (
@@ -364,7 +424,7 @@ const SviKorisnici: React.FC = React.memo(() => {
 
           {filtriraniKorisnici.length === 0 ? (
             <Text style={styles.noUsers}>
-              {korisnici.length === 0
+              {(usersQuery.data?.length || 0) === 0
                 ? t('no_users') || 'No users found'
                 : t('no_results') || 'No results found'}
             </Text>
@@ -420,9 +480,13 @@ const SviKorisnici: React.FC = React.memo(() => {
                   <TouchableOpacity
                     style={[styles.modalButton, styles.modalButtonPrimary]}
                     onPress={() => handleDeleteApplication(Number(prijavaModal.prijava.id))}
+                    disabled={deleteApplicationMutation.isPending}
                   >
                     <Text style={styles.modalButtonText}>
-                      {t('delete_application') || 'Delete Application'}
+                      {deleteApplicationMutation.isPending 
+                        ? t('deleting') 
+                        : t('delete_application') || 'Delete Application'
+                      }
                     </Text>
                   </TouchableOpacity>
                   
@@ -484,9 +548,13 @@ const SviKorisnici: React.FC = React.memo(() => {
                   <TouchableOpacity
                     style={[styles.modalButton, styles.modalButtonPrimary]}
                     onPress={handleConfirmSuspension}
+                    disabled={suspendUserMutation.isPending}
                   >
                     <Text style={styles.modalButtonText}>
-                      {t('confirm_suspension') || 'Confirm Suspension'}
+                      {suspendUserMutation.isPending 
+                        ? t('suspending') 
+                        : t('confirm_suspension') || 'Confirm Suspension'
+                      }
                     </Text>
                   </TouchableOpacity>
                   

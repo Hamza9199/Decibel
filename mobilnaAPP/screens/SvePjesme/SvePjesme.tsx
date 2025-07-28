@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
@@ -24,19 +25,18 @@ import { styles } from './SvePjesme.styles';
 const SvePjesme: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -45,46 +45,57 @@ const SvePjesme: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadData = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!currentUserId) {
-      setPjesme([]);
-      setLoading(false);
-      return;
-    }
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
-      setLoading(true);
+  // Query for user songs
+  const songsQuery = useQuery({
+    queryKey: ['userSongs', korisnikID],
+    queryFn: async () => {
+      if (!korisnikID) return [];
+      
       const response = await axios.get(`${API_BASE}/pjesme/`);
       
       // Filter songs by current user
-      const mojePjesme = (response.data || []).filter(
-        (p: Pjesma) => p.korisnikID === currentUserId
+      return (response.data || []).filter(
+        (p: Pjesma) => p.korisnikID === korisnikID
       );
-      setPjesme(mojePjesme);
-    } catch (error) {
-      console.error('Error loading songs:', error);
-      Alert.alert(t('error'), t('error_loading_data') || 'Error loading data');
-      setPjesme([]);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [korisnikID, t]);
+    },
+    enabled: !!korisnikID,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Load user data and songs when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (userId) {
-        loadData(userId);
-      }
-    });
-  }, [loadUserData, loadData]);
+  // Mutation for deleting songs
+  const deleteSongMutation = useMutation({
+    mutationFn: async (songId: number) => {
+      await axios.delete(`${API_BASE}/pjesme/${songId}`);
+      return songId;
+    },
+    onSuccess: (songId) => {
+      queryClient.setQueryData(['userSongs', korisnikID], (old: any) => 
+        old ? old.filter((p: Pjesma) => p.id !== songId) : []
+      );
+      Alert.alert(t('success'), t('song_deleted') || 'Song deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Error deleting song:', error);
+      Alert.alert(t('error'), t('error_deleting_song') || 'Error deleting song');
+    }
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    queryClient.invalidateQueries({ queryKey: ['userSongs', korisnikID] }).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, korisnikID]);
 
   const handlePlay = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -110,20 +121,11 @@ const SvePjesme: React.FC = React.memo(() => {
         {
           text: t('delete') || 'Delete',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await axios.delete(`${API_BASE}/pjesme/${id}`);
-              setPjesme(prev => prev.filter(p => p.id !== id));
-              Alert.alert(t('success'), t('song_deleted') || 'Song deleted successfully');
-            } catch (error) {
-              console.error('Error deleting song:', error);
-              Alert.alert(t('error'), t('error_deleting_song') || 'Error deleting song');
-            }
-          }
+          onPress: () => deleteSongMutation.mutate(id)
         }
       ]
     );
-  }, [t]);
+  }, [deleteSongMutation, t]);
 
   const handleNavigateToSong = useCallback((songId: number) => {
     router.push(`/pjesma/${songId}`);
@@ -134,12 +136,12 @@ const SvePjesme: React.FC = React.memo(() => {
   }, [router]);
 
   // Memoize filtered songs
-  const filtriranePjesme = useMemo(() => 
-    pjesme.filter(p =>
+  const filtriranePjesme = useMemo(() => {
+    const pjesme = songsQuery.data || [];
+    return pjesme.filter((p: Pjesma) =>
       p.naziv.toLowerCase().includes(search.toLowerCase())
-    ),
-    [pjesme, search]
-  );
+    );
+  }, [songsQuery.data, search]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -149,6 +151,9 @@ const SvePjesme: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = songsQuery.isLoading;
+  const pjesme = songsQuery.data || [];
 
   if (loading) {
     return (
@@ -185,7 +190,7 @@ const SvePjesme: React.FC = React.memo(() => {
             </Text>
           ) : (
             <View style={styles.songGrid}>
-              {filtriranePjesme.map((song) => (
+              {filtriranePjesme.map((song: Pjesma) => (
                 <View
                   key={song.id}
                   style={[styles.card, activeSongId === song.id && styles.activeCard]}
@@ -236,8 +241,11 @@ const SvePjesme: React.FC = React.memo(() => {
                     <TouchableOpacity
                       style={styles.deleteButton}
                       onPress={() => handleDelete(song.id)}
+                      disabled={deleteSongMutation.isPending}
                     >
-                      <Text style={styles.buttonText}>{t('delete')}</Text>
+                      <Text style={styles.buttonText}>
+                        {deleteSongMutation.isPending ? t('deleting') : t('delete')}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>

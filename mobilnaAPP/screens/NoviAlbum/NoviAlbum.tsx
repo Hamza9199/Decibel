@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,16 +20,15 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NoviAlbum.styles';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 const NoviAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [imageFile, setImageFile] = useState<any>(null);
   const [gifFile, setGifFile] = useState<any>(null);
-  const [svePjesme, setSvePjesme] = useState<Pjesma[]>([]);
   const [odabranePjesme, setOdabranePjesme] = useState<number[]>([]);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +41,6 @@ const NoviAlbum: React.FC = React.memo(() => {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -51,39 +49,84 @@ const NoviAlbum: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadUserSongs = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!currentUserId) return;
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
     
-    try {
+    initializeUser();
+  }, [loadUserData]);
+
+  // Query for user songs
+  const userSongsQuery = useQuery({
+    queryKey: ['userSongs', korisnikID],
+    queryFn: async () => {
+      if (!korisnikID) return [];
+      
       const response = await axios.get(`${API_BASE}/pjesme/`);
       // Show only user's songs that are not already on an album
-      const userSongs = (response.data || []).filter(
-        (p: Pjesma) => p.korisnikID === currentUserId && !p.albumID
+      return (response.data || []).filter(
+        (p: Pjesma) => p.korisnikID === korisnikID && !p.albumID
       );
-      setSvePjesme(userSongs);
-    } catch (error) {
-      console.error('Error loading user songs:', error);
-      setSvePjesme([]);
-    }
-  }, [korisnikID]);
+    },
+    enabled: !!korisnikID,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Load user data and songs when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (userId) {
-        loadUserSongs(userId);
+  // Mutation for creating album
+  const createAlbumMutation = useMutation({
+    mutationFn: async ({ formData, albumSongs }: { formData: FormData; albumSongs: number[] }) => {
+      // 1. Create album
+      const albumRes = await axios.post(`${API_BASE}/albumi/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      const albumId = albumRes.data.id;
+
+      // 2. Add selected songs to album (if any)
+      if (albumId && albumSongs.length > 0) {
+        const svePjesme = userSongsQuery.data || [];
+        await Promise.all(
+          albumSongs.map(pjesmaId => {
+            const pjesma = svePjesme.find((p: Pjesma) => p.id === pjesmaId);
+            if (pjesma) {
+              return axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
+                ...pjesma,
+                albumID: albumId,
+              });
+            }
+            return Promise.resolve();
+          })
+        );
       }
-    });
-  }, [loadUserData, loadUserSongs]);
 
-  const handleTogglePjesma = useCallback((pjesmaId: number) => {
-    setOdabranePjesme(prev =>
-      prev.includes(pjesmaId)
-        ? prev.filter(id => id !== pjesmaId)
-        : [...prev, pjesmaId]
-    );
-  }, []);
+      return albumRes.data;
+    },
+    onSuccess: () => {
+      setSuccess(t('album_created_successfully') || 'Album created successfully!');
+      setError(null);
+      
+      // Reset form
+      setNaziv('');
+      setOpis('');
+      setImageFile(null);
+      setGifFile(null);
+      setOdabranePjesme([]);
+
+      setTimeout(() => {
+        router.back();
+      }, 2000);
+    },
+    onError: (error: any) => {
+      console.error('Error creating album:', error);
+      setError(t('error_creating_album') || 'Error creating album');
+      setSuccess(null);
+    }
+  });
 
   const handleSubmit = useCallback(async () => {
     if (!naziv.trim()) {
@@ -96,77 +139,40 @@ const NoviAlbum: React.FC = React.memo(() => {
       return;
     }
 
-    setLoading(true);
     setError(null);
     setSuccess(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('korisnikID', korisnikID);
-      formData.append('naziv', naziv.trim());
-      formData.append('opis', opis.trim());
+    const formData = new FormData();
+    formData.append('korisnikID', korisnikID);
+    formData.append('naziv', naziv.trim());
+    formData.append('opis', opis.trim());
 
-      if (imageFile) {
-        formData.append('file_slika', {
-          uri: imageFile.uri,
-          type: imageFile.mimeType || 'image/jpeg',
-          name: imageFile.name || 'image.jpg',
-        } as any);
-      }
-
-      if (gifFile) {
-        formData.append('file_gif', {
-          uri: gifFile.uri,
-          type: gifFile.mimeType || 'image/gif',
-          name: gifFile.name || 'animation.gif',
-        } as any);
-      }
-
-      // 1. Create album
-      const albumRes = await axios.post(`${API_BASE}/albumi/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      const albumId = albumRes.data.id;
-
-      // 2. Add selected songs to album (if any)
-      if (albumId && odabranePjesme.length > 0) {
-        await Promise.all(
-          odabranePjesme.map(pjesmaId => {
-            const pjesma = svePjesme.find(p => p.id === pjesmaId);
-            if (pjesma) {
-              return axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
-                ...pjesma,
-                albumID: albumId,
-              });
-            }
-            return Promise.resolve();
-          })
-        );
-      }
-
-      setSuccess(t('album_created_successfully') || 'Album created successfully!');
-      
-      // Reset form
-      setNaziv('');
-      setOpis('');
-      setImageFile(null);
-      setGifFile(null);
-      setOdabranePjesme([]);
-
-      setTimeout(() => {
-        router.back();
-      }, 2000);
-
-    } catch (error: any) {
-      console.error('Error creating album:', error);
-      setError(t('error_creating_album') || 'Error creating album');
-    } finally {
-      setLoading(false);
+    if (imageFile) {
+      formData.append('file_slika', {
+        uri: imageFile.uri,
+        type: imageFile.mimeType || 'image/jpeg',
+        name: imageFile.name || 'image.jpg',
+      } as any);
     }
-  }, [naziv, korisnikID, opis, imageFile, gifFile, odabranePjesme, svePjesme, t, router]);
+
+    if (gifFile) {
+      formData.append('file_gif', {
+        uri: gifFile.uri,
+        type: gifFile.mimeType || 'image/gif',
+        name: gifFile.name || 'animation.gif',
+      } as any);
+    }
+
+    createAlbumMutation.mutate({ formData, albumSongs: odabranePjesme });
+  }, [naziv, korisnikID, opis, imageFile, gifFile, odabranePjesme, createAlbumMutation, t]);
+
+  const handleTogglePjesma = useCallback((pjesmaId: number) => {
+    setOdabranePjesme(prev =>
+      prev.includes(pjesmaId)
+        ? prev.filter(id => id !== pjesmaId)
+        : [...prev, pjesmaId]
+    );
+  }, []);
 
   const handleFilePicker = useCallback(async (type: 'image' | 'gif') => {
     try {
@@ -278,7 +284,7 @@ const NoviAlbum: React.FC = React.memo(() => {
     </TouchableOpacity>
   ), [gifFile, handleFilePicker, t]);
 
-  if (loading) {
+  if (createAlbumMutation.isPending) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#b91d95" />
@@ -286,6 +292,8 @@ const NoviAlbum: React.FC = React.memo(() => {
       </View>
     );
   }
+
+  const svePjesme = userSongsQuery.data || [];
 
   return (
     <View style={styles.container}>
@@ -356,7 +364,9 @@ const NoviAlbum: React.FC = React.memo(() => {
               <Text style={styles.sectionTitle}>
                 {t('add_existing_songs') || 'Add Existing Songs'}
               </Text>
-              {svePjesme.length === 0 ? (
+              {userSongsQuery.isLoading ? (
+                <ActivityIndicator size="small" color="#b91d95" />
+              ) : svePjesme.length === 0 ? (
                 <Text style={styles.noSongs}>
                   {t('no_available_songs') || 'No available songs'}
                 </Text>
@@ -389,16 +399,16 @@ const NoviAlbum: React.FC = React.memo(() => {
               style={[
                 styles.button,
                 buttonPressed && styles.buttonPressed,
-                loading && styles.buttonDisabled,
+                createAlbumMutation.isPending && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
               onPressIn={handleButtonPressIn}
               onPressOut={handleButtonPressOut}
-              disabled={loading}
+              disabled={createAlbumMutation.isPending}
               activeOpacity={0.8}
             >
               <Text style={styles.buttonText}>
-                {loading ? t('creating') || 'Creating...' : t('create_album')}
+                {createAlbumMutation.isPending ? t('creating') || 'Creating...' : t('create_album')}
               </Text>
             </TouchableOpacity>
 
@@ -406,7 +416,7 @@ const NoviAlbum: React.FC = React.memo(() => {
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleBack}
-              disabled={loading}
+              disabled={createAlbumMutation.isPending}
             >
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>

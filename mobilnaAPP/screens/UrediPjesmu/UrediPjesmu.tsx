@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,19 +16,19 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
-import Checkbox from 'expo-checkbox';
+import { Checkbox } from 'expo-checkbox';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediPjesmu.styles';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const UrediPjesmu: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { pjesmaId } = useLocalSearchParams();
-  const [pjesma, setPjesma] = useState<Pjesma | null>(null);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -48,18 +48,17 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedAudio, setSelectedAudio] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  // Artists and albums
-  const [albumi, setAlbumi] = useState<Album[]>([]);
-  const [sviIzvodjaci, setSviIzvodjaci] = useState<Korisnik[]>([]);
+  // Artists state
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState('');
+
+  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (userData) {
         const user = JSON.parse(userData);
-        setKorisnikID(user?.id || '');
         return user?.id || '';
       }
     } catch (error) {
@@ -68,74 +67,145 @@ const UrediPjesmu: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  const loadData = useCallback(async (userId?: string) => {
-    const currentUserId = userId || korisnikID;
-    if (!pjesmaId || !currentUserId) {
-      setLoading(false);
-      return;
-    }
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
+    const initializeUser = async () => {
+      const userId = await loadUserData();
+      setKorisnikID(userId);
+    };
+    
+    initializeUser();
+  }, [loadUserData]);
 
-    try {
-      setLoading(true);
+  // Query for song data
+  const songQuery = useQuery({
+    queryKey: ['song', pjesmaId],
+    queryFn: async () => {
+      if (!pjesmaId) throw new Error('No song ID');
+      const response = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
+      return response.data;
+    },
+    enabled: !!pjesmaId,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for user's albums
+  const albumsQuery = useQuery({
+    queryKey: ['userAlbums', korisnikID],
+    queryFn: async () => {
+      if (!korisnikID) return [];
+      const response = await axios.get(`${API_BASE}/albumi/`);
+      return (response.data || []).filter((a: Album) => a.korisnikID === korisnikID);
+    },
+    enabled: !!korisnikID,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for all users (for artist search)
+  const usersQuery = useQuery({
+    queryKey: ['users'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/korisnici/`);
+      return response.data || [];
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for song artists
+  const songArtistsQuery = useQuery({
+    queryKey: ['songArtists', pjesmaId],
+    queryFn: async () => {
+      if (!pjesmaId) return [];
       
-      // Load song data
-      const songRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      setPjesma(songRes.data);
-
-      // Set form values
-      if (songRes.data) {
-        setNaziv(songRes.data.naziv || '');
-        setOpis(songRes.data.opis || '');
-        setZanr(songRes.data.zanr || '');
-        setJezikPjesme(songRes.data.jezikPjesme || '');
-        setLicenca(songRes.data.licenca || '');
-        setEksplicitniSadrzaj(!!songRes.data.eksplicitniSadrzaj);
-        setAlbumID(songRes.data.albumID ? songRes.data.albumID.toString() : '');
-      }
-
-      // Load user's albums
-      const albumsRes = await axios.get(`${API_BASE}/albumi/`);
-      const userAlbums = (albumsRes.data || []).filter((a: Album) => a.korisnikID === currentUserId);
-      setAlbumi(userAlbums);
-
-      // Load all users for artist search
-      const usersRes = await axios.get(`${API_BASE}/korisnici/`);
-      setSviIzvodjaci(usersRes.data || []);
-
-      // Load existing artists for this song
       const artistConnectionsRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
       const veze: IzvodjacPjesmaVeza[] = artistConnectionsRes.data || [];
       const izvodjaciIds = veze
         .filter((v) => v.pjesmaID === Number(pjesmaId))
         .map((v) => v.izvodjacID);
       
-      const existingArtists = (usersRes.data || []).filter((k: Korisnik) => 
-        izvodjaciIds.includes(k.id)
-      );
-      setIzabraniIzvodjaci(existingArtists);
+      const users = usersQuery.data || [];
+      return users.filter((k: Korisnik) => izvodjaciIds.includes(k.id));
+    },
+    enabled: !!(pjesmaId && usersQuery.data),
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-    } catch (error) {
-      console.error('Error loading data:', error);
-      setError(t('error_loading_song') || 'Error loading song');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+  // Set form values when song data is loaded
+  useEffect(() => {
+    if (songQuery.data) {
+      const song = songQuery.data;
+      setNaziv(song.naziv || '');
+      setOpis(song.opis || '');
+      setZanr(song.zanr || '');
+      setJezikPjesme(song.jezikPjesme || '');
+      setLicenca(song.licenca || '');
+      setEksplicitniSadrzaj(!!song.eksplicitniSadrzaj);
+      setAlbumID(song.albumID ? song.albumID.toString() : '');
     }
-  }, [pjesmaId, korisnikID, t]);
+  }, [songQuery.data]);
 
-  // Load user data and song data when component mounts
-  useMemo(() => {
-    loadUserData().then(userId => {
-      if (pjesmaId && userId) {
-        loadData(userId);
+  // Set selected artists when query data is loaded
+  useEffect(() => {
+    if (songArtistsQuery.data) {
+      setIzabraniIzvodjaci(songArtistsQuery.data);
+    }
+  }, [songArtistsQuery.data]);
+
+  // Mutation for updating song
+  const updateSongMutation = useMutation({
+    mutationFn: async ({ formData, artists }: { formData: FormData; artists: Korisnik[] }) => {
+      if (!songQuery.data) throw new Error('No song data');
+      
+      // Update song
+      await axios.put(`${API_BASE}/pjesme/${songQuery.data.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      // Update artists: first delete all existing connections, then add new ones
+      const connectionsRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      const veze = connectionsRes.data || [];
+      const zaPjesmu = veze.filter((v: IzvodjacPjesmaVeza) => v.pjesmaID === songQuery.data.id);
+      
+      for (const v of zaPjesmu) {
+        await axios.delete(`${API_BASE}/izvodjac_pjesma/${v.izvodjacID}/${songQuery.data.id}`);
       }
-    });
-  }, [pjesmaId, loadUserData, loadData]);
+      
+      for (const izvodjac of artists) {
+        await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
+          izvodjacID: izvodjac.id,
+          pjesmaID: songQuery.data.id,
+          potvrdjeno: izvodjac.id === korisnikID,
+        });
+      }
+
+      return songQuery.data;
+    },
+    onSuccess: (song) => {
+      queryClient.invalidateQueries({ queryKey: ['song', pjesmaId] });
+      queryClient.invalidateQueries({ queryKey: ['songArtists', pjesmaId] });
+      setSuccess(t('song_updated_successfully') || 'Song updated successfully');
+      
+      setTimeout(() => {
+        router.push(`/pjesma/${song.id}`);
+      }, 1500);
+    },
+    onError: (error) => {
+      console.error('Error updating song:', error);
+      setError(t('error_updating_song') || 'Error updating song');
+    }
+  });
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['song', pjesmaId] }),
+      queryClient.invalidateQueries({ queryKey: ['userAlbums', korisnikID] }),
+      queryClient.invalidateQueries({ queryKey: ['users'] }),
+      queryClient.invalidateQueries({ queryKey: ['songArtists', pjesmaId] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient, pjesmaId, korisnikID]);
 
   const handleImagePick = useCallback(async () => {
     try {
@@ -195,91 +265,61 @@ const UrediPjesmu: React.FC = React.memo(() => {
     setIzabraniIzvodjaci((prev) => prev.filter((k) => k.id !== korisnikId));
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    if (!pjesma || !korisnikID) return;
+  const handleSubmit = useCallback(() => {
+    if (!songQuery.data || !korisnikID) return;
     
     setError(null);
     setSuccess(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('korisnikID', korisnikID);
-      formData.append('naziv', naziv);
-      formData.append('opis', opis);
-      formData.append('datumObjave', pjesma.datumObjave || '');
-      formData.append('trajanjeSekunde', String(pjesma.trajanjeSekunde || 0));
-      formData.append('javno', String(pjesma.javno || false));
-      formData.append('odobreno', String(pjesma.odobreno || false));
-      formData.append('jezikPjesme', jezikPjesme);
-      formData.append('licenca', licenca);
-      formData.append('eksplicitniSadrzaj', String(eksplicitniSadrzaj));
-      formData.append('zanr', zanr);
-      if (albumID) formData.append('albumID', albumID);
+    const formData = new FormData();
+    formData.append('korisnikID', korisnikID);
+    formData.append('naziv', naziv);
+    formData.append('opis', opis);
+    formData.append('datumObjave', songQuery.data.datumObjave || '');
+    formData.append('trajanjeSekunde', String(songQuery.data.trajanjeSekunde || 0));
+    formData.append('javno', String(songQuery.data.javno || false));
+    formData.append('odobreno', String(songQuery.data.odobreno || false));
+    formData.append('jezikPjesme', jezikPjesme);
+    formData.append('licenca', licenca);
+    formData.append('eksplicitniSadrzaj', String(eksplicitniSadrzaj));
+    formData.append('zanr', zanr);
+    if (albumID) formData.append('albumID', albumID);
 
-      if (selectedImage) {
-        formData.append('file_slika', {
-          uri: selectedImage.uri,
-          type: selectedImage.mimeType || 'image/jpeg',
-          name: selectedImage.name || 'image.jpg',
-        } as any);
-      }
-
-      if (selectedGif) {
-        formData.append('file_gif', {
-          uri: selectedGif.uri,
-          type: selectedGif.mimeType || 'image/gif',
-          name: selectedGif.name || 'animation.gif',
-        } as any);
-      }
-
-      if (selectedAudio) {
-        formData.append('file_audio', {
-          uri: selectedAudio.uri,
-          type: selectedAudio.mimeType || 'audio/mpeg',
-          name: selectedAudio.name || 'audio.mp3',
-        } as any);
-      }
-
-      await axios.put(`${API_BASE}/pjesme/${pjesma.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      // Update artists: first delete all existing connections, then add new ones
-      const connectionsRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
-      const veze = connectionsRes.data || [];
-      const zaPjesmu = veze.filter((v: IzvodjacPjesmaVeza) => v.pjesmaID === pjesma.id);
-      
-      for (const v of zaPjesmu) {
-        await axios.delete(`${API_BASE}/izvodjac_pjesma/${v.izvodjacID}/${pjesma.id}`);
-      }
-      
-      for (const izvodjac of izabraniIzvodjaci) {
-        await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
-          izvodjacID: izvodjac.id,
-          pjesmaID: pjesma.id,
-          potvrdjeno: izvodjac.id === korisnikID,
-        });
-      }
-
-      setSuccess(t('song_updated_successfully') || 'Song updated successfully');
-      
-      setTimeout(() => {
-        router.push(`/pjesma/${pjesma.id}`);
-      }, 1500);
-    } catch (error) {
-      console.error('Error updating song:', error);
-      setError(t('error_updating_song') || 'Error updating song');
+    if (selectedImage) {
+      formData.append('file_slika', {
+        uri: selectedImage.uri,
+        type: selectedImage.mimeType || 'image/jpeg',
+        name: selectedImage.name || 'image.jpg',
+      } as any);
     }
-  }, [pjesma, korisnikID, naziv, opis, jezikPjesme, licenca, eksplicitniSadrzaj, zanr, albumID, selectedImage, selectedGif, selectedAudio, izabraniIzvodjaci, t, router]);
+
+    if (selectedGif) {
+      formData.append('file_gif', {
+        uri: selectedGif.uri,
+        type: selectedGif.mimeType || 'image/gif',
+        name: selectedGif.name || 'animation.gif',
+      } as any);
+    }
+
+    if (selectedAudio) {
+      formData.append('file_audio', {
+        uri: selectedAudio.uri,
+        type: selectedAudio.mimeType || 'audio/mpeg',
+        name: selectedAudio.name || 'audio.mp3',
+      } as any);
+    }
+
+    updateSongMutation.mutate({ formData, artists: izabraniIzvodjaci });
+  }, [songQuery.data, korisnikID, naziv, opis, jezikPjesme, licenca, eksplicitniSadrzaj, zanr, albumID, selectedImage, selectedGif, selectedAudio, izabraniIzvodjaci, updateSongMutation]);
 
   // Memoize filtered artists
-  const filteredArtists = useMemo(() => 
-    sviIzvodjaci.filter((k) =>
+  const filteredArtists = useMemo(() => {
+    const sviIzvodjaci = usersQuery.data || [];
+    return sviIzvodjaci.filter((k: Korisnik) =>
       k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()) &&
       !izabraniIzvodjaci.find((iz) => iz.id === k.id)
-    ).slice(0, 8),
-    [sviIzvodjaci, search, izabraniIzvodjaci]
-  );
+    ).slice(0, 8);
+  }, [usersQuery.data, search, izabraniIzvodjaci]);
 
   const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
     <TouchableOpacity
@@ -292,8 +332,8 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   // Memoize permission check
   const hasPermission = useMemo(() => {
-    return pjesma && pjesma.korisnikID === korisnikID;
-  }, [pjesma, korisnikID]);
+    return songQuery.data && songQuery.data.korisnikID === korisnikID;
+  }, [songQuery.data, korisnikID]);
 
   // Memoize refresh control
   const refreshControl = useMemo(() => (
@@ -303,6 +343,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+  const loading = songQuery.isLoading || albumsQuery.isLoading || usersQuery.isLoading;
+  const pjesma = songQuery.data;
+  const albumi = albumsQuery.data || [];
 
   if (loading) {
     return (
@@ -434,7 +478,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
                     label={t('no_album') || 'No Album'} 
                     value="" 
                   />
-                  {albumi.map((album) => (
+                  {albumi.map((album: Album) => (
                     <Picker.Item 
                       key={album.id} 
                       label={album.naziv} 
@@ -499,9 +543,16 @@ const UrediPjesmu: React.FC = React.memo(() => {
               </View>
             )}
 
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <TouchableOpacity 
+              style={styles.submitButton} 
+              onPress={handleSubmit}
+              disabled={updateSongMutation.isPending}
+            >
               <Text style={styles.submitButtonText}>
-                {t('save_changes') || 'Save Changes'}
+                {updateSongMutation.isPending 
+                  ? t('saving') || 'Saving...'
+                  : t('save_changes') || 'Save Changes'
+                }
               </Text>
             </TouchableOpacity>
           </View>

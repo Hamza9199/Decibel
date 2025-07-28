@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -37,8 +37,8 @@ const Offline: React.FC = React.memo(() => {
     setLoading(false);
   }, []);
 
-  // Load offline songs when component mounts
-  useMemo(() => {
+  // Replace useMemo with useEffect for initial data loading
+  useEffect(() => {
     loadOfflineSongs();
   }, [loadOfflineSongs]);
 

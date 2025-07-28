@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -47,8 +47,8 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
     }
   }, []);
 
-  // Load user data once when component becomes visible
-  useMemo(() => {
+  // Load user data when component becomes visible
+  useEffect(() => {
     if (visible) {
       loadUserData();
     }

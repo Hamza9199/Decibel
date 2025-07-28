@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,11 +18,11 @@ import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPlaylista.styles';
+import { useMutation } from '@tanstack/react-query';
 
 const NovaPlaylista: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [imageFile, setImageFile] = useState<any>(null);
@@ -46,10 +46,41 @@ const NovaPlaylista: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Load user data when component mounts
-  useMemo(() => {
+  // Replace useMemo with useEffect for initial user data loading
+  useEffect(() => {
     loadUserData();
   }, [loadUserData]);
+
+  // Mutation for creating playlist
+  const createPlaylistMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await axios.post(`${API_BASE}/playliste/`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+    },
+    onSuccess: () => {
+      setSuccess(t('playlist_created_successfully') || 'Playlist created successfully!');
+      setError(null);
+      
+      // Reset form
+      setNaziv('');
+      setOpis('');
+      setImageFile(null);
+      setGifFile(null);
+      setJavno(false);
+
+      setTimeout(() => {
+        router.back();
+      }, 2000);
+    },
+    onError: (error: any) => {
+      console.error('Error creating playlist:', error);
+      setError(t('error_creating_playlist') || 'Error creating playlist');
+      setSuccess(null);
+    }
+  });
 
   const handleSubmit = useCallback(async () => {
     if (!naziv.trim()) {
@@ -62,59 +93,33 @@ const NovaPlaylista: React.FC = React.memo(() => {
       return;
     }
 
-    setLoading(true);
     setError(null);
     setSuccess(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('korisnikID', korisnikID);
-      formData.append('naziv', naziv.trim());
-      formData.append('opis', opis.trim());
-      formData.append('javno', String(javno));
+    const formData = new FormData();
+    formData.append('korisnikID', korisnikID);
+    formData.append('naziv', naziv.trim());
+    formData.append('opis', opis.trim());
+    formData.append('javno', String(javno));
 
-      if (imageFile) {
-        formData.append('file_slika', {
-          uri: imageFile.uri,
-          type: imageFile.mimeType || 'image/jpeg',
-          name: imageFile.name || 'image.jpg',
-        } as any);
-      }
-
-      if (gifFile) {
-        formData.append('file_gif', {
-          uri: gifFile.uri,
-          type: gifFile.mimeType || 'image/gif',
-          name: gifFile.name || 'animation.gif',
-        } as any);
-      }
-
-      await axios.post(`${API_BASE}/playliste/`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      setSuccess(t('playlist_created_successfully') || 'Playlist created successfully!');
-      
-      // Reset form
-      setNaziv('');
-      setOpis('');
-      setImageFile(null);
-      setGifFile(null);
-      setJavno(false);
-
-      setTimeout(() => {
-        router.back();
-      }, 2000);
-
-    } catch (error: any) {
-      console.error('Error creating playlist:', error);
-      setError(t('error_creating_playlist') || 'Error creating playlist');
-    } finally {
-      setLoading(false);
+    if (imageFile) {
+      formData.append('file_slika', {
+        uri: imageFile.uri,
+        type: imageFile.mimeType || 'image/jpeg',
+        name: imageFile.name || 'image.jpg',
+      } as any);
     }
-  }, [naziv, korisnikID, opis, javno, imageFile, gifFile, t, router]);
+
+    if (gifFile) {
+      formData.append('file_gif', {
+        uri: gifFile.uri,
+        type: gifFile.mimeType || 'image/gif',
+        name: gifFile.name || 'animation.gif',
+      } as any);
+    }
+
+    createPlaylistMutation.mutate(formData);
+  }, [naziv, korisnikID, opis, javno, imageFile, gifFile, createPlaylistMutation, t]);
 
   const handleFilePicker = useCallback(async (type: 'image' | 'gif') => {
     try {
@@ -198,7 +203,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
     </TouchableOpacity>
   ), [gifFile, handleFilePicker, t]);
 
-  if (loading) {
+  if (createPlaylistMutation.isPending) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#b91d95" />
@@ -299,16 +304,16 @@ const NovaPlaylista: React.FC = React.memo(() => {
               style={[
                 styles.button,
                 buttonPressed && styles.buttonPressed,
-                loading && styles.buttonDisabled,
+                createPlaylistMutation.isPending && styles.buttonDisabled,
               ]}
               onPress={handleSubmit}
               onPressIn={handleButtonPressIn}
               onPressOut={handleButtonPressOut}
-              disabled={loading}
+              disabled={createPlaylistMutation.isPending}
               activeOpacity={0.8}
             >
               <Text style={styles.buttonText}>
-                {loading ? t('creating') || 'Creating...' : t('create_playlist')}
+                {createPlaylistMutation.isPending ? t('creating') || 'Creating...' : t('create_playlist')}
               </Text>
             </TouchableOpacity>
 
@@ -316,7 +321,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleBack}
-              disabled={loading}
+              disabled={createPlaylistMutation.isPending}
             >
               <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>

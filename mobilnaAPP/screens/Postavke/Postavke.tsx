@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
@@ -41,10 +42,73 @@ const Postavke: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Load settings when component mounts
-  useMemo(() => {
+  // Replace useMemo with useEffect for initial settings loading
+  useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Mutation for artist application
+  const artistApplicationMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const userData = await AsyncStorage.getItem('korisnik');
+      if (!userData) throw new Error('You must be logged in');
+
+      const user = JSON.parse(userData);
+      const korisnikID = user?.id;
+
+      if (!korisnikID) throw new Error('You must be logged in');
+
+      await axios.post(`${API_BASE}/prijave_izvodjaca/`, {
+        korisnikID,
+        poruka: message.trim(),
+        datum: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      Alert.alert(t('success'), t('application_sent') || 'Application sent successfully!');
+      handleCloseModal();
+    },
+    onError: (error) => {
+      console.error('Error sending application:', error);
+      Alert.alert(t('error'), t('application_error') || 'Error sending application');
+    }
+  });
+
+  // Mutation for account deletion
+  const deleteAccountMutation = useMutation({
+    mutationFn: async () => {
+      const userData = await AsyncStorage.getItem('korisnik');
+      if (!userData) throw new Error('You must be logged in');
+
+      const user = JSON.parse(userData);
+      const korisnikID = user?.id;
+
+      if (!korisnikID) throw new Error('You must be logged in');
+
+      await axios.delete(`${API_BASE}/korisnici/${korisnikID}`);
+      await AsyncStorage.removeItem('korisnik');
+    },
+    onSuccess: () => {
+      Alert.alert(
+        t('success'),
+        t('account_deactivated') || 'Your account has been deactivated',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              // Navigate to login screen
+              // This would need proper navigation setup
+            },
+          },
+        ]
+      );
+      handleCloseModal();
+    },
+    onError: (error) => {
+      console.error('Error deactivating account:', error);
+      Alert.alert(t('error'), t('deactivation_error') || 'Error deactivating account');
+    }
+  });
 
   const handleOpenModal = useCallback(() => {
     setShowModal(true);
@@ -83,42 +147,16 @@ const Postavke: React.FC = React.memo(() => {
     }
   }, []);
 
-  const handleSendApplication = useCallback(async () => {
+  const handleSendApplication = useCallback(() => {
     if (!poruka.trim()) {
       Alert.alert(t('error'), t('fill_all_fields') || 'Please enter a message');
       return;
     }
 
-    try {
-      const userData = await AsyncStorage.getItem('korisnik');
-      if (!userData) {
-        Alert.alert(t('error'), 'You must be logged in');
-        return;
-      }
+    artistApplicationMutation.mutate(poruka);
+  }, [poruka, artistApplicationMutation, t]);
 
-      const user = JSON.parse(userData);
-      const korisnikID = user?.id;
-
-      if (!korisnikID) {
-        Alert.alert(t('error'), 'You must be logged in');
-        return;
-      }
-
-      await axios.post(`${API_BASE}/prijave_izvodjaca/`, {
-        korisnikID,
-        poruka: poruka.trim(),
-        datum: new Date().toISOString(),
-      });
-
-      Alert.alert(t('success'), t('application_sent') || 'Application sent successfully!');
-      handleCloseModal();
-    } catch (error) {
-      console.error('Error sending application:', error);
-      Alert.alert(t('error'), t('application_error') || 'Error sending application');
-    }
-  }, [poruka, t, handleCloseModal]);
-
-  const handleDeleteAccount = useCallback(async () => {
+  const handleDeleteAccount = useCallback(() => {
     Alert.alert(
       t('deactivate_account') || 'Deactivate Account',
       t('account_deactivated_info') || 'Are you sure you want to deactivate your account? This action cannot be undone.',
@@ -130,48 +168,11 @@ const Postavke: React.FC = React.memo(() => {
         {
           text: t('deactivate_account') || 'Deactivate',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              const userData = await AsyncStorage.getItem('korisnik');
-              if (!userData) {
-                Alert.alert(t('error'), 'You must be logged in');
-                return;
-              }
-
-              const user = JSON.parse(userData);
-              const korisnikID = user?.id;
-
-              if (!korisnikID) {
-                Alert.alert(t('error'), 'You must be logged in');
-                return;
-              }
-
-              await axios.delete(`${API_BASE}/korisnici/${korisnikID}`);
-              await AsyncStorage.removeItem('korisnik');
-              
-              Alert.alert(
-                t('success'),
-                t('account_deactivated') || 'Your account has been deactivated',
-                [
-                  {
-                    text: 'OK',
-                    onPress: () => {
-                      // Navigate to login screen
-                      // This would need proper navigation setup
-                    },
-                  },
-                ]
-              );
-              handleCloseModal();
-            } catch (error) {
-              console.error('Error deactivating account:', error);
-              Alert.alert(t('error'), t('deactivation_error') || 'Error deactivating account');
-            }
-          },
+          onPress: () => deleteAccountMutation.mutate()
         },
       ]
     );
-  }, [t, handleCloseModal]);
+  }, [deleteAccountMutation, t]);
 
   // Memoize picker items
   const themePickerItems = useMemo(() => [
@@ -283,12 +284,14 @@ const Postavke: React.FC = React.memo(() => {
                     style={[
                       styles.modalButton,
                       styles.sendButton,
-                      !poruka.trim() && styles.disabledButton,
+                      (!poruka.trim() || artistApplicationMutation.isPending) && styles.disabledButton,
                     ]}
                     onPress={handleSendApplication}
-                    disabled={!poruka.trim()}
+                    disabled={!poruka.trim() || artistApplicationMutation.isPending}
                   >
-                    <Text style={styles.modalButtonText}>{t('send_application')}</Text>
+                    <Text style={styles.modalButtonText}>
+                      {artistApplicationMutation.isPending ? t('sending') : t('send_application')}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </>
@@ -308,10 +311,17 @@ const Postavke: React.FC = React.memo(() => {
                     <Text style={styles.modalButtonText}>{t('cancel')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={[styles.modalButton, styles.deleteButton]}
+                    style={[
+                      styles.modalButton, 
+                      styles.deleteButton,
+                      deleteAccountMutation.isPending && styles.disabledButton
+                    ]}
                     onPress={handleDeleteAccount}
+                    disabled={deleteAccountMutation.isPending}
                   >
-                    <Text style={styles.modalButtonText}>{t('deactivate_account')}</Text>
+                    <Text style={styles.modalButtonText}>
+                      {deleteAccountMutation.isPending ? t('processing') : t('deactivate_account')}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </>

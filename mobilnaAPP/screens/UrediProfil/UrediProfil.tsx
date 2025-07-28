@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,11 +19,11 @@ import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediProfil.styles';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [ime, setIme] = useState('');
   const [prezime, setPrezime] = useState('');
   const [korisnickoIme, setKorisnickoIme] = useState('');
@@ -39,102 +39,127 @@ const UrediProfil: React.FC = React.memo(() => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  const loadUserData = useCallback(async () => {
+  const queryClient = useQueryClient();
+
+  const loadUserFromStorage = useCallback(async () => {
     try {
       const userData = await AsyncStorage.getItem('korisnik');
       if (!userData) {
         Alert.alert(t('error'), 'You must be logged in');
         router.replace('/login');
-        return;
+        return '';
       }
 
       const user = JSON.parse(userData);
       const userId = user?.id || '';
-      setKorisnikID(userId);
 
       if (!userId) {
         Alert.alert(t('error'), 'You must be logged in');
         router.replace('/login');
-        return;
+        return '';
       }
 
-      setLoading(true);
-      const response = await axios.get(`${API_BASE}/korisnici/${userId}`);
-      
-      setIme(response.data.ime || '');
-      setPrezime(response.data.prezime || '');
-      setKorisnickoIme(response.data.korisnicko_ime || '');
-      setEmail(response.data.email || '');
-      setBio(response.data.bio || '');
-      setRola(response.data.rola || 'korisnik');
-      setSlika(response.data.putanjaProfilneSlike || null);
+      return userId;
     } catch (error) {
-      console.error('Error loading user data:', error);
-      setError(t('error_loading_data') || 'Error loading user data');
-    } finally {
-      setLoading(false);
+      console.error('Error loading user from storage:', error);
+      return '';
     }
   }, [t, router]);
 
-  // Load user data when component mounts
-  useMemo(() => {
-    loadUserData();
-  }, [loadUserData]);
+  // Replace useMemo with useEffect - this was likely causing the infinite loop
+  useEffect(() => {
+    let isMounted = true;
+    
+    const initializeUser = async () => {
+      if (!isMounted) return;
+      const userId = await loadUserFromStorage();
+      if (isMounted && userId) {
+        setKorisnikID(userId);
+      }
+    };
+    
+    initializeUser();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Remove loadUserFromStorage from dependencies to prevent infinite loop
 
-  const handleSubmit = useCallback(async () => {
-    if (!ime.trim() || !prezime.trim() || !korisnickoIme.trim() || !email.trim()) {
-      setError(t('fill_all_fields') || 'Please fill all required fields');
-      return;
+  const userQuery = useQuery({
+    queryKey: ['user', korisnikID],
+    queryFn: async () => {
+      if (!korisnikID) throw new Error('No user ID');
+      const response = await axios.get(`${API_BASE}/korisnici/${korisnikID}`);
+      return response.data;
+    },
+    enabled: !!korisnikID,
+    staleTime: 10 * 60 * 1000
+  });
+
+  useEffect(() => {
+    if (userQuery.isError) {
+      console.error('Error loading user data:', userQuery.error);
+      setError(t('error_loading_data') || 'Error loading user data');
     }
+  }, [userQuery.isError, userQuery.error, t]);
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      setError(t('invalid_email') || 'Please enter a valid email address');
-      return;
+  useEffect(() => {
+    if (userQuery.data) {
+      const userData = userQuery.data;
+      setIme(userData.ime || '');
+      setPrezime(userData.prezime || '');
+      setKorisnickoIme(userData.korisnicko_ime || '');
+      setEmail(userData.email || '');
+      setBio(userData.bio || '');
+      setRola(userData.rola || 'korisnik');
+      setSlika(userData.putanjaProfilneSlike || null);
     }
+  }, [userQuery.data]);
 
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
+  // Mutation for updating profile
+  const updateProfileMutation = useMutation({
+    mutationFn: async (profileData: {
+      ime: string;
+      prezime: string;
+      korisnicko_ime: string;
+      email: string;
+      rola: string;
+      bio: string;
+    }) => {
       await axios.put(`${API_BASE}/korisnici/${korisnikID}`, {
-        ime: ime.trim(),
-        prezime: prezime.trim(),
-        korisnicko_ime: korisnickoIme.trim(),
-        email: email.trim(),
+        ...profileData,
         lozinka: '', // Password is not changed here
-        rola,
-        bio: bio.trim(),
       });
-
+      return profileData;
+    },
+    onSuccess: async (profileData) => {
       // Update local storage with new data
       const updatedUser = {
         id: korisnikID,
-        ime: ime.trim(),
-        prezime: prezime.trim(),
-        korisnicko_ime: korisnickoIme.trim(),
-        email: email.trim(),
-        rola,
-        bio: bio.trim(),
+        ...profileData,
         putanjaProfilneSlike: slika,
       };
       await AsyncStorage.setItem('korisnik', JSON.stringify(updatedUser));
-
+      
+      // Update query cache
+      queryClient.setQueryData(['user', korisnikID], (old: any) => ({
+        ...old,
+        ...profileData
+      }));
+      
       setSuccess(t('profile_updated') || 'Profile updated successfully!');
-    } catch (error) {
+      setError(null);
+    },
+    onError: (error) => {
       console.error('Error saving profile:', error);
       setError(t('error_saving_profile') || 'Error saving profile');
-    } finally {
-      setLoading(false);
+      setSuccess(null);
     }
-  }, [ime, prezime, korisnickoIme, email, korisnikID, rola, bio, slika, t]);
+  });
 
-  const uploadImage = useCallback(async (imageUri: string) => {
-    setSlikaError(null);
-    setSlikaSuccess(null);
-
-    try {
+  // Mutation for uploading image
+  const uploadImageMutation = useMutation({
+    mutationFn: async (imageUri: string) => {
       const formData = new FormData();
       formData.append('file_profilna', {
         uri: imageUri,
@@ -151,14 +176,57 @@ const UrediProfil: React.FC = React.memo(() => {
           },
         }
       );
-
-      setSlika(response.data.putanjaProfilneSlike || null);
+      
+      return response.data.putanjaProfilneSlike;
+    },
+    onSuccess: (newImagePath) => {
+      setSlika(newImagePath || null);
       setSlikaSuccess(t('profile_image_updated') || 'Profile image updated successfully!');
-    } catch (error) {
+      setSlikaError(null);
+      
+      // Update query cache
+      queryClient.setQueryData(['user', korisnikID], (old: any) => ({
+        ...old,
+        putanjaProfilneSlike: newImagePath
+      }));
+    },
+    onError: (error) => {
       console.error('Error uploading image:', error);
       setSlikaError(t('error_uploading_image') || 'Error uploading image');
+      setSlikaSuccess(null);
     }
-  }, [korisnikID, t]);
+  });
+
+  const handleSubmit = useCallback(() => {
+    if (!ime.trim() || !prezime.trim() || !korisnickoIme.trim() || !email.trim()) {
+      setError(t('fill_all_fields') || 'Please fill all required fields');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError(t('invalid_email') || 'Please enter a valid email address');
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    updateProfileMutation.mutate({
+      ime: ime.trim(),
+      prezime: prezime.trim(),
+      korisnicko_ime: korisnickoIme.trim(),
+      email: email.trim(),
+      rola,
+      bio: bio.trim(),
+    });
+  }, [ime, prezime, korisnickoIme, email, rola, bio, updateProfileMutation, t]);
+
+  const uploadImage = useCallback((imageUri: string) => {
+    setSlikaError(null);
+    setSlikaSuccess(null);
+    uploadImageMutation.mutate(imageUri);
+  }, [uploadImageMutation]);
 
   const handleImagePicker = useCallback(async () => {
     try {
@@ -180,7 +248,7 @@ const UrediProfil: React.FC = React.memo(() => {
 
       if (!result.canceled && result.assets[0]) {
         const imageUri = result.assets[0].uri;
-        await uploadImage(imageUri);
+        uploadImage(imageUri);
       }
     } catch (error) {
       console.error('Error picking image:', error);
@@ -208,6 +276,8 @@ const UrediProfil: React.FC = React.memo(() => {
   const profileImageUri = useMemo(() => {
     return slika || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
   }, [slika]);
+
+  const loading = userQuery.isLoading || updateProfileMutation.isPending;
 
   if (loading && !ime) {
     return (
@@ -372,9 +442,13 @@ const UrediProfil: React.FC = React.memo(() => {
             <TouchableOpacity
               style={styles.imageButton}
               onPress={handleImagePicker}
+              disabled={uploadImageMutation.isPending}
             >
               <Text style={styles.imageButtonText}>
-                {t('change_profile_image') || 'Change Profile Image'}
+                {uploadImageMutation.isPending 
+                  ? t('uploading') || 'Uploading...'
+                  : t('change_profile_image') || 'Change Profile Image'
+                }
               </Text>
             </TouchableOpacity>
 

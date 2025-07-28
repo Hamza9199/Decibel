@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,25 @@ const Login: React.FC = React.memo(() => {
   
   const { t } = useTranslation();
   const router = useRouter();
+
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('korisnik');
+        if (userData) {
+          const user = JSON.parse(userData);
+          if (user && user.id) {
+            router.replace('/(tabs)');
+          }
+        }
+      } catch (error) {
+        console.error('Error checking login status:', error);
+      }
+    };
+
+    checkLoginStatus();
+  }, []); // Empty dependency array - only run once
 
   const handleSubmit = useCallback(async () => {
     if (!email.trim() || !lozinka.trim()) {

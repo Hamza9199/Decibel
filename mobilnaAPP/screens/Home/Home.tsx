@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   FlatList,
   ScrollView,
   RefreshControl,
-  Alert,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -18,73 +17,118 @@ import Header from '@/komponente/Header/Header';
 import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Home.styles';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 const Home: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
-  const [songs, setSongs] = useState<Pjesma[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
-  const [artists, setArtists] = useState<Korisnik[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
+  const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
   
   const { playAudio, playPlaylist } = useAudio();
+  const queryClient = useQueryClient();
 
   const getRandomItems = useCallback(<T,>(arr: T[], count: number): T[] => {
     const shuffled = [...arr].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   }, []);
 
-  const loadData = useCallback(async () => {
-    try {
-      console.log('Loading data from API...'); // Debug log
-      
-      const [songsRes, albumsRes, playlistsRes, artistsRes] = await Promise.all([
-        axios.get(`${API_BASE}/pjesme/`),
-        axios.get(`${API_BASE}/albumi/`),
-        axios.get(`${API_BASE}/playliste/`),
-        axios.get(`${API_BASE}/korisnici/`),
-      ]);
+  // Query for songs data
+  const songsQuery = useQuery({
+    queryKey: ['songs'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/pjesme/`);
+      const approvedSongs = response.data.filter((s: Pjesma) => s.odobreno);
+      return getRandomItems(approvedSongs, 20);
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      console.log('Data loaded successfully'); // Debug log
+  // Query for albums data
+  const albumsQuery = useQuery({
+    queryKey: ['albums'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/albumi/`);
+      const approvedAlbums = response.data.filter((a: Album) => a.odobreno);
+      return getRandomItems(approvedAlbums, 20);
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      // Filter and randomize approved content
-      const approvedSongs = songsRes.data.filter((s: Pjesma) => s.odobreno);
-      const approvedAlbums = albumsRes.data.filter((a: Album) => a.odobreno);
-      const publicPlaylists = playlistsRes.data.filter((p: Playlista) => p.javno);
-      const activeArtists = artistsRes.data.filter((k: Korisnik) => 
+  // Query for playlists data
+  const playlistsQuery = useQuery({
+    queryKey: ['playlists'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/playliste/`);
+      const publicPlaylists = response.data.filter((p: Playlista) => p.javno);
+      return getRandomItems(publicPlaylists, 20);
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  // Query for artists data
+  const artistsQuery = useQuery({
+    queryKey: ['artists'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/korisnici/`);
+      const activeArtists = response.data.filter((k: Korisnik) => 
         k.rola === 'izvodac' && k.statusKorisnika !== 'suspendovan'
       );
+      return getRandomItems(activeArtists, 20);
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-      setSongs(getRandomItems(approvedSongs, 20));
-      setAlbums(getRandomItems(approvedAlbums, 20));
-      setPlaylists(getRandomItems(publicPlaylists, 20));
-      setArtists(getRandomItems(activeArtists, 20));
-    } catch (error) {
-      console.error('Failed to load data:', error);
-      // Add user-friendly error handling
-      Alert.alert(
-        t('error'),
-        t('connection_error'),
-        [{ text: 'OK' }]
+  // Query for playlist songs when playing playlist
+  const playlistSongsQuery = useQuery({
+    queryKey: ['playlistSongs', playingPlaylistId],
+    queryFn: async () => {
+      if (!playingPlaylistId) return [];
+      
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playingPlaylistId}`);
+      const songIds: number[] = res.data || [];
+      
+      if (songIds.length === 0) return [];
+      
+      const songResponses = await Promise.all(
+        songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`))
       );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [getRandomItems, t]);
+      return songResponses
+        .map(r => r.data)
+        .filter(s => s && s.putanjaAudio && s.odobreno);
+    },
+    enabled: !!playingPlaylistId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Load data when component mounts
-  useMemo(() => {
-    loadData();
-  }, [loadData]);
+  // Handle playlist songs query result
+  useEffect(() => {
+    if (playlistSongsQuery.data && playingPlaylistId) {
+      if (playlistSongsQuery.data.length === 0) {
+        console.warn('No playable songs in playlist');
+      } else {
+        playPlaylist(playlistSongsQuery.data, 0);
+      }
+      setPlayingPlaylistId(null);
+    }
+    if (playlistSongsQuery.error && playingPlaylistId) {
+      console.error('Failed to play playlist:', playlistSongsQuery.error);
+      setPlayingPlaylistId(null);
+    }
+  }, [playlistSongsQuery.data, playlistSongsQuery.error, playingPlaylistId, playPlaylist]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    loadData();
-  }, [loadData]);
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['songs'] }),
+      queryClient.invalidateQueries({ queryKey: ['albums'] }),
+      queryClient.invalidateQueries({ queryKey: ['playlists'] }),
+      queryClient.invalidateQueries({ queryKey: ['artists'] }),
+    ]).finally(() => {
+      setRefreshing(false);
+    });
+  }, [queryClient]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -114,41 +158,25 @@ const Home: React.FC = React.memo(() => {
 
   const handlePlayAlbum = useCallback(async (album: Album) => {
     try {
-      // Fetch all songs from this album
-      const albumSongs = songs.filter(s => s.albumID === album.id && s.putanjaAudio && s.odobreno);
+      const albumSongs = songsQuery.data?.filter(
+        (s): s is Pjesma =>
+          (s as Pjesma).albumID === album.id &&
+          !!(s as Pjesma).putanjaAudio &&
+          !!(s as Pjesma).odobreno
+      ) || [];
       if (albumSongs.length === 0) {
         console.warn('Album has no playable songs');
         return;
       }
-      // Play cijelu playlistu albuma
       playPlaylist(albumSongs, 0);
     } catch (error) {
       console.error('Failed to play album:', error);
     }
-  }, [songs, playPlaylist]);
+  }, [songsQuery.data, playPlaylist]);
 
-  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
-    try {
-      // Fetch playlist songs
-      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
-      const songIds: number[] = res.data || [];
-      if (songIds.length === 0) {
-        console.warn('Playlist is empty');
-        return;
-      }
-      // Fetch sve pjesme iz playliste
-      const songResponses = await Promise.all(songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`)));
-      const playlistSongs = songResponses.map(r => r.data).filter(s => s && s.putanjaAudio && s.odobreno);
-      if (playlistSongs.length === 0) {
-        console.warn('No playable songs in playlist');
-        return;
-      }
-      // Play cijelu playlistu
-      playPlaylist(playlistSongs, 0);
-    } catch (error) {
-      console.error('Failed to play playlist:', error);
-    }
-  }, [playPlaylist]);
+  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
+    setPlayingPlaylistId(playlist.id);
+  }, []);
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <TouchableOpacity 
@@ -287,10 +315,24 @@ const Home: React.FC = React.memo(() => {
     />
   ), [refreshing, onRefresh]);
 
+  const loading = songsQuery.isLoading || albumsQuery.isLoading || playlistsQuery.isLoading || artistsQuery.isLoading;
+  const error = songsQuery.error || albumsQuery.error || playlistsQuery.error || artistsQuery.error;
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <Text style={styles.loadingText}>{t('loading')}</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.loadingText}>{t('connection_error')}</Text>
+        <TouchableOpacity onPress={onRefresh} style={{ marginTop: 10 }}>
+          <Text style={styles.cardDesc}>{t('retry')}</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -311,7 +353,7 @@ const Home: React.FC = React.memo(() => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('songs')}</Text>
             <FlatList
-              data={songs}
+              data={(songsQuery.data as Pjesma[]) || []}
               renderItem={renderSongItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
@@ -323,7 +365,7 @@ const Home: React.FC = React.memo(() => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('albums')}</Text>
             <FlatList
-              data={albums}
+              data={albumsQuery.data as Album[] || []}
               renderItem={renderAlbumItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
@@ -335,7 +377,7 @@ const Home: React.FC = React.memo(() => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('playlists')}</Text>
             <FlatList
-              data={playlists}
+              data={playlistsQuery.data as Playlista[] || []}
               renderItem={renderPlaylistItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
@@ -347,7 +389,7 @@ const Home: React.FC = React.memo(() => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('artists')}</Text>
             <FlatList
-              data={artists}
+              data={artistsQuery.data as Korisnik[] || []}
               renderItem={renderArtistItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Slider } from '@miblanchard/react-native-slider';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as FileSystem from 'expo-file-system';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './AudioPlayer.styles';
 import { useAudio } from '@/context/AudioContext';
+import * as FileSystem from 'expo-file-system';
 
 interface AudioPlayerProps {
   id?: number;
@@ -47,6 +48,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   onExpand,
 }) => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const audioCtx = useAudio();
+
+  // ...existing state...
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -54,14 +59,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [volume, setVolume] = useState(0.3);
   const [muted, setMuted] = useState(false);
-  const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
   const [repeatOne, setRepeatOne] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
   const [liked, setLiked] = useState(false);
-  const [pjesma, setPjesma] = useState<Pjesma | null>(null);
+  const [currentSong, setCurrentSong] = useState<Pjesma | null>(null);
   const [currentOwner, setCurrentOwner] = useState<Korisnik | null>(null);
-  const [pretplataValid] = useState<boolean>(true);
+  const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const [playlistRepeat, setPlaylistRepeat] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,9 +78,176 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   const [showSpeedModal, setShowSpeedModal] = useState(false);
   const [statistikaSent, setStatistikaSent] = useState(false);
 
-  const audioCtx = useAudio();
+  // React Query: Get user data
+  const { data: korisnik } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const userData = await AsyncStorage.getItem('korisnik');
+      return userData ? JSON.parse(userData) : null;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  useMemo(() => {
+  // React Query: Get all songs
+  const { data: allSongs = [] } = useQuery({
+    queryKey: ['songs'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/pjesme/`);
+      return response.data as Pjesma[];
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // React Query: Get playlists for current user
+  const { data: playlists = [] } = useQuery({
+    queryKey: ['playlists', korisnik?.id],
+    queryFn: async () => {
+      if (!korisnik?.id) return [];
+      const response = await axios.get(`${API_BASE}/playliste/`);
+      return response.data || [];
+    },
+    enabled: !!korisnik?.id,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // React Query: Get liked songs for current user
+  const { data: likedSongs = [] } = useQuery({
+    queryKey: ['likedSongs', korisnik?.id],
+    queryFn: async () => {
+      if (!korisnik?.id) return [];
+      const response = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+      return response.data || [];
+    },
+    enabled: !!korisnik?.id,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // React Query: Get current song owner
+  const { data: songOwner } = useQuery({
+    queryKey: ['user', currentSong?.korisnikID],
+    queryFn: async () => {
+      if (!currentSong?.korisnikID) return null;
+      const response = await axios.get(`${API_BASE}/korisnici/${currentSong.korisnikID}`);
+      return response.data;
+    },
+    enabled: !!currentSong?.korisnikID,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Mutations
+  const likeMutation = useMutation({
+    mutationFn: async ({ action, pjesmaID }: { action: 'like' | 'unlike', pjesmaID: number }) => {
+      if (action === 'like') {
+        return axios.post(`${API_BASE}/korisnik_pjesma/`, {
+          korisnikID: korisnik?.id,
+          pjesmaID,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+      } else {
+        return axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik?.id}/${pjesmaID}`);
+      }
+    },
+    onSuccess: (_, { action }) => {
+      queryClient.invalidateQueries({ queryKey: ['likedSongs', korisnik?.id] });
+      Alert.alert(t('success'), action === 'like' ? t('added_to_favorites') : t('removed_from_favorites'));
+    },
+    onError: () => {
+      Alert.alert(t('error'), t('error_favorites'));
+    },
+  });
+
+  const addToPlaylistMutation = useMutation({
+    mutationFn: async ({ pjesmaID, playlistaID }: { pjesmaID: number, playlistaID: number }) => {
+      return axios.post(`${API_BASE}/pjesna_playlista/dodaj-na-kraj/`, {
+        pjesmaID,
+        playlistaID,
+      });
+    },
+    onSuccess: () => {
+      setShowPlaylistModal(false);
+      Alert.alert(t('success'), t('song_added_to_playlist'));
+    },
+    onError: () => {
+      setShowPlaylistModal(false);
+      Alert.alert(t('error'), t('error_adding_to_playlist'));
+    },
+  });
+
+  const addToHistoryMutation = useMutation({
+    mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string, pjesmaID: number }) => {
+      // Delete existing entry first
+      await axios.delete(`${API_BASE}/historija/obrisi/${korisnikID}/${pjesmaID}`).catch(() => {});
+      
+      // Add new entry
+      return axios.post(`${API_BASE}/historija/`, {
+        korisnikID,
+        pjesmaID,
+        playlistaID: null,
+        kreiranDatumVrijeme: new Date().toISOString(),
+        trajanje: currentSong?.trajanjeSekunde || 0,
+        kontekstPustanjaURL: null,
+        offline: false,
+        kontekstPustanja: null,
+      });
+    },
+  });
+
+  const statistikaMutation = useMutation({
+    mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string, pjesmaID: number }) => {
+      // Add statistics
+      await axios.post(`${API_BASE}/statistika/`, {
+        korisnikID,
+        pjesmaID,
+        brojReprodukcija: 1,
+        ukupnoTrajanje: currentSong?.trajanjeSekunde || 0,
+        zadnjePustanje: new Date().toISOString(),
+      }).catch(() => {});
+
+      // Update song play count
+      if (currentSong) {
+        await axios.put(`${API_BASE}/pjesme/${pjesmaID}`, {
+          ...currentSong,
+          brojReprodukcija: (currentSong.brojReprodukcija || 0) + 1,
+        }).catch(() => {});
+      }
+    },
+  });
+
+  // Memoized values
+  const playlistIdx = useMemo(
+    () => audioCtx.audioState.playlistIdx ?? -1,
+    [audioCtx.audioState.playlistIdx]
+  );
+
+  const globalPlaylist = useMemo(
+    () => audioCtx.audioState.globalPlaylist ?? [],
+    [audioCtx.audioState.globalPlaylist]
+  );
+
+  const pjesma = useMemo(
+    () => allSongs.find(p => p.putanjaAudio === src) || null,
+    [allSongs, src]
+  );
+
+  const isLiked = useMemo(() => {
+    if (!pjesma?.id || !korisnik?.id) return false;
+    return likedSongs.some((item: any) => 
+      item.korisnikID === korisnik.id && item.pjesmaID === pjesma.id
+    );
+  }, [likedSongs, pjesma?.id, korisnik?.id]);
+
+  // Update liked state when isLiked changes
+  useEffect(() => {
+    setLiked(isLiked);
+  }, [isLiked]);
+
+  // Update current owner when songOwner changes
+  useEffect(() => {
+    setCurrentOwner(songOwner || null);
+  }, [songOwner]);
+
+  // Initialize audio
+  useEffect(() => {
     Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
       staysActiveInBackground: true,
@@ -85,167 +255,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       shouldDuckAndroid: true,
       playThroughEarpieceAndroid: false,
     });
-  }, []);
 
-  // Load user data
-  const loadUserData = useCallback(async () => {
-    try {
-      const userData = await AsyncStorage.getItem('korisnik');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setKorisnik(user);
-        
-        // Load playlists for user
-        if (user.id) {
-          try {
-            const res = await axios.get(`${API_BASE}/playliste/`);
-            setPlaylists(res.data || []);
-          } catch {
-            setPlaylists([]);
-          }
-        }
-        
-        return user;
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
       }
-    } catch (error) {
-      console.error('Error loading user data:', error);
-    }
-    return null;
+    };
+  }, [sound]);
+
+  // Check subscription - TEMPORARILY DISABLED
+  useEffect(() => {
+    setPretplataValid(true); // Temporarily set to true for testing
   }, []);
 
-  // Load song data from API
-  const loadSongData = useCallback(async (audioSrc: string) => {
-    if (!audioSrc) {
-      setPjesma(null);
-      setLiked(false);
-      return null;
+  // Dodaj useEffect za repeatOne (isLooping)
+  useEffect(() => {
+    if (sound && isLoaded) {
+      sound.setIsLoopingAsync(repeatOne);
     }
-
-    try {
-      const res = await axios.get(`${API_BASE}/pjesme/`);
-      const song = (res.data as Pjesma[]).find((p) => p.putanjaAudio === audioSrc);
-      setPjesma(song || null);
-      
-      // Load owner info if song exists
-      if (song?.korisnikID) {
-        try {
-          const ownerRes = await axios.get(`${API_BASE}/korisnici/${song.korisnikID}`);
-          setCurrentOwner(ownerRes.data);
-        } catch {
-          setCurrentOwner(null);
-        }
-      }
-      
-      return song;
-    } catch {
-      setPjesma(null);
-      setLiked(false);
-      return null;
-    }
-  }, []);
-
-  // Check if song is liked
-  const checkLikeStatus = useCallback(async (song: Pjesma, user: Korisnik) => {
-    if (!song?.id || !user?.id) {
-      setLiked(false);
-      return;
-    }
-
-    try {
-      const response = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const likedSongs = response.data || [];
-      const isLiked = likedSongs.some((item: any) => 
-        item.korisnikID === user.id && item.pjesmaID === song.id
-      );
-      setLiked(isLiked);
-    } catch {
-      setLiked(false);
-    }
-  }, []);
-
-  // Add to history
-  const addToHistorija = useCallback(async (song: Pjesma, user: Korisnik) => {
-    if (!song || !user?.id) return;
-    
-    try {
-      await axios.delete(`${API_BASE}/historija/obrisi/${user.id}/${song.id}`).catch(() => {});
-      await axios.post(`${API_BASE}/historija/`, {
-        korisnikID: user.id,
-        pjesmaID: song.id,
-        playlistaID: null,
-        kreiranDatumVrijeme: new Date().toISOString(),
-        trajanje: song.trajanjeSekunde || 0,
-        kontekstPustanjaURL: null,
-        offline: false,
-        kontekstPustanja: null,
-      });
-    } catch {
-      // Silent fail
-    }
-  }, []);
-
-  // Send statistics
-  const sendStatistika = useCallback(async (song: Pjesma, user: Korisnik) => {
-    if (!song || !user?.id || statistikaSent) return;
-    
-    try {
-      await axios.post(`${API_BASE}/statistika/`, {
-        korisnikID: user.id,
-        pjesmaID: song.id,
-        brojReprodukcija: 1,
-        ukupnoTrajanje: song.trajanjeSekunde || 0,
-        zadnjePustanje: new Date().toISOString(),
-      }).catch(() => {});
-
-      await axios.put(`${API_BASE}/pjesme/${song.id}`, {
-        ...song,
-        brojReprodukcija: (song.brojReprodukcija || 0) + 1,
-      }).catch(() => {});
-      
-      setStatistikaSent(true);
-    } catch (error) {
-      console.error('Failed to send statistics:', error);
-    }
-  }, [statistikaSent]);
-
-  // Memoize playlist data
-  const playlistIdx = useMemo(() => audioCtx.audioState.playlistIdx ?? -1, [audioCtx.audioState.playlistIdx]);
-  const globalPlaylist = useMemo(() => audioCtx.audioState.globalPlaylist ?? [], [audioCtx.audioState.globalPlaylist]);
-
-  // Memoize current song
-  const currentSong = useMemo(() => {
-    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
-      return globalPlaylist[playlistIdx];
-    }
-    if (src && id) {
-      return {
-        id,
-        naziv: title || 'Unknown Song',
-        putanjaAudio: src,
-        putanjaGif,
-        putanjaSlika,
-        korisnikID,
-      } as Pjesma;
-    }
-    return null;
-  }, [globalPlaylist, playlistIdx, src, id, title, putanjaGif, putanjaSlika, korisnikID]);
-
-  // Initialize data when component mounts or src changes
-  useMemo(() => {
-    if (visible && src) {
-      loadUserData().then(user => {
-        if (user) {
-          loadSongData(src).then(song => {
-            if (song) {
-              checkLikeStatus(song, user);
-              addToHistorija(song, user);
-            }
-          });
-        }
-      });
-      setStatistikaSent(false);
-    }
-  }, [visible, src, loadUserData, loadSongData, checkLikeStatus, addToHistorija]);
+  }, [repeatOne, sound, isLoaded]);
 
   const handleEnded = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
@@ -262,21 +290,16 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
 
+  // Update the onPlaybackStatusUpdate callback
   const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
     if (status.isLoaded) {
-      const currentProgress = status.positionMillis / 1000;
-      setProgress(currentProgress);
+      setProgress(status.positionMillis / 1000);
       setDuration(status.durationMillis ? status.durationMillis / 1000 : 0);
       setPlaying(status.isPlaying);
 
       if (!isLoaded) {
         setIsLoaded(true);
         console.log('Sound loaded via status update');
-      }
-
-      // Send statistics after 30 seconds
-      if (currentProgress >= 30 && !statistikaSent && status.isPlaying && pjesma && korisnik) {
-        sendStatistika(pjesma, korisnik);
       }
 
       if ('didJustFinish' in status && status.didJustFinish) {
@@ -294,11 +317,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         setPlaying(false);
       }
     }
-  }, [handleEnded, isLoaded, statistikaSent, pjesma, korisnik, sendStatistika]);
+  }, [handleEnded, isLoaded]);
 
+  // Load audio when src changes
   const loadAudio = useCallback(async () => {
     if (!src || isLoading) return;
 
+    // Don't reload if it's the same source and already loaded
     if (src === lastLoadedSrc && isLoaded && sound) {
       return;
     }
@@ -310,14 +335,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       
       console.log('Loading audio:', src);
       
+      // Clean up previous sound
       if (sound) {
         console.log('Unloading previous sound');
         await sound.unloadAsync();
         setSound(null);
       }
 
+      // Add a small delay to ensure cleanup is complete
       await new Promise(resolve => setTimeout(resolve, 100));
 
+      // Create new sound with proper error handling
       const soundConfig = {
         uri: src,
         headers: {
@@ -331,18 +359,21 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         volume: volume,
         rate: playbackRate,
         positionMillis: 0,
-        isLooping: repeatOne,
+        isLooping: false,
       };
 
+      console.log('Creating new sound with config:', soundConfig);
       const { sound: newSound } = await Audio.Sound.createAsync(
         soundConfig,
         initialStatus,
         onPlaybackStatusUpdate
       );
 
+      console.log('Sound created successfully');
       setSound(newSound);
       setLastLoadedSrc(src);
       
+      // Wait for the sound to be fully loaded before attempting to play
       let loadCheckAttempts = 0;
       const maxLoadAttempts = 20;
       
@@ -350,6 +381,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         try {
           const status = await newSound.getStatusAsync();
           if (status.isLoaded) {
+            console.log('Sound is loaded and ready');
             setIsLoaded(true);
             return true;
           }
@@ -360,6 +392,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             return checkIfLoaded();
           }
           
+          console.warn('Sound loading timeout after', loadCheckAttempts, 'attempts');
           return false;
         } catch (error) {
           console.error('Error checking sound status:', error);
@@ -370,14 +403,17 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       const isReadyToPlay = await checkIfLoaded();
       
       if (isReadyToPlay) {
+        console.log('Attempting to play loaded sound');
         try {
           await newSound.playAsync();
           setPlaying(true);
+          console.log('Playback started successfully');
         } catch (playError) {
           console.error('Error starting playback:', playError);
           setPlaying(false);
         }
       } else {
+        console.error('Sound failed to load properly');
         setIsLoaded(false);
       }
       
@@ -386,7 +422,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       setIsLoaded(false);
       setPlaying(false);
       
+      // Retry logic for network issues
       if (loadingAttempts < 3) {
+        console.log(`Retrying audio load (attempt ${loadingAttempts + 1})`);
         setTimeout(() => {
           setIsLoading(false);
           loadAudio();
@@ -396,11 +434,54 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     } finally {
       setIsLoading(false);
     }
-  }, [src, volume, playbackRate, repeatOne, onPlaybackStatusUpdate, sound, isLoading, lastLoadedSrc, isLoaded, loadingAttempts]);
+  }, [src, volume, playbackRate, onPlaybackStatusUpdate, sound, isLoading, lastLoadedSrc, isLoaded, loadingAttempts]);
 
-  // Auto-load audio when conditions are met
-  useMemo(() => {
+  const lastPlaylistIdxRef = React.useRef<number | null>(null);
+  const lastPlaylistRepeatRef = React.useRef<boolean | null>(null);
+
+  useEffect(() => {
+    if (
+      globalPlaylist.length > 0 &&
+      playlistIdx >= 0 &&
+      playlistIdx < globalPlaylist.length
+    ) {
+      const song = globalPlaylist[playlistIdx];
+      setCurrentSong(song);
+
+      // Only call playPlaylist if playlistIdx or playlistRepeat actually changed
+      if (
+        lastPlaylistIdxRef.current !== playlistIdx ||
+        lastPlaylistRepeatRef.current !== playlistRepeat
+      ) {
+        if (song?.putanjaAudio) {
+          setStatistikaSent(false);
+          audioCtx.playPlaylist(globalPlaylist, playlistIdx, playlistRepeat);
+        }
+        lastPlaylistIdxRef.current = playlistIdx;
+        lastPlaylistRepeatRef.current = playlistRepeat;
+      }
+    }
+  }, [playlistIdx, globalPlaylist, playlistRepeat, audioCtx]);
+
+  // Set currentSong from props when not in playlist mode
+  useEffect(() => {
+    if (globalPlaylist.length === 0 && visible && src && id) {
+      setCurrentSong({
+        id,
+        naziv: title || 'Unknown Song',
+        putanjaAudio: src,
+        putanjaGif,
+        putanjaSlika,
+        korisnikID,
+      } as Pjesma);
+      setStatistikaSent(false);
+    }
+  }, [visible, src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
+
+  // Load audio when src changes and subscription is valid
+  useEffect(() => {
     if (src && pretplataValid && visible) {
+      // Reset loading attempts when src changes
       if (src !== lastLoadedSrc) {
         setLoadingAttempts(0);
       }
@@ -408,83 +489,83 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [src, pretplataValid, visible, loadAudio, lastLoadedSrc]);
 
-  // Handle playlist changes
-  useMemo(() => {
-    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
-      const song = globalPlaylist[playlistIdx];
-      if (song?.putanjaAudio) {
-        setStatistikaSent(false);
-        audioCtx.playPlaylist(globalPlaylist, playlistIdx, playlistRepeat);
-      }
-    }
-  }, [playlistIdx, globalPlaylist, playlistRepeat, audioCtx]);
-
-  // Update seek value based on progress
-  useMemo(() => {
-    if (!isSeekingProgress) {
-      setSeekValue(progress);
-    }
-  }, [progress, isSeekingProgress]);
-
-  // Update sound settings when they change
-  useMemo(() => {
-    if (sound && isLoaded && !isLoading) {
-      sound.setIsLoopingAsync(repeatOne);
-    }
-  }, [repeatOne, sound, isLoaded, isLoading]);
-
+  // Improved play/pause handler
   const handlePlayPause = useCallback(async () => {
+    if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
+      // Playlist mode
+      setPlaying(prev => !prev);
+    } else if (globalPlaylist.length === 0 && src) {
+      // Single song mode
+      setPlaying(prev => !prev);
+    }
+
     if (!sound) {
-      if (src && pretplataValid && visible) {
-        await loadAudio();
-      }
+      console.warn('No sound object available');
       return;
     }
 
-    if (isLoading) return;
+    if (isLoading) {
+      console.warn('Sound is still loading');
+      return;
+    }
 
     try {
       const status = await sound.getStatusAsync();
       
       if (!status.isLoaded) {
+        console.warn('Sound is not loaded');
         if (src) {
-          await loadAudio();
+          loadAudio();
         }
         return;
       }
 
       if (playing) {
+        console.log('Pausing playback');
         await sound.pauseAsync();
-        setPlaying(false);
       } else {
+        console.log('Starting playback');
         await sound.playAsync();
-        setPlaying(true);
       }
     } catch (error) {
       console.error('Error in play/pause:', error);
       if (src) {
+        console.log('Attempting to reload audio after play/pause error');
         setIsLoaded(false);
-        await loadAudio();
+        loadAudio();
       }
     }
-  }, [sound, isLoading, playing, src, pretplataValid, visible, loadAudio]);
+  }, [sound, isLoading, playing, src, loadAudio, globalPlaylist.length, playlistIdx]);
+
+  useEffect(() => {
+    if (!isSeekingProgress) {
+      setSeekValue(progress);
+    }
+  }, [progress, isSeekingProgress]);
 
   const handleSeek = useCallback(async (value: number) => {
     if (!sound || !isLoaded || isLoading) return;
 
     try {
+      // Get current status
       const status = await sound.getStatusAsync();
       if (!status.isLoaded) return;
 
+      // Calculate seek position in milliseconds
       const seekPosition = Math.max(0, Math.min(value, status.durationMillis ? status.durationMillis / 1000 : 0)) * 1000;
+      
+      // Remember if we were playing
       const wasPlaying = status.isPlaying;
       
+      // Seek to position
       await sound.setPositionAsync(seekPosition);
       
+      // If we were playing, resume playback
       if (wasPlaying) {
         await sound.playAsync();
       }
       
+      // Update progress state
       setProgress(seekPosition / 1000);
     } catch (error) {
       console.error('Error seeking audio:', error);
@@ -531,6 +612,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     setIsSeekingVolume(false);
   }, [sound, isLoaded, isLoading, muted]);
 
+  // Playback rate change handler
   const handleRateChange = useCallback(async (rate: number) => {
     setPlaybackRate(rate);
     if (sound && isLoaded && !isLoading) {
@@ -542,6 +624,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [sound, isLoaded, isLoading]);
 
+  // Mute toggle handler
   const handleMuteToggle = useCallback(async () => {
     if (!sound || !isLoaded || isLoading) return;
     try {
@@ -572,27 +655,18 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   }, []);
 
   const handleLike = useCallback(async () => {
-    if (!pjesma || !korisnik?.id) return;
+    if (!pjesma || !korisnik?.id || likeMutation.isPending) return;
+    
+    const action = liked ? 'unlike' : 'like';
+    setLiked(!liked); // Optimistic update
     
     try {
-      if (liked) {
-        await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`);
-        setLiked(false);
-        Alert.alert(t('success'), t('removed_from_favorites'));
-      } else {
-        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-          korisnikID: korisnik.id,
-          pjesmaID: pjesma.id,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        });
-        setLiked(true);
-        Alert.alert(t('success'), t('added_to_favorites'));
-      }
+      await likeMutation.mutateAsync({ action, pjesmaID: pjesma.id });
     } catch (error) {
-      console.error('Error liking/unliking song:', error);
-      Alert.alert(t('error'), t('error_favorites'));
+      setLiked(liked); // Revert on error
     }
-  }, [pjesma, korisnik, liked, t]);
+  }, [pjesma, korisnik?.id, liked, likeMutation]);
+
 
   const ensureDirectoryExists = useCallback(async (filePath: string) => {
     const lastSlash = filePath.lastIndexOf('/');
@@ -662,25 +736,71 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   }, [src, currentSong, currentOwner, t, ensureDirectoryExists, getSafeLocalPath]);
 
   const handleAddToPlaylist = useCallback(async (playlistaID: number) => {
-    if (!src || !korisnik?.id) return;
+    if (!pjesma || !korisnik?.id || addToPlaylistMutation.isPending) return;
     
     try {
-      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/`);
-      const pjesma = (pjesmaRes.data as Pjesma[]).find((p) => p.putanjaAudio === src);
-      if (!pjesma) return;
-
-      await axios.post(`${API_BASE}/pjesna_playlista/dodaj-na-kraj/`, {
-        pjesmaID: pjesma.id,
-        playlistaID: playlistaID,
+      await addToPlaylistMutation.mutateAsync({ 
+        pjesmaID: pjesma.id, 
+        playlistaID 
       });
-      setShowPlaylistModal(false);
-      Alert.alert(t('success'), t('song_added_to_playlist'));
     } catch (error) {
       console.error('Error adding song to playlist:', error);
-      setShowPlaylistModal(false);
-      Alert.alert(t('error'), t('error_adding_to_playlist'));
     }
-  }, [src, korisnik, t]);
+  }, [pjesma, korisnik?.id, addToPlaylistMutation]);
+
+  // Add to history when song changes - memoized to prevent infinite loops
+  const addToHistoryRef = useRef<{ korisnikID: string; pjesmaID: number } | null>(null);
+  
+  useEffect(() => {
+    if (!pjesma || !korisnik?.id || !src) return;
+    
+    const currentParams = { korisnikID: korisnik.id, pjesmaID: pjesma.id };
+    
+    // Only call mutation if parameters have actually changed
+    if (!addToHistoryRef.current || 
+        addToHistoryRef.current.korisnikID !== currentParams.korisnikID ||
+        addToHistoryRef.current.pjesmaID !== currentParams.pjesmaID) {
+      
+      addToHistoryRef.current = currentParams;
+      addToHistoryMutation.mutate(currentParams);
+    }
+  }, [pjesma?.id, korisnik?.id, src]);
+
+  // Add statistics after 30 seconds of listening - memoized to prevent infinite loops
+  const statistikaRef = useRef<{ korisnikID: string; pjesmaID: number; sent: boolean } | null>(null);
+  
+  useEffect(() => {
+    if (!pjesma || !korisnik?.id || !playing || !src) {
+      setStatistikaSent(false);
+      if (statistikaRef.current) {
+        statistikaRef.current.sent = false;
+      }
+      return;
+    }
+    
+    if (progress < 30 || statistikaSent) return;
+
+    const currentParams = { korisnikID: korisnik.id, pjesmaID: pjesma.id, sent: true };
+    
+    // Only call mutation if not already sent for this song
+    if (!statistikaRef.current || 
+        statistikaRef.current.korisnikID !== currentParams.korisnikID ||
+        statistikaRef.current.pjesmaID !== currentParams.pjesmaID ||
+        !statistikaRef.current.sent) {
+      
+      statistikaRef.current = currentParams;
+      statistikaMutation.mutate({ korisnikID: currentParams.korisnikID, pjesmaID: currentParams.pjesmaID });
+      setStatistikaSent(true);
+    }
+  }, [progress, pjesma?.id, korisnik?.id, statistikaSent, src, playing]);
+
+  // Reset statistics when song changes
+  useEffect(() => {
+    setStatistikaSent(false);
+    if (statistikaRef.current) {
+      statistikaRef.current.sent = false;
+    }
+  }, [src]);
 
   const formatTime = useCallback((seconds: number): string => {
     if (!isFinite(seconds)) return '0:00';
@@ -689,20 +809,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
+  // Add handler to close dropdown when touching outside
   const handleOutsidePress = useCallback(() => {
     if (showSpeedModal) {
       setShowSpeedModal(false);
     }
   }, [showSpeedModal]);
 
-  // Cleanup when component unmounts or src changes
-  useMemo(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
+  // Memoized playlist render item
+  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
+    <TouchableOpacity
+      style={styles.playlistItem}
+      onPress={() => handleAddToPlaylist(item.id)}
+    >
+      <Text style={styles.playlistItemText}>{item.naziv}</Text>
+    </TouchableOpacity>
+  ), [handleAddToPlaylist]);
+
+  // Memoized speed options
+  const speedOptions = useMemo(() => [0.5, 0.75, 1, 1.25, 1.5, 2], []);
 
   // Subscription check UI - TEMPORARILY DISABLED
   if (pretplataValid === false) {
@@ -788,7 +913,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         {/* Like Button positioned to the right */}
         <TouchableOpacity 
           onPress={handleLike}
-          disabled={!isLoaded || isLoading || !korisnik?.id}
+          disabled={!isLoaded || isLoading || !korisnik?.id || likeMutation.isPending}
           style={styles.likeButton}
         >
           <MaterialIcons 
@@ -797,7 +922,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             color={liked ? "#e91e63" : (!isLoaded || isLoading || !korisnik?.id) ? "#666" : "#ffe6ec"} 
           />
         </TouchableOpacity>
-        {/* Download Button */}
+
         <TouchableOpacity
           onPress={handleDownloadCurrentSong}
           disabled={!isLoaded || isLoading}
@@ -931,7 +1056,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             {/* Speed Dropdown */}
             {showSpeedModal && (
               <View style={styles.speedDropdown}>
-                {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
+                {speedOptions.map((rate) => (
                   <TouchableOpacity
                     key={rate}
                     style={[
@@ -973,14 +1098,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             <FlatList
               data={playlists}
               keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.playlistItem}
-                  onPress={() => handleAddToPlaylist(item.id)}
-                >
-                  <Text style={styles.playlistItemText}>{item.naziv}</Text>
-                </TouchableOpacity>
-              )}
+              renderItem={renderPlaylistItem}
             />
             <TouchableOpacity
               style={styles.modalCloseBtn}
@@ -995,6 +1113,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   );
 });
 
-AudioPlayer.displayName = "AudioPlayer";
+AudioPlayer.displayName = 'AudioPlayer';
 
-export default AudioPlayer;            
+export default AudioPlayer;
+
+

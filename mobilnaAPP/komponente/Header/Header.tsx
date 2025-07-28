@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,8 +7,9 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import Sidebar from '@/komponente/Sidebar/Sidebar';
@@ -27,31 +28,39 @@ const Header: React.FC<HeaderProps> = React.memo(({
   onLogoPress 
 }) => {
   const { ready } = useTranslation();
-  const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const loadUserData = useCallback(async () => {
-    try {
-      const userData = await AsyncStorage.getItem('korisnik');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        
-        // Fetch complete user data
-        const response = await axios.get(`${API_BASE}/korisnici/${user.id}`);
-        setKorisnik(response.data);
+  // Load user ID from AsyncStorage
+  useEffect(() => {
+    const loadUserId = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('korisnik');
+        if (userData) {
+          const user = JSON.parse(userData);
+          setUserId(user?.id || null);
+        }
+      } catch (error) {
+        console.error('Failed to load user ID:', error);
+        setUserId(null);
       }
-    } catch (error) {
-      console.error('Failed to load user data:', error);
-      setIsLoggedIn(false);
-    }
+    };
+
+    loadUserId();
   }, []);
 
-  // Load user data once when component mounts
-  useMemo(() => {
-    loadUserData();
-  }, [loadUserData]);
+  // Fetch user data using React Query
+  const { data: korisnik } = useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const response = await axios.get(`${API_BASE}/korisnici/${userId}`);
+      return response.data as Korisnik;
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1,
+  });
 
   const handleMenuPress = useCallback(() => {
     setShowSidebar(true);
@@ -62,12 +71,23 @@ const Header: React.FC<HeaderProps> = React.memo(({
   }, []);
 
   const handleProfilePress = useCallback(() => {
-    router.push('/edit-profile');
-  }, []);
+    if (onProfilePress) {
+      onProfilePress();
+    } else {
+      router.push('/edit-profile');
+    }
+  }, [onProfilePress]);
 
-  const profileImageUri = useMemo(() => {
-    return korisnik?.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
-  }, [korisnik?.putanjaProfilneSlike]);
+  const handleLogoPress = useCallback(() => {
+    if (onLogoPress) {
+      onLogoPress();
+    } else {
+      router.push('/(tabs)');
+    }
+  }, [onLogoPress]);
+
+  const profileImageUri = korisnik?.putanjaProfilneSlike || 
+    'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
 
   if (!ready) {
     return (
@@ -91,7 +111,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
         {/* Logo */}
         <TouchableOpacity  
           style={styles.logoContainer}
-          onPress={onLogoPress}
+          onPress={handleLogoPress}
         >
           <Image
             source={require('../../assets/images/logo.gif')}
@@ -102,6 +122,16 @@ const Header: React.FC<HeaderProps> = React.memo(({
         </TouchableOpacity>
 
         <View style={styles.rightActions}>
+          {/* Search Button */}
+          {onSearchPress && (
+            <TouchableOpacity 
+              style={styles.searchButton} 
+              onPress={onSearchPress}
+            >
+              <MaterialIcons name="search" size={24} color="#ffe6ec" />
+            </TouchableOpacity>
+          )}
+
           {/* Profile Button */}
           <TouchableOpacity 
             style={styles.profileButton} 

@@ -16,12 +16,13 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Korisnik, Komentar } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pjesma.styles';
+import { queryClient } from '@/config/queryClient';
 
 const PjesmePage: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -34,7 +35,6 @@ const PjesmePage: React.FC = React.memo(() => {
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [mojID, setMojID] = useState<string>('');
 
-  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {

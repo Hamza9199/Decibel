@@ -15,13 +15,14 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Izvodjac.styles';
+import { queryClient } from '@/config/queryClient';
 
 const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -30,7 +31,6 @@ const Izvodjac: React.FC = React.memo(() => {
   const [currentUserId, setCurrentUserId] = useState<string>('');
   
 
-  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {

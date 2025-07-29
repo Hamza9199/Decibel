@@ -1,36 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useSegments, Stack } from 'expo-router';
-import { AppState } from 'react-native';
+import { AppState, InteractionManager } from 'react-native';
 import '../i18n'; 
 import { AudioProvider, useAudio } from '@/context/AudioContext';
 import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-// Create a client instance - important to create this outside the component
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (replaces cacheTime)
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: true,
-    },
-    mutations: {
-      retry: 1,
-    },
-  },
-});
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
 
 export default function RootLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const router = useRouter();
   const segments = useSegments();
 
-  // Pozivaj checkAuthState na mount, promjenu rute i promjenu fokusa aplikacije
   useEffect(() => {
     checkAuthState();
 
@@ -47,13 +30,14 @@ export default function RootLayout() {
     checkAuthState();
   }, [segments]);
 
+    
+
   useEffect(() => {
     if (isLoggedIn === null) return; 
 
     const currentRoute = segments.join('/');
     const inAuthGroup = currentRoute === 'login' || currentRoute === 'register';
 
-    // Debug info
     console.log('isLoggedIn:', isLoggedIn, 'segments:', segments, 'currentRoute:', currentRoute);
 
     if (!isLoggedIn && !inAuthGroup) {
@@ -62,6 +46,35 @@ export default function RootLayout() {
       router.replace('/(tabs)');
     }
   }, [isLoggedIn, router, segments]);
+
+
+  useEffect(() => {
+    return () => {
+      queryClient.getQueryCache().getAll().forEach(query => {
+        if (!query.getObserversCount()) {
+          queryClient.removeQueries({ queryKey: query.queryKey });
+        }
+      });
+      
+      queryClient.getMutationCache().clear();
+      
+      if (__DEV__ && typeof (global as any).gc === 'function') {
+        setTimeout(() => ((global as any).gc as Function)(), 100);
+      }
+    };
+  }, [segments]); 
+
+  useEffect(() => {
+  return () => {
+    InteractionManager.runAfterInteractions(() => {
+      queryClient.getQueryCache().getAll().forEach(query => {
+        if (!query.getObserversCount()) {
+          queryClient.removeQueries({ queryKey: query.queryKey });
+        }
+      });
+    });
+  };
+}, []);
 
   const checkAuthState = async () => {
     try {
@@ -79,7 +92,6 @@ export default function RootLayout() {
   };
 
   return (
-    <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AudioProvider>
           <StatusBar style="dark" />
@@ -88,6 +100,7 @@ export default function RootLayout() {
             screenOptions={{
               headerShown: false,
               contentStyle: { backgroundColor: '#181818' },
+              freezeOnBlur: true,
             }}
           >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -97,7 +110,6 @@ export default function RootLayout() {
           <AudioPlayerWrapper />
         </AudioProvider>
       </QueryClientProvider>
-    </SafeAreaProvider>
   );
 }
 

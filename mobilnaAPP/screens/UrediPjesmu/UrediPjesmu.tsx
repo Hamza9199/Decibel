@@ -23,7 +23,8 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediPjesmu.styles';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
 
 const UrediPjesmu: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -52,7 +53,6 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState('');
 
-  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {

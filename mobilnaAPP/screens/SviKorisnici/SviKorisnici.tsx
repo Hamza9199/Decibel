@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,13 @@ import { Image } from 'expo-image';
 import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Korisnik, PrijavaIzvodjaca } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SviKorisnici.styles';
+import { queryClient } from '@/config/queryClient';
 
 const SviKorisnici: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -35,7 +36,6 @@ const SviKorisnici: React.FC = React.memo(() => {
     vrijemeDo: string;
   } | null>(null);
 
-  const queryClient = useQueryClient();
 
   // Query for users data
   const usersQuery = useQuery({

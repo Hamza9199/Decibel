@@ -23,12 +23,6 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
-interface SearchResults {
-  pjesme: Pjesma[];
-  albumi: Album[];
-  playliste: Playlista[];
-  korisnici: Korisnik[];
-}
 
 interface ResultItem {
   type: 'song' | 'album' | 'playlist' | 'user';

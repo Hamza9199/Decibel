@@ -17,10 +17,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
-import { Album, Pjesma } from '@/types';
+import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediAlbum.styles';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
 
 const UrediAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -39,7 +40,6 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {

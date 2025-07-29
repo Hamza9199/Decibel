@@ -3,10 +3,19 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+
+  useScreenCleanup({
+    imageCleanup: true,
+    stateCleanup: () => {
+      console.log('Cleaning up tabs layout');
+    }
+  });
+
 
   return (
     <View style={{ flex: 1, paddingBottom: insets.bottom, backgroundColor: '#181818' }}>
@@ -32,6 +41,8 @@ export default function TabsLayout() {
             fontSize: 12,
             fontWeight: '500',
           },
+          lazy: true,
+          freezeOnBlur: true,
         }}
       >
         <Tabs.Screen
@@ -67,5 +78,5 @@ export default function TabsLayout() {
     </View>
   );
 }
-      
-   
+
+

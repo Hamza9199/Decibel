@@ -9,19 +9,19 @@ import {
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Statistika, Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Statistika.styles';
+import { queryClient } from '@/config/queryClient';
 
 const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
 
-  const queryClient = useQueryClient();
 
   // Query for statistics data
   const statisticsQuery = useQuery({

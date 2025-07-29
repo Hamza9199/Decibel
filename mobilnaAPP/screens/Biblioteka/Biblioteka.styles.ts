@@ -167,4 +167,46 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  // Skeleton loading styles
+  skeletonLine: {
+    backgroundColor: '#333',
+    borderRadius: 4,
+    opacity: 0.6,
+  },
+  // Error state styles
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  errorIcon: {
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    color: '#aaa',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  retryButton: {
+    backgroundColor: '#b91d95',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
 });

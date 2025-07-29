@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,40 +13,69 @@ import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
+import axios, { isCancel } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '@/komponente/Header/Header';
 import { useAudio } from '@/context/AudioContext';
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Biblioteka.styles';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
 
 type LibraryFilter = 'prateci' | 'pjesme' | 'albumi' | 'playliste';
 
-interface LibraryData {
-  prateci: Korisnik[];
-  pjesme: Pjesma[];
-  albumi: Album[];
-  playliste: Playlista[];
-}
+const SkeletonItem: React.FC = React.memo(() => (
+  <View style={[styles.itemCard, { opacity: 0.6 }]}>
+    <View style={styles.itemHeader}>
+      <View style={[styles.itemImage, { backgroundColor: '#333' }]} />
+      <View style={styles.itemInfo}>
+        <View style={[styles.skeletonLine, { width: '70%', height: 16, marginBottom: 8 }]} />
+        <View style={[styles.skeletonLine, { width: '50%', height: 12 }]} />
+      </View>
+    </View>
+    <View style={styles.itemActions}>
+      <View style={[styles.actionButton, { backgroundColor: '#333' }]} />
+      <View style={[styles.actionButton, { backgroundColor: '#333', marginLeft: 8 }]} />
+    </View>
+  </View>
+));
+SkeletonItem.displayName = "SkeletonItem";
+
+const SkeletonLoader: React.FC = React.memo(() => (
+  <View>
+    {Array.from({ length: 5 }).map((_, index) => (
+      <SkeletonItem key={`skeleton-${index}`} />
+    ))}
+  </View>
+));
+
+SkeletonLoader.displayName = "SkeletonLoader";
+
+const apiClient = axios.create({
+  baseURL: API_BASE,
+  timeout: 10000, 
+});
 
 const Biblioteka: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { playAudio, playPlaylist } = useAudio();
   
+  const abortControllerRef = useRef<AbortController>(null);
+  
   const [activeFilter, setActiveFilter] = useState<LibraryFilter>('prateci');
-  const [data, setData] = useState<LibraryData>({
-    prateci: [],
-    pjesme: [],
-    albumi: [],
-    playliste: [],
-  });
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
-  const [loadedFilters, setLoadedFilters] = useState<Set<LibraryFilter>>(new Set());
+  const [playingAlbumId, setPlayingAlbumId] = useState<number | null>(null);
+  const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
+  useEffect(() => {
+    const abortController = abortControllerRef.current;
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, []);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -62,286 +91,428 @@ const Biblioteka: React.FC = React.memo(() => {
     return null;
   }, []);
 
-  // Load only specific filter data
-  const loadFilterData = useCallback(async (filter: LibraryFilter, user?: Korisnik) => {
-    const currentUser = user || korisnik;
-    if (!currentUser?.id) return;
-
-    if (loadedFilters.has(filter)) return; // Already loaded
-
-    try {
-      switch (filter) {
-        case 'prateci': {
-          const followingRes = await axios.get(`${API_BASE}/pratioci/`);
-          const followingLinks = followingRes.data || [];
-          const followedIds = followingLinks
-            .filter((p: any) => p.pratilacID === currentUser.id)
-            .map((p: any) => p.korisnikID);
-
-          if (followedIds.length > 0) {
-            // Load in batches of 5 to avoid overwhelming the server
-            const batchSize = 5;
-            const followedArtists: Korisnik[] = [];
-            
-            for (let i = 0; i < followedIds.length; i += batchSize) {
-              const batch = followedIds.slice(i, i + batchSize);
-              const artistPromises = batch.map((id: string) =>
-                axios.get(`${API_BASE}/korisnici/${id}`)
-                  .then(res => res.data)
-                  .catch(() => null)
-              );
-              const artists = await Promise.all(artistPromises);
-              followedArtists.push(...artists.filter(Boolean));
-            }
-            
-            setData(prev => ({ ...prev, prateci: followedArtists }));
-          }
-          break;
-        }
-
-        case 'pjesme': {
-          const likedSongsRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-          const likedSongLinks = likedSongsRes.data || [];
-          const likedSongIds = likedSongLinks
-            .filter((l: any) => l.korisnikID === currentUser.id)
-            .map((l: any) => l.pjesmaID);
-
-          if (likedSongIds.length > 0) {
-            const batchSize = 10;
-            const likedSongs: Pjesma[] = [];
-            
-            for (let i = 0; i < likedSongIds.length; i += batchSize) {
-              const batch = likedSongIds.slice(i, i + batchSize);
-              const songPromises = batch.map((id: number) =>
-                axios.get(`${API_BASE}/pjesme/${id}`)
-                  .then(res => res.data)
-                  .catch(() => null)
-              );
-              const songs = await Promise.all(songPromises);
-              likedSongs.push(...songs.filter(s => s && s.odobreno));
-            }
-            
-            setData(prev => ({ ...prev, pjesme: likedSongs }));
-          }
-          break;
-        }
-
-        case 'albumi': {
-          const likedAlbumsRes = await axios.get(`${API_BASE}/korisnik_album/`);
-          const likedAlbumLinks = likedAlbumsRes.data || [];
-          const likedAlbumIds = likedAlbumLinks
-            .filter((l: any) => l.korisnikID === currentUser.id)
-            .map((l: any) => l.albumID);
-
-          if (likedAlbumIds.length > 0) {
-            const batchSize = 10;
-            const likedAlbums: Album[] = [];
-            
-            for (let i = 0; i < likedAlbumIds.length; i += batchSize) {
-              const batch = likedAlbumIds.slice(i, i + batchSize);
-              const albumPromises = batch.map((id: number) =>
-                axios.get(`${API_BASE}/albumi/${id}`)
-                  .then(res => res.data)
-                  .catch(() => null)
-              );
-              const albums = await Promise.all(albumPromises);
-              likedAlbums.push(...albums.filter(a => a && a.odobreno));
-            }
-            
-            setData(prev => ({ ...prev, albumi: likedAlbums }));
-          }
-          break;
-        }
-
-        case 'playliste': {
-          const likedPlaylistsRes = await axios.get(`${API_BASE}/korisnik_playlista/`);
-          const likedPlaylistLinks = likedPlaylistsRes.data || [];
-          const likedPlaylistIds = likedPlaylistLinks
-            .filter((l: any) => l.korisnikID === currentUser.id)
-            .map((l: any) => l.playlistaID);
-
-          if (likedPlaylistIds.length > 0) {
-            const batchSize = 10;
-            const likedPlaylists: Playlista[] = [];
-            
-            for (let i = 0; i < likedPlaylistIds.length; i += batchSize) {
-              const batch = likedPlaylistIds.slice(i, i + batchSize);
-              const playlistPromises = batch.map((id: number) =>
-                axios.get(`${API_BASE}/playliste/${id}`)
-                  .then(res => res.data)
-                  .catch(() => null)
-              );
-              const playlists = await Promise.all(playlistPromises);
-              likedPlaylists.push(...playlists.filter(p => p && p.javno));
-            }
-            
-            setData(prev => ({ ...prev, playliste: likedPlaylists }));
-          }
-          break;
-        }
-      }
-
-      setLoadedFilters(prev => new Set([...prev, filter]));
-    } catch (error) {
-      console.error(`Error loading ${filter} data:`, error);
-    }
-  }, [korisnik, loadedFilters]);
-
-  // Replace useMemo with useEffect for initial data loading
-  useEffect(() => {
-    const initializeData = async () => {
-      const user = await loadUserData();
-      if (user) {
-        await loadFilterData(activeFilter, user);
-        setLoading(false);
-      }
-    };
+  const loadBatchData = useCallback(async <T,>(
+    ids: (string | number)[], 
+    endpoint: string,
+    signal?: AbortSignal
+  ): Promise<T[]> => {
+    if (ids.length === 0) return [];
     
-    initializeData();
-  }, [loadUserData, loadFilterData, activeFilter]);
-
-  // Load data when filter changes
-  const handleFilterChange = useCallback((filter: LibraryFilter) => {
-    setActiveFilter(filter);
-    if (!loadedFilters.has(filter)) {
-      loadFilterData(filter);
+    const batchSize = 15; 
+    const results: T[] = [];
+    
+    for (let i = 0; i < ids.length; i += batchSize) {
+      const batch = ids.slice(i, i + batchSize);
+      try {
+        const response = await apiClient.get(`/${endpoint}`, {
+          params: { ids: batch.join(',') },
+          signal,
+        });
+        results.push(...response.data.filter(Boolean));
+      } catch (error) {
+        if (isCancel(error)) {
+          throw error;
+        }
+        const fallbackResults = await Promise.allSettled(
+          batch.map(id => 
+            apiClient.get(`/${endpoint}/${id}`, { signal })
+              .then(res => res.data)
+          )
+        );
+        const successfulResults = fallbackResults
+          .filter((result): result is PromiseFulfilledResult<T> => 
+            result.status === 'fulfilled' && result.value
+          )
+          .map(result => result.value);
+        results.push(...successfulResults);
+      }
     }
-  }, [loadedFilters, loadFilterData]);
+    
+    return results;
+  }, []);
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setLoadedFilters(new Set());
-    setData({
-      prateci: [],
-      pjesme: [],
-      albumi: [],
-      playliste: [],
-    });
-    loadFilterData(activeFilter).finally(() => {
-      setRefreshing(false);
-    });
-  }, [loadFilterData, activeFilter]);
+  const useFollowingArtists = (userId?: string) => useQuery({
+    queryKey: ['following', userId],
+    queryFn: async ({ signal }) => {
+      if (!userId) return [];
+      
+      const response = await apiClient.get('/pratioci/', { signal });
+      const followedIds = response.data
+        ?.filter((p: any) => p.pratilacID === userId)
+        ?.map((p: any) => p.korisnikID) || [];
+      
+      if (followedIds.length === 0) return [];
+      
+      const followedUsers = await loadBatchData<Korisnik>(followedIds, 'korisnici', signal);
+      
+      return followedUsers.filter(user => followedIds.includes(user.id));
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000, 
+    gcTime: 30 * 60 * 1000, 
+    retry: 2,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
-  // Add query client for invalidating queries
-  const queryClient = useQueryClient();
+ const useLikedSongs = (userId?: string) => useQuery({
+  queryKey: ['likedSongs', userId],
+  queryFn: async ({ signal }) => {
+    if (!userId) return [];
+    
+    const likedResponse = await apiClient.get('/korisnik_pjesma/', { signal });
 
-  // Mutation for unfollowing artists
+    if (!Array.isArray(likedResponse.data)) {
+      console.error('Invalid response format from /korisnik_pjesma/');
+      return [];
+    }
+    
+    const likedSongIds = likedResponse.data
+      .filter((l: any) => l.korisnikID === userId)
+      .map((l: any) => l.pjesmaID);
+    
+    if (likedSongIds.length === 0) return [];
+    
+    // Get all songs first
+    const songsResponse = await apiClient.get('/pjesme/', { signal });
+    const allSongs = songsResponse.data as Pjesma[];
+    
+    // Get all users to populate korisnik data
+    const usersResponse = await apiClient.get('/korisnici/', { signal });
+    const allUsers = usersResponse.data as Korisnik[];
+    
+    // Create user lookup map
+    const userMap = allUsers.reduce((map, user) => {
+      map[user.id] = user;
+      return map;
+    }, {} as { [key: string]: Korisnik });
+    
+    const likedSongs = allSongs
+      .filter(song => 
+        song.odobreno && 
+        song.putanjaAudio && 
+        likedSongIds.includes(song.id)
+      )
+      .map(song => ({
+        ...song,
+        korisnik: song.korisnikID ? userMap[song.korisnikID] || null : null
+      }));
+    
+    return likedSongs;
+  },
+  enabled: !!userId,
+  staleTime: 10 * 60 * 1000,
+  gcTime: 30 * 60 * 1000,
+  retry: 2,
+  retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+});
+
+  const useLikedAlbums = (userId?: string) => useQuery({
+    queryKey: ['likedAlbums', userId],
+    queryFn: async ({ signal }) => {
+      if (!userId) return [];
+      
+      const likedResponse = await apiClient.get('/korisnik_album/', { signal });
+      const likedAlbumIds = likedResponse.data
+        ?.filter((l: any) => l.korisnikID === userId)
+        ?.map((l: any) => l.albumID) || [];
+      
+      if (likedAlbumIds.length === 0) return [];
+      
+      // Get all albums with their data
+      const allAlbumsResponse = await apiClient.get('/albumi/', { signal });
+      const allAlbums = allAlbumsResponse.data as Album[];
+      
+      // Filter to only liked albums that are approved
+      const likedAlbums = allAlbums.filter(album => 
+        likedAlbumIds.includes(album.id) && album.odobreno
+      );
+      
+      return likedAlbums;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  const useLikedPlaylists = (userId?: string) => useQuery({
+    queryKey: ['likedPlaylists', userId],
+    queryFn: async ({ signal }) => {
+      if (!userId) return [];
+      
+      // Get liked playlist IDs
+      const likedResponse = await apiClient.get('/korisnik_playlista/', { signal });
+      const likedPlaylistIds = likedResponse.data
+        ?.filter((l: any) => l.korisnikID === userId)
+        ?.map((l: any) => l.playlistaID) || [];
+      
+      if (likedPlaylistIds.length === 0) return [];
+      
+      // Get all playlists with their data
+      const allPlaylistsResponse = await apiClient.get('/playliste/', { signal });
+      const allPlaylists = allPlaylistsResponse.data as Playlista[];
+      
+      // Filter to only liked playlists that are public
+      const likedPlaylists = allPlaylists.filter(playlist => 
+        likedPlaylistIds.includes(playlist.id) && playlist.javno
+      );
+      
+      return likedPlaylists;
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
+
+  useEffect(() => {
+    loadUserData();
+  }, [loadUserData]);
+
+  const followingQuery = useFollowingArtists(korisnik?.id);
+  const songsQuery = useLikedSongs(korisnik?.id);
+  const albumsQuery = useLikedAlbums(korisnik?.id);
+  const playlistsQuery = useLikedPlaylists(korisnik?.id);
+
+  useEffect(() => {
+    if (!korisnik?.id) return;
+
+    const prefetchData = () => {
+      const prefetches = [
+        { 
+          key: 'prateci', 
+          queryKey: ['following', korisnik.id], 
+          queryFn: async ({ signal }: { signal?: AbortSignal }) => {
+        const response = await apiClient.get('/pratioci/', { signal });
+        const followedIds = response.data
+          ?.filter((p: any) => p.pratilacID === korisnik.id)
+          ?.map((p: any) => p.korisnikID) || [];
+        
+        if (followedIds.length === 0) return [];
+        
+        const followedUsers = await loadBatchData<Korisnik>(followedIds, 'korisnici', signal);
+        return followedUsers.filter(user => followedIds.includes(user.id));
+          }
+        },
+        { 
+          key: 'pjesme', 
+          queryKey: ['likedSongs', korisnik.id], 
+          queryFn: async ({ signal }: { signal?: AbortSignal }) => {
+        const likedResponse = await apiClient.get('/korisnik_pjesma/', { signal });
+        const likedSongIds = likedResponse.data
+          ?.filter((l: any) => l.korisnikID === korisnik.id)
+          ?.map((l: any) => l.pjesmaID) || [];
+        
+        if (likedSongIds.length === 0) return [];
+        
+        const allSongsResponse = await apiClient.get('/pjesme/', { signal });
+        const allSongs = allSongsResponse.data as Pjesma[];
+        
+        return allSongs.filter(song => 
+          likedSongIds.includes(song.id) && song.odobreno
+        );
+          }
+        },
+        { 
+          key: 'albumi', 
+          queryKey: ['likedAlbums', korisnik.id], 
+          queryFn: async ({ signal }: { signal?: AbortSignal }) => {
+        const likedResponse = await apiClient.get('/korisnik_album/', { signal });
+        const likedAlbumIds = likedResponse.data
+          ?.filter((l: any) => l.korisnikID === korisnik.id)
+          ?.map((l: any) => l.albumID) || [];
+        
+        if (likedAlbumIds.length === 0) return [];
+        
+        const allAlbumsResponse = await apiClient.get('/albumi/', { signal });
+        const allAlbums = allAlbumsResponse.data as Album[];
+        
+        return allAlbums.filter(album => 
+          likedAlbumIds.includes(album.id) && album.odobreno
+        );
+          }
+        },
+        { 
+          key: 'playliste', 
+          queryKey: ['likedPlaylists', korisnik.id], 
+          queryFn: async ({ signal }: { signal?: AbortSignal }) => {
+        const likedResponse = await apiClient.get('/korisnik_playlista/', { signal });
+        const likedPlaylistIds = likedResponse.data
+          ?.filter((l: any) => l.korisnikID === korisnik.id)
+          ?.map((l: any) => l.playlistaID) || [];
+        
+        if (likedPlaylistIds.length === 0) return [];
+        
+        const allPlaylistsResponse = await apiClient.get('/playliste/', { signal });
+        const allPlaylists = allPlaylistsResponse.data as Playlista[];
+        
+        return allPlaylists.filter(playlist => 
+          likedPlaylistIds.includes(playlist.id) && playlist.javno
+        );
+          }
+        },
+      ];
+
+      prefetches.forEach(({ key, queryKey, queryFn }) => {
+        if (key !== activeFilter) {
+          const existingData = queryClient.getQueryData(queryKey);
+          if (!existingData) {
+            queryClient.prefetchQuery({
+              queryKey,
+              queryFn: queryFn as any,
+              staleTime: 10 * 60 * 1000,
+              gcTime: 30 * 60 * 1000,
+            });
+          }
+        }
+      });
+    };
+
+    const timer = setTimeout(prefetchData, 1000);
+    return () => clearTimeout(timer);
+  }, [korisnik?.id, activeFilter, loadBatchData]);
+
   const unfollowMutation = useMutation({
     mutationFn: async (artistId: string) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await axios.delete(`${API_BASE}/pratioci/${artistId}/${korisnik.id}`);
+      await apiClient.delete(`/pratioci/${artistId}/${korisnik.id}`);
       return artistId;
     },
-    onSuccess: (artistId) => {
-      setData(prev => ({
-        ...prev,
-        prateci: prev.prateci.filter(a => a.id !== artistId)
-      }));
+    onMutate: async (artistId) => {
+      await queryClient.cancelQueries({ queryKey: ['following', korisnik?.id] });
+      const previousData = queryClient.getQueryData(['following', korisnik?.id]);
+      
+      queryClient.setQueryData(['following', korisnik?.id], (old: Korisnik[] = []) =>
+        old.filter(a => a.id !== artistId)
+      );
+      
+      return { previousData };
+    },
+    onError: (err, artistId, context) => {
+      queryClient.setQueryData(['following', korisnik?.id], context?.previousData);
+      Alert.alert(t('error'), t('error_unfollowing'));
+    },
+    onSuccess: () => {
       Alert.alert(t('success'), t('unfollowed_artist'));
     },
-    onError: (error) => {
-      console.error('Error unfollowing artist:', error);
-      Alert.alert(t('error'), t('error_unfollowing'));
-    }
   });
 
-  // Mutation for unliking songs
   const unlikeSongMutation = useMutation({
     mutationFn: async (songId: number) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${songId}`);
+      await apiClient.delete(`/korisnik_pjesma/${korisnik.id}/${songId}`);
       return songId;
     },
-    onSuccess: (songId) => {
-      setData(prev => ({
-        ...prev,
-        pjesme: prev.pjesme.filter(s => s.id !== songId)
-      }));
+    onMutate: async (songId) => {
+      await queryClient.cancelQueries({ queryKey: ['likedSongs', korisnik?.id] });
+      const previousData = queryClient.getQueryData(['likedSongs', korisnik?.id]);
+      
+      queryClient.setQueryData(['likedSongs', korisnik?.id], (old: Pjesma[] = []) =>
+        old.filter(s => s.id !== songId)
+      );
+      
+      return { previousData };
+    },
+    onError: (err, songId, context) => {
+      queryClient.setQueryData(['likedSongs', korisnik?.id], context?.previousData);
+      Alert.alert(t('error'), t('error_removing_favorite'));
+    },
+    onSuccess: () => {
       Alert.alert(t('success'), t('removed_from_favorites'));
     },
-    onError: (error) => {
-      console.error('Error unliking song:', error);
-      Alert.alert(t('error'), t('error_removing_favorite'));
-    }
   });
 
-  // Mutation for unliking albums
   const unlikeAlbumMutation = useMutation({
     mutationFn: async (albumId: number) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await axios.delete(`${API_BASE}/korisnik_album/${korisnik.id}/${albumId}`);
+      await apiClient.delete(`/korisnik_album/${korisnik.id}/${albumId}`);
       return albumId;
     },
-    onSuccess: (albumId) => {
-      setData(prev => ({
-        ...prev,
-        albumi: prev.albumi.filter(a => a.id !== albumId)
-      }));
+    onMutate: async (albumId) => {
+      await queryClient.cancelQueries({ queryKey: ['likedAlbums', korisnik?.id] });
+      const previousData = queryClient.getQueryData(['likedAlbums', korisnik?.id]);
+      
+      queryClient.setQueryData(['likedAlbums', korisnik?.id], (old: Album[] = []) =>
+        old.filter(a => a.id !== albumId)
+      );
+      
+      return { previousData };
+    },
+    onError: (err, albumId, context) => {
+      queryClient.setQueryData(['likedAlbums', korisnik?.id], context?.previousData);
+      Alert.alert(t('error'), t('error_removing_favorite'));
+    },
+    onSuccess: () => {
       Alert.alert(t('success'), t('removed_from_favorites'));
     },
-    onError: (error) => {
-      console.error('Error unliking album:', error);
-      Alert.alert(t('error'), t('error_removing_favorite'));
-    }
   });
 
-  // Mutation for unliking playlists
   const unlikePlaylistMutation = useMutation({
     mutationFn: async (playlistId: number) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await axios.delete(`${API_BASE}/korisnik_playlista/${korisnik.id}/${playlistId}`);
+      await apiClient.delete(`/korisnik_playlista/${korisnik.id}/${playlistId}`);
       return playlistId;
     },
-    onSuccess: (playlistId) => {
-      setData(prev => ({
-        ...prev,
-        playliste: prev.playliste.filter(p => p.id !== playlistId)
-      }));
+    onMutate: async (playlistId) => {
+      await queryClient.cancelQueries({ queryKey: ['likedPlaylists', korisnik?.id] });
+      const previousData = queryClient.getQueryData(['likedPlaylists', korisnik?.id]);
+      
+      queryClient.setQueryData(['likedPlaylists', korisnik?.id], (old: Playlista[] = []) =>
+        old.filter(p => p.id !== playlistId)
+      );
+      
+      return { previousData };
+    },
+    onError: (err, playlistId, context) => {
+      queryClient.setQueryData(['likedPlaylists', korisnik?.id], context?.previousData);
+      Alert.alert(t('error'), t('error_removing_favorite'));
+    },
+    onSuccess: () => {
       Alert.alert(t('success'), t('removed_from_favorites'));
     },
-    onError: (error) => {
-      console.error('Error unliking playlist:', error);
-      Alert.alert(t('error'), t('error_removing_favorite'));
-    }
   });
 
-  // Query for album songs when playing album
   const useAlbumSongs = (albumId: number, enabled: boolean = false) => {
     return useQuery({
       queryKey: ['albumSongs', albumId],
-      queryFn: async () => {
-        const response = await axios.get(`${API_BASE}/pjesme/`);
+      queryFn: async ({ signal }) => {
+        const response = await apiClient.get('/pjesme/', { signal });
         return (response.data as Pjesma[])
           .filter(s => s.albumID === albumId && s.odobreno && s.putanjaAudio)
           .sort((a, b) => a.id - b.id);
       },
       enabled,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 15 * 60 * 1000, 
+      gcTime: 60 * 60 * 1000, 
+      retry: 2,
     });
   };
 
-  // Query for playlist songs when playing playlist
   const usePlaylistSongs = (playlistId: number, enabled: boolean = false) => {
     return useQuery({
       queryKey: ['playlistSongs', playlistId],
-      queryFn: async () => {
-        const response = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+      queryFn: async ({ signal }) => {
+        const response = await apiClient.get(`/pjesma_playlista/redoslijed/${playlistId}`, { signal });
         const songIds: number[] = response.data || [];
 
         if (songIds.length === 0) return [];
 
-        const songPromises = songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`));
-        const songResponses = await Promise.all(songPromises);
-        return songResponses
-          .map(res => res.data)
-          .filter(song => song && song.odobreno && song.putanjaAudio);
+        const songs = await loadBatchData<Pjesma>(songIds, 'pjesme', signal);
+        return songs.filter(song => song && song.odobreno && song.putanjaAudio);
       },
       enabled,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 15 * 60 * 1000,
+      gcTime: 60 * 60 * 1000,
+      retry: 2,
     });
   };
 
-  // Update handlers to use mutations
+  const handleFilterChange = useCallback((filter: LibraryFilter) => {
+    setActiveFilter(filter);
+  }, []);
+
   const handleUnfollow = useCallback((artistId: string) => {
     Alert.alert(
       t('confirm_action'),
@@ -369,12 +540,15 @@ const Biblioteka: React.FC = React.memo(() => {
     unlikePlaylistMutation.mutate(playlistId);
   }, [unlikePlaylistMutation]);
 
-  // Update album play handler to use query
-  const [playingAlbumId, setPlayingAlbumId] = useState<number | null>(null);
   const albumSongsQuery = useAlbumSongs(playingAlbumId || 0, !!playingAlbumId);
+  const playlistSongsQuery = usePlaylistSongs(playingPlaylistId || 0, !!playingPlaylistId);
 
   const handlePlayAlbum = useCallback((album: Album) => {
     setPlayingAlbumId(album.id);
+  }, []);
+
+  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
+    setPlayingPlaylistId(playlist.id);
   }, []);
 
   useEffect(() => {
@@ -393,14 +567,6 @@ const Biblioteka: React.FC = React.memo(() => {
     }
   }, [albumSongsQuery.data, albumSongsQuery.error, playingAlbumId, playPlaylist, t]);
 
-  // Update playlist play handler to use query
-  const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
-  const playlistSongsQuery = usePlaylistSongs(playingPlaylistId || 0, !!playingPlaylistId);
-
-  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
-    setPlayingPlaylistId(playlist.id);
-  }, []);
-
   useEffect(() => {
     if (playlistSongsQuery.data && playingPlaylistId) {
       if (playlistSongsQuery.data.length === 0) {
@@ -417,7 +583,6 @@ const Biblioteka: React.FC = React.memo(() => {
     }
   }, [playlistSongsQuery.data, playlistSongsQuery.error, playingPlaylistId, playPlaylist, t]);
 
-  // Memoize filters
   const filters = useMemo(() => [
     { key: 'prateci' as LibraryFilter, label: t('following'), icon: 'people' },
     { key: 'pjesme' as LibraryFilter, label: t('liked_songs'), icon: 'favorite' },
@@ -444,14 +609,28 @@ const Biblioteka: React.FC = React.memo(() => {
     </TouchableOpacity>
   ), [activeFilter, handleFilterChange]);
 
+  const OptimizedImage = React.memo(({ uri, style, ...props }: any) => (
+    <Image
+      source={{ uri: uri || 'https://via.placeholder.com/60' }}
+      style={style}
+      cachePolicy="memory-disk"
+      priority="high"
+      recyclingKey={`${uri}-${Date.now()}`}
+      contentFit="cover"
+      transition={200}
+      {...props}
+    />
+  ));
+  OptimizedImage.displayName = "OptimizedImage";
+
   const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
         onPress={() => router.push(`/izvodjac/${item.id}`)}
       >
-        <Image
-          source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/60' }}
+        <OptimizedImage
+          uri={item.putanjaProfilneSlike}
           style={[styles.itemImage, styles.artistImage]}
         />
         <View style={styles.itemInfo}>
@@ -472,47 +651,60 @@ const Biblioteka: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [router, t, handleUnfollow]);
+  ), [OptimizedImage, t, router, handleUnfollow]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     playAudio(song);
   }, [playAudio]);
 
-  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
-    <View style={styles.itemCard}>
-      <TouchableOpacity 
-        style={styles.itemHeader}
-        onPress={() => router.push(`/pjesma/${item.id}`)}
-      >
-        <Image
-          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
-          style={styles.itemImage}
-        />
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {item.naziv}
-          </Text>
-          <Text style={styles.itemSubtitle} numberOfLines={1}>
-            {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-          </Text>
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
+    console.log('Rendering song item:', {
+      id: item.id,
+      naziv: item.naziv,
+      putanjaSlika: item.putanjaSlika,
+      putanjaAudio: item.putanjaAudio,
+      korisnik: item.korisnik,
+      korisnikID: item.korisnikID
+    });
+    
+    return (
+      <View style={styles.itemCard}>
+        <TouchableOpacity 
+          style={styles.itemHeader}
+          onPress={() => router.push(`/pjesma/${item.id}`)}
+        >
+          <OptimizedImage
+            uri={item.putanjaSlika}
+            style={styles.itemImage}
+          />
+          <View style={styles.itemInfo}>
+            <Text style={styles.itemTitle} numberOfLines={1}>
+              {item.naziv || 'Unknown Song'}
+            </Text>
+            <Text style={styles.itemSubtitle} numberOfLines={1}>
+              {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <View style={styles.itemActions}>
+          {item.putanjaAudio && (
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handlePlaySong(item)}
+            >
+              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.actionButton, styles.likeButton]}
+            onPress={() => handleUnlikeSong(item.id)}
+          >
+            <MaterialIcons name="favorite" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-      <View style={styles.itemActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handlePlaySong(item)}
-        >
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.likeButton]}
-          onPress={() => handleUnlikeSong(item.id)}
-        >
-          <MaterialIcons name="favorite" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-    </View>
-  ), [router, t, handlePlaySong, handleUnlikeSong]);
+    );
+  }, [OptimizedImage, t, router, handlePlaySong, handleUnlikeSong]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <View style={styles.itemCard}>
@@ -520,8 +712,8 @@ const Biblioteka: React.FC = React.memo(() => {
         style={styles.itemHeader}
         onPress={() => router.push(`/album/${item.id}`)}
       >
-        <Image
-          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
+        <OptimizedImage
+          uri={item.putanjaSlika}
           style={styles.itemImage}
         />
         <View style={styles.itemInfo}>
@@ -548,7 +740,7 @@ const Biblioteka: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [router, t, handlePlayAlbum, handleUnlikeAlbum]);
+  ), [OptimizedImage, t, router, handlePlayAlbum, handleUnlikeAlbum]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <View style={styles.itemCard}>
@@ -556,8 +748,8 @@ const Biblioteka: React.FC = React.memo(() => {
         style={styles.itemHeader}
         onPress={() => router.push(`/playlista/${item.id}`)}
       >
-        <Image
-          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
+        <OptimizedImage
+          uri={item.putanjaSlika}
           style={styles.itemImage}
         />
         <View style={styles.itemInfo}>
@@ -584,10 +776,21 @@ const Biblioteka: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [router, t, handlePlayPlaylist, handleUnlikePlaylist]);
+  ), [OptimizedImage, t, router, handlePlayPlaylist, handleUnlikePlaylist]);
 
-  // Memoize current data and empty state
-  const currentData = useMemo(() => data[activeFilter], [data, activeFilter]);
+  const getCurrentQuery = () => {
+    switch (activeFilter) {
+      case 'prateci': return followingQuery;
+      case 'pjesme': return songsQuery;
+      case 'albumi': return albumsQuery;
+      case 'playliste': return playlistsQuery;
+      default: return followingQuery;
+    }
+  };
+
+  const currentQuery = getCurrentQuery();
+  const isLoading = currentQuery.isLoading;
+  const isError = currentQuery.isError;
   
   const emptyStateConfig = useMemo(() => {
     const activeFilterData = filters.find(f => f.key === activeFilter);
@@ -609,12 +812,24 @@ const Biblioteka: React.FC = React.memo(() => {
   }, [activeFilter, filters, t]);
 
   const renderContent = useMemo(() => {
-    // Show loading indicator if current filter is not loaded yet
-    if (!loadedFilters.has(activeFilter) && !loading) {
+    const currentData = currentQuery.data || [];
+
+    if (isLoading) {
+      return <SkeletonLoader />;
+    }
+
+    if (isError) {
       return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#b91d95" />
-          <Text style={styles.loadingText}>{t('loading')}</Text>
+        <View style={styles.errorContainer}>
+          <MaterialIcons name="error" size={64} color="#ff6b6b" style={styles.errorIcon} />
+          <Text style={styles.errorTitle}>{t('error_loading_data')}</Text>
+          <Text style={styles.errorSubtitle}>{t('check_connection_retry')}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => currentQuery.refetch()}
+          >
+            <Text style={styles.retryButtonText}>{t('retry')}</Text>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -638,62 +853,49 @@ const Biblioteka: React.FC = React.memo(() => {
       );
     }
 
-    switch (activeFilter) {
-      case 'prateci':
-        return (
-          <FlatList<Korisnik>
-            data={data.prateci}
-            keyExtractor={(item) => `prateci-${item.id}`}
-            renderItem={renderArtistItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          />
-        );
-      case 'pjesme':
-        return (
-          <FlatList<Pjesma>
-            data={data.pjesme}
-            keyExtractor={(item) => `pjesme-${item.id}`}
-            renderItem={renderSongItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          />
-        );
-      case 'albumi':
-        return (
-          <FlatList<Album>
-            data={data.albumi}
-            keyExtractor={(item) => `albumi-${item.id}`}
-            renderItem={renderAlbumItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          />
-        );
-      case 'playliste':
-        return (
-          <FlatList<Playlista>
-            data={data.playliste}
-            keyExtractor={(item) => `playliste-${item.id}`}
-            renderItem={renderPlaylistItem}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          />
-        );
-      default:
-        return null;
-    }
-  }, [loadedFilters, activeFilter, loading, currentData, data, emptyStateConfig, renderArtistItem, renderSongItem, renderAlbumItem, renderPlaylistItem, t]);
+    const renderItem = () => {
+      switch (activeFilter) {
+        case 'prateci': return renderArtistItem;
+        case 'pjesme': return renderSongItem;
+        case 'albumi': return renderAlbumItem;
+        case 'playliste': return renderPlaylistItem;
+        default: return renderArtistItem;
+      }
+    };
 
-  // Memoize refresh control
+    return (
+      <FlatList
+        data={currentData as any}
+        keyExtractor={(item, index) => `${activeFilter}-${item.id || `fallback-${index}`}`}
+        renderItem={renderItem() as any}
+        scrollEnabled={false}
+        showsVerticalScrollIndicator={false}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={10}
+        removeClippedSubviews={true}
+        getItemLayout={(data, index) => ({
+          length: 80, 
+          offset: 80 * index,
+          index,
+        })}
+      />
+    );
+  }, [isLoading, isError, activeFilter, emptyStateConfig, currentQuery, renderArtistItem, renderSongItem, renderAlbumItem, renderPlaylistItem, t]);
+
+  const onRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: [activeFilter.replace('e', 'ed'), korisnik?.id] });
+  }, [activeFilter, korisnik?.id]);
+
   const refreshControl = useMemo(() => (
     <RefreshControl
-      refreshing={refreshing}
+      refreshing={currentQuery.isFetching && !isLoading}
       onRefresh={onRefresh}
       tintColor="#b91d95"
     />
-  ), [refreshing, onRefresh]);
+  ), [currentQuery.isFetching, isLoading, onRefresh]);
 
-  if (loading) {
+  if (!korisnik) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#b91d95" />
@@ -712,7 +914,6 @@ const Biblioteka: React.FC = React.memo(() => {
         <View style={styles.content}>
           <Text style={styles.title}>{t('my_library')}</Text>
 
-          {/* Filters */}
           <FlatList
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -720,9 +921,12 @@ const Biblioteka: React.FC = React.memo(() => {
             data={filters}
             keyExtractor={(item) => item.key}
             renderItem={renderFilterButton}
+            initialNumToRender={4}
+            maxToRenderPerBatch={4}
+            windowSize={5}
+            removeClippedSubviews={true}
           />
 
-          {/* Content */}
           {renderContent}
         </View>
       </ScrollView>
@@ -733,3 +937,4 @@ const Biblioteka: React.FC = React.memo(() => {
 Biblioteka.displayName = "Biblioteka";
 
 export default Biblioteka;
+

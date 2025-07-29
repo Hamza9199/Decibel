@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
-import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -19,7 +18,8 @@ import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediProfil.styles';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
 
 const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -39,7 +39,6 @@ const UrediProfil: React.FC = React.memo(() => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  const queryClient = useQueryClient();
 
   const loadUserFromStorage = useCallback(async () => {
     try {
@@ -83,7 +82,7 @@ const UrediProfil: React.FC = React.memo(() => {
     return () => {
       isMounted = false;
     };
-  }, []); // Remove loadUserFromStorage from dependencies to prevent infinite loop
+  }, []); 
 
   const userQuery = useQuery({
     queryKey: ['user', korisnikID],
@@ -93,8 +92,16 @@ const UrediProfil: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!korisnikID,
-    staleTime: 10 * 60 * 1000
+    staleTime: 10 * 60 * 1000,
+    gcTime: 0, // Odmah ukloni iz cache kada nema aktivnih observera
   });
+
+  // Cleanup na unmount
+  useEffect(() => {
+    return () => {
+      queryClient.removeQueries({ queryKey: ['user', korisnikID] });
+    };
+  }, [queryClient, korisnikID]);
 
   useEffect(() => {
     if (userQuery.isError) {

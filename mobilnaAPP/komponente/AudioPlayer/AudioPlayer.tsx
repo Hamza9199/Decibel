@@ -12,7 +12,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Audio, AVPlaybackStatus } from 'expo-av';
 import { Slider } from '@miblanchard/react-native-slider';
 import { useTranslation } from 'react-i18next';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -21,6 +21,8 @@ import { API_BASE } from '@/config/api';
 import { styles } from './AudioPlayer.styles';
 import { useAudio } from '@/context/AudioContext';
 import * as FileSystem from 'expo-file-system';
+import { queryClient } from '@/config/queryClient';
+
 
 interface AudioPlayerProps {
   id?: number;
@@ -48,7 +50,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   onExpand,
 }) => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const audioCtx = useAudio();
 
   // ...existing state...
@@ -78,14 +79,15 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   const [showSpeedModal, setShowSpeedModal] = useState(false);
   const [statistikaSent, setStatistikaSent] = useState(false);
 
-  // React Query: Get user data
   const { data: korisnik } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
       const userData = await AsyncStorage.getItem('korisnik');
       return userData ? JSON.parse(userData) : null;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
+        gcTime: 30 * 60 * 1000, 
+
   });
 
   // React Query: Get all songs
@@ -95,10 +97,11 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       const response = await axios.get(`${API_BASE}/pjesme/`);
       return response.data as Pjesma[];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
+        gcTime: 30 * 60 * 1000, 
+
   });
 
-  // React Query: Get playlists for current user
   const { data: playlists = [] } = useQuery({
     queryKey: ['playlists', korisnik?.id],
     queryFn: async () => {
@@ -108,9 +111,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     },
     enabled: !!korisnik?.id,
     staleTime: 2 * 60 * 1000,
+        gcTime: 30 * 60 * 1000, 
+
   });
 
-  // React Query: Get liked songs for current user
   const { data: likedSongs = [] } = useQuery({
     queryKey: ['likedSongs', korisnik?.id],
     queryFn: async () => {
@@ -120,9 +124,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     },
     enabled: !!korisnik?.id,
     staleTime: 2 * 60 * 1000,
+        gcTime: 30 * 60 * 1000, 
+
   });
 
-  // React Query: Get current song owner
   const { data: songOwner } = useQuery({
     queryKey: ['user', currentSong?.korisnikID],
     queryFn: async () => {
@@ -134,7 +139,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Mutations
   const likeMutation = useMutation({
     mutationFn: async ({ action, pjesmaID }: { action: 'like' | 'unlike', pjesmaID: number }) => {
       if (action === 'like') {
@@ -175,10 +179,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
   const addToHistoryMutation = useMutation({
     mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string, pjesmaID: number }) => {
-      // Delete existing entry first
       await axios.delete(`${API_BASE}/historija/obrisi/${korisnikID}/${pjesmaID}`).catch(() => {});
       
-      // Add new entry
       return axios.post(`${API_BASE}/historija/`, {
         korisnikID,
         pjesmaID,
@@ -194,7 +196,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
   const statistikaMutation = useMutation({
     mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string, pjesmaID: number }) => {
-      // Add statistics
       await axios.post(`${API_BASE}/statistika/`, {
         korisnikID,
         pjesmaID,
@@ -203,7 +204,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         zadnjePustanje: new Date().toISOString(),
       }).catch(() => {});
 
-      // Update song play count
       if (currentSong) {
         await axios.put(`${API_BASE}/pjesme/${pjesmaID}`, {
           ...currentSong,
@@ -213,7 +213,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     },
   });
 
-  // Memoized values
   const playlistIdx = useMemo(
     () => audioCtx.audioState.playlistIdx ?? -1,
     [audioCtx.audioState.playlistIdx]
@@ -236,17 +235,14 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     );
   }, [likedSongs, pjesma?.id, korisnik?.id]);
 
-  // Update liked state when isLiked changes
   useEffect(() => {
     setLiked(isLiked);
   }, [isLiked]);
 
-  // Update current owner when songOwner changes
   useEffect(() => {
     setCurrentOwner(songOwner || null);
   }, [songOwner]);
 
-  // Initialize audio
   useEffect(() => {
     Audio.setAudioModeAsync({
       allowsRecordingIOS: false,
@@ -263,12 +259,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     };
   }, [sound]);
 
-  // Check subscription - TEMPORARILY DISABLED
   useEffect(() => {
-    setPretplataValid(true); // Temporarily set to true for testing
+    setPretplataValid(true); 
   }, []);
 
-  // Dodaj useEffect za repeatOne (isLooping)
   useEffect(() => {
     if (sound && isLoaded) {
       sound.setIsLoopingAsync(repeatOne);
@@ -290,7 +284,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
 
-  // Update the onPlaybackStatusUpdate callback
   const onPlaybackStatusUpdate = useCallback((status: AVPlaybackStatus) => {
     if (status.isLoaded) {
       setProgress(status.positionMillis / 1000);
@@ -299,31 +292,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
       if (!isLoaded) {
         setIsLoaded(true);
-        console.log('Sound loaded via status update');
       }
 
       if ('didJustFinish' in status && status.didJustFinish) {
-        console.log('Playback finished');
         handleEnded();
       }
     } else {
       if (isLoaded) {
-        console.log('Sound unloaded');
         setIsLoaded(false);
       }
       if ('error' in status && status.error) {
-        console.error('Audio playback error:', status.error);
         setIsLoaded(false);
         setPlaying(false);
       }
     }
   }, [handleEnded, isLoaded]);
 
-  // Load audio when src changes
   const loadAudio = useCallback(async () => {
     if (!src || isLoading) return;
 
-    // Don't reload if it's the same source and already loaded
     if (src === lastLoadedSrc && isLoaded && sound) {
       return;
     }
@@ -335,17 +322,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       
       console.log('Loading audio:', src);
       
-      // Clean up previous sound
       if (sound) {
-        console.log('Unloading previous sound');
         await sound.unloadAsync();
         setSound(null);
       }
 
-      // Add a small delay to ensure cleanup is complete
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Create new sound with proper error handling
       const soundConfig = {
         uri: src,
         headers: {
@@ -373,7 +356,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       setSound(newSound);
       setLastLoadedSrc(src);
       
-      // Wait for the sound to be fully loaded before attempting to play
       let loadCheckAttempts = 0;
       const maxLoadAttempts = 20;
       
@@ -422,7 +404,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       setIsLoaded(false);
       setPlaying(false);
       
-      // Retry logic for network issues
       if (loadingAttempts < 3) {
         console.log(`Retrying audio load (attempt ${loadingAttempts + 1})`);
         setTimeout(() => {
@@ -448,7 +429,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       const song = globalPlaylist[playlistIdx];
       setCurrentSong(song);
 
-      // Only call playPlaylist if playlistIdx or playlistRepeat actually changed
       if (
         lastPlaylistIdxRef.current !== playlistIdx ||
         lastPlaylistRepeatRef.current !== playlistRepeat
@@ -463,7 +443,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [playlistIdx, globalPlaylist, playlistRepeat, audioCtx]);
 
-  // Set currentSong from props when not in playlist mode
   useEffect(() => {
     if (globalPlaylist.length === 0 && visible && src && id) {
       setCurrentSong({
@@ -478,10 +457,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [visible, src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
 
-  // Load audio when src changes and subscription is valid
   useEffect(() => {
     if (src && pretplataValid && visible) {
-      // Reset loading attempts when src changes
       if (src !== lastLoadedSrc) {
         setLoadingAttempts(0);
       }
@@ -489,13 +466,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [src, pretplataValid, visible, loadAudio, lastLoadedSrc]);
 
-  // Improved play/pause handler
   const handlePlayPause = useCallback(async () => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
-      // Playlist mode
       setPlaying(prev => !prev);
     } else if (globalPlaylist.length === 0 && src) {
-      // Single song mode
       setPlaying(prev => !prev);
     }
 
@@ -547,32 +521,25 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     if (!sound || !isLoaded || isLoading) return;
 
     try {
-      // Get current status
       const status = await sound.getStatusAsync();
       if (!status.isLoaded) return;
 
-      // Calculate seek position in milliseconds
       const seekPosition = Math.max(0, Math.min(value, status.durationMillis ? status.durationMillis / 1000 : 0)) * 1000;
       
-      // Remember if we were playing
       const wasPlaying = status.isPlaying;
       
-      // Seek to position
       await sound.setPositionAsync(seekPosition);
       
-      // If we were playing, resume playback
       if (wasPlaying) {
         await sound.playAsync();
       }
       
-      // Update progress state
       setProgress(seekPosition / 1000);
     } catch (error) {
       console.error('Error seeking audio:', error);
     }
   }, [sound, isLoaded, isLoading]);
 
-  // Progress bar seeking handlers
   const handleProgressSeekStart = useCallback(() => {
     setIsSeekingProgress(true);
   }, []);
@@ -588,7 +555,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     setIsSeekingProgress(false);
   }, [handleSeek]);
 
-  // Volume control handlers
   const handleVolumeSeekStart = useCallback(() => {
     setIsSeekingVolume(true);
   }, []);
@@ -612,7 +578,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     setIsSeekingVolume(false);
   }, [sound, isLoaded, isLoading, muted]);
 
-  // Playback rate change handler
   const handleRateChange = useCallback(async (rate: number) => {
     setPlaybackRate(rate);
     if (sound && isLoaded && !isLoading) {
@@ -624,7 +589,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [sound, isLoaded, isLoading]);
 
-  // Mute toggle handler
   const handleMuteToggle = useCallback(async () => {
     if (!sound || !isLoaded || isLoading) return;
     try {
@@ -658,12 +622,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     if (!pjesma || !korisnik?.id || likeMutation.isPending) return;
     
     const action = liked ? 'unlike' : 'like';
-    setLiked(!liked); // Optimistic update
+    setLiked(!liked); 
     
     try {
       await likeMutation.mutateAsync({ action, pjesmaID: pjesma.id });
-    } catch (error) {
-      setLiked(liked); // Revert on error
+    } catch {
+      setLiked(liked); 
     }
   }, [pjesma, korisnik?.id, liked, likeMutation]);
 
@@ -678,7 +642,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
       }
     } catch {
-      // Silent fail
     }
   }, []);
 
@@ -748,7 +711,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [pjesma, korisnik?.id, addToPlaylistMutation]);
 
-  // Add to history when song changes - memoized to prevent infinite loops
   const addToHistoryRef = useRef<{ korisnikID: string; pjesmaID: number } | null>(null);
   
   useEffect(() => {
@@ -756,7 +718,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     
     const currentParams = { korisnikID: korisnik.id, pjesmaID: pjesma.id };
     
-    // Only call mutation if parameters have actually changed
     if (!addToHistoryRef.current || 
         addToHistoryRef.current.korisnikID !== currentParams.korisnikID ||
         addToHistoryRef.current.pjesmaID !== currentParams.pjesmaID) {
@@ -764,6 +725,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       addToHistoryRef.current = currentParams;
       addToHistoryMutation.mutate(currentParams);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pjesma?.id, korisnik?.id, src]);
 
   // Add statistics after 30 seconds of listening - memoized to prevent infinite loops
@@ -782,7 +744,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
     const currentParams = { korisnikID: korisnik.id, pjesmaID: pjesma.id, sent: true };
     
-    // Only call mutation if not already sent for this song
     if (!statistikaRef.current || 
         statistikaRef.current.korisnikID !== currentParams.korisnikID ||
         statistikaRef.current.pjesmaID !== currentParams.pjesmaID ||
@@ -792,9 +753,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       statistikaMutation.mutate({ korisnikID: currentParams.korisnikID, pjesmaID: currentParams.pjesmaID });
       setStatistikaSent(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [progress, pjesma?.id, korisnik?.id, statistikaSent, src, playing]);
 
-  // Reset statistics when song changes
   useEffect(() => {
     setStatistikaSent(false);
     if (statistikaRef.current) {
@@ -809,14 +770,12 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
-  // Add handler to close dropdown when touching outside
   const handleOutsidePress = useCallback(() => {
     if (showSpeedModal) {
       setShowSpeedModal(false);
     }
   }, [showSpeedModal]);
 
-  // Memoized playlist render item
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <TouchableOpacity
       style={styles.playlistItem}
@@ -826,10 +785,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     </TouchableOpacity>
   ), [handleAddToPlaylist]);
 
-  // Memoized speed options
   const speedOptions = useMemo(() => [0.5, 0.75, 1, 1.25, 1.5, 2], []);
 
-  // Subscription check UI - TEMPORARILY DISABLED
   if (pretplataValid === false) {
     if (showNoSubMsg) {
       return (
@@ -857,13 +814,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
   if (!visible && !minimized) return null;
 
-  // Minimized player
   if (minimized) {
     return (
       <TouchableOpacity style={styles.miniPlayer} onPress={onExpand}>
         <Image
           source={{ uri: currentSong?.putanjaGif || currentSong?.putanjaSlika || 'https://via.placeholder.com/50' }}
           style={styles.miniPlayerImage}
+            cachePolicy="memory-disk"
         />
         <Text style={styles.miniPlayerText} numberOfLines={1}>
           {currentSong?.naziv || t('current_song')}
@@ -873,7 +830,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     );
   }
 
-  // Main player - redesigned to match mobile web layout
   return (
     <TouchableOpacity 
       style={styles.audioPlayerBar} 
@@ -884,7 +840,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         <MaterialIcons name="close" size={20} color="#ffe6ec" />
       </TouchableOpacity>
 
-      {/* Top Row - Image, Meta, and Like Button */}
       <View style={styles.topRow}>
         <Image
           source={{ uri: currentSong?.putanjaGif || currentSong?.putanjaSlika || 'https://via.placeholder.com/150' }}
@@ -910,7 +865,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
           )}
         </View>
 
-        {/* Like Button positioned to the right */}
         <TouchableOpacity 
           onPress={handleLike}
           disabled={!isLoaded || isLoading || !korisnik?.id || likeMutation.isPending}
@@ -932,7 +886,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         </TouchableOpacity>
       </View>
 
-      {/* Controls Row - Play Button and Progress Bar */}
       <View style={styles.controlsRow}>
         <TouchableOpacity 
           style={[styles.controlBtn, (!isLoaded || isLoading) && styles.controlBtnDisabled]} 
@@ -963,10 +916,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         </View>
       </View>
 
-      {/* Bottom Row - All Controls */}
       <View style={styles.bottomRow}>
         <View style={styles.leftControls}>
-          {/* Volume Controls */}
           <TouchableOpacity 
             onPress={handleMuteToggle}
             disabled={!isLoaded || isLoading}
@@ -1020,7 +971,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             />
           </TouchableOpacity>
 
-          {/* Add to Playlist */}
           <TouchableOpacity 
             onPress={() => setShowPlaylistModal(true)}
             disabled={!isLoaded || isLoading}
@@ -1033,7 +983,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             />
           </TouchableOpacity>
 
-          {/* Playback Speed Select */}
           <View style={styles.speedContainer}>
             <TouchableOpacity 
               onPress={() => setShowSpeedModal(true)}
@@ -1053,7 +1002,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
               />
             </TouchableOpacity>
 
-            {/* Speed Dropdown */}
             {showSpeedModal && (
               <View style={styles.speedDropdown}>
                 {speedOptions.map((rate) => (
@@ -1085,7 +1033,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
         </View>
       </View>
 
-      {/* Playlist Modal */}
       <Modal
         visible={showPlaylistModal}
         transparent

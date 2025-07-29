@@ -17,8 +17,9 @@ import Header from '@/komponente/Header/Header';
 import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Home.styles';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-
+import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 const Home: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -27,14 +28,26 @@ const Home: React.FC = React.memo(() => {
   const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
   
   const { playAudio, playPlaylist } = useAudio();
-  const queryClient = useQueryClient();
+
+   useScreenCleanup({
+    queryKeys: [
+      ['songs'],
+      ['albums'], 
+      ['playlists'],
+      ['artists'],
+      ['playlistSongs']
+    ],
+    stateCleanup: () => {
+      setActiveSongId(null);
+      setPlayingPlaylistId(null);
+    }
+  });
 
   const getRandomItems = useCallback(<T,>(arr: T[], count: number): T[] => {
     const shuffled = [...arr].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, count);
   }, []);
 
-  // Query for songs data
   const songsQuery = useQuery({
     queryKey: ['songs'],
     queryFn: async () => {
@@ -42,10 +55,10 @@ const Home: React.FC = React.memo(() => {
       const approvedSongs = response.data.filter((s: Pjesma) => s.odobreno);
       return getRandomItems(approvedSongs, 20);
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000, 
   });
 
-  // Query for albums data
   const albumsQuery = useQuery({
     queryKey: ['albums'],
     queryFn: async () => {
@@ -53,10 +66,11 @@ const Home: React.FC = React.memo(() => {
       const approvedAlbums = response.data.filter((a: Album) => a.odobreno);
       return getRandomItems(approvedAlbums, 20);
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000, 
+
   });
 
-  // Query for playlists data
   const playlistsQuery = useQuery({
     queryKey: ['playlists'],
     queryFn: async () => {
@@ -64,7 +78,9 @@ const Home: React.FC = React.memo(() => {
       const publicPlaylists = response.data.filter((p: Playlista) => p.javno);
       return getRandomItems(publicPlaylists, 20);
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000, 
+
   });
 
   // Query for artists data
@@ -77,10 +93,11 @@ const Home: React.FC = React.memo(() => {
       );
       return getRandomItems(activeArtists, 20);
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
+        gcTime: 30 * 60 * 1000, 
+
   });
 
-  // Query for playlist songs when playing playlist
   const playlistSongsQuery = useQuery({
     queryKey: ['playlistSongs', playingPlaylistId],
     queryFn: async () => {
@@ -99,10 +116,11 @@ const Home: React.FC = React.memo(() => {
         .filter(s => s && s.putanjaAudio && s.odobreno);
     },
     enabled: !!playingPlaylistId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+        gcTime: 30 * 60 * 1000, 
+
   });
 
-  // Handle playlist songs query result
   useEffect(() => {
     if (playlistSongsQuery.data && playingPlaylistId) {
       if (playlistSongsQuery.data.length === 0) {
@@ -128,7 +146,7 @@ const Home: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient]);
+  }, []);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -187,6 +205,7 @@ const Home: React.FC = React.memo(() => {
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
           style={styles.cardImage}
+          cachePolicy="memory-disk"
         />
         {item.putanjaAudio && (
           <TouchableOpacity 
@@ -226,6 +245,7 @@ const Home: React.FC = React.memo(() => {
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
           style={styles.cardImage}
+          cachePolicy="memory-disk"
         />
         <TouchableOpacity 
           style={styles.playButton} 
@@ -262,6 +282,7 @@ const Home: React.FC = React.memo(() => {
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
           style={styles.cardImage}
+          cachePolicy="memory-disk"
         />
         <TouchableOpacity 
           style={styles.playButton} 
@@ -298,6 +319,7 @@ const Home: React.FC = React.memo(() => {
         <Image
           source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/150' }}
           style={styles.cardImage}
+          cachePolicy="memory-disk"
         />
       </View>
       <Text style={styles.cardTitle} numberOfLines={1}>
@@ -359,6 +381,10 @@ const Home: React.FC = React.memo(() => {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}
+              initialNumToRender={5} 
+              maxToRenderPerBatch={5} 
+              windowSize={5} 
+              removeClippedSubviews={true} 
             />
           </View>
 
@@ -371,6 +397,10 @@ const Home: React.FC = React.memo(() => {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}
+              initialNumToRender={5} 
+              maxToRenderPerBatch={5} 
+              windowSize={5} 
+              removeClippedSubviews={true} 
             />
           </View>
 
@@ -383,6 +413,10 @@ const Home: React.FC = React.memo(() => {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}
+              initialNumToRender={5} 
+              maxToRenderPerBatch={5} 
+              windowSize={5} 
+              removeClippedSubviews={true} 
             />
           </View>
 
@@ -395,6 +429,10 @@ const Home: React.FC = React.memo(() => {
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}
+              initialNumToRender={5} 
+              maxToRenderPerBatch={5} 
+              windowSize={5} 
+              removeClippedSubviews={true} 
             />
           </View>
         </View>
@@ -406,5 +444,5 @@ const Home: React.FC = React.memo(() => {
 Home.displayName = "Home";
 
 export default Home;
-
+            
 

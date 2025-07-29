@@ -12,12 +12,13 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { KorisnikPretplata, Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pretplata.styles';
+import { queryClient } from '@/config/queryClient';
 
 const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -26,7 +27,6 @@ const PretplataScreen: React.FC = React.memo(() => {
   const [kupovinaLoading, setKupovinaLoading] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  const queryClient = useQueryClient();
 
   const getKorisnikID = useCallback(async (): Promise<string> => {
     try {

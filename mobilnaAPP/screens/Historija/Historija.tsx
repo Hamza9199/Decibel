@@ -21,7 +21,8 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Historija.styles';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/config/queryClient';
 
 const Historija: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -29,7 +30,6 @@ const Historija: React.FC = React.memo(() => {
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  const queryClient = useQueryClient();
 
   const loadUserData = useCallback(async () => {
     try {

@@ -58,6 +58,7 @@ const Omiljeno: React.FC = () => {
     if (korisnikID) {
       loadData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [korisnikID, tip]);
 
   const loadUserData = async () => {
@@ -107,12 +108,10 @@ const Omiljeno: React.FC = () => {
       setKorisnici(korisniciData);
       setPlaylists(playlistsData);
 
-      // Filter favorites for current user
       setOmiljenePjesme((kpData || []).filter((k: KorisnikPjesma) => k.korisnikID === korisnikID));
       setOmiljeniAlbumi((kaData || []).filter((k: KorisnikAlbum) => k.korisnikID === korisnikID));
       setOmiljenePlayliste((kplData || []).filter((k: KorisnikPlaylista) => k.korisnikID === korisnikID));
 
-      // Create like maps
       const songLikeMap: { [pjesmaId: number]: boolean } = {};
       (kpData || []).filter((v: KorisnikPjesma) => v.korisnikID === korisnikID).forEach((v: KorisnikPjesma) => {
         songLikeMap[v.pjesmaID] = true;
@@ -151,7 +150,6 @@ const Omiljeno: React.FC = () => {
       return;
     }
     
-    // Play song logic
     console.log('Playing song:', p.naziv);
   };
 
@@ -162,7 +160,6 @@ const Omiljeno: React.FC = () => {
       return;
     }
     
-    // Play first song
     handlePlay(albumSongs[0]);
   };
 
@@ -176,7 +173,6 @@ const Omiljeno: React.FC = () => {
         return;
       }
       
-      // Get first song details
       const firstSongRes = await axios.get(`${API_BASE}/pjesme/${songIds[0]}`);
       const firstSong = firstSongRes.data;
       
@@ -509,7 +505,6 @@ const Omiljeno: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Add to Playlist Modal */}
       <Modal
         visible={showPlaylistModal !== null}
         transparent

@@ -19,6 +19,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Album, Pjesma, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Album.styles';
@@ -32,7 +33,6 @@ const AlbumScreen: React.FC = React.memo(() => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
 
-  // Load user data with useQuery
   const { data: userData } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
@@ -42,10 +42,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       }
       return null;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Load album data with useQuery
   const { data: album, isLoading: albumLoading } = useQuery({
     queryKey: ['album', albumId],
     queryFn: async () => {
@@ -54,10 +53,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       return albumRes.data;
     },
     enabled: !!albumId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Load songs for this album with useQuery
   const { data: songs = [] } = useQuery({
     queryKey: ['album-songs', albumId],
     queryFn: async () => {
@@ -69,10 +67,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       return albumSongs;
     },
     enabled: !!albumId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Load user's playlists with useQuery
   const { data: playlists = [] } = useQuery({
     queryKey: ['playlists', userData?.id],
     queryFn: async () => {
@@ -81,10 +78,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       return playlistsRes.data || [];
     },
     enabled: !!userData?.id,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Check if user liked this album with useQuery
   const { data: albumLiked = false } = useQuery({
     queryKey: ['album-like', albumId, userData?.id],
     queryFn: async () => {
@@ -94,10 +90,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       return !!albumLikes.find(v => v.korisnikID === userData.id && String(v.albumID) === String(albumId));
     },
     enabled: !!albumId && !!userData?.id,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000, 
   });
 
-  // Load user's song likes with useQuery
   const { data: songLikes = {} } = useQuery({
     queryKey: ['song-likes', userData?.id],
     queryFn: async () => {
@@ -111,10 +106,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       return map;
     },
     enabled: !!userData?.id,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 30 * 1000, 
   });
 
-  // Album like/unlike mutation
   const albumLikeMutation = useMutation({
     mutationFn: async ({ action, albumId, userId }: { action: 'like' | 'unlike', albumId: string, userId: string }) => {
       if (action === 'like') {
@@ -139,7 +133,6 @@ const AlbumScreen: React.FC = React.memo(() => {
     },
   });
 
-  // Song like/unlike mutation
   const songLikeMutation = useMutation({
     mutationFn: async ({ action, songId, userId }: { action: 'like' | 'unlike', songId: number, userId: string }) => {
       if (action === 'like') {
@@ -164,7 +157,6 @@ const AlbumScreen: React.FC = React.memo(() => {
     },
   });
 
-  // Add to playlist mutation
   const addToPlaylistMutation = useMutation({
     mutationFn: async ({ songId, playlistId }: { songId: number, playlistId: number }) => {
       return axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
@@ -194,7 +186,7 @@ const AlbumScreen: React.FC = React.memo(() => {
     queryClient.invalidateQueries({ queryKey: ['album-songs', albumId] });
     queryClient.invalidateQueries({ queryKey: ['album-like', albumId, userData?.id] });
     queryClient.invalidateQueries({ queryKey: ['song-likes', userData?.id] });
-  }, [queryClient, albumId, userData?.id]);
+  }, [albumId, userData?.id]);
 
   useEffect(() => {
     if (userData?.id && albumId) {
@@ -203,7 +195,7 @@ const AlbumScreen: React.FC = React.memo(() => {
       queryClient.invalidateQueries({ queryKey: ['album-like', albumId, userData.id] });
       queryClient.invalidateQueries({ queryKey: ['song-likes', userData.id] });
     }
-  }, [userData, albumId, queryClient]);
+  }, [userData, albumId]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -211,7 +203,6 @@ const AlbumScreen: React.FC = React.memo(() => {
       return;
     }
     
-    // Dispatch audio play event
     console.log('Playing song:', song.naziv);
   }, [t]);
 
@@ -221,7 +212,6 @@ const AlbumScreen: React.FC = React.memo(() => {
       return;
     }
     
-    // Play first song
     const firstSong = songs[0];
     if (firstSong?.putanjaAudio) {
       handlePlaySong(firstSong);
@@ -253,9 +243,6 @@ const AlbumScreen: React.FC = React.memo(() => {
     addToPlaylistMutation.mutate({ songId: selectedSong.id, playlistId });
   }, [selectedSong, addToPlaylistMutation]);
 
-  const handleRepeatToggle = useCallback(() => {
-    setRepeatAll(!repeatAll);
-  }, [repeatAll]);
 
   const handleModalClose = useCallback(() => {
     setShowPlaylistModal(false);
@@ -316,13 +303,11 @@ const AlbumScreen: React.FC = React.memo(() => {
     </View>
   ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, songLikes, formatDuration, t]);
 
-  // Memoize album meta information
   const albumMeta = useMemo(() => [
     { label: t('songs'), value: songs.length },
     { label: t('likes'), value: album?.brojLajkova || 0 },
   ], [songs.length, album?.brojLajkova, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -361,7 +346,6 @@ const AlbumScreen: React.FC = React.memo(() => {
         refreshControl={refreshControl}
       >
         <View style={styles.content}>
-          {/* Album Header */}
           <View style={styles.albumMain}>
             <View style={styles.albumImageWrap}>
               <Image
@@ -412,7 +396,6 @@ const AlbumScreen: React.FC = React.memo(() => {
             </View>
           </View>
 
-          {/* Songs Section */}
           <View style={styles.songsSection}>
             <Text style={styles.sectionTitle}>
               {t('songs_on_album') || 'Songs on Album'}
@@ -434,7 +417,6 @@ const AlbumScreen: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      {/* Add to Playlist Modal */}
       <Modal
         visible={showPlaylistModal}
         transparent

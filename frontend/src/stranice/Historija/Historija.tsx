@@ -38,7 +38,6 @@ const Historija: React.FC = () => {
       .get(`${API_BASE}/historija/`)
       .then((res) => {
         const sve: HistorijaSlusanja[] = res.data || [];
-        // Sortiraj po datumu od najnovije prema najstarijoj
         const sortirano = sve
           .filter((h) => h.korisnikID === korisnikID)
           .sort((a, b) =>
@@ -56,7 +55,6 @@ const Historija: React.FC = () => {
       .get(`${API_BASE}/playliste/`)
       .then((res) => setPlaylists(res.data || []))
       .catch(() => setPlaylists([]));
-    // Dohvati lajkove korisnika za pjesme
     axios
       .get(`${API_BASE}/korisnik_pjesma/`)
       .then((res) => {
@@ -69,7 +67,6 @@ const Historija: React.FC = () => {
     setLoading(false);
   }, [korisnikID]);
 
-  // Like/Unlike handler
   const handleLike = async (pjesmaId: number) => {
     if (!korisnikID || !pjesmaId) return;
     if (likeMap[pjesmaId]) {
@@ -85,7 +82,6 @@ const Historija: React.FC = () => {
     }
   };
 
-  // Dodavanje pjesme u playlistu
    const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
     try {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
@@ -99,14 +95,12 @@ const Historija: React.FC = () => {
     }
   };
 
-  // Prikupi sve pjesme iz historije (najnovije prve)
   const historijaPjesme = historija
-    // .sort((a, b) => new Date(b.kreiranDatumVrijeme || "").getTime() - new Date(a.kreiranDatumVrijeme || "").getTime()) // <-- više nije potrebno, već sortirano
     .map((h) => ({
       ...h,
       pjesma: pjesme.find((p) => p.id === h.pjesmaID),
     }))
-    .filter((h) => h.pjesma && h.pjesma.odobreno); // prikazuje samo odobrene pjesme
+    .filter((h) => h.pjesma && h.pjesma.odobreno); 
 
   if (loading) return <Loading />;
 
@@ -185,7 +179,6 @@ const Historija: React.FC = () => {
                           <rect x="8" y="18" width="28" height="8" />
                         </svg>
                       </button>
-                      {/* Modal za izbor playliste */}
                       {showPlaylistModal === h.pjesmaID && (
                         <div className={styles.modalOverlay} onClick={() => setShowPlaylistModal(null)}>
                           <div className={styles.modal} onClick={e => e.stopPropagation()}>

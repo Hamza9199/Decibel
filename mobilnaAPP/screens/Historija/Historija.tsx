@@ -44,7 +44,6 @@ const Historija: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -54,7 +53,6 @@ const Historija: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for history data
   const historyQuery = useQuery({
     queryKey: ['history', korisnikID],
     queryFn: async () => {
@@ -69,30 +67,27 @@ const Historija: React.FC = React.memo(() => {
         );
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Query for songs data
   const songsQuery = useQuery({
     queryKey: ['songs'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/pjesme/`);
       return response.data || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for playlists data
   const playlistsQuery = useQuery({
     queryKey: ['playlists'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/playliste/`);
       return response.data || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for user's song likes
   const likesQuery = useQuery({
     queryKey: ['likes', korisnikID],
     queryFn: async () => {
@@ -105,10 +100,9 @@ const Historija: React.FC = React.memo(() => {
       return map;
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Mutation for liking/unliking songs
   const likeMutation = useMutation({
     mutationFn: async ({ songId, isLiked }: { songId: number; isLiked: boolean }) => {
       if (!korisnikID) throw new Error('No user ID');
@@ -141,7 +135,6 @@ const Historija: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for adding song to playlist
   const addToPlaylistMutation = useMutation({
     mutationFn: async ({ songId, playlistId }: { songId: number; playlistId: number }) => {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
@@ -171,7 +164,7 @@ const Historija: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, korisnikID]);
+  }, [korisnikID]);
 
   const handleLikeSong = useCallback((songId: number) => {
     const isLiked = likesQuery.data?.[songId] || false;
@@ -184,7 +177,6 @@ const Historija: React.FC = React.memo(() => {
       return;
     }
     
-    // Play song logic here
     console.log('Playing song:', song.naziv);
   }, [t]);
 
@@ -205,7 +197,6 @@ const Historija: React.FC = React.memo(() => {
     });
   }, []);
 
-  // Memoize combined history with song data
   const historySongs = useMemo(() => {
     if (!historyQuery.data || !songsQuery.data) return [];
     
@@ -270,7 +261,6 @@ const Historija: React.FC = React.memo(() => {
     </View>
   ), [handlePlaySong, handleLikeSong, likesQuery.data, formatDate, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -315,7 +305,6 @@ const Historija: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      {/* Add to Playlist Modal */}
       <Modal
         visible={showPlaylistModal !== null}
         transparent

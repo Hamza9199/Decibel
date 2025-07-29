@@ -44,7 +44,6 @@ const SviAlbumi: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -54,33 +53,29 @@ const SviAlbumi: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for user albums
   const albumsQuery = useQuery({
     queryKey: ['userAlbums', korisnikID],
     queryFn: async () => {
       if (!korisnikID) return [];
       
       const response = await axios.get(`${API_BASE}/albumi/`);
-      // Filter albums by current user
       return (response.data || []).filter(
         (a: Album) => a.korisnikID === korisnikID
       );
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Query for songs data for album playback
   const songsQuery = useQuery({
     queryKey: ['songs'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/pjesme/`);
       return response.data || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Mutation for deleting albums
   const deleteAlbumMutation = useMutation({
     mutationFn: async (albumId: number) => {
       await axios.delete(`${API_BASE}/albumi/${albumId}`);
@@ -106,7 +101,7 @@ const SviAlbumi: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, korisnikID]);
+  }, [korisnikID]);
 
   const handlePlayAlbum = useCallback(async (albumId: number) => {
     try {
@@ -118,11 +113,9 @@ const SviAlbumi: React.FC = React.memo(() => {
         return;
       }
       
-      // Play first song from album
       const firstSong = albumSongs[0];
       if (firstSong?.putanjaAudio) {
         console.log('Playing album:', albumId, 'First song:', firstSong.naziv);
-        // Add audio player integration here
       }
     } catch (error) {
       console.error('Error playing album:', error);
@@ -157,7 +150,6 @@ const SviAlbumi: React.FC = React.memo(() => {
     router.push(`/izvodjac/${artistId}`);
   }, [router]);
 
-  // Memoize filtered albums
   const filtriraniAlbumi = useMemo(() => {
     const albumi = albumsQuery.data || [];
     return albumi.filter((a: Album) =>
@@ -165,7 +157,6 @@ const SviAlbumi: React.FC = React.memo(() => {
     );
   }, [albumsQuery.data, search]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}

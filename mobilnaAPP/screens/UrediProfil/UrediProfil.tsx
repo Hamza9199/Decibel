@@ -65,7 +65,6 @@ const UrediProfil: React.FC = React.memo(() => {
     }
   }, [t, router]);
 
-  // Replace useMemo with useEffect - this was likely causing the infinite loop
   useEffect(() => {
     let isMounted = true;
     
@@ -82,7 +81,7 @@ const UrediProfil: React.FC = React.memo(() => {
     return () => {
       isMounted = false;
     };
-  }, []); 
+  }, [loadUserFromStorage]); 
 
   const userQuery = useQuery({
     queryKey: ['user', korisnikID],
@@ -93,15 +92,14 @@ const UrediProfil: React.FC = React.memo(() => {
     },
     enabled: !!korisnikID,
     staleTime: 10 * 60 * 1000,
-    gcTime: 0, // Odmah ukloni iz cache kada nema aktivnih observera
+    gcTime: 0, 
   });
 
-  // Cleanup na unmount
   useEffect(() => {
     return () => {
       queryClient.removeQueries({ queryKey: ['user', korisnikID] });
     };
-  }, [queryClient, korisnikID]);
+  }, [korisnikID]);
 
   useEffect(() => {
     if (userQuery.isError) {
@@ -123,7 +121,6 @@ const UrediProfil: React.FC = React.memo(() => {
     }
   }, [userQuery.data]);
 
-  // Mutation for updating profile
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: {
       ime: string;
@@ -135,12 +132,11 @@ const UrediProfil: React.FC = React.memo(() => {
     }) => {
       await axios.put(`${API_BASE}/korisnici/${korisnikID}`, {
         ...profileData,
-        lozinka: '', // Password is not changed here
+        lozinka: '', 
       });
       return profileData;
     },
     onSuccess: async (profileData) => {
-      // Update local storage with new data
       const updatedUser = {
         id: korisnikID,
         ...profileData,
@@ -148,7 +144,6 @@ const UrediProfil: React.FC = React.memo(() => {
       };
       await AsyncStorage.setItem('korisnik', JSON.stringify(updatedUser));
       
-      // Update query cache
       queryClient.setQueryData(['user', korisnikID], (old: any) => ({
         ...old,
         ...profileData
@@ -164,7 +159,6 @@ const UrediProfil: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for uploading image
   const uploadImageMutation = useMutation({
     mutationFn: async (imageUri: string) => {
       const formData = new FormData();
@@ -191,7 +185,6 @@ const UrediProfil: React.FC = React.memo(() => {
       setSlikaSuccess(t('profile_image_updated') || 'Profile image updated successfully!');
       setSlikaError(null);
       
-      // Update query cache
       queryClient.setQueryData(['user', korisnikID], (old: any) => ({
         ...old,
         putanjaProfilneSlike: newImagePath
@@ -237,7 +230,6 @@ const UrediProfil: React.FC = React.memo(() => {
 
   const handleImagePicker = useCallback(async () => {
     try {
-      // Request permission
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (permissionResult.granted === false) {
@@ -245,7 +237,6 @@ const UrediProfil: React.FC = React.memo(() => {
         return;
       }
 
-      // Pick image
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -279,7 +270,6 @@ const UrediProfil: React.FC = React.memo(() => {
     setButtonPressed(false);
   }, []);
 
-  // Memoize profile image URI
   const profileImageUri = useMemo(() => {
     return slika || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
   }, [slika]);
@@ -325,7 +315,6 @@ const UrediProfil: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Surname Input */}
             <View>
               <Text style={styles.label}>{t('surname')}:</Text>
               <TextInput
@@ -344,7 +333,6 @@ const UrediProfil: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Username Input */}
             <View>
               <Text style={styles.label}>{t('username')}:</Text>
               <TextInput
@@ -363,7 +351,6 @@ const UrediProfil: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Email Input */}
             <View>
               <Text style={styles.label}>{t('email')}:</Text>
               <TextInput
@@ -384,7 +371,6 @@ const UrediProfil: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Bio Input */}
             <View>
               <Text style={styles.label}>Bio:</Text>
               <TextInput
@@ -403,7 +389,6 @@ const UrediProfil: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Error/Success Messages */}
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -416,7 +401,6 @@ const UrediProfil: React.FC = React.memo(() => {
               </View>
             )}
 
-            {/* Save Button */}
             <TouchableOpacity
               style={[
                 styles.button,
@@ -435,7 +419,6 @@ const UrediProfil: React.FC = React.memo(() => {
             </TouchableOpacity>
           </View>
 
-          {/* Profile Image Section */}
           <View style={styles.profileImageSection}>
             <Text style={styles.subtitle}>{t('profile_image')}</Text>
             <View style={styles.profileImageWrap}>
@@ -459,7 +442,6 @@ const UrediProfil: React.FC = React.memo(() => {
               </Text>
             </TouchableOpacity>
 
-            {/* Image Error/Success Messages */}
             {slikaError && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{slikaError}</Text>
@@ -475,7 +457,6 @@ const UrediProfil: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      {/* Tab Bar */}
       <Tabs currentRoute="profile" />
     </View>
   );

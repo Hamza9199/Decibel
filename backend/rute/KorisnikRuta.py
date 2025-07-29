@@ -27,7 +27,6 @@ router = APIRouter(prefix="/api/korisnici", tags=["Korisnici"])
 load_dotenv()
 ASYNC_DATABASE_URL = os.getenv("DATABASE_URL_ASYNC")
 
-# Kreiraj async session maker
 engine = create_async_engine(
     ASYNC_DATABASE_URL, echo=True, future=True
 )
@@ -104,7 +103,6 @@ async def promijeni_sliku(
     putanjaProfilneSlike = upload_file(temp_path, f"korisnici/profilne/{file_profilna.filename}")
     os.remove(temp_path)
 
-    # Ažuriraj samo putanjaProfilneSlike, ostalo ostaje isto
     korisnik_data = KorisnikCreate(
         ime=korisnik.ime,
         prezime=korisnik.prezime,

@@ -37,7 +37,6 @@ const Offline: React.FC = React.memo(() => {
     setLoading(false);
   }, []);
 
-  // Replace useMemo with useEffect for initial data loading
   useEffect(() => {
     loadOfflineSongs();
   }, [loadOfflineSongs]);

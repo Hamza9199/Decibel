@@ -105,13 +105,12 @@ async def izmeni_album(
     file_gif: UploadFile = File(None),
     session: AsyncSession = Depends(get_session)
 ):
-    # Dohvati postojeći album iz baze
     db_album = await get_album_by_id(session, album_id)
     if not db_album:
         raise HTTPException(status_code=404, detail="Album nije pronađen")
 
-    putanjaSlika = db_album.putanjaSlika  # default na postojeću vrijednost
-    putanjaGif = db_album.putanjaGif      # default na postojeću vrijednost
+    putanjaSlika = db_album.putanjaSlika  
+    putanjaGif = db_album.putanjaGif      
 
     if file_slika:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:

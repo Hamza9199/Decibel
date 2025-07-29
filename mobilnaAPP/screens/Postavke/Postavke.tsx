@@ -17,6 +17,7 @@ import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './Postavke.styles';
+import { useRouter } from 'expo-router';
 
 const Postavke: React.FC = React.memo(() => {
   const { t, i18n } = useTranslation();
@@ -25,6 +26,7 @@ const Postavke: React.FC = React.memo(() => {
   const [brisanje, setBrisanje] = useState(false);
   const [jezik, setJezik] = useState(i18n.language || 'bs');
   const [tema, setTema] = useState('dark');
+  const router = useRouter();
 
   const loadSettings = useCallback(async () => {
     try {
@@ -42,12 +44,10 @@ const Postavke: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Replace useMemo with useEffect for initial settings loading
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
 
-  // Mutation for artist application
   const artistApplicationMutation = useMutation({
     mutationFn: async (message: string) => {
       const userData = await AsyncStorage.getItem('korisnik');
@@ -74,7 +74,6 @@ const Postavke: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for account deletion
   const deleteAccountMutation = useMutation({
     mutationFn: async () => {
       const userData = await AsyncStorage.getItem('korisnik');
@@ -96,8 +95,8 @@ const Postavke: React.FC = React.memo(() => {
           {
             text: 'OK',
             onPress: () => {
-              // Navigate to login screen
-              // This would need proper navigation setup
+              router.push('/login');
+              router.replace('/login');
             },
           },
         ]

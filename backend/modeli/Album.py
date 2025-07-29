@@ -5,7 +5,7 @@ from servisi.Baza import Base
 from typing import Optional, List
 from pydantic import BaseModel
 import datetime
-from .Korisnik import Korisnik  # dodaj na kraj fajla zbog kružnog importa
+from .Korisnik import Korisnik  
 
 class AlbumORM(Base):
     __tablename__ = "albumi"
@@ -21,9 +21,8 @@ class AlbumORM(Base):
     putanjaGif = Column(String(255), nullable=True)
 
     korisnik = relationship("KorisnikORM", backref="albumi")
-    pjesme = relationship("PjesmaORM", back_populates="album")  # ispravi: koristi back_populates  
+    pjesme = relationship("PjesmaORM", back_populates="album")  
 
-# Pydantic modeli
 
 class AlbumBase(BaseModel):
     korisnikID: Optional[str]
@@ -41,10 +40,10 @@ class AlbumCreate(AlbumBase):
 
 class Album(AlbumBase):
     id: int
-    PjesmeIDs: Optional[List[int]] = None  # Samo u response modelu
-    korisnik: Optional["Korisnik"] = None  # Dodaj ovo polje
+    PjesmeIDs: Optional[List[int]] = None  
+    korisnik: Optional["Korisnik"] = None  
 
     class Config:
         orm_mode = True
 
-Album.model_rebuild()  # Dodaj na kraj fajla
+Album.model_rebuild()  

@@ -49,7 +49,6 @@ const NoviAlbum: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -59,26 +58,22 @@ const NoviAlbum: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for user songs
   const userSongsQuery = useQuery({
     queryKey: ['userSongs', korisnikID],
     queryFn: async () => {
       if (!korisnikID) return [];
       
       const response = await axios.get(`${API_BASE}/pjesme/`);
-      // Show only user's songs that are not already on an album
       return (response.data || []).filter(
         (p: Pjesma) => p.korisnikID === korisnikID && !p.albumID
       );
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Mutation for creating album
   const createAlbumMutation = useMutation({
     mutationFn: async ({ formData, albumSongs }: { formData: FormData; albumSongs: number[] }) => {
-      // 1. Create album
       const albumRes = await axios.post(`${API_BASE}/albumi/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -87,7 +82,6 @@ const NoviAlbum: React.FC = React.memo(() => {
 
       const albumId = albumRes.data.id;
 
-      // 2. Add selected songs to album (if any)
       if (albumId && albumSongs.length > 0) {
         const svePjesme = userSongsQuery.data || [];
         await Promise.all(
@@ -110,7 +104,6 @@ const NoviAlbum: React.FC = React.memo(() => {
       setSuccess(t('album_created_successfully') || 'Album created successfully!');
       setError(null);
       
-      // Reset form
       setNaziv('');
       setOpis('');
       setImageFile(null);
@@ -261,7 +254,6 @@ const NoviAlbum: React.FC = React.memo(() => {
     );
   }, [odabranePjesme, handleTogglePjesma, formatDuration]);
 
-  // Memoize file picker buttons
   const imagePickerButton = useMemo(() => (
     <TouchableOpacity
       style={styles.fileButton}
@@ -303,7 +295,6 @@ const NoviAlbum: React.FC = React.memo(() => {
           <Text style={styles.title}>{t('new_album')}</Text>
 
           <View style={styles.form}>
-            {/* Album Name */}
             <View>
               <Text style={styles.label}>{t('album_name')} *:</Text>
               <TextInput
@@ -322,7 +313,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Description */}
             <View>
               <Text style={styles.label}>{t('description')} ({t('optional')}):</Text>
               <TextInput
@@ -341,7 +331,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Image File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('image')}:</Text>
               {imagePickerButton}
@@ -350,7 +339,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* GIF File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>GIF:</Text>
               {gifPickerButton}
@@ -359,7 +347,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* Songs Selection */}
             <View style={styles.songsSection}>
               <Text style={styles.sectionTitle}>
                 {t('add_existing_songs') || 'Add Existing Songs'}
@@ -381,7 +368,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* Error/Success Messages */}
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -394,7 +380,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               </View>
             )}
 
-            {/* Create Button */}
             <TouchableOpacity
               style={[
                 styles.button,
@@ -412,7 +397,6 @@ const NoviAlbum: React.FC = React.memo(() => {
               </Text>
             </TouchableOpacity>
 
-            {/* Cancel Button */}
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleBack}

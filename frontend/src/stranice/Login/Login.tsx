@@ -34,12 +34,9 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    // Resetuj background i sakrij player/muziku na login stranici
     window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
     resetBodyBackground();
-    // Sakrij player i mutiraj muziku
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: {} }));
-    // Sakrij poruku o pretplati (AudioPlayer)
     window.dispatchEvent(new CustomEvent("hideSubscriptionMsg"));
     const audio = document.querySelector('audio');
     if (audio) {

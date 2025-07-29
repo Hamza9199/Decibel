@@ -18,7 +18,6 @@ const SvePlayliste: React.FC = () => {
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
-  // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
   try {
     const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -36,7 +35,6 @@ const SvePlayliste: React.FC = () => {
     axios
       .get(`${API_BASE}/playliste/`)
       .then((res) => {
-        // Filtriraj playliste po korisnikID
         const mojePlayliste = (res.data || []).filter(
           (pl: Playlista) => pl.korisnikID === korisnikID
         );
@@ -48,9 +46,7 @@ const SvePlayliste: React.FC = () => {
 
   
 
-  // Funkcija za puštanje playliste
   const handlePlayPlaylist = async (playlistId: number) => {
-    // Dohvati redoslijed sa backenda
     try {
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
       const idsZaDohvat: number[] = res.data || [];
@@ -75,11 +71,10 @@ const SvePlayliste: React.FC = () => {
         })
       );
     } catch {
-      // fallback na staro ponašanje ako backend ne radi
+      console.error("Greška pri učitavanju playliste.");
     }
   };
 
-  // Dodaj filtrirane playliste prema search-u
   const filtriranePlayliste = playliste.filter((pl) =>
     pl.naziv.toLowerCase().includes(search.toLowerCase())
   );
@@ -126,7 +121,6 @@ const SvePlayliste: React.FC = () => {
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
-                    {/* Play dugme za playlistu */}
                     <button
                       className={styles.playButton}
                       onClick={() => handlePlayPlaylist(pl.id)}

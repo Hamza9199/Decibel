@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from modeli.KorisnikPretplata import KorisnikPretplata, KorisnikPretplataCreate
 from modeli.KorisnikPretplata import KorisnikPretplataORM  # Dodaj import ORM klase
-from modeli.Pretplata import PretplataORM  # Dodaj import ORM klase Pretplata
+from modeli.Pretplata import PretplataORM  
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
@@ -39,7 +39,6 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 @router.get("/", response_model=List[KorisnikPretplata])
 async def sve_korisnik_pretplate(session: AsyncSession = Depends(get_session)):
-    # Pribavi sve korisnik_pretplata sa vezanom pretplatom
     result = await session.execute(
         select(KorisnikPretplataORM).options(selectinload(KorisnikPretplataORM.pretplata))
     )
@@ -47,7 +46,6 @@ async def sve_korisnik_pretplate(session: AsyncSession = Depends(get_session)):
 
 @router.get("/{korisnik_pretplata_id}", response_model=KorisnikPretplata)
 async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):
-    # Pribavi korisnik_pretplata sa vezanom pretplatom
     result = await session.execute(
         select(KorisnikPretplataORM).options(selectinload(KorisnikPretplataORM.pretplata)).where(KorisnikPretplataORM.id == korisnik_pretplata_id)
     )

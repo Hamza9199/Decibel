@@ -47,7 +47,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
     }
   }, []);
 
-  // Load user data when component becomes visible
   useEffect(() => {
     if (visible) {
       loadUserData();
@@ -88,37 +87,31 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
     if (action) {
       action();
     } else if (route) {
-      // Handle settings route specifically
       if (route === '/settings') {
         router.push('/settings');
         onClose();
         return;
       }
-      // Handle edit profile route
       if (route === '/profile/edit') {
         router.push('/edit-profile');
         onClose();
         return;
       }
-      // Handle admin panel route
       if (route === '/admin-panel') {
         router.push('/admin-panel');
         onClose();
         return;
       }
-      // Handle history route
       if (route === '/history') {
         router.push('/history');
         onClose();
         return;
       }
-      // Handle subscription route
       if (route === '/profile/subscription') {
         router.push('/pretplata');
         onClose();
         return;
       }
-      // Handle favorites routes
       if (route === '/favorites/songs') {
         router.push('/omiljeno/pjesme');
         onClose();
@@ -134,7 +127,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
         onClose();
         return;
       }
-      // Handle playlists routes
       if (route === '/playlists') {
         router.push('/sve-playliste');
         onClose();
@@ -145,7 +137,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
         onClose();
         return;
       }
-      // Handle songs routes
       if (route === '/songs') {
         router.push('/svepjesme');
         onClose();
@@ -156,7 +147,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
         onClose();
         return;
       }
-      // Handle albums routes
       if (route === '/albums') {
         router.push('/svi-albumi');
         onClose();
@@ -167,19 +157,16 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
         onClose();
         return;
       }
-      // Handle statistics route
       if (route === '/statistics') {
         router.push('/statistika');
         onClose();
         return;
       }
-      // Handle users route
       if (route === '/users') {
         router.push('/svi-korisnici');
         onClose();
         return;
       }
-      // For any unhandled routes, show alert
       Alert.alert(
         t('coming_soon') || 'Coming Soon',
         t('feature_coming_soon') || 'This feature is coming soon!'
@@ -217,7 +204,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
     onClose();
   }, [router, onClose]);
 
-  // Memoize role-based sections
   const isArtistOrAdmin = useMemo(() => role === 'izvodac' || role === 'admin', [role]);
   const isAdmin = useMemo(() => role === 'admin', [role]);
 
@@ -231,7 +217,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
       <View style={{ flex: 1 }}>
         <TouchableOpacity style={styles.overlay} onPress={onClose} />
         <View style={styles.sidebar}>
-          {/* Logo */}
           <TouchableOpacity style={styles.logoWrap} onPress={handleLogoPress}>
             <Image
               source={require('../../assets/images/logo.gif')}
@@ -241,7 +226,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
           </TouchableOpacity>
 
           <ScrollView style={styles.nav} showsVerticalScrollIndicator={false}>
-            {/* Profile Menu */}
             <View style={styles.profileMenu}>
               <TouchableOpacity
                 style={styles.navBtn}
@@ -283,7 +267,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
               )}
             </View>
 
-            {/* History */}
             <TouchableOpacity
               style={styles.navBtn}
               onPress={() => handleNavPress('/history')}
@@ -294,7 +277,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
               </Text>
             </TouchableOpacity>
 
-            {/* Offline mode */}
             <TouchableOpacity
               style={styles.navBtn}
               onPress={handleOfflinePress}
@@ -305,7 +287,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
               </Text>
             </TouchableOpacity>
 
-            {/* Playlists Menu */}
             <View style={styles.profileMenu}>
               <TouchableOpacity
                 style={styles.navBtn}
@@ -338,12 +319,10 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
               )}
             </View>
 
-            {/* Artist/Producer Section */}
             {isArtistOrAdmin && (
               <>
                 <Text style={styles.sectionTitle}>{t('artists') || 'Artists'}</Text>
                 
-                {/* Songs Menu */}
                 <View style={styles.profileMenu}>
                   <TouchableOpacity
                     style={styles.navBtn}
@@ -376,7 +355,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
                   )}
                 </View>
 
-                {/* Albums Menu */}
                 <View style={styles.profileMenu}>
                   <TouchableOpacity
                     style={styles.navBtn}
@@ -411,7 +389,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
               </>
             )}
 
-            {/* Admin Section */}
             {isAdmin && (
               <>
                 <Text style={styles.sectionTitle}>Admin</Text>
@@ -449,7 +426,6 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
             )}
           </ScrollView>
 
-          {/* Logout Button */}
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
             {renderIcon('logout', 22, '#ffb3c6')}
             <Text style={styles.logoutBtnText}>{t('logout')}</Text>

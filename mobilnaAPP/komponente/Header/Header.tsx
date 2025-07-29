@@ -31,7 +31,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
   const [showSidebar, setShowSidebar] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  // Load user ID from AsyncStorage
   useEffect(() => {
     const loadUserId = async () => {
       try {
@@ -49,7 +48,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
     loadUserId();
   }, []);
 
-  // Fetch user data using React Query
   const { data: korisnik } = useQuery({
     queryKey: ['user', userId],
     queryFn: async () => {
@@ -58,7 +56,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
       return response.data as Korisnik;
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
     retry: 1,
   });
 
@@ -100,7 +98,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
   return (
     <>
       <View style={styles.header}>
-        {/* Menu Button */}
         <TouchableOpacity 
           style={styles.menuButton}
           onPress={handleMenuPress}
@@ -108,7 +105,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
           <MaterialIcons name="menu" size={24} color="#ffe6ec" />
         </TouchableOpacity>
 
-        {/* Logo */}
         <TouchableOpacity  
           style={styles.logoContainer}
           onPress={handleLogoPress}
@@ -122,7 +118,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
         </TouchableOpacity>
 
         <View style={styles.rightActions}>
-          {/* Search Button */}
           {onSearchPress && (
             <TouchableOpacity 
               style={styles.searchButton} 
@@ -132,7 +127,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
             </TouchableOpacity>
           )}
 
-          {/* Profile Button */}
           <TouchableOpacity 
             style={styles.profileButton} 
             onPress={handleProfilePress}
@@ -146,7 +140,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
         </View>
       </View>
 
-      {/* Sidebar */}
       <Sidebar 
         visible={showSidebar} 
         onClose={handleSidebarClose} 

@@ -5,7 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Korisnik } from "../../types";
-import { PrijavaIzvodjaca } from "../../types"; // Dodaj tip ako ga imaš, ili koristi any
+import { PrijavaIzvodjaca } from "../../types"; 
 import { useTranslation } from "react-i18next";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
@@ -47,7 +47,6 @@ const SviKorisnici: React.FC = () => {
     setError(null);
     setSuccess(null);
 
-    // Ako se bira "suspendovan" status, otvori modal za unos poruke i vremena
     if (field === "statusKorisnika" && value === "suspendovan") {
       setSuspendModal({
         korisnik,
@@ -64,19 +63,17 @@ const SviKorisnici: React.FC = () => {
         statusKorisnika: field === "statusKorisnika" ? value : korisnik.statusKorisnika,
       });
 
-      // Ako se status mijenja na aktivan ili neaktivan, obriši suspenziju ako postoji
       if (
         field === "statusKorisnika" &&
         (value === "aktivan" || value === "neaktivan")
       ) {
         try {
-          // Prvo pokušaj dohvatiti suspenziju
           const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${korisnik.id}`);
           if (res.data && res.data.id) {
             await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
           }
         } catch {
-          // Nema suspenzije, ignoriši grešku
+          console.error("Greška pri brisanju suspenzije korisnika.");
         }
       }
 
@@ -97,18 +94,15 @@ const SviKorisnici: React.FC = () => {
     }
   };
 
-  // Funkcija za potvrdu suspenzije
   const handlePotvrdiSuspenziju = async () => {
     if (!suspendModal) return;
     setError(null);
     setSuccess(null);
     try {
-      // Prvo ažuriraj korisnika na suspendovan
       await axios.put(`${API_BASE}/korisnici/${suspendModal.korisnik.id}`, {
         ...suspendModal.korisnik,
         statusKorisnika: "suspendovan",
       });
-      // Zatim kreiraj zapis o suspenziji
       await axios.post(`${API_BASE}/suspendovani/`, {
         korisnikID: suspendModal.korisnik.id,
         vrijemeDo: suspendModal.vrijemeDo,
@@ -128,10 +122,8 @@ const SviKorisnici: React.FC = () => {
     }
   };
 
-  // Funkcija za prekid suspenzije (zatvaranje modala i vraćanje na aktivan)
   const handlePrekiniSuspenziju = () => {
     if (!suspendModal) return;
-    // Vraćanje selecta na "aktivan" bez slanja na backend
     setKorisnici((prev) =>
       prev.map((k) =>
         k.id === suspendModal.korisnik.id
@@ -142,7 +134,6 @@ const SviKorisnici: React.FC = () => {
     setSuspendModal(null);
   };
 
-  // Dodaj filtrirane korisnike prema search-u
   const filtriraniKorisnici = korisnici.filter((k) =>
     k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
   );
@@ -254,7 +245,6 @@ const SviKorisnici: React.FC = () => {
                   })}
                 </tbody>
               </table>
-              {/* Modal za prikaz prijave */}
               {prijavaModal && (
                 <div
                   style={{
@@ -353,7 +343,6 @@ const SviKorisnici: React.FC = () => {
                   </div>
                 </div>
               )}
-              {/* Modal za suspenziju korisnika */}
               {suspendModal && (
                 <div
                   style={{

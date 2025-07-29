@@ -148,12 +148,10 @@ async def izmeni_pjesmu(
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
 ):
-    # Dohvati postojeću pjesmu iz baze
     db_pjesma = await get_pjesma_by_id(session, pjesma_id)
     if not db_pjesma:
         raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
 
-    # Zadrži postojeće vrijednosti ako nije uploadovan novi fajl
     putanjaAudio = db_pjesma.putanjaAudio
     putanjaSlika = db_pjesma.putanjaSlika
     putanjaGif = db_pjesma.putanjaGif
@@ -179,7 +177,6 @@ async def izmeni_pjesmu(
         putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
         os.remove(temp_path)
 
-    # Pripremi podatke za update, koristi postojeće vrijednosti ako nisu poslani novi podaci
     pjesma_data = {
         "korisnikID": korisnikID if korisnikID is not None else db_pjesma.korisnikID,
         "albumID": albumID if albumID is not None else db_pjesma.albumID,
@@ -200,7 +197,6 @@ async def izmeni_pjesmu(
         "brojLajkova": db_pjesma.brojLajkova,
     }
 
-    # Pretvori datumObjave u datetime.date ako je string
     import datetime
     if isinstance(pjesma_data["datumObjave"], str):
         pjesma_data["datumObjave"] = datetime.datetime.strptime(pjesma_data["datumObjave"], "%Y-%m-%d").date()

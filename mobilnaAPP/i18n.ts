@@ -6,20 +6,17 @@ import bs from "./locales/bs/translation.json";
 import en from "./locales/en/translation.json";
 import de from "./locales/de/translation.json";
 
-// Get device language
 const getDeviceLanguage = () => {
   const locales = Localization.getLocales();
   if (locales.length > 0) {
     const deviceLang = locales[0].languageCode;
-    // Map device language to supported languages
     if (deviceLang === 'en') return 'en';
     if (deviceLang === 'de') return 'de';
-    return 'bs'; // Default to Bosnian
+    return 'bs'; 
   }
   return 'bs';
 };
 
-// Language detection plugin for React Native
 const languageDetector = {
   type: 'languageDetector' as const,
   async: true,
@@ -34,7 +31,7 @@ const languageDetector = {
       }
     } catch (error) {
       console.error('Error detecting language:', error);
-      callback('bs'); // Fallback to Bosnian
+      callback('bs'); 
     }
   },
   init: () => {},
@@ -52,7 +49,7 @@ const initI18n = async () => {
     .use(languageDetector)
     .use(initReactI18next)
     .init({
-      compatibilityJSON: 'v3', // Important for React Native
+      compatibilityJSON: 'v3', 
       resources: {
         bs: { translation: bs },
         en: { translation: en },
@@ -63,12 +60,11 @@ const initI18n = async () => {
         escapeValue: false 
       },
       react: {
-        useSuspense: false // Important for React Native
+        useSuspense: false 
       }
     });
 };
 
-// Initialize i18n
 initI18n();
 
 export default i18n;

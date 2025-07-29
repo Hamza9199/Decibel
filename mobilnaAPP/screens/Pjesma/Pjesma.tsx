@@ -49,7 +49,6 @@ const PjesmePage: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -59,7 +58,6 @@ const PjesmePage: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for song details
   const songQuery = useQuery({
     queryKey: ['song', pjesmaId],
     queryFn: async () => {
@@ -68,10 +66,9 @@ const PjesmePage: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!pjesmaId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for publisher/user data
   const publisherQuery = useQuery({
     queryKey: ['publisher', songQuery.data?.korisnikID],
     queryFn: async () => {
@@ -80,10 +77,9 @@ const PjesmePage: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!songQuery.data?.korisnikID,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Query for song artists
   const artistsQuery = useQuery({
     queryKey: ['songArtists', pjesmaId],
     queryFn: async () => {
@@ -103,10 +99,9 @@ const PjesmePage: React.FC = React.memo(() => {
       return artists.filter(Boolean);
     },
     enabled: !!pjesmaId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for recommended songs
   const recommendedQuery = useQuery({
     queryKey: ['recommendedSongs', pjesmaId],
     queryFn: async () => {
@@ -117,10 +112,9 @@ const PjesmePage: React.FC = React.memo(() => {
         .slice(0, 6);
     },
     enabled: !!pjesmaId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for comments
   const commentsQuery = useQuery({
     queryKey: ['comments', pjesmaId],
     queryFn: async () => {
@@ -130,7 +124,6 @@ const PjesmePage: React.FC = React.memo(() => {
       const allComments: Komentar[] = commentsRes.data || [];
       const songComments = allComments.filter(k => String(k.pjesmaID) === String(pjesmaId));
 
-      // Load comment users
       const userIds = Array.from(new Set(songComments.map(k => k.korisnikID)));
       const usersObj: { [id: string]: Korisnik } = {};
       
@@ -145,10 +138,9 @@ const PjesmePage: React.FC = React.memo(() => {
       return { comments: songComments, users: usersObj };
     },
     enabled: !!pjesmaId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Query for like status
   const likeQuery = useQuery({
     queryKey: ['songLike', pjesmaId, mojID],
     queryFn: async () => {
@@ -159,10 +151,9 @@ const PjesmePage: React.FC = React.memo(() => {
       return !!veze.find(v => v.korisnikID === mojID && String(v.pjesmaID) === String(pjesmaId));
     },
     enabled: !!(mojID && pjesmaId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Mutation for like/unlike
   const likeMutation = useMutation({
     mutationFn: async ({ isLiked }: { isLiked: boolean }) => {
       if (!mojID || !pjesmaId) throw new Error('Missing data');
@@ -181,15 +172,11 @@ const PjesmePage: React.FC = React.memo(() => {
     },
     onSuccess: (liked) => {
       queryClient.setQueryData(['songLike', pjesmaId, mojID], liked);
-      // Update song data to reflect new like count
       queryClient.setQueryData(['song', pjesmaId], (old: any) => ({
         ...old,
         brojLajkova: (old?.brojLajkova || 0) + (liked ? 1 : -1)
       }));
-      Alert.alert(
-        t('success'), 
-        liked ? t('added_to_favorites') : t('removed_from_favorites')
-      );
+      
     },
     onError: (error) => {
       console.error('Error liking song:', error);
@@ -197,7 +184,6 @@ const PjesmePage: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for adding comment
   const addCommentMutation = useMutation({
     mutationFn: async (commentText: string) => {
       if (!mojID || !pjesmaId) throw new Error('Missing data');
@@ -222,7 +208,6 @@ const PjesmePage: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for editing comment
   const editCommentMutation = useMutation({
     mutationFn: async ({ id, text }: { id: number; text: string }) => {
       await axios.put(`${API_BASE}/komentari/${id}`, {
@@ -254,7 +239,7 @@ const PjesmePage: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, pjesmaId, mojID]);
+  }, [pjesmaId, mojID]);
 
   const handlePlay = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -262,7 +247,6 @@ const PjesmePage: React.FC = React.memo(() => {
       return;
     }
     
-    // Play song logic
     console.log('Playing song:', song.naziv);
   }, [t]);
 
@@ -399,7 +383,6 @@ const PjesmePage: React.FC = React.memo(() => {
     );
   }, [commentsQuery.data?.users, mojID, editKomentarId, editKomentarTekst, handleUrediKomentar, handleEditCancel, handleEditStart, t]);
 
-  // Memoize sorted comments to show owner's comment first
   const komentariSortirani = useMemo(() => {
     const komentari = commentsQuery.data?.comments || [];
     if (!mojID) return komentari;
@@ -408,7 +391,6 @@ const PjesmePage: React.FC = React.memo(() => {
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
   }, [commentsQuery.data?.comments, mojID]);
 
-  // Memoize song meta data
   const songMeta = useMemo(() => {
     const pjesma = songQuery.data;
     const likeCount = pjesma?.brojLajkova || 0;
@@ -420,7 +402,6 @@ const PjesmePage: React.FC = React.memo(() => {
     ];
   }, [songQuery.data, formatDuration, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -467,7 +448,6 @@ const PjesmePage: React.FC = React.memo(() => {
         refreshControl={refreshControl}
       >
         <View style={styles.content}>
-          {/* Song Main Section */}
           <View style={styles.songMain}>
             <View style={styles.songImageWrap}>
               <Image
@@ -515,7 +495,6 @@ const PjesmePage: React.FC = React.memo(() => {
                 ))}
               </View>
 
-              {/* Artists Section */}
               <View style={styles.artistsSection}>
                 <View style={styles.artistsRow}>
                   <Text style={styles.artistsLabel}>{t('publisher')}:</Text>
@@ -554,7 +533,6 @@ const PjesmePage: React.FC = React.memo(() => {
             </View>
           </View>
 
-          {/* Recommended Songs */}
           <Text style={styles.sectionTitle}>{t('recommended_songs')}</Text>
           <FlatList
             data={topPjesme}
@@ -565,7 +543,6 @@ const PjesmePage: React.FC = React.memo(() => {
             columnWrapperStyle={styles.recommendedGrid}
           />
 
-          {/* Comments Section */}
           <Text style={styles.sectionTitle}>{t('comments')}</Text>
           
           <View style={styles.commentForm}>

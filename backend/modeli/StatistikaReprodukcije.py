@@ -17,7 +17,6 @@ class StatistikaReprodukcijeORM(Base):
 
     pjesma = relationship("PjesmaORM", foreign_keys=[pjesmaID])
 
-# Pydantic modeli
 
 class StatistikaReprodukcijeBase(BaseModel):
     korisnikID: str

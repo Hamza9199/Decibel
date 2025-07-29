@@ -45,12 +45,10 @@ const Sidebar: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Close sidebar on route change (optional)
   useEffect(() => {
     if (!isMobile) setSidebarOpen(false);
   }, [isMobile]);
 
-  // Prevent background scroll when sidebar is open on mobile
   useEffect(() => {
     if (isMobile && sidebarOpen) {
       document.body.style.overflow = "hidden";
@@ -117,7 +115,6 @@ const Sidebar: React.FC = () => {
               setShowProfileMenu((prev) => !prev);
             }}
           >
-            {/* Profile icon */}
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
               <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
                 <circle cx="12" cy="8" r="4" />
@@ -136,7 +133,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Settings icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="18" height="18" fill="#b91d95" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="3" />
@@ -153,7 +149,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Edit icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="18" height="18" fill="#b91d95" viewBox="0 0 24 24">
                     <path d="M12.3 6.7l5 5L7 22H2v-5l10.3-10.3z" />
@@ -170,7 +165,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Subscription icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="18" height="18" fill="#b91d95" viewBox="0 0 24 24">
                     <rect x="2" y="7" width="20" height="14" rx="4" />
@@ -227,7 +221,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Music note icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                     <path d="M9 17V5l12-2v12" />
@@ -245,7 +238,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Playlist icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                     <rect x="4" y="6" width="16" height="2" rx="1" />
@@ -264,7 +256,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Album icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" />
@@ -284,7 +275,6 @@ const Sidebar: React.FC = () => {
               setShowPlaylistMenu((prev) => !prev);
             }}
           >
-            {/* Playlist icon */}
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
               <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
                 <rect x="3" y="6" width="18" height="2" rx="1" />
@@ -305,7 +295,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* List icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                     <rect x="4" y="6" width="16" height="2" rx="1" />
@@ -323,7 +312,6 @@ const Sidebar: React.FC = () => {
                   if (isMobile) handleCloseSidebar();
                 }}
               >
-                {/* Add icon */}
                 <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                     <rect x="4" y="11" width="16" height="2" rx="1" />
@@ -348,7 +336,6 @@ const Sidebar: React.FC = () => {
                   setShowSongsMenu((prev) => !prev);
                 }}
               >
-                {/* Music note icon */}
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
                     <path d="M9 17V5l12-2v12" />
@@ -368,7 +355,6 @@ const Sidebar: React.FC = () => {
                       if (isMobile) handleCloseSidebar();
                     }}
                   >
-                    {/* List icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                       <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                         <rect x="4" y="6" width="16" height="2" rx="1" />
@@ -386,7 +372,6 @@ const Sidebar: React.FC = () => {
                       if (isMobile) handleCloseSidebar();
                     }}
                   >
-                    {/* Add icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                       <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                         <rect x="4" y="11" width="16" height="2" rx="1" />
@@ -406,7 +391,6 @@ const Sidebar: React.FC = () => {
                   setShowAlbumsMenu((prev) => !prev);
                 }}
               >
-                {/* Album icon */}
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                   <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" />
@@ -425,7 +409,6 @@ const Sidebar: React.FC = () => {
                       if (isMobile) handleCloseSidebar();
                     }}
                   >
-                    {/* List icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                       <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                         <rect x="4" y="6" width="16" height="2" rx="1" />
@@ -443,7 +426,6 @@ const Sidebar: React.FC = () => {
                       if (isMobile) handleCloseSidebar();
                     }}
                   >
-                    {/* Add icon */}
                     <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
                       <svg width="16" height="16" fill="#b91d95" viewBox="0 0 24 24">
                         <rect x="4" y="11" width="16" height="2" rx="1" />
@@ -468,7 +450,6 @@ const Sidebar: React.FC = () => {
                 if (isMobile) handleCloseSidebar();
               }}
             >
-              {/* Admin panel icon */}
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                 <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
                   <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -504,7 +485,6 @@ const Sidebar: React.FC = () => {
                 if (isMobile) handleCloseSidebar();
               }}
             >
-              {/* Users icon */}
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
                 <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
                   <circle cx="9" cy="7" r="4" />

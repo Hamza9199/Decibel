@@ -48,7 +48,6 @@ const Playlista: React.FC = () => {
       })
       .catch(() => setPlaylista(null));
 
-    // KORISTI REDOSLIJED SA BACKENDA
     axios
       .get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`)
       .then(async (res) => {
@@ -74,7 +73,6 @@ const Playlista: React.FC = () => {
         setLoading(false);
       });
 
-    // Dohvati lajkove korisnika za pjesme
     axios
       .get(`${API_BASE}/korisnik_pjesma/`)
       .then((res) => {
@@ -85,13 +83,11 @@ const Playlista: React.FC = () => {
       })
       .catch(() => setLikeMap({}));
 
-    // Dohvati sve playliste za modal
     axios
       .get(`${API_BASE}/playliste/`)
       .then((res) => setPlaylists(res.data || []))
       .catch(() => setPlaylists([]));
 
-    // Provjeri da li je korisnik lajkao playlistu
     if (korisnikID && playlistaId) {
       axios
         .get(`${API_BASE}/korisnik_playlista/`)
@@ -175,7 +171,6 @@ const Playlista: React.FC = () => {
     }
   };
 
-  // Drag & drop handlers
   const handleDragStart = (idx: number) => {
     setDraggedIdx(idx);
     draggingRow.current = idx;
@@ -190,23 +185,18 @@ const Playlista: React.FC = () => {
     return;
   }
 
-  // Novi poredak bez pomjerene pjesme
   const pjesmeBez = pjesme.filter((_, i) => i !== draggedIdx);
 
   let nova_pozicija_iza_pjesmeID: number | null = null;
 
   if (idx === 0) {
-    // Na prvo mjesto: null
     nova_pozicija_iza_pjesmeID = null;
     return;
   } else if (idx === pjesme.length - 1) {
-    // Na kraj: ID zadnje pjesme iz niza bez pomjerene pjesme
     nova_pozicija_iza_pjesmeID = pjesmeBez[pjesmeBez.length - 1]?.id ?? null;
   } else if (draggedIdx < idx) {
-    // Pomjeranje prema dolje: ID pjesme na poziciji idx - 1
     nova_pozicija_iza_pjesmeID = pjesmeBez[idx - 1]?.id ?? null;
   } else {
-    // Pomjeranje prema gore: ID pjesme na poziciji idx - 1
     nova_pozicija_iza_pjesmeID = pjesmeBez[idx - 1]?.id ?? null;
   }
 
@@ -220,7 +210,6 @@ const Playlista: React.FC = () => {
   setDragOverIdx(null);
   setLoading(true);
   
-  // REFRESH KORISTI REDOSLIJED SA BACKENDA
   const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
   const idsZaDohvat: number[] = res.data || [];
   
@@ -243,7 +232,6 @@ const Playlista: React.FC = () => {
   setLoading(false);
 };
 
-  // Izbacivanje pjesme iz playliste
   const handleRemoveSong = async (pjesmaId: number) => {
     if (!playlistaId) return;
     try {
@@ -409,7 +397,6 @@ const Playlista: React.FC = () => {
                             </svg>
                           </button>
                         )}
-                        {/* Modal za izbor playliste */}
                         {showPlaylistModal === p.id && (
                           <div
                             style={{

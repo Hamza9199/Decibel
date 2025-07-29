@@ -46,12 +46,10 @@ const NovaPlaylista: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     loadUserData();
   }, [loadUserData]);
 
-  // Mutation for creating playlist
   const createPlaylistMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       return await axios.post(`${API_BASE}/playliste/`, formData, {
@@ -64,7 +62,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
       setSuccess(t('playlist_created_successfully') || 'Playlist created successfully!');
       setError(null);
       
-      // Reset form
       setNaziv('');
       setOpis('');
       setImageFile(null);
@@ -180,7 +177,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
     setButtonPressed(false);
   }, []);
 
-  // Memoize file picker buttons
   const imagePickerButton = useMemo(() => (
     <TouchableOpacity
       style={styles.fileButton}
@@ -220,7 +216,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
           <Text style={styles.title}>{t('new_playlist')}</Text>
 
           <View style={styles.form}>
-            {/* Playlist Name */}
             <View>
               <Text style={styles.label}>{t('playlist_name')} *:</Text>
               <TextInput
@@ -239,7 +234,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Description */}
             <View>
               <Text style={styles.label}>{t('description')} ({t('optional')}):</Text>
               <TextInput
@@ -258,7 +252,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Image File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('image')}:</Text>
               {imagePickerButton}
@@ -267,7 +260,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* GIF File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>GIF:</Text>
               {gifPickerButton}
@@ -276,7 +268,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* Public Checkbox */}
             <TouchableOpacity style={styles.checkboxContainer} onPress={toggleCheckbox}>
               <View style={[styles.checkbox, javno && styles.checkboxChecked]}>
                 {javno && (
@@ -286,7 +277,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               <Text style={styles.checkboxLabel}>{t('public_playlist')}</Text>
             </TouchableOpacity>
 
-            {/* Error/Success Messages */}
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -299,7 +289,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               </View>
             )}
 
-            {/* Create Button */}
             <TouchableOpacity
               style={[
                 styles.button,
@@ -317,7 +306,6 @@ const NovaPlaylista: React.FC = React.memo(() => {
               </Text>
             </TouchableOpacity>
 
-            {/* Cancel Button */}
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleBack}

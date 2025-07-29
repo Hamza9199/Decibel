@@ -20,7 +20,6 @@ const UrediPlaylistu: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
   try {
     const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -65,7 +64,6 @@ const UrediPlaylistu: React.FC = () => {
       .catch(() => setPjesme([]));
   }, [playlistaId]);
 
-  // Form state
   const [naziv, setNaziv] = useState("");
   const [opis, setOpis] = useState("");
   const [fileSlika, setFileSlika] = useState<File | null>(null);
@@ -175,7 +173,6 @@ const UrediPlaylistu: React.FC = () => {
             {t("save_changes")}
           </button>
         </form>
-        {/* Desno: prikaz pjesama u playlisti i mogućnost izbacivanja */}
         <div style={{
           marginLeft: 32,
           background: "#232323",

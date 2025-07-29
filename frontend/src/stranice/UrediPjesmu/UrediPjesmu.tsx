@@ -20,7 +20,6 @@ const UrediPjesmu: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
   try {
     const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -45,7 +44,6 @@ const UrediPjesmu: React.FC = () => {
       .finally(() => setLoading(false));
   }, [pjesmaId]);
 
-  // Dohvati sve albume korisnika
   useEffect(() => {
     if (korisnikID) {
       axios
@@ -57,7 +55,6 @@ const UrediPjesmu: React.FC = () => {
     }
   }, [korisnikID]);
 
-  // Dohvati sve korisnike za search izvođača
   useEffect(() => {
     axios
       .get(`${API_BASE}/korisnici/`)
@@ -67,7 +64,6 @@ const UrediPjesmu: React.FC = () => {
 
  
 
-  // Dohvati postojeće izvođače za pjesmu
   useEffect(() => {
     if (!pjesma?.id) return;
     axios
@@ -84,7 +80,6 @@ const UrediPjesmu: React.FC = () => {
       .catch(() => setIzabraniIzvodjaci([]));
   }, [pjesma?.id, sviIzvodjaci]);
 
-  // Dodavanje/uklanjanje izvođača
   const handleAddIzvodjac = (korisnik: Korisnik) => {
     if (!izabraniIzvodjaci.find((k) => k.id === korisnik.id)) {
       setIzabraniIzvodjaci((prev) => [...prev, korisnik]);
@@ -94,7 +89,6 @@ const UrediPjesmu: React.FC = () => {
     setIzabraniIzvodjaci((prev) => prev.filter((k) => k.id !== korisnikId));
   };
 
-  // Form state
   const [naziv, setNaziv] = useState("");
   const [opis, setOpis] = useState("");
   const [zanr, setZanr] = useState("");
@@ -144,7 +138,6 @@ const UrediPjesmu: React.FC = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // Update izvođača: prvo obriši sve postojeće veze, pa dodaj nove
       await axios.get(`${API_BASE}/izvodjac_pjesma/`).then(async (res) => {
         const veze = res.data || [];
         const zaPjesmu = veze.filter((v: IzvodjacPjesmaVeza) => v.pjesmaID === pjesma.id);
@@ -257,7 +250,6 @@ const UrediPjesmu: React.FC = () => {
           {t("save_changes")}
         </button>
       </form>
-      {/* Desno: search i izbor izvođača */}
       <div style={{
         marginLeft: 32,
         background: "#232323",
@@ -318,7 +310,6 @@ const UrediPjesmu: React.FC = () => {
               </button>
             </span>
           ))}
-          {/* Napomena korisniku */}
           <div style={{ color: "#bbb", fontSize: "0.93rem", marginTop: 4 }}>
             {t("can_remove_self_artist") || "Možete ukloniti bilo kojeg izvođača, uključujući i sebe."}
           </div>

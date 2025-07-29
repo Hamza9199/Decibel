@@ -84,7 +84,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // Play single song
   const handlePlaySong = (p: Pjesma) => {
     if (!p.putanjaAudio) return;
     window.dispatchEvent(
@@ -101,7 +100,6 @@ const AdminPanel: React.FC = () => {
     );
   };
 
-  // Play album
   const handlePlayAlbumSongs = (albumId: number) => {
     const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
     if (albumSongs.length === 0) return;
@@ -116,7 +114,6 @@ const AdminPanel: React.FC = () => {
     );
   };
 
-  // Play playlist
   const handlePlayPlaylistSongs = async (playlistId: number) => {
     try {
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
@@ -142,11 +139,10 @@ const AdminPanel: React.FC = () => {
         })
       );
     } catch {
-      // fallback na staro ponašanje ako backend ne radi
+      setError("Greška pri dohvatu pjesama iz playliste.");
     }
   };
 
-  // Dodaj funkcije za brisanje
   const handleObrisiPjesmu = async (pjesmaId: number) => {
     if (!window.confirm("Da li ste sigurni da želite obrisati ovu pjesmu?")) return;
     setError(null);
@@ -186,7 +182,6 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // Lokalni search za svaku tabelu
   const filtriranePjesme = pjesme.filter((p) =>
     p.naziv.toLowerCase().includes(search.toLowerCase())
   );

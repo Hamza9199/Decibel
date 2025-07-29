@@ -13,7 +13,6 @@ class PretplataORM(Base):
     dostupno = Column(Boolean, default=True)
     kreiranDatumVrijeme = Column(DateTime, default=datetime.datetime.utcnow)
 
-# Pydantic modeli
 
 class PretplataBase(BaseModel):
     naziv: str

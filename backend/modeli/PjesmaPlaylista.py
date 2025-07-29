@@ -18,7 +18,6 @@ class PjesmaPlaylistaORM(Base):
     sljedecaPjesma = relationship("PjesmaORM", foreign_keys=[pokazivacNaSljedecuPjesmuID])
     prethodnaPjesma = relationship("PjesmaORM", foreign_keys=[pokazivacNaPrethodnuPjesmuID])
 
-# Pydantic modeli
 
 class PjesmaPlaylistaBase(BaseModel):
     pjesmaID: int

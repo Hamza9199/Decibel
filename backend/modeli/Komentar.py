@@ -18,7 +18,6 @@ class KomentarORM(Base):
     korisnik = relationship("KorisnikORM", foreign_keys=[korisnikID])
     pjesma = relationship("PjesmaORM", foreign_keys=[pjesmaID])
 
-# Pydantic modeli
 
 class KomentarBase(BaseModel):
     korisnikID: str

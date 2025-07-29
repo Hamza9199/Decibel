@@ -18,7 +18,6 @@ async def get_pjesma_playlista(session: AsyncSession, pjesmaID: int, playlistaID
     return result.scalar_one_or_none()
 
 async def create_pjesma_playlista(session: AsyncSession, data: PjesmaPlaylistaCreate):
-    # Umjesto direktnog unosa, koristi servis koji održava kružnu listu
     obj = await dodaj_pjesmu_na_kraj(session, data.playlistaID, data.pjesmaID)
     return obj
 

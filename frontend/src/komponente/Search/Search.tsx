@@ -41,7 +41,6 @@ const Search: React.FC = () => {
       return;
     }
     setLoading(true);
-    // Paralelno traži sve entitete
     Promise.all([
       axios.get(`${API_BASE}/korisnici/`).then(res =>
         (res.data || []).filter((k: Korisnik) =>
@@ -74,7 +73,6 @@ const Search: React.FC = () => {
       .finally(() => setLoading(false));
   }, [query]);
 
-  // Zatvori dropdown kad klikneš vani
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (
@@ -92,11 +90,9 @@ const Search: React.FC = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [showDropdown]);
 
-  // On mobile: disable background scroll when dropdown is open
   useEffect(() => {
     if (isMobile && showDropdown) {
       document.body.style.overflow = "hidden";
-      // Fokusiraj input automatski
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       document.body.style.overflow = "";
@@ -118,7 +114,6 @@ const Search: React.FC = () => {
         onChange={e => setQuery(e.target.value)}
         onFocus={() => query && setShowDropdown(true)}
         autoComplete="off"
-        // automatski fokus na mobilnom kad se otvori header
         {...(isMobile ? { inputMode: "search" } : {})}
       />
       <span className={styles.searchIcon}>

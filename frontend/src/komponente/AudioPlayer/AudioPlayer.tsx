@@ -6,7 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 type Props = {
-  id?: number; // <-- dodaj id u Props
+  id?: number;
   src?: string;
   title?: string;
   putanjaGif?: string;
@@ -53,18 +53,14 @@ const AudioPlayer: React.FC<Props> = ({
    const [globalPlaylist, setGlobalPlaylist] = useState<Pjesma[]>([]);
    const [playlistIdx, setPlaylistIdx] = useState<number>(-1);
    const [playlistRepeat, setPlaylistRepeat] = useState(false);
-  // Dodaj state za prikaz trenutne pjesme iz playliste ili single
   const [currentSong, setCurrentSong] = useState<Pjesma | null>(null);
-  // Dodaj state za vlasnika trenutne pjesme
   const [currentOwner, setCurrentOwner] = useState<Korisnik | undefined>(undefined);
   const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const location = useLocation();
   const [isMobile] = useState(window.innerWidth <= 480);
 
-  // Provjera pretplate korisnika koji sluša (iz localStorage)
   useEffect(() => {
-    // Provjeri pretplatu korisnika koji sluša (iz localStorage)
     let isMounted = true;
     async function checkPretplata() {
       let slusacID = "";
@@ -96,14 +92,12 @@ const AudioPlayer: React.FC<Props> = ({
     return () => { isMounted = false; };
   }, []);
 
-  // Dodaj listener za "hideSubscriptionMsg" event da sakrije poruku o pretplati
   useEffect(() => {
     const handler = () => setShowNoSubMsg(false);
     window.addEventListener("hideSubscriptionMsg", handler);
     return () => window.removeEventListener("hideSubscriptionMsg", handler);
   }, []);
 
-  // Automatski sakrij poruku nakon 4 sekunde
   useEffect(() => {
     if (pretplataValid === false && showNoSubMsg) {
       const timer = setTimeout(() => setShowNoSubMsg(false), 4000);
@@ -115,13 +109,12 @@ const AudioPlayer: React.FC<Props> = ({
     setShowNoSubMsg(true);
   }, [location.pathname]);
 
-  // Sync audio src and play new song immediately
   useEffect(() => {
     if (audioRef.current && src) {
       if (audioRef.current.src !== src) {
         audioRef.current.src = src;
         audioRef.current.load();
-        audioRef.current.volume = 0.3; // ensure this is a float, not string
+        audioRef.current.volume = 0.3; 
         setPlaying(true);
         setProgress(0);
         setLastSrc(src);
@@ -132,7 +125,6 @@ const AudioPlayer: React.FC<Props> = ({
     // eslint-disable-next-line
   }, [src, globalPlaylist.length]);
 
-  // Ensure play/pause state is always in sync with minimized state
   useEffect(() => {
     if (!audioRef.current) return;
     if (playing) {
@@ -149,7 +141,6 @@ const AudioPlayer: React.FC<Props> = ({
     }
   }, [playbackRate,pretplataValid]);
 
-  // Sync volume and muted state always, including on minimize/maximize
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current) {
@@ -158,7 +149,6 @@ const AudioPlayer: React.FC<Props> = ({
     }
   }, [volume, muted, minimized,pretplataValid]);
 
-  // When minimized, keep audio playing in background and keep progress/volume
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current && minimized && playing) {
@@ -170,11 +160,9 @@ const AudioPlayer: React.FC<Props> = ({
     // eslint-disable-next-line
   }, [minimized]);
 
-  // Fix: When returning from minimized to maximized, do NOT reset audio, just continue
   useEffect(() => {
     if (pretplataValid === false) return;
     if (!minimized && wasMinimized && audioRef.current) {
-      // Just restore UI, do not reload or reset audio
       audioRef.current.currentTime = progress;
       audioRef.current.volume = volume;
       audioRef.current.muted = muted;
@@ -186,7 +174,6 @@ const AudioPlayer: React.FC<Props> = ({
     // eslint-disable-next-line
   }, [minimized]);
 
-  // If src changes, always play the new song
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current && src && src !== lastSrc) {
@@ -199,7 +186,6 @@ const AudioPlayer: React.FC<Props> = ({
     // eslint-disable-next-line
   }, [src]);
 
-  // Fix: If user clicks play on a new song while another is paused, always play the new one
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current && src && playing && audioRef.current.src !== src && globalPlaylist.length === 0) {
@@ -222,7 +208,6 @@ const AudioPlayer: React.FC<Props> = ({
       .then((res) => {
         const p = (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src);
         setPjesma(p);
-        // Provjeri da li je korisnik lajkao pjesmu (koristi korisnik_pjesma)
         let korisnikID = korisnik?.id;
         try {
             const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -249,7 +234,6 @@ const AudioPlayer: React.FC<Props> = ({
       });
   }, [src, korisnik?.id]);
 
-  // Dodaj statistiku reprodukcije nakon 30 sekundi slušanja
 useEffect(() => {
   if (!pjesma || !korisnik?.id || !playing || !src) {
     setStatistikaSent(false);
@@ -259,7 +243,6 @@ useEffect(() => {
 
   const sendStatistika = async () => {
     try {
-      // Statistika reprodukcije
       await axios.post(`${API_BASE}/statistika/`, {
         korisnikID: korisnik.id,
         pjesmaID: pjesma.id,
@@ -268,7 +251,6 @@ useEffect(() => {
         zadnjePustanje: new Date().toISOString(),
       }).catch(() => {});
 
-      // Povećaj broj reprodukcija na pjesmi
       await axios.put(`${API_BASE}/pjesme/${pjesma.id}`, {
         ...pjesma,
         brojReprodukcija: (pjesma.brojReprodukcija || 0) + 1,
@@ -283,21 +265,16 @@ useEffect(() => {
   // eslint-disable-next-line
 }, [progress, pjesma, korisnik?.id, statistikaSent, src]);
 
-// Reset statistikaSent kad se pjesma promijeni
 useEffect(() => {
   setStatistikaSent(false);
 }, [src]);
 
-  // Dodaj pjesmu u historiju slušanja kada se pjesma pusti (na početku)
   useEffect(() => {
     if (!pjesma || !korisnik?.id || !src) return;
-    // Dodaj u historiju samo kad se pjesma promijeni
     const addToHistorija = async () => {
       try {
         const user = JSON.parse(localStorage.getItem("korisnik") || "");
-        // Prvo obriši ako već postoji u historiji za korisnika
         await axios.delete(`${API_BASE}/historija/obrisi/${user?.id}/${pjesma.id}`).catch(() => {});
-        // Zatim dodaj kao novu (prva u historiji)
         await axios.post(`${API_BASE}/historija/`, {
           korisnikID: user?.id,
           pjesmaID: pjesma.id,
@@ -309,8 +286,7 @@ useEffect(() => {
           kontekstPustanja: null,
         });
       } catch {
-        // ignore error
-      }
+        console.error("Failed to add pjesma to historija"); }
     };
     addToHistorija();
     // eslint-disable-next-line
@@ -318,13 +294,10 @@ useEffect(() => {
 
   const handlePlayPause = () => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
-      // Nastavi/zaustavi trenutnu pjesmu iz playliste
       setPlaying((p) => !p);
     } else if (globalPlaylist.length === 0 && src) {
-      // Single song
       setPlaying((p) => !p);
     }
-    // Ne mijenjaj currentSong ovdje!
   };
 
    const handleLike = async () => {
@@ -374,14 +347,11 @@ useEffect(() => {
     setMuted((m) => !m);
   };
 
-  // Dodaj funkciju za toggle repeat all (album/playlist)
   const handleRepeatAllToggle = () => {
     setPlaylistRepeat((prev) => !prev);
-    // Ako je repeatOne bio aktivan, isključi ga
     if (repeatOne) setRepeatOne(false);
   };
 
-  // Izmijeni handleRepeatToggle da isključuje repeatAll ako uključuje repeatOne i obrnuto
   const handleRepeatToggle = () => {
     setRepeatOne((prev) => {
       if (!prev) setPlaylistRepeat(false);
@@ -389,7 +359,6 @@ useEffect(() => {
     });
   };
 
-  // Dohvati korisnika
   useEffect(() => {
     async function fetchKorisnik() {
       if (!korisnikID) {
@@ -405,7 +374,6 @@ useEffect(() => {
     fetchKorisnik();
   }, [korisnikID]);
 
-  // Dohvati playliste korisnika za modal
   useEffect(() => {
     if (!korisnikID) return;
     axios
@@ -414,16 +382,13 @@ useEffect(() => {
       .catch(() => setPlaylists([]));
   }, [korisnikID]);
 
-  // Dodavanje pjesme u playlistu
   const handleAddToPlaylist = async (playlistaID: number) => {
     if (!src || !korisnikID) return;
-    // Pronađi pjesmu po putanji
     const pjesmaRes = await axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) => (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src));
     if (!pjesmaRes) return;
 
-    // Pozovi backend da doda pjesmu na kraj playliste
     try {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
         pjesmaID: pjesmaRes.id,
@@ -446,7 +411,6 @@ useEffect(() => {
     }
   };
 
-  // Slušaj globalni event za puštanje playliste/album
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -464,7 +428,6 @@ useEffect(() => {
     return () => window.removeEventListener("globalAudioPlaylist", handler);
   }, []);
 
-  // Kad se promijeni playlistIdx ili globalPlaylist, ažuriraj currentSong i pusti pjesmu
   useEffect(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
       const song = globalPlaylist[playlistIdx];
@@ -479,10 +442,8 @@ useEffect(() => {
   }, [playlistIdx, globalPlaylist]);
 
   useEffect(() => {
-    // Postavi currentSong i audioRef.src iz props SAMO ako NIJE aktivna playlista
     if (globalPlaylist.length === 0 && src) {
       setCurrentSong((prev) => {
-        // Ako već prikazujemo ovu pjesmu, ne mijenjaj state (zadrži detalje)
         if (prev && prev.putanjaAudio === src) return prev;
         return {
           id: id ?? 0,
@@ -498,10 +459,8 @@ useEffect(() => {
         audioRef.current.load();
       }
     }
-    // Ako je aktivna playlista, NE diraj currentSong ni audioRef.src ovdje!
   }, [src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
 
-  // Kada se promijeni currentSong, učitaj vlasnika pjesme
   useEffect(() => {
     if (!currentSong?.korisnikID) {
       setCurrentOwner(undefined);
@@ -513,7 +472,6 @@ useEffect(() => {
       .catch(() => setCurrentOwner(undefined));
   }, [currentSong?.korisnikID]);
 
-  // Dodaj effect za promjenu pozadine kad se promijeni currentSong
   useEffect(() => {
     if (currentSong) {
       const bgGif = currentSong.putanjaGif;
@@ -528,9 +486,7 @@ useEffect(() => {
     }
   }, [currentSong, currentSong?.putanjaGif, currentSong?.putanjaSlika]);
 
-  // Kada se pusti single pjesma, očisti globalPlaylist i postavi currentSong
   useEffect(() => {
-    // Ako je došao globalAudioPlay event, očisti playlistu i postavi currentSong
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail?.src) {
@@ -557,11 +513,9 @@ useEffect(() => {
     return () => window.removeEventListener("globalAudioPlay", handler);
   }, []);
 
-  // On ended: ispravi logiku za repeatOne i playlistRepeat
   const handleEnded = () => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
       if (repeatOne) {
-        // Ako je repeatOne aktivan, ponovi istu pjesmu
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
           audioRef.current.play().catch(() => {});
@@ -584,7 +538,6 @@ useEffect(() => {
       }
     } else {
       if (repeatOne) {
-        // Single song repeat
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
           audioRef.current.play().catch(() => {});
@@ -595,14 +548,11 @@ useEffect(() => {
       }
       setPlaying(false);
       setProgress(0);
-      // NE briši currentSong kod single song!
-      // onEnded?.();
     }
   };
 
  
 
-  // Always call hooks at the top level, not conditionally!
   useEffect(() => {
     if (pretplataValid === false && showNoSubMsg) {
       const timer = setTimeout(() => setShowNoSubMsg(false), 4000);
@@ -610,7 +560,6 @@ useEffect(() => {
     }
   }, [pretplataValid, showNoSubMsg]);
 
-  // Ako korisnik koji sluša nema pretplatu ili je istekla, prikaži poruku i dugme za kupovinu
   if (pretplataValid === false) {
     if (showNoSubMsg) {
       return (
@@ -674,7 +623,6 @@ useEffect(() => {
 
   if (!visible && !minimized) return null;
 
-  // Minimized floating button
   if (minimized) {
     return (
       <button
@@ -1317,5 +1265,3 @@ function formatTime(sec: number) {
 }
 
 export default AudioPlayer;
-
-

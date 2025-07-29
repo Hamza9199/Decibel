@@ -45,7 +45,6 @@ const SvePjesme: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -55,7 +54,6 @@ const SvePjesme: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for user songs
   const songsQuery = useQuery({
     queryKey: ['userSongs', korisnikID],
     queryFn: async () => {
@@ -63,16 +61,14 @@ const SvePjesme: React.FC = React.memo(() => {
       
       const response = await axios.get(`${API_BASE}/pjesme/`);
       
-      // Filter songs by current user
       return (response.data || []).filter(
         (p: Pjesma) => p.korisnikID === korisnikID
       );
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Mutation for deleting songs
   const deleteSongMutation = useMutation({
     mutationFn: async (songId: number) => {
       await axios.delete(`${API_BASE}/pjesme/${songId}`);
@@ -95,7 +91,7 @@ const SvePjesme: React.FC = React.memo(() => {
     queryClient.invalidateQueries({ queryKey: ['userSongs', korisnikID] }).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, korisnikID]);
+  }, [korisnikID]);
 
   const handlePlay = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -105,7 +101,6 @@ const SvePjesme: React.FC = React.memo(() => {
     
     setActiveSongId(song.id);
     console.log('Playing song:', song.naziv);
-    // Add audio player integration here
   }, [t]);
 
   const handleEdit = useCallback((songId: number) => {
@@ -135,7 +130,6 @@ const SvePjesme: React.FC = React.memo(() => {
     router.push(`/izvodjac/${artistId}`);
   }, [router]);
 
-  // Memoize filtered songs
   const filtriranePjesme = useMemo(() => {
     const pjesme = songsQuery.data || [];
     return pjesme.filter((p: Pjesma) =>
@@ -143,7 +137,6 @@ const SvePjesme: React.FC = React.memo(() => {
     );
   }, [songsQuery.data, search]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}

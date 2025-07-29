@@ -34,7 +34,6 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [dodajuci, setDodajuci] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  // Form state
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
@@ -54,7 +53,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -64,7 +62,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for album data
   const albumQuery = useQuery({
     queryKey: ['album', albumId],
     queryFn: async () => {
@@ -73,20 +70,18 @@ const UrediAlbum: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!albumId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for songs data
   const songsQuery = useQuery({
     queryKey: ['songs'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/pjesme/`);
       return response.data || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Set form values when album data is loaded
   useEffect(() => {
     if (albumQuery.data) {
       setNaziv(albumQuery.data.naziv || '');
@@ -94,7 +89,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     }
   }, [albumQuery.data]);
 
-  // Mutation for updating album
   const updateAlbumMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       if (!albumQuery.data) throw new Error('No album data');
@@ -116,7 +110,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for removing song from album
   const removeSongMutation = useMutation({
     mutationFn: async (pjesmaId: number) => {
       const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
@@ -140,7 +133,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for adding song to album
   const addSongMutation = useMutation({
     mutationFn: async (pjesmaId: number) => {
       const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
@@ -172,7 +164,7 @@ const UrediAlbum: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, albumId]);
+  }, [albumId]);
 
   const handleImagePick = useCallback(async () => {
     try {
@@ -267,11 +259,9 @@ const UrediAlbum: React.FC = React.memo(() => {
     });
   }, [addSongMutation]);
 
-  // Memoize processed song data
   const { pjesmeAlbuma, svePjesme } = useMemo(() => {
     const allSongs = songsQuery.data || [];
     
-    // Filter songs for this album and available songs
     const albumSongs = allSongs.filter((p: Pjesma) => String(p.albumID) === String(albumId));
     const availableSongs = allSongs.filter((p: Pjesma) => 
       p.korisnikID === korisnikID && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
@@ -323,7 +313,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     </View>
   ), [removing, dodajuci, handleRemoveSong, handleAddSong, formatDuration, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -332,7 +321,6 @@ const UrediAlbum: React.FC = React.memo(() => {
     />
   ), [refreshing, onRefresh]);
 
-  // Memoize permission check
   const hasPermission = useMemo(() => {
     return albumQuery.data && albumQuery.data.korisnikID === korisnikID;
   }, [albumQuery.data, korisnikID]);

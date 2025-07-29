@@ -172,15 +172,12 @@ const Biblioteka: React.FC = React.memo(() => {
     
     if (likedSongIds.length === 0) return [];
     
-    // Get all songs first
     const songsResponse = await apiClient.get('/pjesme/', { signal });
     const allSongs = songsResponse.data as Pjesma[];
     
-    // Get all users to populate korisnik data
     const usersResponse = await apiClient.get('/korisnici/', { signal });
     const allUsers = usersResponse.data as Korisnik[];
     
-    // Create user lookup map
     const userMap = allUsers.reduce((map, user) => {
       map[user.id] = user;
       return map;
@@ -218,11 +215,9 @@ const Biblioteka: React.FC = React.memo(() => {
       
       if (likedAlbumIds.length === 0) return [];
       
-      // Get all albums with their data
       const allAlbumsResponse = await apiClient.get('/albumi/', { signal });
       const allAlbums = allAlbumsResponse.data as Album[];
       
-      // Filter to only liked albums that are approved
       const likedAlbums = allAlbums.filter(album => 
         likedAlbumIds.includes(album.id) && album.odobreno
       );
@@ -241,7 +236,6 @@ const Biblioteka: React.FC = React.memo(() => {
     queryFn: async ({ signal }) => {
       if (!userId) return [];
       
-      // Get liked playlist IDs
       const likedResponse = await apiClient.get('/korisnik_playlista/', { signal });
       const likedPlaylistIds = likedResponse.data
         ?.filter((l: any) => l.korisnikID === userId)
@@ -249,11 +243,9 @@ const Biblioteka: React.FC = React.memo(() => {
       
       if (likedPlaylistIds.length === 0) return [];
       
-      // Get all playlists with their data
       const allPlaylistsResponse = await apiClient.get('/playliste/', { signal });
       const allPlaylists = allPlaylistsResponse.data as Playlista[];
       
-      // Filter to only liked playlists that are public
       const likedPlaylists = allPlaylists.filter(playlist => 
         likedPlaylistIds.includes(playlist.id) && playlist.javno
       );

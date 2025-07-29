@@ -34,7 +34,6 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
   const [removing, setRemoving] = useState<number | null>(null);
 
-  // Form state
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [javno, setJavno] = useState(false);
@@ -55,7 +54,6 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -65,7 +63,6 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for playlist data
   const playlistQuery = useQuery({
     queryKey: ['playlist', playlistaId],
     queryFn: async () => {
@@ -74,7 +71,7 @@ const UrediPlaylistu: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!playlistaId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
   // Query for playlist songs
@@ -97,10 +94,9 @@ const UrediPlaylistu: React.FC = React.memo(() => {
       return songs;
     },
     enabled: !!playlistaId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Set form values when playlist data is loaded
   useEffect(() => {
     if (playlistQuery.data) {
       const playlist = playlistQuery.data;
@@ -110,7 +106,6 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     }
   }, [playlistQuery.data]);
 
-  // Mutation for updating playlist
   const updatePlaylistMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       if (!playlistQuery.data) throw new Error('No playlist data');
@@ -134,7 +129,6 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for removing song from playlist
   const removeSongMutation = useMutation({
     mutationFn: async (pjesmaId: number) => {
       if (!playlistaId) throw new Error('No playlist ID');
@@ -161,7 +155,7 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, playlistaId]);
+  }, [playlistaId]);
 
   const handleImagePick = useCallback(async () => {
     try {
@@ -284,12 +278,10 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     </View>
   ), [removing, handleRemoveSong, formatDuration, t]);
 
-  // Memoize permission check
   const hasPermission = useMemo(() => {
     return playlistQuery.data && playlistQuery.data.korisnikID === korisnikID;
   }, [playlistQuery.data, korisnikID]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}

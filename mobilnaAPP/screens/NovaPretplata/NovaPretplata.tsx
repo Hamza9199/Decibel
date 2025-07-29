@@ -50,7 +50,6 @@ const NovaPretplata: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -60,7 +59,6 @@ const NovaPretplata: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for subscription data
   const subscriptionQuery = useQuery({
     queryKey: ['subscription', pretplataId],
     queryFn: async () => {
@@ -69,10 +67,9 @@ const NovaPretplata: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!pretplataId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Mutation for purchasing subscription
   const purchaseMutation = useMutation({
     mutationFn: async () => {
       if (!korisnikID) throw new Error('No user ID');
@@ -190,7 +187,6 @@ const NovaPretplata: React.FC = React.memo(() => {
     router.back();
   }, [router]);
 
-  // Memoize subscription details
   const subscriptionDetails = useMemo(() => {
     if (!subscriptionQuery.data) return [];
     
@@ -234,7 +230,6 @@ const NovaPretplata: React.FC = React.memo(() => {
             {t('buy_subscription')}: {pretplata.naziv}
           </Text>
 
-          {/* Subscription Details */}
           <View style={styles.subscriptionDetails}>
             {subscriptionDetails.map((detail, index) => (
               <View key={index} style={styles.detailRow}>
@@ -244,9 +239,7 @@ const NovaPretplata: React.FC = React.memo(() => {
             ))}
           </View>
 
-          {/* Payment Form */}
           <View style={styles.form}>
-            {/* Card Number */}
             <View>
               <Text style={styles.label}>{t('card_number')} *:</Text>
               <TextInput
@@ -265,7 +258,6 @@ const NovaPretplata: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Cardholder Name */}
             <View>
               <Text style={styles.label}>{t('card_name')} *:</Text>
               <TextInput
@@ -284,7 +276,6 @@ const NovaPretplata: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Expiry Date and CVC */}
             <View style={styles.inputRow}>
               <View style={[styles.inputHalf]}>
                 <Text style={styles.label}>{t('card_exp')} *:</Text>
@@ -324,7 +315,6 @@ const NovaPretplata: React.FC = React.memo(() => {
               </View>
             </View>
 
-            {/* Error/Success Messages */}
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -337,7 +327,6 @@ const NovaPretplata: React.FC = React.memo(() => {
               </View>
             )}
 
-            {/* Buttons */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[

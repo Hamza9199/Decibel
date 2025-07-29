@@ -12,7 +12,6 @@ const getApiBaseUrl = (): string => {
 
 export const API_BASE = getApiBaseUrl();
 
-// Optional: Add API client with better error handling
 export const apiClient = {
   get: async (endpoint: string) => {
     try {

@@ -37,6 +37,7 @@ const Search: React.FC = React.memo(() => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('sve');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
 
   const loadUser = useCallback(async () => {
@@ -50,12 +51,10 @@ const Search: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Replace useMemo with useEffect for loading user data
   useEffect(() => {
     loadUser();
   }, [loadUser]);
 
-  // Debounce search term
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm.trim());
@@ -64,7 +63,6 @@ const Search: React.FC = React.memo(() => {
     return () => clearTimeout(timeoutId);
   }, [searchTerm]);
 
-  // Query for search results
   const searchQuery = useQuery({
     queryKey: ['search', debouncedSearchTerm],
     queryFn: async () => {
@@ -123,10 +121,9 @@ const Search: React.FC = React.memo(() => {
       };
     },
     enabled: true,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Mutation for playing album
   const playAlbumMutation = useMutation({
     mutationFn: async (album: Album) => {
       const response = await axios.get(`${API_BASE}/pjesme/`);
@@ -149,7 +146,6 @@ const Search: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for playing playlist
   const playPlaylistMutation = useMutation({
     mutationFn: async (playlist: Playlista) => {
       const response = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
@@ -205,7 +201,6 @@ const Search: React.FC = React.memo(() => {
     setActiveFilter(key);
   }, []);
 
-  // Memoize filters
   const filters = useMemo(() => [
     { key: 'sve' as SearchFilter, label: t('all') },
     { key: 'pjesme' as SearchFilter, label: t('songs') },
@@ -270,7 +265,6 @@ const Search: React.FC = React.memo(() => {
     return items;
   }, [activeFilter, searchQuery.data, t]);
 
-  // Memoize filtered results
   const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);
   const hasResults = useMemo(() => filteredResults.length > 0, [filteredResults]);
 

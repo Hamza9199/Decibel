@@ -35,7 +35,6 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const [success, setSuccess] = useState<string | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
-  // Form state
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [zanr, setZanr] = useState('');
@@ -44,12 +43,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const [eksplicitniSadrzaj, setEksplicitniSadrzaj] = useState(false);
   const [albumID, setAlbumID] = useState<string>('');
   
-  // File states
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedAudio, setSelectedAudio] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  // Artists state
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState('');
 
@@ -67,7 +64,6 @@ const UrediPjesmu: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -77,7 +73,6 @@ const UrediPjesmu: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for song data
   const songQuery = useQuery({
     queryKey: ['song', pjesmaId],
     queryFn: async () => {
@@ -86,10 +81,9 @@ const UrediPjesmu: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!pjesmaId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for user's albums
   const albumsQuery = useQuery({
     queryKey: ['userAlbums', korisnikID],
     queryFn: async () => {
@@ -98,20 +92,18 @@ const UrediPjesmu: React.FC = React.memo(() => {
       return (response.data || []).filter((a: Album) => a.korisnikID === korisnikID);
     },
     enabled: !!korisnikID,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for all users (for artist search)
   const usersQuery = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/korisnici/`);
       return response.data || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for song artists
   const songArtistsQuery = useQuery({
     queryKey: ['songArtists', pjesmaId],
     queryFn: async () => {
@@ -127,10 +119,9 @@ const UrediPjesmu: React.FC = React.memo(() => {
       return users.filter((k: Korisnik) => izvodjaciIds.includes(k.id));
     },
     enabled: !!(pjesmaId && usersQuery.data),
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Set form values when song data is loaded
   useEffect(() => {
     if (songQuery.data) {
       const song = songQuery.data;
@@ -144,24 +135,20 @@ const UrediPjesmu: React.FC = React.memo(() => {
     }
   }, [songQuery.data]);
 
-  // Set selected artists when query data is loaded
   useEffect(() => {
     if (songArtistsQuery.data) {
       setIzabraniIzvodjaci(songArtistsQuery.data);
     }
   }, [songArtistsQuery.data]);
 
-  // Mutation for updating song
   const updateSongMutation = useMutation({
     mutationFn: async ({ formData, artists }: { formData: FormData; artists: Korisnik[] }) => {
       if (!songQuery.data) throw new Error('No song data');
       
-      // Update song
       await axios.put(`${API_BASE}/pjesme/${songQuery.data.id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // Update artists: first delete all existing connections, then add new ones
       const connectionsRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
       const veze = connectionsRes.data || [];
       const zaPjesmu = veze.filter((v: IzvodjacPjesmaVeza) => v.pjesmaID === songQuery.data.id);
@@ -205,7 +192,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, pjesmaId, korisnikID]);
+  }, [pjesmaId, korisnikID]);
 
   const handleImagePick = useCallback(async () => {
     try {
@@ -312,7 +299,6 @@ const UrediPjesmu: React.FC = React.memo(() => {
     updateSongMutation.mutate({ formData, artists: izabraniIzvodjaci });
   }, [songQuery.data, korisnikID, naziv, opis, jezikPjesme, licenca, eksplicitniSadrzaj, zanr, albumID, selectedImage, selectedGif, selectedAudio, izabraniIzvodjaci, updateSongMutation]);
 
-  // Memoize filtered artists
   const filteredArtists = useMemo(() => {
     const sviIzvodjaci = usersQuery.data || [];
     return sviIzvodjaci.filter((k: Korisnik) =>
@@ -330,12 +316,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
     </TouchableOpacity>
   ), [handleAddIzvodjac]);
 
-  // Memoize permission check
   const hasPermission = useMemo(() => {
     return songQuery.data && songQuery.data.korisnikID === korisnikID;
   }, [songQuery.data, korisnikID]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}

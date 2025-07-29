@@ -14,7 +14,6 @@ class SuspendovanKorisnikORM(Base):
 
     korisnik = relationship("KorisnikORM", backref="suspendovan_info")
 
-# Pydantic modeli
 
 class SuspendovanKorisnikBase(BaseModel):
     korisnikID: str

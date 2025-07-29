@@ -24,7 +24,6 @@ const UrediAlbum: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
   try {
     const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -43,7 +42,6 @@ const UrediAlbum: React.FC = () => {
       .finally(() => setLoading(false));
   }, [albumId]);
 
-  // Dohvati pjesme na ovom albumu
   useEffect(() => {
     if (!albumId) return;
     axios
@@ -59,7 +57,6 @@ const UrediAlbum: React.FC = () => {
       });
   }, [albumId]);
 
-  // Form state
   const [naziv, setNaziv] = useState("");
   const [opis, setOpis] = useState("");
   const [fileSlika, setFileSlika] = useState<File | null>(null);
@@ -99,11 +96,9 @@ const UrediAlbum: React.FC = () => {
     }
   };
 
-  // Funkcija za izbacivanje pjesme iz albuma
   const handleRemoveSong = async (pjesmaId: number) => {
     setRemoving(pjesmaId);
     try {
-      // Dohvati pjesmu, postavi albumID na null i update
       const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
       const pjesma = pjesmaRes.data;
       await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
@@ -117,7 +112,6 @@ const UrediAlbum: React.FC = () => {
     setRemoving(null);
   };
 
-  // Dodavanje pjesme na album
   const handleAddSong = async (pjesmaId: number) => {
     setDodajuci(pjesmaId);
     try {
@@ -180,7 +174,6 @@ const UrediAlbum: React.FC = () => {
             {t("save_changes")}
           </button>
         </form>
-        {/* Desno: prikaz pjesama na albumu i mogućnost izbacivanja/dodavanja */}
         <div style={{
           marginLeft: 32,
           background: "#232323",

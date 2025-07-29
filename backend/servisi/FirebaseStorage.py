@@ -24,14 +24,11 @@ def upload_file(local_path: str, remote_path: str) -> str:
     print(response.status_code, response.text)  # Debug
     response.raise_for_status()
     resp_json = response.json()
-    # Dohvati token iz odgovora
     token = resp_json.get("downloadTokens") or resp_json.get("token")
-    # Encode remote_path za URL
     encoded_path = quote(remote_path, safe='')
     if token:
         return f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{encoded_path}?alt=media&token={token}"
     else:
-        # fallback na link bez tokena (ako je bucket potpuno javan)
         return f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{encoded_path}?alt=media"
 
 def download_file(remote_path: str, local_path: str):
@@ -74,6 +71,5 @@ async def handle_file_upload(file_audio):
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(await file_audio.read())
         temp_path = tmp.name
-    # Upload the file to Firebase Storage
     remote_path = f"audios/{os.path.basename(temp_path)}"
     return upload_file(temp_path, remote_path)

@@ -33,12 +33,10 @@ const NoviAlbum: React.FC = () => {
   }
 
   useEffect(() => {
-    // Dohvati sve pjesme korisnika
     if (!korisnikID) return;
     axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) => {
-        // Prikazi samo pjesme korisnika koje nisu već na albumu
         setSvePjesme((res.data || []).filter((p: Pjesma) => p.korisnikID === korisnikID && !p.albumID));
       })
       .catch(() => setSvePjesme([]));
@@ -66,12 +64,10 @@ const NoviAlbum: React.FC = () => {
     if (fileGif) formData.append("file_gif", fileGif);
 
     try {
-      // 1. Kreiraj album
       const albumRes = await axios.post(`${API_BASE}/albumi/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const albumId = albumRes.data.id;
-      // 2. Dodaj pjesme na album (ako su odabrane)
       if (albumId && odabranePjesme.length > 0) {
         await Promise.all(
           odabranePjesme.map((pjesmaId) =>
@@ -144,7 +140,6 @@ const NoviAlbum: React.FC = () => {
             {t("cancel")}
           </button>
         </form>
-        {/* Desno: izbor pjesama */}
         <div style={{
           marginLeft: 32,
           background: "#232323",

@@ -54,7 +54,6 @@ const Album: React.FC = () => {
         .get(`${API_BASE}/playliste/`)
         .then((res) => setPlaylists(res.data || []))
         .catch(() => setPlaylists([]));
-      // Provjeri da li je korisnik lajkao album
       axios
         .get(`${API_BASE}/korisnik_album/`)
         .then((res) => {
@@ -62,7 +61,6 @@ const Album: React.FC = () => {
           setLiked(!!veze.find((v) => v.korisnikID === korisnikID && String(v.albumID) === String(albumId)));
         })
         .catch(() => setLiked(false));
-      // Dohvati lajkove korisnika za pjesme
       axios
         .get(`${API_BASE}/korisnik_pjesma/`)
         .then((res) => {
@@ -106,7 +104,6 @@ const Album: React.FC = () => {
   const handleLike = async () => {
     if (!album || !korisnikID) return;
     if (liked) {
-      // Un-like
       await axios.delete(`${API_BASE}/korisnik_album/${korisnikID}/${album.id}`).catch(() => {});
       setLiked(false);
       setLikeCount((prev) => prev - 1);

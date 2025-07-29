@@ -47,7 +47,6 @@ async def get_historija(historija_id: int, session: AsyncSession = Depends(get_s
 
 @router.post("/", response_model=HistorijaSlusanja)
 async def nova_historija(data: HistorijaSlusanjaCreate, session: AsyncSession = Depends(get_session)):
-    # Prvo obriši postojeći zapis za korisnikID + pjesmaID (ako postoji)
     result = await session.execute(
         select(HistorijaSlusanjaORM).where(
             HistorijaSlusanjaORM.korisnikID == data.korisnikID,
@@ -57,7 +56,7 @@ async def nova_historija(data: HistorijaSlusanjaCreate, session: AsyncSession = 
     postojeci = result.scalar_one_or_none()
     if postojeci:
         await session.delete(postojeci)
-        await session.flush()  # Osiguraj da je brisanje izvršeno prije dodavanja novog
+        await session.flush()  
     
     # Kreiraj novi zapis
     db_obj = await create_historija(session, data)
@@ -70,7 +69,6 @@ async def obrisi_historiju(historija_id: int, session: AsyncSession = Depends(ge
         raise HTTPException(status_code=404, detail="Historija nije pronađena")
     return db_obj
 
-# Dodaj DELETE rutu za brisanje po korisnikID i pjesmaID
 @router.delete("/obrisi/{korisnik_id}/{pjesma_id}", response_model=dict)
 async def obrisi_historiju_by_korisnik_pjesma(
     korisnik_id: str,

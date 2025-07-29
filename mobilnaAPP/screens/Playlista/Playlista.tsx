@@ -45,7 +45,6 @@ const Playlista: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -55,7 +54,6 @@ const Playlista: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for playlist details
   const playlistQuery = useQuery({
     queryKey: ['playlist', playlistaId],
     queryFn: async () => {
@@ -64,10 +62,9 @@ const Playlista: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!playlistaId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for playlist songs
   const songsQuery = useQuery({
     queryKey: ['playlistSongs', playlistaId],
     queryFn: async () => {
@@ -87,10 +84,9 @@ const Playlista: React.FC = React.memo(() => {
       return songsData.filter(Boolean);
     },
     enabled: !!playlistaId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Query for user's liked songs
   const likedSongsQuery = useQuery({
     queryKey: ['likedSongs', korisnikID],
     queryFn: async () => {
@@ -105,20 +101,18 @@ const Playlista: React.FC = React.memo(() => {
       return likeMap;
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Query for all playlists for modal
   const playlistsQuery = useQuery({
     queryKey: ['playlists'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/playliste/`);
       return response.data || [];
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for playlist like status
   const playlistLikeQuery = useQuery({
     queryKey: ['playlistLike', playlistaId, korisnikID],
     queryFn: async () => {
@@ -131,10 +125,9 @@ const Playlista: React.FC = React.memo(() => {
       );
     },
     enabled: !!(korisnikID && playlistaId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Mutation for liking/unliking songs
   const likeSongMutation = useMutation({
     mutationFn: async ({ pjesmaId, isLiked }: { pjesmaId: number; isLiked: boolean }) => {
       if (!korisnikID) throw new Error('No user ID');
@@ -156,10 +149,7 @@ const Playlista: React.FC = React.memo(() => {
         ...old,
         [pjesmaId]: liked
       }));
-      Alert.alert(
-        t('success'), 
-        liked ? t('added_to_favorites') : t('removed_from_favorites')
-      );
+      
     },
     onError: (error) => {
       console.error('Error liking/unliking song:', error);
@@ -167,7 +157,6 @@ const Playlista: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for liking/unliking playlist
   const likePlaylistMutation = useMutation({
     mutationFn: async ({ isLiked }: { isLiked: boolean }) => {
       if (!korisnikID || !playlistaId) throw new Error('Missing data');
@@ -186,15 +175,11 @@ const Playlista: React.FC = React.memo(() => {
     },
     onSuccess: (liked) => {
       queryClient.setQueryData(['playlistLike', playlistaId, korisnikID], liked);
-      // Update playlist data to reflect new like count
       queryClient.setQueryData(['playlist', playlistaId], (old: any) => ({
         ...old,
         brojLajkova: (old?.brojLajkova || 0) + (liked ? 1 : -1)
       }));
-      Alert.alert(
-        t('success'), 
-        liked ? t('added_to_favorites') : t('removed_from_favorites')
-      );
+      
     },
     onError: (error) => {
       console.error('Error liking/unliking playlist:', error);
@@ -202,7 +187,6 @@ const Playlista: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for adding song to playlist
   const addToPlaylistMutation = useMutation({
     mutationFn: async ({ pjesmaID, playlistaID }: { pjesmaID: number; playlistaID: number }) => {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
@@ -221,7 +205,6 @@ const Playlista: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for removing song from playlist
   const removeSongMutation = useMutation({
     mutationFn: async (pjesmaId: number) => {
       if (!playlistaId) throw new Error('No playlist ID');
@@ -251,7 +234,7 @@ const Playlista: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, playlistaId, korisnikID]);
+  }, [playlistaId, korisnikID]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     if (!song.putanjaAudio) {
@@ -259,7 +242,6 @@ const Playlista: React.FC = React.memo(() => {
       return;
     }
     
-    // Play song logic
     console.log('Playing song:', song.naziv);
   }, [t]);
 
@@ -270,7 +252,6 @@ const Playlista: React.FC = React.memo(() => {
       return;
     }
     
-    // Play first song from playlist
     const firstSong = pjesme[0];
     if (firstSong?.putanjaAudio) {
       handlePlaySong(firstSong);
@@ -381,7 +362,6 @@ const Playlista: React.FC = React.memo(() => {
     );
   }, [likedSongsQuery.data, playlistQuery.data, korisnikID, handlePlaySong, handleLikeSong, handleRemoveSong, formatDuration, t]);
 
-  // Memoize playlist meta information
   const playlistMeta = useMemo(() => {
     const pjesme = songsQuery.data || [];
     const likeCount = playlistQuery.data?.brojLajkova || 0;
@@ -393,7 +373,6 @@ const Playlista: React.FC = React.memo(() => {
     ];
   }, [songsQuery.data, playlistQuery.data, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -402,7 +381,6 @@ const Playlista: React.FC = React.memo(() => {
     />
   ), [refreshing, onRefresh]);
 
-  // Memoize filtered playlists for modal
   const filteredPlaylists = useMemo(() => {
     const playlists = playlistsQuery.data || [];
     return playlists.filter((pl: PlaylistaType) => String(pl.id) !== String(playlistaId));
@@ -444,7 +422,6 @@ const Playlista: React.FC = React.memo(() => {
         refreshControl={refreshControl}
       >
         <View style={styles.content}>
-          {/* Playlist Main Section */}
           <View style={styles.playlistMain}>
             <View style={styles.playlistImageWrap}>
               <Image
@@ -494,7 +471,6 @@ const Playlista: React.FC = React.memo(() => {
             </View>
           </View>
 
-          {/* Songs Section */}
           <Text style={styles.sectionTitle}>
             {t('songs_in_playlist') || 'Songs in Playlist'}
           </Text>
@@ -515,7 +491,6 @@ const Playlista: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      {/* Add to Playlist Modal */}
       <Modal
         visible={showPlaylistModal !== null}
         transparent

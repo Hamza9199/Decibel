@@ -169,10 +169,8 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
     const korisnikID = user?.id;
     if (!korisnikID) return;
     try {
-      // Dohvati korisnika sa backend-a
       const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`);
       const korisnik = res.data;
-      // Pošalji update sa statusKorisnika: "aktivan", obrisan: false
       await axios.put(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`, {
         ...korisnik,
         statusKorisnika: "aktivan",
@@ -203,7 +201,6 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
               setProvjera(false);
               return;
             }
-            // Provjeri suspenziju tek ako nije obrisan/neaktivan
             if (res.data.statusKorisnika === "suspendovan") {
               axios.get(`${import.meta.env.VITE_API_BASE_URL}/suspendovani/korisnik/${korisnikID}`)
                 .then(r => {
@@ -256,17 +253,14 @@ const setBodyBackground = (imgUrl?: string) => {
   if (!body) return;
   
   if (imgUrl) {
-    // Set background image for both body and pseudo-element
     body.style.background = `url('${imgUrl}') center center / cover no-repeat fixed`;
     body.style.backgroundAttachment = 'fixed';
     body.style.backgroundSize = 'cover';
     body.style.backgroundPosition = 'center center';
     body.style.backgroundRepeat = 'no-repeat';
     
-    // Update pseudo-element background via CSS custom property
     body.style.setProperty('--bg-image', `url('${imgUrl}')`);
     
-    // Update pseudo-element styles
     const style = document.createElement('style');
     style.textContent = `
       body::before {
@@ -279,7 +273,6 @@ const setBodyBackground = (imgUrl?: string) => {
       }
     `;
     
-    // Remove previous style if exists
     const existingStyle = document.getElementById('dynamic-bg-style');
     if (existingStyle) {
       existingStyle.remove();
@@ -290,7 +283,6 @@ const setBodyBackground = (imgUrl?: string) => {
     
     console.log('Background set to:', imgUrl);
   } else {
-    // Reset to default gradient
     body.style.background = 'radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)';
     body.style.backgroundAttachment = 'fixed';
     body.style.backgroundSize = 'auto';
@@ -308,20 +300,15 @@ const setBodyBackground = (imgUrl?: string) => {
 };
 
 const AppContent: FC = () => {
-  // Listen for active song changes via custom event
   useEffect(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
       const { gif, slika } = (customEvent.detail || {});
-      console.log('Background change event received:', { gif, slika }); // Debug log
       if (gif) {
-        console.log('Setting GIF background:', gif); // Debug log
         setBodyBackground(gif);
       } else if (slika) {
-        console.log('Setting image background:', slika); // Debug log
         setBodyBackground(slika);
       } else {
-        console.log('Resetting to default background'); // Debug log
         setBodyBackground(undefined);
       }
     };
@@ -359,7 +346,6 @@ const AppContent: FC = () => {
         <Route path="/omiljene/pjesme" element={<Omiljeno />} />
         <Route path="/omiljene/albumi" element={<Omiljeno />} />
         <Route path="/omiljene/playliste" element={<Omiljeno />} />
-        {/* Fallback route */}
         <Route path="/404" element={
           <>
             <Header/>
@@ -394,7 +380,6 @@ const App: FC = () => {
     playlistRepeat?: boolean;
   }>({ visible: false, minimized: false });
 
-  // Slušaj event iz Home i drugih stranica za promjenu pjesme (single)
   useEffect(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -418,7 +403,6 @@ const App: FC = () => {
     return () => window.removeEventListener("globalAudioPlay", handler);
   }, []);
 
-  // Slušaj event za album/playlista play i otvori player
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
@@ -446,7 +430,6 @@ const App: FC = () => {
         korisnikID={audioState.korisnikID}
         visible={audioState.visible}
         minimized={audioState.minimized}
-        onEnded={() => {/* ne gasi player automatski */}}
         onClose={() =>
           setAudioState((prev) =>
             prev.visible

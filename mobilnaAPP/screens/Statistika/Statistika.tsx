@@ -23,7 +23,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
 
 
-  // Query for statistics data
   const statisticsQuery = useQuery({
     queryKey: ['statistics'],
     queryFn: async () => {
@@ -43,7 +42,7 @@ const StatistikaScreen: React.FC = React.memo(() => {
         statistika: statistikaData,
       };
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
   const onRefresh = useCallback(() => {
@@ -51,16 +50,14 @@ const StatistikaScreen: React.FC = React.memo(() => {
     queryClient.invalidateQueries({ queryKey: ['statistics'] }).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient]);
+  }, []);
 
-  // Extract data from query
   const pjesme = useMemo(() => statisticsQuery.data?.pjesme || [], [statisticsQuery.data?.pjesme]);
   const albumi = useMemo(() => statisticsQuery.data?.albumi || [], [statisticsQuery.data?.albumi]);
   const playliste = useMemo(() => statisticsQuery.data?.playliste || [], [statisticsQuery.data?.playliste]);
   const korisnici = useMemo(() => statisticsQuery.data?.korisnici || [], [statisticsQuery.data?.korisnici]);
   const statistika = useMemo(() => statisticsQuery.data?.statistika || [], [statisticsQuery.data?.statistika]);
 
-  // Memoize calculated data
   const topPjesme = useMemo(() => {
     return [...pjesme]
       .filter(p => typeof p.brojLajkova === 'number')
@@ -133,7 +130,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
     }
   }, [pjesme, statistika]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -163,7 +159,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
         <View style={styles.content}>
           <Text style={styles.title}>{t('platform_statistics') || 'Platform Statistics'}</Text>
 
-          {/* Most Popular Artist */}
           {najpoznatijiIzvodjac && (
             <View style={styles.infoBox}>
               <Text style={styles.infoTitle}>{t('most_popular_artist') || 'Most Popular Artist'}</Text>
@@ -185,7 +180,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
             </View>
           )}
 
-          {/* Top Songs by Likes */}
           <Text style={styles.sectionTitle}>{t('top_10_songs_likes') || 'Top 10 Songs (Likes)'}</Text>
           <View style={styles.chartCard}>
             {topPjesme.length === 0 ? (
@@ -202,7 +196,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Top Albums by Likes */}
           <Text style={styles.sectionTitle}>{t('top_10_albums_likes') || 'Top 10 Albums (Likes)'}</Text>
           <View style={styles.chartCard}>
             {topAlbumi.length === 0 ? (
@@ -219,7 +212,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Top Playlists by Likes */}
           <Text style={styles.sectionTitle}>{t('top_10_playlists_likes') || 'Top 10 Playlists (Likes)'}</Text>
           <View style={styles.chartCard}>
             {topPlayliste.length === 0 ? (
@@ -236,7 +228,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Top Artists by Followers */}
           <Text style={styles.sectionTitle}>{t('top_10_artists_followers') || 'Top 10 Artists (Followers)'}</Text>
           <View style={styles.chartCard}>
             {topIzvodjaci.length === 0 ? (
@@ -253,7 +244,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Songs by Genre */}
           <Text style={styles.sectionTitle}>{t('songs_by_genre') || 'Songs by Genre'}</Text>
           <View style={styles.chartCard}>
             {songsbyGenre.length === 0 ? (
@@ -273,7 +263,6 @@ const StatistikaScreen: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Top Played Songs */}
           <Text style={styles.sectionTitle}>{t('top_10_most_played_songs') || 'Top 10 Most Played Songs'}</Text>
           <View style={styles.chartCard}>
             {topSlusane.length === 0 ? (

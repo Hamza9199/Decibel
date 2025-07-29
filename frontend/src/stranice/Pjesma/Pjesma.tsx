@@ -46,14 +46,12 @@ const Pjesma: React.FC = () => {
     }
     setLoading(true);
 
-    // Dohvati pjesmu
     axios
       .get(`${API_BASE}/pjesme/${pjesmaId}`)
       .then((res) => {
         if (!isMounted) return;
         setPjesma(res.data);
 
-        // Dodaj: postavi broj lajkova i da li je korisnik lajkao pjesmu
         setLikeCount(res.data.brojLajkova || 0);
         if (mojID) {
           axios
@@ -70,7 +68,6 @@ const Pjesma: React.FC = () => {
             })
             .catch(() => setLiked(false));
         }
-        // Dohvati izdavaoca (korisnikID od pjesme)
         const korisnikID = res.data.korisnikID;
         if (korisnikID) {
           axios
@@ -85,7 +82,6 @@ const Pjesma: React.FC = () => {
           setIzdavac(null);
         }
 
-        // Dohvati izvođače za pjesmu
         axios
           .get(`${API_BASE}/izvodjac_pjesma/`)
           .then((resp) => {
@@ -119,7 +115,6 @@ const Pjesma: React.FC = () => {
         if (isMounted) setLoading(false);
       });
 
-    // Dohvati top pjesme za reklamu
     axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) => {
@@ -141,7 +136,6 @@ const Pjesma: React.FC = () => {
 
   useEffect(() => {
     if (!pjesmaId) return;
-    // Dohvati komentare za pjesmu
     axios
       .get(`${API_BASE}/komentari/`)
       .then(async (res) => {
@@ -149,7 +143,6 @@ const Pjesma: React.FC = () => {
         const zaPjesmu = svi.filter((k) => String(k.pjesmaID) === String(pjesmaId));
         setKomentari(zaPjesmu);
 
-        // Dohvati korisnike za komentare
         const korisnikIds = Array.from(new Set(zaPjesmu.map((k) => k.korisnikID)));
         const korisniciObj: { [id: string]: Korisnik } = {};
         await Promise.all(
@@ -181,7 +174,6 @@ const Pjesma: React.FC = () => {
     );
   };
 
-  // Dodaj komentar
   const handleDodajKomentar = async (e: React.FormEvent) => {
     e.preventDefault();
     setKomentarError(null);
@@ -198,7 +190,6 @@ const Pjesma: React.FC = () => {
         kreiranDatumVrijeme: new Date().toISOString(),
       });
       setNoviKomentar("");
-      // Osvježi komentare
       const res = await axios.get(`${API_BASE}/komentari/`);
       const svi: Komentar[] = res.data || [];
       setKomentari(svi.filter((k) => String(k.pjesmaID) === String(pjesmaId)));
@@ -207,7 +198,6 @@ const Pjesma: React.FC = () => {
     }
   };
 
-  // Uredi komentar
   const handleUrediKomentar = async (id: number) => {
     setKomentarError(null);
     if (!editKomentarTekst.trim()) {
@@ -220,7 +210,6 @@ const Pjesma: React.FC = () => {
       });
       setEditKomentarId(null);
       setEditKomentarTekst("");
-      // Osvježi komentare
       const res = await axios.get(`${API_BASE}/komentari/`);
       const svi: Komentar[] = res.data || [];
       setKomentari(svi.filter((k) => String(k.pjesmaID) === String(pjesmaId)));
@@ -229,7 +218,6 @@ const Pjesma: React.FC = () => {
     }
   };
 
-  // Prikaz komentara: vlasnikov komentar uvijek prvi
   const komentariSortirani = (() => {
     if (!mojID) return komentari;
     const vlasnikKomentar = komentari.find((k) => k.korisnikID === mojID);
@@ -237,11 +225,9 @@ const Pjesma: React.FC = () => {
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
   })();
 
-  // Dodaj funkciju za like/unlike pjesme
   const handleLike = async () => {
     if (!pjesma || !mojID) return;
     if (liked) {
-      // Un-like
       await axios
         .delete(`${API_BASE}/korisnik_pjesma/${mojID}/${pjesma.id}`)
         .catch(() => {});
@@ -392,7 +378,6 @@ const Pjesma: React.FC = () => {
               ))}
             </div>
           </div>
-          {/* Komentari sekcija */}
           <div style={{ marginTop: 60 }}>
             <h3 className={styles.topPjesmeTitle}>{t("comments") || "Komentari"}</h3>
             <form onSubmit={handleDodajKomentar} style={{ marginBottom: 24 }}>

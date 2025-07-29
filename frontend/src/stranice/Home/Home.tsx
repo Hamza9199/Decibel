@@ -66,7 +66,6 @@ const Home: React.FC = () => {
     const song = pjesme.find((p) => p.id === id);
     setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
     
-    console.log('Setting active song:', song); // Debug log
 
     if (song && audioUrl) {
       window.dispatchEvent(
@@ -123,7 +122,7 @@ const Home: React.FC = () => {
         })
       );
     } catch {
-      // fallback na staro ponašanje ako backend ne radi
+      console.error("Error fetching playlist songs");
     }
   };
 
@@ -179,7 +178,6 @@ const Home: React.FC = () => {
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
-                    {/* Play dugme za album */}
                     <button
                       className={styles.playButton}
                       onClick={() => handlePlayAlbum(a.id)}

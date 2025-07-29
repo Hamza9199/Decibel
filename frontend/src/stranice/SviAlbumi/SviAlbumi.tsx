@@ -17,7 +17,6 @@ const SviAlbumi: React.FC = () => {
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
-  // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
   try {
     const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -35,7 +34,6 @@ const SviAlbumi: React.FC = () => {
     axios
       .get(`${API_BASE}/albumi/`)
       .then((res) => {
-        // Filtriraj albume po korisnikID
         const mojiAlbumi = (res.data || []).filter(
           (a: Album) => a.korisnikID === korisnikID
         );
@@ -52,7 +50,6 @@ const SviAlbumi: React.FC = () => {
       .catch(() => setPjesme([]));
   }, [korisnikID]);
 
-  // Funkcija za puštanje albuma
   const handlePlayAlbum = (albumId: number) => {
     const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
     if (albumSongs.length === 0) return;
@@ -67,7 +64,6 @@ const SviAlbumi: React.FC = () => {
     );
   };
 
-  // Dodaj filtrirane albume prema search-u
   const filtriraniAlbumi = albumi.filter((a) =>
     a.naziv.toLowerCase().includes(search.toLowerCase())
   );
@@ -114,7 +110,6 @@ const SviAlbumi: React.FC = () => {
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
-                    {/* Play dugme za album */}
                     <button
                       className={styles.playButton}
                       onClick={() => handlePlayAlbum(a.id)}

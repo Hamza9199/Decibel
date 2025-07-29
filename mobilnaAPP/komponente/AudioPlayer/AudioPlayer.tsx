@@ -52,7 +52,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   const { t } = useTranslation();
   const audioCtx = useAudio();
 
-  // ...existing state...
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -90,7 +89,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
   });
 
-  // React Query: Get all songs
   const { data: allSongs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: async () => {
@@ -728,7 +726,6 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pjesma?.id, korisnik?.id, src]);
 
-  // Add statistics after 30 seconds of listening - memoized to prevent infinite loops
   const statistikaRef = useRef<{ korisnikID: string; pjesmaID: number; sent: boolean } | null>(null);
   
   useEffect(() => {
@@ -1063,5 +1060,3 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 AudioPlayer.displayName = 'AudioPlayer';
 
 export default AudioPlayer;
-
-

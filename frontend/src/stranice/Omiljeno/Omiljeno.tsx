@@ -63,21 +63,18 @@ const Omiljeno: React.FC = () => {
       setLoading(false);
     });
     axios.get(`${API_BASE}/playliste/`).then(res => setPlaylists(res.data || [])).catch(() => setPlaylists([]));
-    // Dohvati lajkove korisnika za pjesme
     axios.get(`${API_BASE}/korisnik_pjesma/`).then(res => {
       const veze = res.data as KorisnikPjesma[];
       const map: { [pjesmaId: number]: boolean } = {};
       veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.pjesmaID] = true; });
       setLikeMap(map);
     }).catch(() => setLikeMap({}));
-    // Album lajkovi
     axios.get(`${API_BASE}/korisnik_album/`).then(res => {
       const veze = res.data as KorisnikAlbum[];
       const map: { [albumId: number]: boolean } = {};
       veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.albumID] = true; });
       setLikeAlbumMap(map);
     }).catch(() => setLikeAlbumMap({}));
-    // Playlist lajkovi
     axios.get(`${API_BASE}/korisnik_playlista/`).then(res => {
       const veze = res.data as KorisnikPlaylista[];
       const map: { [playlistaId: number]: boolean } = {};
@@ -86,7 +83,6 @@ const Omiljeno: React.FC = () => {
     }).catch(() => setLikePlaylistMap({}));
   }, [korisnikID, tipRaw]);
 
-  // Helper za play pjesme
   const handlePlay = (p: Pjesma) => {
     window.dispatchEvent(
       new CustomEvent("globalAudioPlay", {
@@ -141,11 +137,10 @@ const Omiljeno: React.FC = () => {
         })
       );
     } catch {
-      // fallback na staro ponašanje ako backend ne radi
+      console.error("Greška pri dohvaćanju pjesama iz playliste");
     }
   };
 
-  // Like/Unlike handler za pjesmu
   const handleLike = async (p: Pjesma) => {
     if (!korisnikID || !p.id) return;
     if (likeMap[p.id]) {
@@ -191,7 +186,6 @@ const Omiljeno: React.FC = () => {
     }
   };
 
-  // Dodavanje pjesme u bilo koju playlistu
     const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
     try {
       await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
@@ -228,7 +222,7 @@ const Omiljeno: React.FC = () => {
               </thead>
               <tbody>
                 {omiljenePjesme.map((kp, idx) => {
-                  const p = pjesme.find((pp) => pp.id === kp.pjesmaID && pp.odobreno); // prikazuj samo odobrene pjesme
+                  const p = pjesme.find((pp) => pp.id === kp.pjesmaID && pp.odobreno); 
                   if (!p) return null;
                   const izvodjac = korisnici.find((k) => k.id === p.korisnikID);
                   return (
@@ -295,7 +289,6 @@ const Omiljeno: React.FC = () => {
                                 <rect x="8" y="18" width="28" height="8" />
                               </svg>
                             </button>
-                            {/* Modal za izbor playliste */}
                             {showPlaylistModal === p.id && (
                               <div
                                 style={{

@@ -36,7 +36,6 @@ const Izvodjac: React.FC = () => {
       .get(`${API_BASE}/korisnici/${izvodjacId}`)
       .then((res) => setIzvodjac(res.data))
       .catch(() => setIzvodjac(null));
-    // Dohvati pjesme gdje je vlasnik i odobrene
     axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) =>
@@ -47,7 +46,6 @@ const Izvodjac: React.FC = () => {
         )
       )
       .catch(() => setPjesme([]));
-    // Dohvati pjesme gdje je izvodjac (preko veze izvodjac_pjesma) i odobrene
     axios
       .get(`${API_BASE}/izvodjac_pjesma/`)
       .then(async (res) => {
@@ -65,7 +63,6 @@ const Izvodjac: React.FC = () => {
             )
           );
           setPjesme((prev) => {
-            // Dodaj samo pjesme koje nisu već u listi (po id) i koje su odobrene
             const ids = new Set(prev.map((p) => p.id));
             return [
               ...prev,
@@ -77,7 +74,6 @@ const Izvodjac: React.FC = () => {
         }
       })
       .catch(() => {});
-    // Dohvati albume koji su odobreni
     axios
       .get(`${API_BASE}/albumi/`)
       .then((res) =>
@@ -88,7 +84,6 @@ const Izvodjac: React.FC = () => {
         )
       )
       .catch(() => setAlbumi([]));
-    // Dohvati playliste koje su javne
     axios
       .get(`${API_BASE}/playliste/`)
       .then((res) =>
@@ -99,7 +94,6 @@ const Izvodjac: React.FC = () => {
         )
       )
       .catch(() => setPlayliste([]));
-    // Provjeri da li pratim
     if (mojID && izvodjacId) {
       axios
         .get(`${API_BASE}/pratioci/${izvodjacId}/${mojID}`)
@@ -176,7 +170,7 @@ const Izvodjac: React.FC = () => {
         })
       );
     } catch {
-      // fallback na staro ponašanje ako backend ne radi
+      console.error("Greška prilikom dohvaćanja pjesama iz playliste.");
     }
   };
 
@@ -272,7 +266,6 @@ const Izvodjac: React.FC = () => {
                         alt={a.naziv}
                         className={styles.cardImage}
                       />
-                      {/* Play dugme za album */}
                       <button
                         className={styles.playBtn}
                         onClick={() => handlePlayAlbum(a.id)}
@@ -305,7 +298,6 @@ const Izvodjac: React.FC = () => {
                         alt={pl.naziv}
                         className={styles.cardImage}
                       />
-                      {/* Play dugme za playlistu */}
                       <button
                         className={styles.playBtn}
                         onClick={() => handlePlayPlaylist(pl.id)}

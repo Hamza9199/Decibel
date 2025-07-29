@@ -1,8 +1,7 @@
-// useScreenCleanup.ts
 import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { useQueryClient } from '@tanstack/react-query';
 import { InteractionManager } from 'react-native';
+import { queryClient } from '@/config/queryClient';
 
 interface CleanupOptions {
   queryKeys?: string[][];
@@ -11,7 +10,6 @@ interface CleanupOptions {
 }
 
 export const useScreenCleanup = (options: CleanupOptions = {}) => {
-  const queryClient = useQueryClient();
   const { queryKeys = [], stateCleanup, aggressiveCleanup = false } = options;
   const cleanupExecuted = useRef(false);
 

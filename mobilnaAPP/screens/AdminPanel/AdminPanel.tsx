@@ -30,37 +30,33 @@ const AdminPanel: React.FC = React.memo(() => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('songs');
   const [search, setSearch] = useState('');
 
-  // Load songs with useQuery
   const { data: songs = [], isLoading: songsLoading, refetch: refetchSongs } = useQuery({
     queryKey: ['admin-songs'],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE}/pjesme/`);
       return res.data || [];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Load albums with useQuery
   const { data: albums = [], isLoading: albumsLoading, refetch: refetchAlbums } = useQuery({
     queryKey: ['admin-albums'],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE}/albumi/`);
       return res.data || [];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Load playlists with useQuery
   const { data: playlists = [], isLoading: playlistsLoading, refetch: refetchPlaylists } = useQuery({
     queryKey: ['admin-playlists'],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE}/playliste/`);
       return res.data || [];
     },
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000, 
   });
 
-  // Song approval mutation
   const songApprovalMutation = useMutation({
     mutationFn: async ({ song, approved }: { song: Pjesma, approved: boolean }) => {
       return axios.put(`${API_BASE}/pjesme/${song.id}`, {
@@ -79,7 +75,6 @@ const AdminPanel: React.FC = React.memo(() => {
     },
   });
 
-  // Album approval mutation
   const albumApprovalMutation = useMutation({
     mutationFn: async ({ album, approved }: { album: Album, approved: boolean }) => {
       return axios.put(`${API_BASE}/albumi/${album.id}`, {
@@ -98,7 +93,6 @@ const AdminPanel: React.FC = React.memo(() => {
     },
   });
 
-  // Song delete mutation
   const deleteSongMutation = useMutation({
     mutationFn: async (songId: number) => {
       return axios.delete(`${API_BASE}/pjesme/${songId}`);
@@ -114,7 +108,6 @@ const AdminPanel: React.FC = React.memo(() => {
     },
   });
 
-  // Album delete mutation
   const deleteAlbumMutation = useMutation({
     mutationFn: async (albumId: number) => {
       return axios.delete(`${API_BASE}/albumi/${albumId}`);
@@ -130,7 +123,6 @@ const AdminPanel: React.FC = React.memo(() => {
     },
   });
 
-  // Playlist delete mutation
   const deletePlaylistMutation = useMutation({
     mutationFn: async (playlistId: number) => {
       return axios.delete(`${API_BASE}/playliste/${playlistId}`);
@@ -210,7 +202,6 @@ const AdminPanel: React.FC = React.memo(() => {
     );
   }, [t, deletePlaylistMutation]);
 
-  // Memoize filtered data
   const filteredSongs = useMemo(() => 
     songs.filter((s: Pjesma) => s.naziv.toLowerCase().includes(search.toLowerCase())),
     [songs, search]
@@ -360,20 +351,17 @@ const AdminPanel: React.FC = React.memo(() => {
     </View>
   ), [t, handleDeletePlaylist]);
 
-  // Tab change handler
   const handleTabChange = useCallback((tab: ActiveTab) => {
     setActiveTab(tab);
     setSearch('');
   }, []);
 
-  // Memoize search placeholder
   const searchPlaceholder = useMemo(() => {
     return activeTab === 'songs' ? t('search_songs') :
            activeTab === 'albums' ? t('search_albums') :
            t('search_playlists');
   }, [activeTab, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -404,7 +392,6 @@ const AdminPanel: React.FC = React.memo(() => {
             <View style={styles.spacer} />
           </View>
 
-          {/* Tab Navigation */}
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={[styles.tab, activeTab === 'songs' && styles.activeTab]}
@@ -443,7 +430,6 @@ const AdminPanel: React.FC = React.memo(() => {
             </TouchableOpacity>
           </View>
 
-          {/* Search */}
           <TextInput
             style={styles.searchInput}
             placeholder={searchPlaceholder}
@@ -452,7 +438,6 @@ const AdminPanel: React.FC = React.memo(() => {
             onChangeText={setSearch}
           />
 
-          {/* Messages */}
           {error && (
             <View style={styles.errorContainer}>
               <Text style={styles.errorText}>{error}</Text>
@@ -465,7 +450,6 @@ const AdminPanel: React.FC = React.memo(() => {
             </View>
           )}
 
-          {/* Content */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
               {activeTab === 'songs' ? t('songs') :

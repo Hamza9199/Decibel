@@ -30,7 +30,6 @@ const Login: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
 
-  // Check if user is already logged in on component mount
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
@@ -47,7 +46,7 @@ const Login: React.FC = React.memo(() => {
     };
 
     checkLoginStatus();
-  }, []); // Empty dependency array - only run once
+  }, [router]); 
 
   const handleSubmit = useCallback(async () => {
     if (!email.trim() || !lozinka.trim()) {
@@ -142,7 +141,6 @@ const Login: React.FC = React.memo(() => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Logo Section */}
           <View style={styles.logoContainer}>
             <Image
               source={logoSource}
@@ -152,11 +150,9 @@ const Login: React.FC = React.memo(() => {
             <Text style={styles.appName}>Decibel</Text>
           </View>
 
-          {/* Login Form */}
           <View style={styles.formContainer}>
             <Text style={styles.title}>{t('login')}</Text>
 
-            {/* Email Input */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={[
@@ -176,7 +172,6 @@ const Login: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Password Input */}
             <View style={styles.inputContainer}>
               <TextInput
                 style={[
@@ -196,14 +191,12 @@ const Login: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Error Message */}
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
               </View>
             )}
 
-            {/* Login Button */}
             <TouchableOpacity
               style={[
                 styles.button,
@@ -220,7 +213,6 @@ const Login: React.FC = React.memo(() => {
               </Text>
             </TouchableOpacity>
 
-            {/* Register Link */}
             <View style={styles.linkContainer}>
               <Text style={styles.linkText}>
                 {t('dont_have_account') || "Don't have an account?"}

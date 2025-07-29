@@ -37,27 +37,24 @@ const SviKorisnici: React.FC = React.memo(() => {
   } | null>(null);
 
 
-  // Query for users data
   const usersQuery = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/korisnici/`);
       return response.data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Query for applications data
   const applicationsQuery = useQuery({
     queryKey: ['applications'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/prijave_izvodjaca/`);
       return response.data || [];
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Mutation for updating user
   const updateUserMutation = useMutation({
     mutationFn: async ({ 
       korisnik, 
@@ -76,7 +73,6 @@ const SviKorisnici: React.FC = React.memo(() => {
 
       await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, updatedUser);
 
-      // If status changes to active or inactive, delete suspension if exists
       if (
         field === 'statusKorisnika' &&
         (value === 'aktivan' || value === 'neaktivan')
@@ -87,7 +83,7 @@ const SviKorisnici: React.FC = React.memo(() => {
             await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
           }
         } catch {
-          // No suspension exists, ignore error
+
         }
       }
 
@@ -115,7 +111,6 @@ const SviKorisnici: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for suspending user
   const suspendUserMutation = useMutation({
     mutationFn: async ({ 
       korisnik, 
@@ -126,13 +121,11 @@ const SviKorisnici: React.FC = React.memo(() => {
       poruka: string; 
       vrijemeDo: string 
     }) => {
-      // First update user to suspended
       await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, {
         ...korisnik,
         statusKorisnika: 'suspendovan',
       });
       
-      // Then create suspension record
       await axios.post(`${API_BASE}/suspendovani/`, {
         korisnikID: korisnik.id,
         vrijemeDo,
@@ -160,7 +153,6 @@ const SviKorisnici: React.FC = React.memo(() => {
     }
   });
 
-  // Mutation for deleting application
   const deleteApplicationMutation = useMutation({
     mutationFn: async (prijavaId: number) => {
       await axios.delete(`${API_BASE}/prijave_izvodjaca/${prijavaId}`);
@@ -189,7 +181,7 @@ const SviKorisnici: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient]);
+  }, []);
 
   const handleChange = useCallback(async (
     korisnik: Korisnik,
@@ -199,7 +191,6 @@ const SviKorisnici: React.FC = React.memo(() => {
     setError(null);
     setSuccess(null);
 
-    // If selecting "suspended" status, open modal for message and time input
     if (field === 'statusKorisnika' && value === 'suspendovan') {
       setSuspendModal({
         korisnik,
@@ -241,7 +232,7 @@ const SviKorisnici: React.FC = React.memo(() => {
       ) : []
     );
     setSuspendModal(null);
-  }, [suspendModal, queryClient]);
+  }, [suspendModal]);
 
   const handleDeleteApplication = useCallback(async (prijavaId: number) => {
     Alert.alert(
@@ -270,7 +261,6 @@ const SviKorisnici: React.FC = React.memo(() => {
     setSuspendModal(prev => prev ? { ...prev, vrijemeDo: text } : prev);
   }, []);
 
-  // Memoize filtered users
   const filtriraniKorisnici = useMemo(() => {
     const korisnici = usersQuery.data || [];
     return korisnici.filter((k: Korisnik) =>
@@ -365,14 +355,12 @@ const SviKorisnici: React.FC = React.memo(() => {
     );
   }, [applicationsQuery.data, handleChange, t]);
 
-  // Memoize user in modal
   const modalUser = useMemo(() => {
     if (!prijavaModal) return null;
     const korisnici = usersQuery.data || [];
     return korisnici.find((k: Korisnik) => k.id === prijavaModal.korisnikID);
   }, [prijavaModal, usersQuery.data]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -440,7 +428,6 @@ const SviKorisnici: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      {/* Application Modal */}
       <Modal
         visible={prijavaModal !== null}
         transparent
@@ -503,7 +490,6 @@ const SviKorisnici: React.FC = React.memo(() => {
         </View>
       </Modal>
 
-      {/* Suspension Modal */}
       <Modal
         visible={suspendModal !== null}
         transparent

@@ -20,7 +20,6 @@ async def get_korisnik_album(session: AsyncSession, korisnikID: str, albumID: in
 async def create_korisnik_album(session: AsyncSession, data: KorisnikAlbumCreate):
     db_obj = KorisnikAlbumORM(**data.dict())
     session.add(db_obj)
-    # Povećaj broj lajkova na albumu
     album = await session.get(AlbumORM, data.albumID)
     if album:
         album.brojLajkova = (album.brojLajkova or 0) + 1
@@ -34,7 +33,6 @@ async def delete_korisnik_album(session: AsyncSession, korisnikID: str, albumID:
     if not db_obj:
         return None
     await session.delete(db_obj)
-    # Smanji broj lajkova na albumu
     album = await session.get(AlbumORM, albumID)
     if album and (album.brojLajkova or 0) > 0:
         album.brojLajkova -= 1

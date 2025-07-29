@@ -25,7 +25,6 @@ class KorisnikPretplataORM(Base):
         UniqueConstraint('korisnikID', name='uq_korisnik_pretplata_korisnikID'),
     )
 
-# Pydantic modeli
 
 class KorisnikPretplataBase(BaseModel):
     korisnikID: str
@@ -40,7 +39,7 @@ class KorisnikPretplataCreate(KorisnikPretplataBase):
 
 class KorisnikPretplata(KorisnikPretplataBase):
     id: int
-    pretplata: Optional["Pretplata"] = None  # Dodaj ovo polje
+    pretplata: Optional["Pretplata"] = None  
 
     class Config:
         orm_mode = True

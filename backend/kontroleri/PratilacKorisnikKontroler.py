@@ -20,7 +20,6 @@ async def get_pratilac_korisnik(session: AsyncSession, korisnikID: str, pratilac
 async def create_pratilac_korisnik(session: AsyncSession, data: PratilacKorisnikCreate):
     db_obj = PratilacKorisnikORM(**data.dict())
     session.add(db_obj)
-    # Povećaj broj pratilaca na korisniku
     korisnik = await session.get(KorisnikORM, data.korisnikID)
     if korisnik:
         korisnik.brojPratilaca = (korisnik.brojPratilaca or 0) + 1
@@ -34,7 +33,6 @@ async def delete_pratilac_korisnik(session: AsyncSession, korisnikID: str, prati
     if not db_obj:
         return None
     await session.delete(db_obj)
-    # Smanji broj pratilaca na korisniku
     korisnik = await session.get(KorisnikORM, korisnikID)
     if korisnik and (korisnik.brojPratilaca or 0) > 0:
         korisnik.brojPratilaca -= 1

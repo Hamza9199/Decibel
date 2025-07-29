@@ -15,7 +15,6 @@ class ObnovaPretplateORM(Base):
 
     korisnikPretplata = relationship("KorisnikPretplataORM", foreign_keys=[korisnikPretplataID])
 
-# Pydantic modeli
 
 class ObnovaPretplateBase(BaseModel):
     korisnikPretplataID: int

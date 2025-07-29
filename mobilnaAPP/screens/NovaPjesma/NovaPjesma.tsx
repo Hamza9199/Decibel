@@ -49,12 +49,10 @@ const NovaPjesma: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     loadUserData();
   }, [loadUserData]);
 
-  // Mutation for creating song
   const createSongMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       return await axios.post(`${API_BASE}/pjesme/`, formData, {
@@ -67,7 +65,6 @@ const NovaPjesma: React.FC = React.memo(() => {
       setSuccess(t('song_created_successfully') || 'Song created successfully!');
       setError(null);
       
-      // Reset form
       setNaziv('');
       setOpis('');
       setTrajanjeSekunde('');
@@ -205,7 +202,6 @@ const NovaPjesma: React.FC = React.memo(() => {
     setButtonPressed(false);
   }, []);
 
-  // Memoize file picker buttons
   const audioPickerButton = useMemo(() => (
     <TouchableOpacity
       style={styles.fileButton}
@@ -256,7 +252,6 @@ const NovaPjesma: React.FC = React.memo(() => {
           <Text style={styles.title}>{t('new_song')}</Text>
 
           <View style={styles.form}>
-            {/* Song Name */}
             <View>
               <Text style={styles.label}>{t('song_name')} *:</Text>
               <TextInput
@@ -275,7 +270,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Description */}
             <View>
               <Text style={styles.label}>{t('description')}:</Text>
               <TextInput
@@ -294,7 +288,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Genre */}
             <View>
               <Text style={styles.label}>{t('genre')}:</Text>
               <TextInput
@@ -313,7 +306,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Duration */}
             <View>
               <Text style={styles.label}>{t('duration_seconds')}:</Text>
               <TextInput
@@ -331,7 +323,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               />
             </View>
 
-            {/* Audio File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('audio_file')} *:</Text>
               {audioPickerButton}
@@ -340,7 +331,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* Image File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>{t('image')}:</Text>
               {imagePickerButton}
@@ -349,7 +339,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* GIF File */}
             <View style={styles.fileInputContainer}>
               <Text style={styles.label}>GIF:</Text>
               {gifPickerButton}
@@ -358,7 +347,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               )}
             </View>
 
-            {/* Public Checkbox */}
             <TouchableOpacity style={styles.checkboxContainer} onPress={toggleCheckbox}>
               <View style={[styles.checkbox, javno && styles.checkboxChecked]}>
                 {javno && (
@@ -368,7 +356,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               <Text style={styles.checkboxLabel}>{t('public_song')}</Text>
             </TouchableOpacity>
 
-            {/* Error/Success Messages */}
             {error && (
               <View style={styles.errorContainer}>
                 <Text style={styles.errorText}>{error}</Text>
@@ -381,7 +368,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               </View>
             )}
 
-            {/* Create Button */}
             <TouchableOpacity
               style={[
                 styles.button,
@@ -399,7 +385,6 @@ const NovaPjesma: React.FC = React.memo(() => {
               </Text>
             </TouchableOpacity>
 
-            {/* Cancel Button */}
             <TouchableOpacity
               style={styles.cancelButton}
               onPress={handleBack}

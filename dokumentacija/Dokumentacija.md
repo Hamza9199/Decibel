@@ -18,6 +18,7 @@
    - [Testiranje](#testiranje-backenda)
    - [Primjeri API poziva](#primjeri-api-poziva)
    - [Napredne funkcionalnosti](#napredne-funkcionalnosti)
+   - [Noviteti 2025](#noviteti-2025)
 4. [Frontend](#frontend)
    - [Tehnologije](#tehnologije-frontenda)
    - [Struktura direktorijuma](#struktura-direktorijuma-frontend)
@@ -27,6 +28,7 @@
    - [Testiranje](#testiranje-frontenda)
    - [Primjeri UI/UX](#primjeri-ui-ux)
    - [Napredne funkcionalnosti](#napredne-funkcionalnosti-frontend)
+   - [Noviteti 2025](#noviteti-2025-frontend)
 5. [Mobilna aplikacija](#mobilna-aplikacija)
    - [Tehnologije](#tehnologije-mobilne-aplikacije)
    - [Struktura direktorijuma](#struktura-direktorijuma-mobilna)
@@ -34,6 +36,7 @@
    - [Audio player](#audio-player-mobilna)
    - [Testiranje](#testiranje-mobilne-aplikacije)
    - [Distribucija APK](#distribucija-apk)
+   - [Noviteti 2025](#noviteti-2025-mobilna)
 6. [Dodatno](#dodatno)
    - [CORS i sigurnost](#cors-i-sigurnost)
    - [Okruženja i konfiguracija](#okruzenja-i-konfiguracija)
@@ -42,50 +45,44 @@
    - [SEO i PWA](#seo-i-pwa)
    - [Pravila i migracije baze](#pravila-i-migracije-baze)
    - [Pravila za komentare, historiju i pretplate](#pravila-za-komentare-historiju-i-pretplate)
+   - [Automatizacija i AI](#automatizacija-i-ai)
 7. [Reference](#reference)
 
 ---
 
 ## 1. Uvod
 
-Decibel je moderna muzička platforma (web + mobilna aplikacija) za upravljanje, prikaz i slušanje pjesama, albuma, plejlista i korisnika. Projekat je razvijen kao diplomski rad i koristi moderne tehnologije za backend, frontend i mobilnu aplikaciju (React Native). Platforma omogućava korisnicima da otkrivaju novu muziku, prate izvođače, kreiraju i uređuju playliste, komentarišu pjesme, prate statistiku slušanja i još mnogo toga.
+Decibel je moderna muzička platforma (web + mobilna aplikacija) za upravljanje, prikaz i slušanje pjesama, albuma, plejlista i korisnika. Projekat je razvijen kao diplomski rad i koristi moderne tehnologije za backend, frontend i mobilnu aplikaciju (React Native). Platforma omogućava korisnicima da otkrivaju novu muziku, prate izvođače, kreiraju i uređuju playliste, komentarišu pjesme, prate statistiku slušanja, koriste napredni audio player i još mnogo toga.
 
-**Najnovije implementirane funkcionalnosti:**
+**Najnovije implementirane funkcionalnosti (2024):**
 
-### Backend funkcionalnosti:
-- **Centralizovana API konfiguracija** sa environment varijablama
-- **Poboljšana error handling** sa try-catch blokovima
-- **Optimizovani kontroleri** za update operacije sa podmrškom za multipart/form-data
-- **Prijave izvođača** sa CRUD operacijama
-- **Suspendovanje korisnika** sa porukom i vremenom
-- **Napredna statistika** sa top 10 listama i grafovima
-- **Pretplate i obnova** sa automatskim upravljanjem
-
-### Frontend funkcionalnosti:
-- **Dinamičke pozadine** bazirane na trenutnoj pjesmi (GIF/slika)
-- **Napredni audio player** sa progress bar-om, volume kontrolom i brzinom
-- **Suspendovan/obrisan screen** za korisnike
-- **Responzivni dizajn** za desktop i mobilni
-- **Historija slušanja** sa akcijama (play, like, dodaj u playlistu)
-- **Komentari** sa uređivanjem i privilegijama vlasnika
-- **Statistika** sa grafovima i top listama
-- **Pretplate** sa kupovinom i obnjavanjem
-
-### Mobilna aplikacija (React Native):
-- **Expo framework** za cross-platform razvoj
-- **TypeScript** za type safety
-- **Centralizovana API konfiguracija**
-- **AudioContext** za globalno upravljanje audio stanjem
-- **Napredni audio player** sa progress kontrolom, volume sliderom i brzinom
-- **Expo Audio** za native audio playback
-- **React Native slajderi** za progress i volume
-- **Responzivni dizajn** sa mobile-first pristupom
+- **Offline režim** za mobilnu aplikaciju (preuzimanje pjesama, offline slušanje)
+- **Napredna pretraga** (multi-field, fuzzy, autocomplete, real-time search)
+- **Historija slušanja** sa jedinstvenim constraintima i automatskim ažuriranjem
+- **Napredni filteri** i sortiranje na svim listama (po datumu, lajkovima, trajanju, žanru)
+- **Paginacija i lazy loading** za velike liste (infinite scroll, server-side paginacija)
+- **Notifikacije** (push i email) za važne događaje (komentari, lajkovi, nove pjesme)
+- **Suspendovanje korisnika** sa porukom i trajanjem, automatsko reaktiviranje
+- **Prijava za izvođača** sa automatskim odobravanjem i admin panelom
+- **Statistika platforme** sa grafovima, top listama i embed objektima
+- **Automatska obnova pretplate** sa validacijom i evidencijom obnova
+- **Napredni audio player** (web & mobilni): repeat, shuffle, brza promjena, volume, progress bar, mini-player, background play
+- **Komentari sa uređivanjem** i privilegijama vlasnika/admina
+- **Globalni state management** (AudioContext, React Query)
+- **Centralizovana konfiguracija i environment-based setup**
+- **CI/CD pipeline** sa automatskim buildom i deployem
+- **AI preporuke** za pjesme i albume (eksperimentalno)
+- **Podrška za više jezika** (BS, EN, DE)
+- **Dark/light tema** (web & mobilni)
+- **QR kodovi** za dijeljenje pjesama i plejlista
+- **Firebase Storage** za slike, audio i gif fajlove
+- **Automatski backup baze** i logova
 
 ---
 
 ## 2. Arhitektura
 
-Aplikacija je podeljena na tri glavna dela:
+Aplikacija je podijeljena na tri glavna dijela:
 - **Backend**: FastAPI (Python), MySQL (Aiven Cloud), Firebase Storage
 - **Frontend**: React (TypeScript), Vite, CSS Modules
 - **Mobilna aplikacija**: React Native (Expo), TypeScript, Expo Audio
@@ -94,9 +91,10 @@ Komunikacija između frontenda/mobilne aplikacije i backenda se odvija putem RES
 
 **Novi pristup arhitekturi:**
 - **Environment-based konfiguracija**: Svi URL-ovi i konfiguracija se čuvaju u .env fajlovima
-- **Centralizovani API klijenti**: Pojednostavljeni pristup API pozivima
-- **Globalni state management**: AudioContext za mobilnu aplikaciju
+- **Centralizovani API klijenti**: Pojednostavljen i tipiziran pristup API pozivima
+- **Globalni state management**: AudioContext za mobilnu aplikaciju i React Query za server state
 - **Unified error handling**: Konzistentno rukovanje greškama kroz sve slojeve
+- **Automatsko testiranje i deploy** (CI/CD)
 
 ---
 
@@ -111,20 +109,19 @@ Komunikacija između frontenda/mobilne aplikacije i backenda se odvija putem RES
 - **Alembic** – migracije baze
 - **python-dotenv** – rad sa .env fajlovima
 - **passlib** – heširanje lozinki
-- **requests** – HTTP zahtevi (za Firebase Storage)
-- **firebase-admin** (opciono) – rad sa Firebase servisima
+- **firebase-admin** – rad sa Firebase servisima
 - **Uvicorn** – ASGI server za FastAPI
 - **python-multipart** – za file upload podršku
+- **pytest** – testiranje
 
 ### Struktura direktorijuma (backend)
 
-```
+```plaintext
 backend/
 │
 ├── main.py
 ├── requirements.txt
 ├── .env
-├── Spacefile
 ├── alembic/
 │   └── ... (migracije)
 ├── modeli/
@@ -185,32 +182,44 @@ backend/
 
 ### Modeli
 
-- **KorisnikORM**: Model korisnika sa podrška za suspendovanje (statusKorisnika: aktivan/suspendovan/neaktivan)
-- **PrijavaIzvodjacaORM**: Model prijava za izvođače (UUID, korisnikID, poruka, datum)
-- **SuspendovaniKorisnikORM**: Model suspendovanja (korisnikID, poruka, vrijemeDo)
-- **PjesmaORM**: Poboljšan model sa embed korisnik objektom
-- **KorisnikPretplataORM**: Model pretplate sa automatskim upravljanjem obnove
-- **ObnovaPretplateORM**: Evidencija obnova sa iznosom i datumom
-- **KomentarORM**: Model komentara sa mogućnošću uređivanja
-- **StatistikaReprodukcijeORM**: Model statistike sa embed pjesma objektom
-- **HistorijaSlusanjaORM**: Model historije sa jedinstvenim ograničenjima
+- **KorisnikORM**: Model korisnika sa podrškom za suspendovanje (statusKorisnika: aktivan/suspendovan/neaktivan), rola (korisnik/izvođač/admin), profilna slika, email, bio.
+- **PjesmaORM**: Model pjesme sa embed korisnik objektom, podrška za više izvođača (veza), slike, gif, audio, žanr, jezik, licenca, eksplicitni sadržaj, odobrenje od admina.
+- **AlbumORM**: Model albuma sa embed korisnik objektom, slike, gif, javnost, broj lajkova, status.
+- **PlaylistaORM**: Model playliste sa embed korisnik objektom, slike, gif, javnost, redoslijed pjesama.
+- **KomentarORM**: Komentari sa uređivanjem, embed korisnik objektom, privilegijama vlasnika/admina.
+- **IzvodjacPjesmaORM**: Veza između pjesama i izvođača (više izvođača po pjesmi, potvrda vlasnika).
+- **KorisnikPretplataORM**: Model pretplate sa automatskim upravljanjem obnove, datumi, status, embed pretplata.
+- **ObnovaPretplateORM**: Evidencija obnova sa iznosom i datumom.
+- **SuspendovaniKorisnikORM**: Model suspendovanja (korisnikID, poruka, vrijemeDo).
+- **PrijavaIzvodjacaORM**: Model prijava za izvođače (UUID, korisnikID, poruka, datum).
+- **StatistikaReprodukcijeORM**: Model statistike sa embed pjesma objektom.
+- **HistorijaSlusanjaORM**: Model historije sa jedinstvenim constraintima po korisniku i pjesmi, automatsko brisanje duplikata.
+- **RedoslijedPjesamaORM**: Redoslijed pjesama u playlisti.
+
+**Noviteti 2024:**
+- **Offline podrška** (lokalno čuvanje pjesama za slušanje bez interneta)
+- **Notifikacije** (push/email)
+- **QR kodovi** za dijeljenje
+- **AI preporuke** (eksperimentalno, integracija sa vanjskim AI servisom)
+- **Napredna statistika** (embed objekti, grafovi, top 10, paginacija)
+- **Automatska obnova pretplate** (sa validacijom i evidencijom)
 
 ### Rute
 
-Sve rute su proširene sa boljim error handling-om i async podrškom:
+Sve rute su proširene sa boljim error handlingom, async podrškom i embed objektima:
 
-- `/api/korisnici/` – CRUD operacije, registracija, login, promjena slike
-- `/api/korisnici/slika/{korisnik_id}` – Upload profilne slike
-- `/api/pjesme/` – CRUD sa multipart/form-data podrškom
-- `/api/albumi/` – CRUD sa file upload podrškom
-- `/api/playliste/` – CRUD sa redoslijedom pjesama
-- `/api/prijave_izvodjaca/` – CRUD prijava izvođača
+- `/api/korisnici/` – CRUD, registracija, login, promjena slike, suspendovanje, embed profilna slika
+- `/api/pjesme/` – CRUD sa multipart/form-data, više izvođača, embed korisnik, AI preporuke
+- `/api/albumi/` – CRUD sa file upload, embed korisnik
+- `/api/playliste/` – CRUD sa redoslijedom pjesama, embed korisnik
+- `/api/prijave_izvodjaca/` – CRUD prijava izvođača, admin panel
 - `/api/suspendovani/` – Upravljanje suspendovanim korisnicima
-- `/api/korisnik_pretplata/` – Upravljanje pretplatama sa automatskom obnově
+- `/api/korisnik_pretplata/` – Upravljanje pretplatama, automatska obnova, embed pretplata
 - `/api/obnove_pretplate/` – Evidencija obnova pretplate
-- `/api/komentari/` – CRUD komentara sa privilegijama vlasnika
-- `/api/statistika/` – Statistika sa embed objektima
-- `/api/historija/` – Historija slušanja sa unique constraint-ima
+- `/api/komentari/` – CRUD komentara sa privilegijama vlasnika/admina, uređivanje
+- `/api/statistika/` – Statistika sa embed objektima, top liste, grafovi
+- `/api/historija/` – Historija slušanja sa unique constraintima, automatsko brisanje duplikata
+- `/api/qr/` – Generisanje i validacija QR kodova za pjesme i playliste (novitet)
 
 ### Kontroleri
 
@@ -220,24 +229,30 @@ Svi kontroleri su poboljšani sa:
 - **Type safety** sa Pydantic modelima
 - **Relationship loading** sa selectinload/joinedload
 - **Unique constraint** validacija
-- **File upload** podrška
+- **File upload** podrška (audio, slike, gif)
+- **Embed objekti** za frontend/mobilnu
+- **Automatska obnova pretplate** (validacija i evidencija)
+- **Offline podrška** (API endpointi za preuzimanje pjesama)
+- **QR kod generacija** (za dijeljenje pjesama/playlisti)
 
 ### Baza podataka
 
-- **MySQL** sa async podrškom
-- **Unique constraint-i** na historiji slušanja i pretplatama
-- **Foreign key** relationship-i između svih modela
-- **Index-i** za performanse
+- **MySQL** sa async podrškom (Aiven Cloud)
+- **Unique constrainti** na historiji slušanja i pretplatama
+- **Foreign key** relationshipi između svih modela
+- **Indexi** za performanse
 - **Migracije** kroz Alembic sa --autogenerate
-- **Backup i restore** proceduri
+- **Backup i restore procedure**
+- **Automatski backup** (cron job)
 
 ### Firebase Storage
 
-- **REST API** upload i download
+- **REST API** upload i download (audio, slike, gif)
 - **Temporary files** sa automatskim clean-up
 - **Multiple file types** (audio, slike, gif)
 - **Error handling** sa retry logikom
-- **Secure URLs** sa token-ima
+- **Secure URLs** sa tokenima
+- **Offline download** endpointi
 
 ### Pokretanje i razvoj
 
@@ -277,21 +292,23 @@ Svi kontroleri su poboljšani sa:
 - **Alembic migrations** za bazu
 - **CORS** konfiguracija za frontend/mobilnu
 - **Health check** endpoint
+- **Automatski backup** (cron job, cloud storage)
 
 ### Sigurnost i autentikacija
 
 - **bcrypt** heširanje lozinki
 - **CORS** ograničenja
 - **SQL injection** zaštita sa SQLAlchemy
-- **File upload** validacija
+- **File upload** validacija (tip, veličina)
 - **Rate limiting** (opciono)
 - **HTTPS** za produkciju
+- **JWT autentikacija** (eksperimentalno)
 
 ### Testiranje (backend)
 
 - **Swagger UI** za API testiranje
 - **Postman** kolekcije
-- **Unit tests** za kontrolere
+- **Unit tests** za kontrolere (pytest)
 - **Integration tests** za API endpoints
 - **Load testing** za performanse
 
@@ -328,13 +345,29 @@ Response: [
 
 ### Napredne funkcionalnosti
 
-- **Automatska obnova pretplate** sa validacijom
+- **Automatska obnova pretplate** sa validacijom i evidencijom
 - **Suspendovanje korisnika** sa porukom i vremenom
 - **Statistika sa embed objektima** za frontend
-- **Unique constraint-i** sa error handling
+- **Unique constrainti** sa proper error handling
 - **File upload** sa temporary files
 - **Async database operations** za performanse
 - **Relationship loading** za optimizaciju
+- **Offline režim** (preuzimanje pjesama)
+- **QR kodovi** za dijeljenje pjesama/playlisti
+- **AI preporuke** (eksperimentalno)
+
+### Noviteti 2025
+
+- **Offline režim**: Endpointi za preuzimanje pjesama, offline tokeni, automatsko brisanje starih fajlova
+- **Napredna pretraga**: Fuzzy search, autocomplete, multi-field search
+- **Push/email notifikacije**: Integracija sa Firebase Cloud Messaging i SMTP serverom
+- **QR kodovi**: Generisanje, validacija, dijeljenje linkova za pjesme/plejliste
+- **AI preporuke**: Preporučivanje pjesama i albuma na osnovu historije slušanja (integracija sa AI servisom)
+- **Paginacija i lazy loading**: Na svim endpointima sa velikim listama
+- **Jedinstvena historija slušanja**: Unique constraint po korisniku i pjesmi, automatsko brisanje duplikata
+- **Admin panel**: Endpointi za upravljanje korisnicima, prijavama, suspendovanjem, statistikama
+- **Embed objekti**: Svuda gdje je potrebno za frontend/mobilnu (npr. korisnik u pjesmi, albumu, playlisti)
+- **Automatski backup baze i logova**: Cron job, cloud storage
 
 ---
 
@@ -349,60 +382,26 @@ Response: [
 - **React Router** – SPA routing
 - **react-chartjs-2** – grafovi za statistiku
 - **React Hook Form** – form handling
-- **React Query** (opciono) – server state management
+- **React Query** – server state management
 - **i18next** – internacionalizacija
+- **Jest/Cypress** – testiranje
 
 ### Struktura direktorijuma (frontend)
 
-```
+```plaintext
 frontend/
 │
 ├── src/
 │   ├── App.tsx
 │   ├── App.css
-│   ├── index.css
 │   ├── types/
-│   │   └── index.ts
 │   ├── stranice/
-│   │   ├── Home/
-│   │   │   ├── Home.tsx
-│   │   │   └── Home.module.css
-│   │   ├── Pjesma/
-│   │   ├── Album/
-│   │   ├── Playlista/
-│   │   ├── Izvodjac/
-│   │   ├── AdminPanel/
-│   │   ├── Statistika/
-│   │   ├── Historija/
-│   │   ├── Omiljeno/
-│   │   ├── Pretplata/
-│   │   └── ...
 │   ├── komponente/
-│   │   ├── Header/
-│   │   │   ├── Header.tsx
-│   │   │   └── Header.module.css
-│   │   ├── AudioPlayer/
-│   │   │   ├── AudioPlayer.tsx
-│   │   │   └── AudioPlayer.module.css
-│   │   ├── Footer/
-│   │   ├── Sidebar/
-│   │   ├── Search/
-│   │   └── Loading/
 │   ├── locales/
-│   │   ├── bs/
-│   │   │   └── translation.json
-│   │   ├── en/
-│   │   └── de/
 │   └── ...
 ├── public/
-│   ├── logo.gif
-│   ├── favicon.ico
-│   └── ...
 ├── .env
-├── .env.production
 ├── package.json
-├── tsconfig.json
-├── vite.config.ts
 └── ...
 ```
 
@@ -415,22 +414,19 @@ frontend/
 - **Loading states** sa skeletons
 - **Error boundaries** za error handling
 - **Dynamic backgrounds** bazirane na trenutnoj pjesmi
+- **Napredni filteri i sortiranje** (po datumu, lajkovima, žanru, trajanju)
+- **Paginacija** (server-side i client-side)
 
 ### Audio player
 
 **Desktop verzija:**
 - **Fiksiran na dnu** sa gradient pozadinom
-- **Kontrole**: play/pause, progress, repeat, brzina, volume
+- **Kontrole**: play/pause, progress, repeat, shuffle, brzina, volume
 - **Metapodaci**: slika, naziv, izvođač, vrijeme
 - **Akcije**: lajk, dodaj u playlistu, komentari
 - **Minimizacija** u floating button
-
-**Mobilna verzija:**
-- **Kompaktni layout** sa tri reda
-- **Touch-friendly** kontrole
-- **Gestures** podrška
-- **Responsive** font sizes
-- **Optimizovani** za male ekrane
+- **Background play** (PWA)
+- **Offline support** (PWA cache)
 
 ### Deploy (frontend)
 
@@ -450,35 +446,34 @@ frontend/
 
 ### Primjeri UI/UX
 
-**Home stranica:**
-- Hero sekcija sa logo-om
-- Horizontalni scroll za kategorije
-- Random shuffle algoritam
-- Play all funkcionalnost
-
-**Detalj pjesme:**
-- Veliki cover art
-- Izvođači sa linkovima
-- Komentari sa real-time update
-- Preporučene pjesme
-- Statistika reprodukcija
-
-**Audio player:**
-- Smooth animacije
-- Progress bar sa seeking
-- Volume control sa slider
-- Repeat modes (one/all)
-- Speed control (0.5x - 2x)
+- **Home stranica**: Hero sekcija, horizontalni scroll, shuffle, play all
+- **Detalj pjesme**: Veliki cover art, izvođači, komentari, preporučene pjesme, statistika
+- **Audio player**: Smooth animacije, progress bar, volume, repeat, shuffle, speed control
 
 ### Napredne funkcionalnosti (frontend)
 
 - **Dynamic backgrounds**: Automatska promjena pozadine bazirane na trenutnoj pjesmi
 - **Suspendovan/obrisan screen**: Specijalni UI za suspendovane/obrisane korisnike
-- **Audio player upgrades**: Progress seeking, volume slider, speed control
+- **Audio player upgrades**: Progress seeking, volume slider, speed control, mini-player
 - **Internationalization**: Podrška za više jezika (BS, EN, DE)
 - **Responsive design**: Optimizovano za desktop i mobilne uređaje
 - **Error handling**: Graceful degradation i user-friendly error messages
 - **Performance optimizations**: Lazy loading, code splitting, memoization
+- **Offline podrška**: PWA cache za pjesme i slike
+- **QR kodovi**: Dijeljenje pjesama/playlisti
+- **Push notifikacije**: Web push za komentare, lajkove, nove pjesme
+
+### Noviteti 2025 (frontend)
+
+- **Offline režim**: PWA cache za pjesme, slike, osnovne podatke
+- **Napredna pretraga**: Fuzzy, autocomplete, multi-field
+- **Notifikacije**: Web push integracija
+- **QR kodovi**: Generisanje i skeniranje
+- **AI preporuke**: Prikaz na home stranici i detaljima pjesme/albumu
+- **Napredna statistika**: Grafovi, embed objekti, top liste
+- **Admin panel**: Upravljanje korisnicima, prijavama, suspendovanjem, statistikama
+- **Dark/light tema**: Automatsko prepoznavanje iz OS-a, ručno biranje
+- **Jedinstvena historija slušanja**: UI za prikaz, brisanje, filtriranje
 
 ---
 
@@ -495,88 +490,50 @@ frontend/
 - **React Native Slider** za kontrole
 - **Axios** za HTTP zahteve
 - **React Native Vector Icons** za ikone
+- **React Query** za server state
 
 ### Struktura direktorijuma (mobilna)
 
-```
+```plaintext
 mobilnaAPP/
 │
 ├── app/
-│   ├── (tabs)/
-│   │   ├── index.tsx
-│   │   └── _layout.tsx
-│   ├── _layout.tsx
-│   └── ...
 ├── components/
-│   ├── AudioPlayer/
-│   │   ├── AudioPlayer.tsx
-│   │   └── AudioPlayer.styles.ts
-│   ├── Header/
-│   │   ├── Header.tsx
-│   │   └── Header.styles.ts
-│   └── ...
 ├── screens/
-│   ├── Home/
-│   │   ├── Home.tsx
-│   │   └── Home.styles.ts
-│   └── ...
 ├── context/
-│   └── AudioContext.tsx
 ├── config/
-│   └── api.ts
 ├── types/
-│   └── index.ts
 ├── .env
-├── .env.example
 ├── app.config.js
 ├── package.json
-├── tsconfig.json
 └── ...
 ```
 
 ### React Native komponente
 
-**AudioPlayer komponenta:**
-- **Three-row layout**: Slika/meta, kontrole/progress, volume/opcije
-- **Native audio**: Expo Audio sa streaming podrškom
-- **Slider controls**: Progress seeking i volume control
-- **Playback speed**: 0.5x - 2x brzina
-- **Repeat modes**: Jedna pjesma ili sve
-- **Error handling**: Retry logika za network probleme
-
-**Header komponenta:**
-- **Responsive design**: Desktop i mobilni layout
-- **User avatar**: Profilna slika korisnika
-- **Search bar**: Placeholder za pretragu
-- **Logout functionality**: Async Storage cleanup
-
-**Home komponenta:**
-- **Horizontal lists**: Pjesme, albumi, playliste, izvođači
-- **Pull-to-refresh**: Native refresh kontrola
-- **Loading states**: Skeleton loader
-- **Error handling**: User-friendly error messages
+- **AudioPlayer**: Three-row layout, native audio, progress/volume slider, repeat, shuffle, mini-player, background play
+- **Header**: Responsive, profilna, search bar, logout
+- **Home**: Horizontal lists, pull-to-refresh, skeleton loader, error handling
+- **Biblioteka**: Filteri (pratim, pjesme, albumi, playliste), lazy loading, paginacija, offline prikaz
+- **Omiljeno**: Lajkovane pjesme/albumi/plejliste, dodavanje/uklanjanje, dodaj u playlistu
+- **Detalji**: Pjesma, album, playlista, izvođač – embed objekti, komentari, statistika
+- **Offline**: Lista preuzetih pjesama, brisanje, puštanje bez interneta
 
 ### Audio player (mobilna)
 
-**Funkcionalnosti:**
 - **Native audio playback** sa Expo Audio
 - **Streaming support** za Firebase URLs
 - **Progress seeking** sa real-time update
 - **Volume control** sa slider
 - **Playback speed** sa buttons
-- **Repeat modes** (one/all)
+- **Repeat/shuffle modes**
 - **Minimized state** sa floating button
 - **Error recovery** sa retry logikom
-
-**Optimizacije:**
-- **Audio caching** za bolje performanse
-- **Memory management** sa proper cleanup
-- **Battery optimization** sa background handling
-- **Network resilience** sa retry logikom
+- **Offline play**: Preuzete pjesme dostupne bez interneta
 
 ### Testiranje mobilne aplikacije
 
-- **Expo Go** za development testing
+- **Expo Go** za development
 - **Physical devices** za real-world testing
 - **Audio playback** testing sa različitim formatima
 - **Network conditions** testing (slow/fast/offline)
@@ -584,23 +541,24 @@ mobilnaAPP/
 
 ### Distribucija APK
 
-**Development:**
-```bash
-npx expo install
-npx expo start
-```
-
-**Production build:**
-```bash
-npx expo build:android
-npx expo build:ios
-```
-
-**Testing:**
 - **Expo Go** za development
 - **TestFlight** za iOS beta testing
 - **APK sharing** za Android testing
+- **EAS Build** za produkciju
 - **Over-the-air updates** sa Expo Updates
+
+### Noviteti 2025 (mobilna)
+
+- **Offline režim**: Preuzimanje pjesama, lokalno čuvanje, offline play
+- **Napredna pretraga**: Real-time, fuzzy, multi-field
+- **Push notifikacije**: Integracija sa FCM
+- **QR kodovi**: Skeniranje i dijeljenje
+- **AI preporuke**: Prikaz na home i detaljima
+- **Dark/light tema**: Automatsko prepoznavanje i ručno biranje
+- **Jedinstvena historija slušanja**: UI za prikaz, brisanje, filtriranje
+- **Napredna statistika**: Grafovi, top liste, embed objekti
+- **Admin panel**: Osnovne admin funkcije za mobilnu (suspendovanje, prijave, statistika)
+- **Automatska sinhronizacija**: Kada se korisnik ponovo poveže na internet
 
 ---
 
@@ -614,34 +572,21 @@ npx expo build:ios
 - **Rate limiting** za API endpoints
 - **Input validation** na frontendu i backendu
 - **SQL injection** prevention sa SQLAlchemy
+- **JWT autentikacija** (eksperimentalno)
 
 ### Okruženja i konfiguracija
 
-**Backend (.env):**
-```
-DATABASE_URL_ASYNC=mysql+aiomysql://...
-DATABASE_URL_SYNC=mysql+pymysql://...
-FIREBASE_BUCKET_NAME=bucket-name
-```
-
-**Frontend (.env):**
-```
-VITE_API_BASE_URL=https://api.decibel.app/api
-```
-
-**Mobilna (.env):**
-```
-EXPO_PUBLIC_API_BASE_URL=https://api.decibel.app/api
-```
+- **Backend (.env)**: DB, Firebase, API keys
+- **Frontend (.env)**: API URL, feature toggles
+- **Mobilna (.env)**: API URL, feature toggles
 
 ### CI/CD
 
-- **GitHub Actions** za automatski build
+- **GitHub Actions** za automatski build i testiranje
 - **Vercel** za frontend deployment
 - **Koyeb** za backend deployment
 - **Expo EAS** za mobilnu aplikaciju
 - **Automated testing** na svakom commit-u
-- **Environment-based deployments** (dev/prod)
 
 ### Monitoring i logovanje
 
@@ -656,7 +601,7 @@ EXPO_PUBLIC_API_BASE_URL=https://api.decibel.app/api
 - **React Helmet** za meta tags
 - **Sitemap generation** za SEO
 - **PWA manifest** za desktop install
-- **Service worker** za offline podrška
+- **Service worker** za offline podršku
 - **Lighthouse** optimizacija
 
 ### Pravila i migracije baze
@@ -669,23 +614,16 @@ EXPO_PUBLIC_API_BASE_URL=https://api.decibel.app/api
 
 ### Pravila za komentare, historiju i pretplate
 
-**Komentari:**
-- Vlasnikov komentar uvijek na vrhu
-- Uređivanje dozvoljeno samo vlasniku
-- Brisanje dozvoljeno vlasniku i adminu
-- Real-time update (opciono)
+- **Komentari**: Vlasnikov komentar uvijek na vrhu, uređivanje samo vlasniku, brisanje vlasniku/adminu, real-time update
+- **Historija**: Jedinstven par korisnik+pjesma, najnovije prvo, automatsko brisanje duplikata, paginacija
+- **Pretplate**: Jedna aktivna pretplata po korisniku, automatska obnova, status tracking, evidencija obnova
 
-**Historija:**
-- Unique constraint per korisnik+pjesma
-- Najnovije prvo sortiranje
-- Automatsko brisanje starih duplikata
-- Paginacija za velike liste
+### Automatizacija i AI
 
-**Pretplate:**
-- Jedna aktivna pretplata po korisniku
-- Automatska obnova sa validacijom
-- Status tracking (aktivna/neaktivna/istekla)
-- Obnova evidencija sa amount tracking
+- **AI preporuke**: Eksperimentalna integracija sa AI servisom za preporuku pjesama/albumima
+- **Automatski backup**: Cron job za backup baze i logova
+- **Automatsko testiranje**: CI/CD pipeline
+- **Automatsko čišćenje starih fajlova**: Offline storage, Firebase
 
 ---
 
@@ -700,17 +638,10 @@ EXPO_PUBLIC_API_BASE_URL=https://api.decibel.app/api
 - [Expo dokumentacija](https://docs.expo.dev/)
 - [TypeScript dokumentacija](https://www.typescriptlang.org/)
 - [Vite dokumentacija](https://vitejs.dev/)
-
-### Servisi i platforme
-
-- [Aiven MySQL](https://aiven.io/)
 - [Firebase Storage](https://firebase.google.com/docs/storage)
 - [Vercel](https://vercel.com/)
 - [Koyeb](https://www.koyeb.com/)
 - [Expo Application Services](https://expo.dev/eas)
-
-### Biblioteke i alati
-
 - [Chart.js](https://www.chartjs.org/)
 - [React Hook Form](https://react-hook-form.com/)
 - [React Query](https://tanstack.com/query)
@@ -720,4 +651,4 @@ EXPO_PUBLIC_API_BASE_URL=https://api.decibel.app/api
 
 ---
 
-*Ova dokumentacija je ažurirana sa svim novim funkcionalnostima i poboljšanjima. Projekat je u potpunosti funkcionalan sa web i mobilnom aplikacijom. Za dodatne informacije ili podrška, kontaktirajte autora.*
+

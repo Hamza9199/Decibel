@@ -19,7 +19,6 @@ async def get_all_korisnici(session: AsyncSession):
     return result.scalars().all()
 
 async def get_korisnik_by_id(session: AsyncSession, korisnik_id: str):
-    # Provjeri da li je korisnik_id string (UUID) i koristi .str ako je UUID objekat
     if not isinstance(korisnik_id, str):
         korisnik_id = str(korisnik_id)
     result = await session.execute(
@@ -35,7 +34,7 @@ async def register_korisnik(session: AsyncSession, korisnik: KorisnikCreate):
         prezime=korisnik.prezime,
         korisnicko_ime=korisnik.korisnicko_ime,
         email=korisnik.email,
-        lozinka=hash_password(korisnik.lozinka),  # Hesiraj lozinku
+        lozinka=hash_password(korisnik.lozinka),  
         rola=korisnik.rola,
         bio=korisnik.bio,
         statusKorisnika=korisnik.statusKorisnika or "aktivan",
@@ -70,7 +69,7 @@ async def update_korisnik(session: AsyncSession, korisnik_id: str, korisnik: Kor
     db_korisnik.rola = korisnik.rola
     db_korisnik.bio = korisnik.bio
     db_korisnik.statusKorisnika = korisnik.statusKorisnika
-    db_korisnik.putanjaProfilneSlike = korisnik.putanjaProfilneSlike  # Dodaj ovu liniju!
+    db_korisnik.putanjaProfilneSlike = korisnik.putanjaProfilneSlike  
     db_korisnik.datumRegistracije = korisnik.datumRegistracije
     db_korisnik.brojPratilaca = korisnik.brojPratilaca
     db_korisnik.obrisan = korisnik.obrisan

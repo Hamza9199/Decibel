@@ -10,7 +10,6 @@ export default function TabsLayout() {
   const { t } = useTranslation();
 
   useScreenCleanup({
-    imageCleanup: true,
     stateCleanup: () => {
       console.log('Cleaning up tabs layout');
     }

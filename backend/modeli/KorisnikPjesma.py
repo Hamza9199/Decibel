@@ -15,7 +15,6 @@ class KorisnikPjesmaORM(Base):
     korisnik = relationship("KorisnikORM", foreign_keys=[korisnikID])
     pjesma = relationship("PjesmaORM", foreign_keys=[pjesmaID])
 
-# Pydantic modeli
 
 class KorisnikPjesmaBase(BaseModel):
     korisnikID: str

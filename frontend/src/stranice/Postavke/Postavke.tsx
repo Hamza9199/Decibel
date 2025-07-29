@@ -15,7 +15,6 @@ const Postavke: React.FC = () => {
   const [jezik, setJezik] = useState(i18n.language || "bs");
   const [tema, setTema] = useState(localStorage.getItem("decibel_tema") || "dark");
 
-  // Apply theme to body on mount and when changed
   useEffect(() => {
     document.body.setAttribute("data-theme", tema);
     localStorage.setItem("decibel_tema", tema);
@@ -45,7 +44,6 @@ const Postavke: React.FC = () => {
   const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
   const handleSend = async () => {
-    // Slanje prijave na backend
     let korisnikID = "";
     try {
       const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -96,7 +94,6 @@ const Postavke: React.FC = () => {
     handleCloseModal();
   };
 
-  // Kada korisnik promijeni jezik, promijeni i u i18n
   const handleJezikChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = e.target.value;
     setJezik(lang);
@@ -174,7 +171,6 @@ const Postavke: React.FC = () => {
           </div>
         </div>
       </div>
-      {/* Modalni prozor */}
       {showModal && (
         <div
           style={{

@@ -52,7 +52,6 @@ const Pretplata: React.FC = () => {
       .finally(() => setLoading(false));
   }, [korisnikID]);
 
-  // Otkazivanje pretplate
   const handleOtkaziPretplatu = async () => {
     if (!korisnikPretplata) return;
     if (!window.confirm("Jeste li sigurni da želite otkazati pretplatu?")) return;
@@ -67,7 +66,6 @@ const Pretplata: React.FC = () => {
     }
   };
 
-  // Obnova pretplate
   const handleObnoviPretplatu = () => {
     if (!korisnikPretplata?.pretplataID) return;
     navigate(`/nova-pretplata/${korisnikPretplata.pretplataID}`);

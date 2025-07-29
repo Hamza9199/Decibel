@@ -62,7 +62,7 @@ const UrediProfil: React.FC = () => {
         prezime,
         korisnicko_ime: korisnickoIme,
         email,
-        lozinka: "", // lozinka se ne mijenja ovdje
+        lozinka: "", 
         rola,
         bio,
       });

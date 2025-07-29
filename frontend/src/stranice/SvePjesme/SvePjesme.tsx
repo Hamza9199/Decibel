@@ -17,7 +17,6 @@ const SvePjesme: React.FC = () => {
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
 
-  // Dohvati ID logovanog korisnika iz localStorage
   let korisnikID: string | undefined = undefined;
   try {
     const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -35,7 +34,6 @@ const SvePjesme: React.FC = () => {
     axios
       .get(`${API_BASE}/pjesme/`)
       .then((res) => {
-        // Filtriraj pjesme po korisnikID
         const mojePjesme = (res.data || []).filter(
           (p: Pjesma) => p.korisnikID === korisnikID
         );
@@ -70,12 +68,10 @@ const SvePjesme: React.FC = () => {
           setPjesme((prev) => prev.filter((p) => p.id !== id));
         })
         .catch(() => {
-          // Handle error
         });
     }
   };
 
-  // Dodaj filtrirane pjesme prema search-u
   const filtriranePjesme = pjesme.filter((p) =>
     p.naziv.toLowerCase().includes(search.toLowerCase())
   );

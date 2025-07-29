@@ -19,7 +19,6 @@ async def get_korisnik_pretplata_by_id(session: AsyncSession, korisnik_pretplata
     return result.scalar_one_or_none()
 
 async def create_korisnik_pretplata(session: AsyncSession, data: KorisnikPretplataCreate):
-    # Prvo provjeri postoji li već pretplata za korisnika
     existing = await session.execute(
         select(KorisnikPretplataORM).where(KorisnikPretplataORM.korisnikID == data.korisnikID)
     )
@@ -27,22 +26,18 @@ async def create_korisnik_pretplata(session: AsyncSession, data: KorisnikPretpla
     now = datetime.datetime.utcnow()
     mjesec = datetime.timedelta(days=30)
     if existing_obj:
-        # Ako je aktivna i još nije istekla, produži od trenutnog datumIsteka
         if existing_obj.datumIsteka and existing_obj.datumIsteka > now:
-            # Dozvoli obnovu samo ako je do isteka ostalo najviše mjesec dana
             if (existing_obj.datumIsteka - now) > mjesec:
                 raise Exception("Pretplatu možete obnoviti najviše mjesec dana prije isteka.")
             existing_obj.datumVrijemeObnove = now
             existing_obj.datumIsteka = existing_obj.datumIsteka + mjesec
         else:
-            # Ako je istekla, novi period od sada
             existing_obj.datumVrijemeObnove = now
             existing_obj.datumIsteka = now + mjesec
         existing_obj.pretplataID = data.pretplataID
         existing_obj.pretplataStatus = data.pretplataStatus
         existing_obj.kreiranDatumVrijeme = now
         session.add(existing_obj)
-        # Zapiši obnovu u tabelu ObnovaPretplate
         try:
             from modeli.Pretplata import PretplataORM
             pretplata = await session.get(PretplataORM, data.pretplataID)

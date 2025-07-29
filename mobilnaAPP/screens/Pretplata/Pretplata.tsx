@@ -24,7 +24,7 @@ const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
-  const [kupovinaLoading, setKupovinaLoading] = useState(false);
+  const [kupovinaLoading] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
 
 
@@ -42,7 +42,6 @@ const PretplataScreen: React.FC = React.memo(() => {
     }
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await getKorisnikID();
@@ -52,7 +51,6 @@ const PretplataScreen: React.FC = React.memo(() => {
     initializeUser();
   }, [getKorisnikID]);
 
-  // Query for user subscription
   const subscriptionQuery = useQuery({
     queryKey: ['userSubscription', korisnikID],
     queryFn: async () => {
@@ -63,21 +61,19 @@ const PretplataScreen: React.FC = React.memo(() => {
       return pretplate.find((p) => p.korisnikID === korisnikID) || null;
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Query for available subscription offers
   const offersQuery = useQuery({
     queryKey: ['subscriptionOffers'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/pretplate/`);
       return (response.data || []).filter((p: Pretplata) => p.dostupno);
     },
-    enabled: !subscriptionQuery.data, // Only fetch offers if user has no subscription
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    enabled: !subscriptionQuery.data, 
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Mutation for cancelling subscription
   const cancelSubscriptionMutation = useMutation({
     mutationFn: async (subscriptionId: number) => {
       await axios.delete(`${API_BASE}/korisnik_pretplata/${subscriptionId}`);
@@ -107,7 +103,7 @@ const PretplataScreen: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, korisnikID]);
+  }, [korisnikID]);
 
   const handleOtkaziPretplatu = useCallback(async () => {
     const korisnikPretplata = subscriptionQuery.data;
@@ -137,7 +133,6 @@ const PretplataScreen: React.FC = React.memo(() => {
     router.push(`/nova-pretplata/${pretplataId}`);
   }, [router]);
 
-  // Memoize subscription status display
   const subscriptionStatus = useMemo(() => {
     const korisnikPretplata = subscriptionQuery.data;
     if (!korisnikPretplata) return null;
@@ -151,7 +146,6 @@ const PretplataScreen: React.FC = React.memo(() => {
     };
   }, [subscriptionQuery.data, t]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -190,7 +184,6 @@ const PretplataScreen: React.FC = React.memo(() => {
               </Text>
             </View>
           ) : subscriptionStatus ? (
-            // Active subscription view
             <View style={styles.infoBox}>
               <Text style={styles.statusText}>
                 {t('status')}: <Text style={styles.boldText}>{subscriptionStatus.status}</Text>
@@ -242,7 +235,6 @@ const PretplataScreen: React.FC = React.memo(() => {
               </View>
             </View>
           ) : (
-            // No subscription view
             <View style={styles.noSubContainer}>
               <View style={styles.warningContainer}>
                 <Text style={styles.warningText}>

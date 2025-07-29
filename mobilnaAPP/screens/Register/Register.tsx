@@ -47,7 +47,6 @@ const Register: React.FC = React.memo(() => {
     }
   }, [router]);
 
-  // Replace useMemo with useEffect for checking login status
   useEffect(() => {
     checkIfLoggedIn();
   }, [checkIfLoggedIn]);

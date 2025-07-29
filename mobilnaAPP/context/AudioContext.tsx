@@ -63,7 +63,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       visible: true,
       minimized: false,
       currentSong: song,
-      globalPlaylist: [], // Clear playlist for single song
+      globalPlaylist: [],
       playlistIdx: -1,
       playlistRepeat: false,
     }));

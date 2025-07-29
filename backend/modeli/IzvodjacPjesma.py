@@ -17,12 +17,11 @@ class IzvodjacPjesmaORM(Base):
     izvodjac = relationship("KorisnikORM", foreign_keys=[izvodjacID])
     pjesma = relationship("PjesmaORM", foreign_keys=[pjesmaID])
 
-# Pydantic modeli
 
 class IzvodjacPjesmaBase(BaseModel):
     izvodjacID: str
     pjesmaID: int
-    kreiranDatumVrijeme: Optional[datetime.datetime] = None  # Dodaj default None
+    kreiranDatumVrijeme: Optional[datetime.datetime] = None  
     potvrdjeno: Optional[bool] = False
     udio: Optional[float] = 0.0
 

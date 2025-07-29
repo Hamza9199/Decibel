@@ -20,7 +20,7 @@ class PratilacKorisnikORM(Base):
 class PratilacKorisnikBase(BaseModel):
     korisnikID: str
     pratilacID: str
-    kreiranDatumVrijeme: Optional[datetime.datetime] = None  # <-- Dodaj default None
+    kreiranDatumVrijeme: Optional[datetime.datetime] = None  
 
 class PratilacKorisnikCreate(PratilacKorisnikBase):
     pass

@@ -44,7 +44,6 @@ const SvePlayliste: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -54,7 +53,6 @@ const SvePlayliste: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for user playlists
   const playlistsQuery = useQuery({
     queryKey: ['userPlaylists', korisnikID],
     queryFn: async () => {
@@ -62,16 +60,14 @@ const SvePlayliste: React.FC = React.memo(() => {
       
       const response = await axios.get(`${API_BASE}/playliste/`);
       
-      // Filter playlists by current user
       return (response.data || []).filter(
         (pl: Playlista) => pl.korisnikID === korisnikID
       );
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
-  // Mutation for deleting playlists
   const deletePlaylistMutation = useMutation({
     mutationFn: async (playlistId: number) => {
       await axios.delete(`${API_BASE}/playliste/${playlistId}`);
@@ -94,11 +90,10 @@ const SvePlayliste: React.FC = React.memo(() => {
     queryClient.invalidateQueries({ queryKey: ['userPlaylists', korisnikID] }).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, korisnikID]);
+  }, [korisnikID]);
 
   const handlePlayPlaylist = useCallback(async (playlistId: number) => {
     try {
-      // Fetch playlist order from backend
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
       const songIds: number[] = res.data || [];
       
@@ -120,11 +115,9 @@ const SvePlayliste: React.FC = React.memo(() => {
         return;
       }
       
-      // Play first song from playlist
       const firstSong = playlistSongs[0];
       if (firstSong?.putanjaAudio) {
         console.log('Playing playlist:', playlistId, 'First song:', firstSong.naziv);
-        // Add audio player integration here
       }
     } catch (error) {
       console.error('Error playing playlist:', error);
@@ -159,7 +152,6 @@ const SvePlayliste: React.FC = React.memo(() => {
     router.push(`/izvodjac/${userId}`);
   }, [router]);
 
-  // Memoize filtered playlists
   const filtriranePlayliste = useMemo(() => {
     const playliste = playlistsQuery.data || [];
     return playliste.filter((pl: Playlista) =>
@@ -167,7 +159,6 @@ const SvePlayliste: React.FC = React.memo(() => {
     );
   }, [playlistsQuery.data, search]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}

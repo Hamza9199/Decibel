@@ -9,7 +9,6 @@ async def get_all_pjesme(session: AsyncSession):
         select(PjesmaORM).options(selectinload(PjesmaORM.korisnik))
     )
     pjesme = result.scalars().all()
-    # Vrati ORM objekte sa korisnik atributom
     return pjesme
 
 async def get_pjesma_by_id(session: AsyncSession, pjesma_id: int):
@@ -23,7 +22,6 @@ async def create_pjesma(session: AsyncSession, pjesma: PjesmaCreate):
     session.add(db_pjesma)
     await session.commit()
     await session.refresh(db_pjesma)
-    # Učitaj korisnika
     await session.refresh(db_pjesma, attribute_names=["korisnik"])
     return db_pjesma
 
@@ -32,7 +30,6 @@ async def update_pjesma(session: AsyncSession, pjesma_id: int, pjesma: PjesmaCre
     if not db_pjesma:
         return None
     for key, value in pjesma.dict().items():
-        # Ispravi: dozvoli update svih polja, uključujući 'odobreno'
         setattr(db_pjesma, key, value)
     session.add(db_pjesma)
     await session.commit()

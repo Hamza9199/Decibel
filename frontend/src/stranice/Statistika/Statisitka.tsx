@@ -49,35 +49,29 @@ const Statistika: React.FC = () => {
     });
   }, []);
 
-  // Top 10 najlajkovanijih pjesama
   const topPjesme = [...pjesme]
     .filter(p => typeof p.brojLajkova === "number")
     .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
     .slice(0, 10);
 
-  // Top 10 najlajkovanijih albuma
   const topAlbumi = [...albumi]
     .filter(a => typeof a.brojLajkova === "number")
     .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
     .slice(0, 10);
 
-  // Top 10 najlajkovanijih plejlista
   const topPlayliste = [...playliste]
     .filter(pl => typeof pl.brojLajkova === "number")
     .sort((a, b) => (b.brojLajkova ?? 0) - (a.brojLajkova ?? 0))
     .slice(0, 10);
 
-  // Najpoznatiji izvođač (najviše pratilaca)
   const najpoznatijiIzvodjac = korisnici.reduce((max, k) =>
     (k.brojPratilaca || 0) > (max?.brojPratilaca || 0) ? k : max, korisnici[0]
   );
 
-  // Top 10 izvođača po broju pratilaca
   const topIzvodjaci = [...korisnici]
     .sort((a, b) => (b.brojPratilaca || 0) - (a.brojPratilaca || 0))
     .slice(0, 10);
 
-  // Broj pjesama po žanru
   const zanrovi = [
     "pop", "rock", "hip_hop", "jazz", "electronic", "klasicna", "metal", "alternativni", "rap"
   ];
@@ -86,12 +80,9 @@ const Statistika: React.FC = () => {
   );
 
 
-  // Top 10 najslušanijih pjesama (po broju reprodukcija)
-  // Ako statistika nema podatke, koristi brojReprodukcija iz pjesme
   let topSlusane: { pjesma: Pjesma; brojReprodukcija: number }[] = [];
 
   if (statistika.length > 0) {
-    // Ako backend vraća statistiku sa pjesma objektom
     topSlusane = statistika
       .map((s: Statistika) => ({
         pjesma: s.pjesma || pjesme.find((p) => p.id === s.pjesmaID),
@@ -101,7 +92,6 @@ const Statistika: React.FC = () => {
       .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0))
       .slice(0, 10);
   } else {
-    // Ako nema statistike, koristi brojReprodukcija iz pjesme
     topSlusane = [...pjesme]
       .filter((p) => typeof p.brojReprodukcija === "number")
       .sort((a, b) => (b.brojReprodukcija ?? 0) - (a.brojReprodukcija ?? 0))

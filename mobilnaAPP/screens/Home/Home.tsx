@@ -83,7 +83,6 @@ const Home: React.FC = React.memo(() => {
 
   });
 
-  // Query for artists data
   const artistsQuery = useQuery({
     queryKey: ['artists'],
     queryFn: async () => {
@@ -328,7 +327,6 @@ const Home: React.FC = React.memo(() => {
     </TouchableOpacity>
   ), [handleNavigateToArtist]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}

@@ -17,7 +17,6 @@ async def get_statistika_by_id(session: AsyncSession, statistika_id: int):
 async def create_statistika(session: AsyncSession, data: StatistikaReprodukcijeCreate):
     db_obj = StatistikaReprodukcijeORM(**data.dict())
     session.add(db_obj)
-    # Povećaj broj reprodukcija na pjesmi
     pjesma = await session.get(PjesmaORM, data.pjesmaID)
     if pjesma:
         pjesma.brojReprodukcija = (pjesma.brojReprodukcija or 0) + 1

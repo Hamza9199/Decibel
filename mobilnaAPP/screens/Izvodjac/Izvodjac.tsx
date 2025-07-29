@@ -45,7 +45,6 @@ const Izvodjac: React.FC = React.memo(() => {
     return '';
   }, []);
 
-  // Replace useMemo with useEffect for initial user data loading
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -55,7 +54,6 @@ const Izvodjac: React.FC = React.memo(() => {
     initializeUser();
   }, [loadUserData]);
 
-  // Query for artist details
   const artistQuery = useQuery({
     queryKey: ['artist', izvodjacId],
     queryFn: async () => {
@@ -64,22 +62,19 @@ const Izvodjac: React.FC = React.memo(() => {
       return response.data;
     },
     enabled: !!izvodjacId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for artist's songs
   const songsQuery = useQuery({
     queryKey: ['artistSongs', izvodjacId],
     queryFn: async () => {
       if (!izvodjacId) return [];
       
-      // Load owned songs
       const songsRes = await axios.get(`${API_BASE}/pjesme/`);
       const ownedSongs = (songsRes.data || []).filter(
         (p: Pjesma) => p.korisnikID === izvodjacId && p.odobreno
       );
 
-      // Load featured songs
       try {
         const featuredRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
         const featuredLinks = featuredRes.data || [];
@@ -108,10 +103,9 @@ const Izvodjac: React.FC = React.memo(() => {
       return ownedSongs;
     },
     enabled: !!izvodjacId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for artist's albums
   const albumsQuery = useQuery({
     queryKey: ['artistAlbums', izvodjacId],
     queryFn: async () => {
@@ -123,10 +117,9 @@ const Izvodjac: React.FC = React.memo(() => {
       );
     },
     enabled: !!izvodjacId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Query for artist's playlists
   const playlistsQuery = useQuery({
     queryKey: ['artistPlaylists', izvodjacId],
     queryFn: async () => {
@@ -138,10 +131,9 @@ const Izvodjac: React.FC = React.memo(() => {
       );
     },
     enabled: !!izvodjacId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 10 * 60 * 1000, 
   });
 
-  // Query for follow status
   const followQuery = useQuery({
     queryKey: ['followStatus', izvodjacId, currentUserId],
     queryFn: async () => {
@@ -155,7 +147,7 @@ const Izvodjac: React.FC = React.memo(() => {
       }
     },
     enabled: !!(currentUserId && izvodjacId),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000, 
   });
 
   const artist = artistQuery.data;
@@ -164,7 +156,6 @@ const Izvodjac: React.FC = React.memo(() => {
   const playlists = playlistsQuery.data || [];
   const following = followQuery.data || false;
 
-  // Mutation for follow/unfollow
   const followMutation = useMutation({
     mutationFn: async ({ follow }: { follow: boolean }) => {
       if (!currentUserId || !izvodjacId) throw new Error('Missing IDs');
@@ -200,7 +191,7 @@ const Izvodjac: React.FC = React.memo(() => {
     ]).finally(() => {
       setRefreshing(false);
     });
-  }, [queryClient, izvodjacId, currentUserId]);
+  }, [izvodjacId, currentUserId]);
 
   const handleFollow = useCallback(() => {
     const isFollowing = followQuery.data || false;
@@ -224,7 +215,6 @@ const Izvodjac: React.FC = React.memo(() => {
     }
     
     console.log('Playing album:', album.naziv);
-    // Play first song
     handlePlaySong(albumSongs[0]);
   }, [songs, handlePlaySong, t]);
 
@@ -328,7 +318,6 @@ const Izvodjac: React.FC = React.memo(() => {
     </View>
   ), [handlePlayPlaylist]);
 
-  // Memoize artist meta information
   const artistMeta = useMemo(() => {
     if (!artistQuery.data) return [];
     const artist = artistQuery.data;
@@ -339,12 +328,10 @@ const Izvodjac: React.FC = React.memo(() => {
     ];
   }, [artistQuery.data, t]);
 
-  // Memoize follow button visibility
   const showFollowButton = useMemo(() => {
     return currentUserId && currentUserId !== artistQuery.data?.id;
   }, [currentUserId, artistQuery.data?.id]);
 
-  // Memoize refresh control
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
@@ -388,7 +375,6 @@ const Izvodjac: React.FC = React.memo(() => {
         refreshControl={refreshControl}
       >
         <View style={styles.content}>
-          {/* Artist Header */}
           <View style={styles.artistMain}>
             <Image
               source={{ uri: artist.putanjaProfilneSlike || 'https://via.placeholder.com/120' }}
@@ -429,7 +415,6 @@ const Izvodjac: React.FC = React.memo(() => {
             </View>
           </View>
 
-          {/* Songs Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('songs')}</Text>
             {songs.length === 0 ? (
@@ -444,7 +429,6 @@ const Izvodjac: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Albums Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('albums')}</Text>
             {albums.length === 0 ? (
@@ -459,7 +443,6 @@ const Izvodjac: React.FC = React.memo(() => {
             )}
           </View>
 
-          {/* Playlists Section */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>{t('playlists')}</Text>
             {playlists.length === 0 ? (

@@ -34,7 +34,6 @@ const NovaPjesma: React.FC = () => {
   const korisnik = JSON.parse(localStorage.getItem("korisnik") || "{}");
 
   useEffect(() => {
-    // Dohvati sve albume korisnika
     if (!korisnik?.id) return;
     axios
       .get(`${API_BASE}/albumi/`)
@@ -45,33 +44,28 @@ const NovaPjesma: React.FC = () => {
   }, [korisnik?.id]);
 
   useEffect(() => {
-    // Dohvati sve korisnike za search izvođača
     axios
       .get(`${API_BASE}/korisnici/`)
       .then((res) => setSviIzvodjaci(res.data || []))
       .catch(() => setSviIzvodjaci([]));
   }, [korisnik?.id]);
 
-  // Ensure the user creating the song is always in izabraniIzvodjaci
   useEffect(() => {
     if (!korisnik?.id) return;
     setIzabraniIzvodjaci((prev) => {
       if (prev.find((k) => k.id === korisnik.id)) return prev;
-      // Try to find the korisnik object from sviIzvodjaci if possible
       const userObj = sviIzvodjaci.find((k) => k.id === korisnik.id) || korisnik;
       return [userObj, ...prev];
     });
     // eslint-disable-next-line
   }, [korisnik?.id, sviIzvodjaci]);
 
-  // Dodavanje/uklanjanje izvođača
   const handleAddIzvodjac = (korisnik: Korisnik) => {
     if (!izabraniIzvodjaci.find((k) => k.id === korisnik.id)) {
       setIzabraniIzvodjaci((prev) => [...prev, korisnik]);
     }
   };
   const handleRemoveIzvodjac = (korisnikId: string) => {
-    // Sada se može ukloniti i sam sebe
     setIzabraniIzvodjaci((prev) => prev.filter((k) => k.id !== korisnikId));
   };
 
@@ -94,14 +88,11 @@ const NovaPjesma: React.FC = () => {
       if (slika) formData.append("file_slika", slika);
       if (gif) formData.append("file_gif", gif);
 
-      // 1. Kreiraj pjesmu
       const res = await axios.post<{ id: number }>(`${API_BASE}/pjesme/`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       const pjesmaId = res.data.id;
 
-      // 2. Dodaj veze za izvodjace (ako ima više)
-      // Spriječi duplikate po izvodjacID
       const uniqueIzvodjaci = izabraniIzvodjaci.filter(
         (izv, idx, arr) => arr.findIndex(x => x.id === izv.id) === idx
       );
@@ -109,8 +100,8 @@ const NovaPjesma: React.FC = () => {
         await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
           izvodjacID: izvodjac.id,
           pjesmaID: pjesmaId,
-          potvrdjeno: izvodjac.id === korisnik.id, // vlasnik automatski potvrđen
-        }).catch(() => {}); // ignorisi grešku za duplikat
+          potvrdjeno: izvodjac.id === korisnik.id, 
+        }).catch(() => {}); 
       }
 
       setSuccess("Pjesma je uspješno dodana!");
@@ -225,7 +216,6 @@ const NovaPjesma: React.FC = () => {
             {t("add_song") || "Dodaj pjesmu"}
           </button>
         </form>
-        {/* Desno: search i izbor izvođača */}
         <div style={{
           marginLeft: 32,
           background: "#232323",
@@ -286,7 +276,6 @@ const NovaPjesma: React.FC = () => {
                 </button>
               </span>
             ))}
-            {/* Napomena korisniku */}
             <div style={{ color: "#bbb", fontSize: "0.93rem", marginTop: 4 }}>
               {t("can_remove_self_artist") || "Možete ukloniti i sebe kao izvođača."}
             </div>

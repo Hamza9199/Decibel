@@ -43,7 +43,7 @@ async def delete_korisnik_pjesma(session: AsyncSession, korisnikID: str, pjesmaI
     return db_obj
 
 
-async def get_all_korisnik_pjesma(korisnikID: str, session: AsyncSession):
+async def get_all_korisnik_pjesma2(korisnikID: str, session: AsyncSession):
     result = await session.execute(
         select(KorisnikPjesmaORM).where(KorisnikPjesmaORM.korisnikID == korisnikID)
     )

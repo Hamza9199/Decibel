@@ -11,6 +11,7 @@ from modeli.Playlista import Playlista
 from modeli.Korisnik import Korisnik
 from kontroleri.KorisnikPlaylistaKontroler import (
     get_all_korisnik_playlista,
+    get_all_korisnik_playlista2,
     get_korisnik_playlista,
     create_korisnik_playlista,
     delete_korisnik_playlista
@@ -61,7 +62,7 @@ async def obrisi_vezu(korisnikID: str, playlistaID: int, session: AsyncSession =
 
 @router.get("/korisnik/{korisnikID}", response_model=List[KorisnikPlaylista])
 async def get_playliste_korisnika(korisnikID: str, session: AsyncSession = Depends(get_session)):
-    playliste_veze = await get_all_korisnik_playlista(session, korisnikID=korisnikID)
+    playliste_veze = await get_all_korisnik_playlista2(session, korisnikID=korisnikID)
     if not playliste_veze:
         raise HTTPException(status_code=404, detail="Korisnik nema playliste")
     playlista_ids = [v.playlistaID for v in playliste_veze]

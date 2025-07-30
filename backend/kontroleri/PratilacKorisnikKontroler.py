@@ -43,24 +43,24 @@ async def delete_pratilac_korisnik(session: AsyncSession, korisnikID: str, prati
 
 async def get_all_pratioci_by_korisnik(session: AsyncSession, korisnikID: str):
     result = await session.execute(
-        select(PratilacKorisnikORM).where(PratilacKorisnikORM.korisnikID == korisnikID)
+        select(PratilacKorisnikORM).where(PratilacKorisnikORM.pratilacID == korisnikID)
     )
     pratioci = result.scalars().all()
     
     if not pratioci:
         return []
 
-    pratilac_ids = [p.pratilacID for p in pratioci]
+    korisnik_ids = [p.korisnikID for p in pratioci]
     korisnici_query = await session.execute(
-        select(KorisnikORM).where(KorisnikORM.id.in_(pratilac_ids))
+        select(KorisnikORM).where(KorisnikORM.id.in_(korisnik_ids))
     )
     korisnici_map = {k.id: k for k in korisnici_query.scalars().all()}
 
     enriched_pratioci = []
     for p in pratioci:
-        korisnik_obj = korisnici_map.get(p.pratilacID)
+        korisnik_obj = korisnici_map.get(p.korisnikID)
         p_dict = p.__dict__.copy()
-        p_dict['pratilac'] = Korisnik.from_orm(korisnik_obj) if korisnik_obj else None
+        p_dict['korisnik'] = Korisnik.from_orm(korisnik_obj) if korisnik_obj else None
         enriched_pratioci.append(PratilacKorisnik(**p_dict))
 
     return enriched_pratioci

@@ -366,5 +366,7 @@
   "follows": "Pratim",
   "create_song": "Kreiraj pjesmu",
   "public_song": "Javna pjesma",
-  "my_albums": "Moji albumi"
+  "my_albums": "Moji albumi",
+  "retry": "Pokušaj ponovo",
+  "check_connection_retry": "Provjerite vezu i pokušajte ponovo"
 }

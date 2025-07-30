@@ -35,30 +35,10 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
 
-# PREUREDI REDOSLIJED RUTA: prvo rute sa više path parametara, zatim /korisnik/{korisnikID} NA KRAJ
 
 @router.get("/", response_model=List[KorisnikAlbum])
 async def svi_korisnik_album(session: AsyncSession = Depends(get_session)):
     return await get_all_korisnik_album(session)
-
-@router.get("/{korisnikID}/{albumID}", response_model=KorisnikAlbum)
-async def get_veza(korisnikID: str, albumID: int, session: AsyncSession = Depends(get_session)):
-    veza = await get_korisnik_album(session, korisnikID, albumID)
-    if not veza:
-        raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return veza
-
-@router.post("/", response_model=KorisnikAlbum)
-async def nova_korisnik_album(data: KorisnikAlbumCreate, session: AsyncSession = Depends(get_session)):
-    db_obj = await create_korisnik_album(session, data)
-    return db_obj
-
-@router.delete("/{korisnikID}/{albumID}", response_model=KorisnikAlbum)
-async def obrisi_vezu(korisnikID: str, albumID: int, session: AsyncSession = Depends(get_session)):
-    db_obj = await delete_korisnik_album(session, korisnikID, albumID)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return db_obj
 
 @router.get("/korisnik/{korisnikID}", response_model=List[KorisnikAlbum])
 async def get_korisnik_albumi(korisnikID: str, session: AsyncSession = Depends(get_session)):
@@ -87,3 +67,24 @@ async def get_korisnik_albumi(korisnikID: str, session: AsyncSession = Depends(g
         v_dict['korisnik'] = Korisnik.from_orm(korisnik_obj) if korisnik_obj else None
         enriched.append(KorisnikAlbum(**v_dict))
     return enriched
+
+@router.get("/{korisnikID}/{albumID}", response_model=KorisnikAlbum)
+async def get_veza(korisnikID: str, albumID: int, session: AsyncSession = Depends(get_session)):
+    veza = await get_korisnik_album(session, korisnikID, albumID)
+    if not veza:
+        raise HTTPException(status_code=404, detail="Veza nije pronađena")
+    return veza
+
+@router.post("/", response_model=KorisnikAlbum)
+async def nova_korisnik_album(data: KorisnikAlbumCreate, session: AsyncSession = Depends(get_session)):
+    db_obj = await create_korisnik_album(session, data)
+    return db_obj
+
+@router.delete("/{korisnikID}/{albumID}", response_model=KorisnikAlbum)
+async def obrisi_vezu(korisnikID: str, albumID: int, session: AsyncSession = Depends(get_session)):
+    db_obj = await delete_korisnik_album(session, korisnikID, albumID)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Veza nije pronađena")
+    return db_obj
+
+

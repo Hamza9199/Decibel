@@ -38,6 +38,14 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def svi_pratioci(session: AsyncSession = Depends(get_session)):
     return await get_all_pratioci(session)
 
+
+@router.get("/korisnik/{korisnikID}", response_model=List[PratilacKorisnik])
+async def get_all_pratioci_by_korisnik_route(korisnikID: str, session: AsyncSession = Depends(get_session)):
+    pratioci = await get_all_pratioci_by_korisnik(session, korisnikID)
+    if not pratioci:
+        return []
+    return pratioci
+
 @router.get("/{korisnikID}/{pratilacID}", response_model=PratilacKorisnik)
 async def get_veza(korisnikID: str, pratilacID: str, session: AsyncSession = Depends(get_session)):
     veza = await get_pratilac_korisnik(session, korisnikID, pratilacID)
@@ -58,9 +66,3 @@ async def obrisi_vezu(korisnikID: str, pratilacID: str, session: AsyncSession = 
     return db_obj
 
 
-@router.get("/korisnik/{korisnikID}", response_model=List[PratilacKorisnik])
-async def get_all_pratioci_by_korisnik_route(korisnikID: str, session: AsyncSession = Depends(get_session)):
-    pratioci = await get_all_pratioci_by_korisnik(session, korisnikID)
-    if not pratioci:
-        return []
-    return pratioci

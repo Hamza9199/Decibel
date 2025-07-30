@@ -31,4 +31,5 @@ class KorisnikAlbum(KorisnikAlbumBase):
     korisnik: Optional[Korisnik] = None
 
     class Config:
+        from_attributes = True
         orm_mode = True

@@ -40,7 +40,6 @@ async def delete_korisnik_album(session: AsyncSession, korisnikID: str, albumID:
     await session.commit()
     return db_obj
 
-# Ispravi potpis funkcije da korisnikID bude keyword argument sa default None
 async def get_all_korisnik_album2(session: AsyncSession, korisnikID: str = None):
     if korisnikID:
         result = await session.execute(

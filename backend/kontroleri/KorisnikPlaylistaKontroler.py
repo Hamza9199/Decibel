@@ -34,7 +34,6 @@ async def delete_korisnik_playlista(session: AsyncSession, korisnikID: str, play
     if not db_obj:
         return None
     await session.delete(db_obj)
-    # Smanji broj lajkova na playlisti
     playlista = await session.get(PlaylistaORM, playlistaID)
     if playlista and (playlista.brojLajkova or 0) > 0:
         playlista.brojLajkova -= 1
@@ -43,7 +42,6 @@ async def delete_korisnik_playlista(session: AsyncSession, korisnikID: str, play
     return db_obj
 
 
-# Ispravi potpis funkcije da korisnikID bude keyword argument sa default None
 async def get_all_korisnik_playlista2(session: AsyncSession, korisnikID: str = None):
     if korisnikID:
         result = await session.execute(

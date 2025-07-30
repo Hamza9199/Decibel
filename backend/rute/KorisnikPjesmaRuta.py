@@ -63,7 +63,7 @@ async def obrisi_vezu(korisnikID: str, pjesmaID: int, session: AsyncSession = De
 
 @router.get("/korisnik/{korisnikID}", response_model=List[KorisnikPjesma])
 async def get_korisnik_pjesme(korisnikID: str, session: AsyncSession = Depends(get_session)):
-    pjesme_veze = await get_all_korisnik_pjesma2(session, korisnikID=korisnikID)
+    pjesme_veze = await get_all_korisnik_pjesma2(session=session, korisnikID=korisnikID)
     if not pjesme_veze:
         raise HTTPException(status_code=404, detail="Nema pjesama za ovog korisnika")
     pjesma_ids = [v.pjesmaID for v in pjesme_veze]

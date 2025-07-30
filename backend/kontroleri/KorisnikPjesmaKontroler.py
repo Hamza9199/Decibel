@@ -43,7 +43,6 @@ async def delete_korisnik_pjesma(session: AsyncSession, korisnikID: str, pjesmaI
     return db_obj
 
 
-# Ispravi potpis funkcije da korisnikID bude keyword argument sa default None
 async def get_all_korisnik_pjesma2(session: AsyncSession, korisnikID: str = None):
     if korisnikID:
         result = await session.execute(

@@ -62,7 +62,7 @@ async def obrisi_vezu(korisnikID: str, albumID: int, session: AsyncSession = Dep
 
 @router.get("/korisnik/{korisnikID}", response_model=List[KorisnikAlbum])
 async def get_korisnik_albumi(korisnikID: str, session: AsyncSession = Depends(get_session)):
-    albumi_veze = await get_all_korisnik_album2(session, korisnikID=korisnikID)
+    albumi_veze = await get_all_korisnik_album2(session=session, korisnikID=korisnikID)
     if not albumi_veze:
         raise HTTPException(status_code=404, detail="Nema albuma za ovog korisnika")
     album_ids = [v.albumID for v in albumi_veze]

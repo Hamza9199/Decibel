@@ -63,6 +63,7 @@ class Pjesma(PjesmaBase):
     korisnik: Optional["Korisnik"] = None  
 
     class Config:
+        from_attributes = True 
         orm_mode = True
 
-Pjesma.model_rebuild()  
+Pjesma.model_rebuild()

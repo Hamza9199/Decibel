@@ -44,7 +44,7 @@ class Korisnik(KorisnikCreate):
     id: Optional[UUID]
 
     class Config:
-        orm_mode = True
+        from_attributes = True  
 
 class KorisnikLogin(BaseModel):
     email: str

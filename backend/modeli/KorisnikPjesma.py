@@ -31,4 +31,5 @@ class KorisnikPjesma(KorisnikPjesmaBase):
     korisnik: Optional[Korisnik] = None  
 
     class Config:
+        from_attributes = True
         orm_mode = True

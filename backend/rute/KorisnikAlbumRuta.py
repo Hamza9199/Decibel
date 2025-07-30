@@ -35,6 +35,8 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
 
+# PREUREDI REDOSLIJED RUTA: prvo rute sa više path parametara, zatim /korisnik/{korisnikID} NA KRAJ
+
 @router.get("/", response_model=List[KorisnikAlbum])
 async def svi_korisnik_album(session: AsyncSession = Depends(get_session)):
     return await get_all_korisnik_album(session)
@@ -57,8 +59,6 @@ async def obrisi_vezu(korisnikID: str, albumID: int, session: AsyncSession = Dep
     if not db_obj:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
-
-
 
 @router.get("/korisnik/{korisnikID}", response_model=List[KorisnikAlbum])
 async def get_korisnik_albumi(korisnikID: str, session: AsyncSession = Depends(get_session)):

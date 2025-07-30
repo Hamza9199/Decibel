@@ -38,7 +38,7 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
   };
 
   return (
-    <View style={[styles.bottomTabBar, { bottom: insets.bottom }]}>
+    <View style={[styles.bottomTabBar, { bottom: insets.bottom + -50}]}>
       <TouchableOpacity 
         style={styles.tabBarItem} 
         onPress={() => handleTabPress('home')}

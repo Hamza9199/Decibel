@@ -39,28 +39,6 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def svi_korisnik_pjesma(session: AsyncSession = Depends(get_session)):
     return await get_all_korisnik_pjesma(session)
 
-@router.get("/{korisnikID}/{pjesmaID}", response_model=KorisnikPjesma)
-async def get_veza(korisnikID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
-    veza = await get_korisnik_pjesma(session, korisnikID, pjesmaID)
-    if not veza:
-        raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return veza
-
-@router.post("/", response_model=KorisnikPjesma)
-async def nova_korisnik_pjesma(data: KorisnikPjesmaCreate, session: AsyncSession = Depends(get_session)):
-    db_obj = await create_korisnik_pjesma(session, data)
-    return db_obj
-
-@router.delete("/{korisnikID}/{pjesmaID}", response_model=KorisnikPjesma)
-async def obrisi_vezu(korisnikID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
-    db_obj = await delete_korisnik_pjesma(session, korisnikID, pjesmaID)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return db_obj
-
-
-
-
 @router.get("/korisnik/{korisnikID}", response_model=List[KorisnikPjesma])
 async def get_korisnik_pjesme(korisnikID: str, session: AsyncSession = Depends(get_session)):
     pjesme_veze = await get_all_korisnik_pjesma2(session=session, korisnikID=korisnikID)
@@ -88,3 +66,23 @@ async def get_korisnik_pjesme(korisnikID: str, session: AsyncSession = Depends(g
         v_dict['korisnik'] = Korisnik.from_orm(korisnik_obj) if korisnik_obj else None
         enriched.append(KorisnikPjesma(**v_dict))
     return enriched
+
+@router.get("/{korisnikID}/{pjesmaID}", response_model=KorisnikPjesma)
+async def get_veza(korisnikID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
+    veza = await get_korisnik_pjesma(session, korisnikID, pjesmaID)
+    if not veza:
+        raise HTTPException(status_code=404, detail="Veza nije pronađena")
+    return veza
+
+@router.post("/", response_model=KorisnikPjesma)
+async def nova_korisnik_pjesma(data: KorisnikPjesmaCreate, session: AsyncSession = Depends(get_session)):
+    db_obj = await create_korisnik_pjesma(session, data)
+    return db_obj
+
+@router.delete("/{korisnikID}/{pjesmaID}", response_model=KorisnikPjesma)
+async def obrisi_vezu(korisnikID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
+    db_obj = await delete_korisnik_pjesma(session, korisnikID, pjesmaID)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Veza nije pronađena")
+    return db_obj
+

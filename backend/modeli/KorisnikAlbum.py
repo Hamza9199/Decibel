@@ -5,6 +5,8 @@ from servisi.Baza import Base
 from typing import Optional
 from pydantic import BaseModel
 import datetime
+from modeli.Album import Album
+from modeli.Korisnik import Korisnik
 
 class KorisnikAlbumORM(Base):
     __tablename__ = "korisnik_album"
@@ -25,5 +27,8 @@ class KorisnikAlbumCreate(KorisnikAlbumBase):
     pass
 
 class KorisnikAlbum(KorisnikAlbumBase):
+    album: Optional[Album] = None
+    korisnik: Optional[Korisnik] = None
+
     class Config:
         orm_mode = True

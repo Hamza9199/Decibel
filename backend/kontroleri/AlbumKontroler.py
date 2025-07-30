@@ -44,3 +44,15 @@ async def delete_album(session: AsyncSession, album_id: int):
     await session.delete(db_album)
     await session.commit()
     return db_album
+
+async def get_albumi_by_korisnik_id(session: AsyncSession, korisnik_id: int):
+    result = await session.execute(
+        select(AlbumORM).options(selectinload(AlbumORM.korisnik)).where(AlbumORM.korisnik_id == korisnik_id)
+    )
+    return result.scalars().all()
+
+async def get_pjesme_by_album_id(session: AsyncSession, album_id: int):
+    result = await session.execute(
+        select(AlbumORM.pjesme).where(AlbumORM.id == album_id)
+    )
+    return result.scalars().all() if result else None

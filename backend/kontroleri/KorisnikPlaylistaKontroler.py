@@ -41,3 +41,11 @@ async def delete_korisnik_playlista(session: AsyncSession, korisnikID: str, play
         session.add(playlista)
     await session.commit()
     return db_obj
+
+
+async def get_all_korisnik_playlista(session: AsyncSession, korisnikID: str):
+    result = await session.execute(
+        select(KorisnikPlaylistaORM).where(KorisnikPlaylistaORM.korisnikID == korisnikID)
+    )
+    return result.scalars().all()
+

@@ -13,6 +13,7 @@ from kontroleri.PlaylistaKontroler import (
     get_all_playliste,
     get_playlista_by_id,
     create_playlista,
+    get_playliste_by_korisnik_id,
     update_playlista,
     delete_playlista
 )
@@ -149,3 +150,11 @@ async def obrisi_playlistu(playlista_id: int, session: AsyncSession = Depends(ge
     if not db_playlista:
         raise HTTPException(status_code=404, detail="Playlista nije pronađena")
     return db_playlista
+
+
+@router.get("/korisnik/{korisnik_id}", response_model=List[Playlista])
+async def get_playliste_by_korisnik(korisnik_id: int, session: AsyncSession = Depends(get_session)):
+    playliste = await get_playliste_by_korisnik_id(session, korisnik_id)
+    if not playliste:
+        raise HTTPException(status_code=404, detail="Nema playlista za ovog korisnika")
+    return playliste

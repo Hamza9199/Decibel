@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 from modeli.KorisnikPlaylista import KorisnikPlaylista, KorisnikPlaylistaCreate
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
+from modeli.Playlista import Playlista
+from modeli.Korisnik import Korisnik
 from kontroleri.KorisnikPlaylistaKontroler import (
     get_all_korisnik_playlista,
     get_korisnik_playlista,
@@ -55,3 +56,33 @@ async def obrisi_vezu(korisnikID: str, playlistaID: int, session: AsyncSession =
     if not db_obj:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
+
+
+
+@router.get("/korisnik/{korisnikID}", response_model=List[KorisnikPlaylista])
+async def get_playliste_korisnika(korisnikID: str, session: AsyncSession = Depends(get_session)):
+    playliste_veze = await get_all_korisnik_playlista(session, korisnikID=korisnikID)
+    if not playliste_veze:
+        raise HTTPException(status_code=404, detail="Korisnik nema playliste")
+    playlista_ids = [v.playlistaID for v in playliste_veze]
+    if playlista_ids:
+        from sqlalchemy.future import select
+        from modeli.Playlista import PlaylistaORM
+        from modeli.Korisnik import KorisnikORM
+        playliste_query = await session.execute(select(PlaylistaORM).where(PlaylistaORM.id.in_(playlista_ids)))
+        playliste_map = {p.id: p for p in playliste_query.scalars().all()}
+        korisnik_ids = list(set([p.korisnikID for p in playliste_map.values() if p.korisnikID]))
+        korisnici_query = await session.execute(select(KorisnikORM).where(KorisnikORM.id.in_(korisnik_ids)))
+        korisnici_map = {k.id: k for k in korisnici_query.scalars().all()}
+    else:
+        playliste_map = {}
+        korisnici_map = {}
+    enriched = []
+    for v in playliste_veze:
+        playlista_obj = playliste_map.get(v.playlistaID)
+        korisnik_obj = korisnici_map.get(playlista_obj.korisnikID) if playlista_obj and playlista_obj.korisnikID else None
+        v_dict = v.__dict__.copy()
+        v_dict['playlista'] = Playlista.from_orm(playlista_obj) if playlista_obj else None
+        v_dict['korisnik'] = Korisnik.from_orm(korisnik_obj) if korisnik_obj else None
+        enriched.append(KorisnikPlaylista(**v_dict))
+    return enriched

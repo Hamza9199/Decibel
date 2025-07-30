@@ -55,3 +55,11 @@ async def obrisi_vezu(korisnikID: str, pratilacID: str, session: AsyncSession = 
     if not db_obj:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
+
+
+@router.get("/korisnik/{korisnikID}", response_model=List[PratilacKorisnik])
+async def get_all_pratioci_by_korisnik(korisnikID: str, session: AsyncSession = Depends(get_session)):
+    pratioci = await get_all_pratioci_by_korisnik(session, korisnikID)
+    if not pratioci:
+        raise HTTPException(status_code=404, detail="Nema pratilaca za ovog korisnika")
+    return pratioci

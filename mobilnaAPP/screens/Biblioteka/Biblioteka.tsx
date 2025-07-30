@@ -135,21 +135,19 @@ const Biblioteka: React.FC = React.memo(() => {
     queryKey: ['following', userId],
     queryFn: async ({ signal }) => {
       if (!userId) return [];
-      
-      const response = await apiClient.get('/pratioci/', { signal });
-      const followedIds = response.data
-        ?.filter((p: any) => p.pratilacID === userId)
-        ?.map((p: any) => p.korisnikID) || [];
-      
+      const response = await apiClient.get(`/pratioci/korisnik/${userId}`, { signal });
+      const followedIds = (response.data || [])
+        .map((p: any) => p.korisnikID)
+        .filter(Boolean);
+
       if (followedIds.length === 0) return [];
-      
+
       const followedUsers = await loadBatchData<Korisnik>(followedIds, 'korisnici', signal);
-      
       return followedUsers.filter(user => followedIds.includes(user.id));
     },
     enabled: !!userId,
-    staleTime: 10 * 60 * 1000, 
-    gcTime: 30 * 60 * 1000, 
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     retry: 2,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -158,43 +156,13 @@ const Biblioteka: React.FC = React.memo(() => {
   queryKey: ['likedSongs', userId],
   queryFn: async ({ signal }) => {
     if (!userId) return [];
-    
-    const likedResponse = await apiClient.get('/korisnik_pjesma/', { signal });
-
-    if (!Array.isArray(likedResponse.data)) {
-      console.error('Invalid response format from /korisnik_pjesma/');
-      return [];
-    }
-    
-    const likedSongIds = likedResponse.data
-      .filter((l: any) => l.korisnikID === userId)
-      .map((l: any) => l.pjesmaID);
-    
-    if (likedSongIds.length === 0) return [];
-    
-    const songsResponse = await apiClient.get('/pjesme/', { signal });
-    const allSongs = songsResponse.data as Pjesma[];
-    
-    const usersResponse = await apiClient.get('/korisnici/', { signal });
-    const allUsers = usersResponse.data as Korisnik[];
-    
-    const userMap = allUsers.reduce((map, user) => {
-      map[user.id] = user;
-      return map;
-    }, {} as { [key: string]: Korisnik });
-    
-    const likedSongs = allSongs
-      .filter(song => 
-        song.odobreno && 
-        song.putanjaAudio && 
-        likedSongIds.includes(song.id)
-      )
-      .map(song => ({
-        ...song,
-        korisnik: song.korisnikID ? userMap[song.korisnikID] || null : null
+    const likedResponse = await apiClient.get(`/korisnik_pjesma/korisnik/${userId}`, { signal });
+    return (likedResponse.data || [])
+      .filter((l: any) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+      .map((l: any) => ({
+        ...l.pjesma,
+        korisnik: l.korisnik || l.pjesma.korisnik || null
       }));
-    
-    return likedSongs;
   },
   enabled: !!userId,
   staleTime: 10 * 60 * 1000,
@@ -203,26 +171,17 @@ const Biblioteka: React.FC = React.memo(() => {
   retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
 });
 
-  const useLikedAlbums = (userId?: string) => useQuery({
+const useLikedAlbums = (userId?: string) => useQuery({
     queryKey: ['likedAlbums', userId],
     queryFn: async ({ signal }) => {
       if (!userId) return [];
-      
-      const likedResponse = await apiClient.get('/korisnik_album/', { signal });
-      const likedAlbumIds = likedResponse.data
-        ?.filter((l: any) => l.korisnikID === userId)
-        ?.map((l: any) => l.albumID) || [];
-      
-      if (likedAlbumIds.length === 0) return [];
-      
-      const allAlbumsResponse = await apiClient.get('/albumi/', { signal });
-      const allAlbums = allAlbumsResponse.data as Album[];
-      
-      const likedAlbums = allAlbums.filter(album => 
-        likedAlbumIds.includes(album.id) && album.odobreno
-      );
-      
-      return likedAlbums;
+      const likedResponse = await apiClient.get(`/korisnik_album/korisnik/${userId}`, { signal });
+      return (likedResponse.data || [])
+        .filter((l: any) => l.album && l.album.odobreno)
+        .map((l: any) => ({
+          ...l.album,
+          korisnik: l.korisnik || l.album.korisnik || null
+        }));
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -235,22 +194,13 @@ const Biblioteka: React.FC = React.memo(() => {
     queryKey: ['likedPlaylists', userId],
     queryFn: async ({ signal }) => {
       if (!userId) return [];
-      
-      const likedResponse = await apiClient.get('/korisnik_playlista/', { signal });
-      const likedPlaylistIds = likedResponse.data
-        ?.filter((l: any) => l.korisnikID === userId)
-        ?.map((l: any) => l.playlistaID) || [];
-      
-      if (likedPlaylistIds.length === 0) return [];
-      
-      const allPlaylistsResponse = await apiClient.get('/playliste/', { signal });
-      const allPlaylists = allPlaylistsResponse.data as Playlista[];
-      
-      const likedPlaylists = allPlaylists.filter(playlist => 
-        likedPlaylistIds.includes(playlist.id) && playlist.javno
-      );
-      
-      return likedPlaylists;
+      const likedResponse = await apiClient.get(`/korisnik_playlista/korisnik/${userId}`, { signal });
+      return (likedResponse.data || [])
+        .filter((l: any) => l.playlista && l.playlista.javno)
+        .map((l: any) => ({
+          ...l.playlista,
+          korisnik: l.korisnik || l.playlista.korisnik || null
+        }));
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -277,72 +227,44 @@ const Biblioteka: React.FC = React.memo(() => {
           key: 'prateci', 
           queryKey: ['following', korisnik.id], 
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
-        const response = await apiClient.get('/pratioci/', { signal });
-        const followedIds = response.data
-          ?.filter((p: any) => p.pratilacID === korisnik.id)
-          ?.map((p: any) => p.korisnikID) || [];
-        
-        if (followedIds.length === 0) return [];
-        
-        const followedUsers = await loadBatchData<Korisnik>(followedIds, 'korisnici', signal);
-        return followedUsers.filter(user => followedIds.includes(user.id));
+            const response = await apiClient.get(`/pratioci/korisnik/${korisnik.id}`, { signal });
+            return response.data || [];
           }
         },
         { 
           key: 'pjesme', 
           queryKey: ['likedSongs', korisnik.id], 
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
-        const likedResponse = await apiClient.get('/korisnik_pjesma/', { signal });
-        const likedSongIds = likedResponse.data
-          ?.filter((l: any) => l.korisnikID === korisnik.id)
-          ?.map((l: any) => l.pjesmaID) || [];
-        
-        if (likedSongIds.length === 0) return [];
-        
-        const allSongsResponse = await apiClient.get('/pjesme/', { signal });
-        const allSongs = allSongsResponse.data as Pjesma[];
-        
-        return allSongs.filter(song => 
-          likedSongIds.includes(song.id) && song.odobreno
-        );
+            const response = await apiClient.get(`/korisnik_pjesma/korisnik/${korisnik.id}`, { signal });
+            return (response.data || []).filter((l: any) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+              .map((l: any) => ({
+                ...l.pjesma,
+                korisnik: l.korisnik || l.pjesma.korisnik || null
+              }));
           }
         },
         { 
           key: 'albumi', 
           queryKey: ['likedAlbums', korisnik.id], 
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
-        const likedResponse = await apiClient.get('/korisnik_album/', { signal });
-        const likedAlbumIds = likedResponse.data
-          ?.filter((l: any) => l.korisnikID === korisnik.id)
-          ?.map((l: any) => l.albumID) || [];
-        
-        if (likedAlbumIds.length === 0) return [];
-        
-        const allAlbumsResponse = await apiClient.get('/albumi/', { signal });
-        const allAlbums = allAlbumsResponse.data as Album[];
-        
-        return allAlbums.filter(album => 
-          likedAlbumIds.includes(album.id) && album.odobreno
-        );
+            const response = await apiClient.get(`/korisnik_album/korisnik/${korisnik.id}`, { signal });
+            return (response.data || []).filter((l: any) => l.album && l.album.odobreno)
+              .map((l: any) => ({
+                ...l.album,
+                korisnik: l.korisnik || l.album.korisnik || null
+              }));
           }
         },
         { 
           key: 'playliste', 
           queryKey: ['likedPlaylists', korisnik.id], 
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
-        const likedResponse = await apiClient.get('/korisnik_playlista/', { signal });
-        const likedPlaylistIds = likedResponse.data
-          ?.filter((l: any) => l.korisnikID === korisnik.id)
-          ?.map((l: any) => l.playlistaID) || [];
-        
-        if (likedPlaylistIds.length === 0) return [];
-        
-        const allPlaylistsResponse = await apiClient.get('/playliste/', { signal });
-        const allPlaylists = allPlaylistsResponse.data as Playlista[];
-        
-        return allPlaylists.filter(playlist => 
-          likedPlaylistIds.includes(playlist.id) && playlist.javno
-        );
+            const response = await apiClient.get(`/korisnik_playlista/korisnik/${korisnik.id}`, { signal });
+            return (response.data || []).filter((l: any) => l.playlista && l.playlista.javno)
+              .map((l: any) => ({
+                ...l.playlista,
+                korisnik: l.korisnik || l.playlista.korisnik || null
+              }));
           }
         },
       ];
@@ -364,7 +286,7 @@ const Biblioteka: React.FC = React.memo(() => {
 
     const timer = setTimeout(prefetchData, 1000);
     return () => clearTimeout(timer);
-  }, [korisnik?.id, activeFilter, loadBatchData]);
+  }, [korisnik?.id, activeFilter]);
 
   const unfollowMutation = useMutation({
     mutationFn: async (artistId: string) => {

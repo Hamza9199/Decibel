@@ -4,6 +4,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { styles } from './Tabs.styles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TabsProps {
   currentRoute?: string;
@@ -13,7 +14,7 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
   const router = useRouter();
   const segments = useSegments();
   const { t } = useTranslation();
-
+  const insets = useSafeAreaInsets();
   const getCurrentTab = () => {
     if (currentRoute) return currentRoute;
     const currentSegment = segments[segments.length - 1];
@@ -37,7 +38,7 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
   };
 
   return (
-    <View style={styles.bottomTabBar}>
+    <View style={[styles.bottomTabBar, { bottom: insets.bottom }]}>
       <TouchableOpacity 
         style={styles.tabBarItem} 
         onPress={() => handleTabPress('home')}

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from requests import get
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import os
@@ -10,9 +11,11 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from kontroleri.AlbumKontroler import (
+    get_albumi_by_korisnik_id,
     get_all_albumi,
     get_album_by_id,
     create_album,
+    get_pjesme_by_album_id,
     update_album,
     delete_album
 )
@@ -148,3 +151,17 @@ async def obrisi_album(album_id: int, session: AsyncSession = Depends(get_sessio
     if not db_album:
         raise HTTPException(status_code=404, detail="Album nije pronađen")
     return db_album
+
+
+@router.get("/korisnik/{korisnik_id}", response_model=List[Album])
+async def albumi_po_korisniku(korisnik_id: int, session: AsyncSession = Depends(get_session)):
+    albumi = await get_albumi_by_korisnik_id(session, korisnik_id)
+    return albumi
+
+@router.get("/{album_id}/pjesme", response_model=List[str])
+async def pjesme_po_albumu(album_id: int, session: AsyncSession = Depends(get_session)):
+    pjesme = await get_pjesme_by_album_id(session, album_id)
+    if pjesme is None:
+        raise HTTPException(status_code=404, detail="Album nije pronađen ili nema pjesama")
+    return pjesme
+

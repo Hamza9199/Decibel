@@ -22,6 +22,7 @@ import { styles } from './AudioPlayer.styles';
 import { useAudio } from '@/context/AudioContext';
 import * as FileSystem from 'expo-file-system';
 import { queryClient } from '@/config/queryClient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 interface AudioPlayerProps {
@@ -77,7 +78,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
   const [isSeekingVolume, setIsSeekingVolume] = useState(false);
   const [showSpeedModal, setShowSpeedModal] = useState(false);
   const [statistikaSent, setStatistikaSent] = useState(false);
-
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 65;
   const { data: korisnik } = useQuery({
     queryKey: ['user'],
     queryFn: async () => {
@@ -826,10 +828,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       </TouchableOpacity>
     );
   }
-
+ 
   return (
     <TouchableOpacity 
-      style={styles.audioPlayerBar} 
+      style={[styles.audioPlayerBar, { bottom: tabBarHeight + insets.bottom }]} 
       activeOpacity={1} 
       onPress={handleOutsidePress}
     >

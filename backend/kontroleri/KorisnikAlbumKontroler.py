@@ -39,3 +39,9 @@ async def delete_korisnik_album(session: AsyncSession, korisnikID: str, albumID:
         session.add(album)
     await session.commit()
     return db_obj
+
+async def get_all_korisnik_album(session: AsyncSession, korisnikID: str):
+    result = await session.execute(
+        select(KorisnikAlbumORM).where(KorisnikAlbumORM.korisnikID == korisnikID)
+    )
+    return result.scalars().all()

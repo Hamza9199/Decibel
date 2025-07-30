@@ -44,3 +44,10 @@ async def delete_playlista(session: AsyncSession, playlista_id: int):
     await session.delete(db_playlista)
     await session.commit()
     return db_playlista
+
+async def get_playliste_by_korisnik_id(session: AsyncSession, korisnik_id: int):
+    result = await session.execute(
+        select(PlaylistaORM).options(selectinload(PlaylistaORM.korisnik)).where(PlaylistaORM.korisnik_id == korisnik_id)
+    )
+    return result.scalars().all() if result else []
+

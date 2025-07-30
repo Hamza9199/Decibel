@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 from modeli.KorisnikAlbum import KorisnikAlbum, KorisnikAlbumCreate
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-
+from modeli.Album import Album
+from modeli.Korisnik import Korisnik
 from kontroleri.KorisnikAlbumKontroler import (
     get_all_korisnik_album,
     get_korisnik_album,
@@ -55,3 +56,33 @@ async def obrisi_vezu(korisnikID: str, albumID: int, session: AsyncSession = Dep
     if not db_obj:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
+
+
+
+@router.get("/korisnik/{korisnikID}", response_model=List[KorisnikAlbum])
+async def get_korisnik_albumi(korisnikID: str, session: AsyncSession = Depends(get_session)):
+    albumi_veze = await get_all_korisnik_album(session, korisnikID=korisnikID)
+    if not albumi_veze:
+        raise HTTPException(status_code=404, detail="Nema albuma za ovog korisnika")
+    album_ids = [v.albumID for v in albumi_veze]
+    if album_ids:
+        from sqlalchemy.future import select
+        from modeli.Album import AlbumORM
+        from modeli.Korisnik import KorisnikORM
+        albumi_query = await session.execute(select(AlbumORM).where(AlbumORM.id.in_(album_ids)))
+        albumi_map = {a.id: a for a in albumi_query.scalars().all()}
+        korisnik_ids = list(set([a.korisnikID for a in albumi_map.values() if a.korisnikID]))
+        korisnici_query = await session.execute(select(KorisnikORM).where(KorisnikORM.id.in_(korisnik_ids)))
+        korisnici_map = {k.id: k for k in korisnici_query.scalars().all()}
+    else:
+        albumi_map = {}
+        korisnici_map = {}
+    enriched = []
+    for v in albumi_veze:
+        album_obj = albumi_map.get(v.albumID)
+        korisnik_obj = korisnici_map.get(album_obj.korisnikID) if album_obj and album_obj.korisnikID else None
+        v_dict = v.__dict__.copy()
+        v_dict['album'] = Album.from_orm(album_obj) if album_obj else None
+        v_dict['korisnik'] = Korisnik.from_orm(korisnik_obj) if korisnik_obj else None
+        enriched.append(KorisnikAlbum(**v_dict))
+    return enriched

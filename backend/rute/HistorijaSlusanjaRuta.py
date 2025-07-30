@@ -87,3 +87,20 @@ async def obrisi_historiju_by_korisnik_pjesma(
     await session.delete(obj)
     await session.commit()
     return {"success": True}
+
+
+@router.get("/korisnik/{korisnik_id}", response_model=List[HistorijaSlusanja])
+async def get_historija_by_korisnik(
+    korisnik_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+    result = await session.execute(
+        select(HistorijaSlusanjaORM).where(
+            HistorijaSlusanjaORM.korisnikID == korisnik_id
+        )
+    )
+    historije = result.scalars().all()
+    if not historije:
+        raise HTTPException(status_code=404, detail="Nema historija za ovog korisnika")
+    return historije
+

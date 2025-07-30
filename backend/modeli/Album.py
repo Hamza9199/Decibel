@@ -44,6 +44,7 @@ class Album(AlbumBase):
     korisnik: Optional["Korisnik"] = None  
 
     class Config:
+        from_attributes = True
         orm_mode = True
 
-Album.model_rebuild()  
+Album.model_rebuild()

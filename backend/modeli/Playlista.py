@@ -41,5 +41,6 @@ class Playlista(PlaylistaBase):
 
     class Config:
         orm_mode = True
+        from_attributes = True
 
 Playlista.model_rebuild()

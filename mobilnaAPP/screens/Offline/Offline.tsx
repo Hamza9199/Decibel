@@ -7,6 +7,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from './Offline.styles';
 import { useAudio } from '@/context/AudioContext';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 interface OfflineSong {
   id: number;
@@ -105,6 +106,9 @@ const Offline: React.FC = React.memo(() => {
       </TouchableOpacity>
     </View>
   ), [handlePlayOfflineSong, handleDeleteOfflineSong, t]);
+
+    useScreenCleanup();
+  
 
   return (
     <View style={styles.container}>

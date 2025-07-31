@@ -19,6 +19,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPretplata.styles';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const NovaPretplata: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -36,6 +37,10 @@ const NovaPretplata: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+
+  useScreenCleanup();
+ 
 
   const loadUserData = useCallback(async () => {
     try {

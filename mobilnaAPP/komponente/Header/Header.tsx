@@ -72,7 +72,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
     if (onProfilePress) {
       onProfilePress();
     } else {
-      router.push('/edit-profile');
+      router.replace('/edit-profile');
     }
   }, [onProfilePress]);
 
@@ -80,7 +80,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
     if (onLogoPress) {
       onLogoPress();
     } else {
-      router.push('/(tabs)');
+      router.replace('/(tabs)');
     }
   }, [onLogoPress]);
 

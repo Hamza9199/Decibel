@@ -88,82 +88,82 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
       action();
     } else if (route) {
       if (route === '/settings') {
-        router.push('/settings');
+        router.replace('/settings');
         onClose();
         return;
       }
       if (route === '/profile/edit') {
-        router.push('/edit-profile');
+        router.replace('/edit-profile');
         onClose();
         return;
       }
       if (route === '/admin-panel') {
-        router.push('/admin-panel');
+        router.replace('/admin-panel');
         onClose();
         return;
       }
       if (route === '/history') {
-        router.push('/history');
+        router.replace('/history');
         onClose();
         return;
       }
       if (route === '/profile/subscription') {
-        router.push('/pretplata');
+        router.replace('/pretplata');
         onClose();
         return;
       }
       if (route === '/favorites/songs') {
-        router.push('/omiljeno/pjesme');
+        router.replace('/omiljeno/pjesme');
         onClose();
         return;
       }
       if (route === '/favorites/playlists') {
-        router.push('/omiljeno/playliste');
+        router.replace('/omiljeno/playliste');
         onClose();
         return;
       }
       if (route === '/favorites/albums') {
-        router.push('/omiljeno/albumi');
+        router.replace('/omiljeno/albumi');
         onClose();
         return;
       }
       if (route === '/playlists') {
-        router.push('/sve-playliste');
+        router.replace('/sve-playliste');
         onClose();
         return;
       }
       if (route === '/playlists/create') {
-        router.push('/nova-playlista');
+        router.replace('/nova-playlista');
         onClose();
         return;
       }
       if (route === '/songs') {
-        router.push('/svepjesme');
+        router.replace('/svepjesme');
         onClose();
         return;
       }
       if (route === '/songs/add') {
-        router.push('/nova-pjesma');
+        router.replace('/nova-pjesma');
         onClose();
         return;
       }
       if (route === '/albums') {
-        router.push('/svi-albumi');
+        router.replace('/svi-albumi');
         onClose();
         return;
       }
       if (route === '/albums/add') {
-        router.push('/novi-album');
+        router.replace('/novi-album');
         onClose();
         return;
       }
       if (route === '/statistics') {
-        router.push('/statistika');
+        router.replace('/statistika');
         onClose();
         return;
       }
       if (route === '/users') {
-        router.push('/svi-korisnici');
+        router.replace('/svi-korisnici');
         onClose();
         return;
       }
@@ -196,11 +196,11 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
   }, [showAlbumsMenu]);
 
   const handleLogoPress = useCallback(() => {
-    router.push('/(tabs)');
+    router.replace('/(tabs)');
   }, [router]);
 
   const handleOfflinePress = useCallback(() => {
-    router.push('/offline');
+    router.replace('/offline');
     onClose();
   }, [router, onClose]);
 

@@ -817,7 +817,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     return (
       <TouchableOpacity style={styles.miniPlayer} onPress={onExpand}>
         <Image
-          source={{ uri: currentSong?.putanjaGif || currentSong?.putanjaSlika || 'https://via.placeholder.com/50' }}
+          source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
           style={styles.miniPlayerImage}
             cachePolicy="memory-disk"
         />
@@ -841,7 +841,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
       <View style={styles.topRow}>
         <Image
-          source={{ uri: currentSong?.putanjaGif || currentSong?.putanjaSlika || 'https://via.placeholder.com/150' }}
+          source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
           style={styles.audioLogo}
         />
         

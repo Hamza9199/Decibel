@@ -19,6 +19,7 @@ import { KorisnikPretplata, Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pretplata.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -26,6 +27,8 @@ const PretplataScreen: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [kupovinaLoading] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  useScreenCleanup();
 
 
   const getKorisnikID = useCallback(async (): Promise<string> => {

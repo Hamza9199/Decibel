@@ -22,6 +22,7 @@ import { Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SvePlayliste.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const SvePlayliste: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -29,6 +30,8 @@ const SvePlayliste: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  useScreenCleanup();
 
 
   const loadUserData = useCallback(async () => {
@@ -126,7 +129,7 @@ const SvePlayliste: React.FC = React.memo(() => {
   }, [t]);
 
   const handleEdit = useCallback((playlistId: number) => {
-    router.push(`/uredi-playlistu/${playlistId}`);
+    router.replace(`/uredi-playlistu/${playlistId}`);
   }, [router]);
 
   const handleDelete = useCallback((playlistId: number) => {
@@ -145,11 +148,11 @@ const SvePlayliste: React.FC = React.memo(() => {
   }, [deletePlaylistMutation, t]);
 
   const handleNavigateToPlaylist = useCallback((playlistId: number) => {
-    router.push(`/playlista/${playlistId}`);
+    router.replace(`/playlista/${playlistId}`);
   }, [router]);
 
   const handleNavigateToUser = useCallback((userId: string) => {
-    router.push(`/izvodjac/${userId}`);
+    router.replace(`/izvodjac/${userId}`);
   }, [router]);
 
   const filtriranePlayliste = useMemo(() => {

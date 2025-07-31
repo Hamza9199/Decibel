@@ -29,11 +29,13 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
   const handleTabPress = (route: string) => {
     switch (route) {
       case 'home':
-        router.push('/(tabs)/');
+        router.replace('/(tabs)/');
         break;
       case 'search':
-        router.push('/(tabs)/search');
+        router.replace('/(tabs)/search');
         break;
+      case 'library':
+        router.replace('/(tabs)/library');
     }
   };
 

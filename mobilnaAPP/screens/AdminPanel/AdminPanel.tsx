@@ -19,6 +19,7 @@ import { Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './AdminPanel.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 
 type ActiveTab = 'songs' | 'albums' | 'playlists';
@@ -369,6 +370,9 @@ const AdminPanel: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+    useScreenCleanup();
+  
 
   if (loading) {
     return (

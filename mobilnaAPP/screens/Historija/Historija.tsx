@@ -23,12 +23,15 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Historija.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const Historija: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  useScreenCleanup();
 
 
   const loadUserData = useCallback(async () => {

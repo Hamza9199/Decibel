@@ -19,6 +19,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPlaylista.styles';
 import { useMutation } from '@tanstack/react-query';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const NovaPlaylista: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -198,6 +199,9 @@ const NovaPlaylista: React.FC = React.memo(() => {
       </Text>
     </TouchableOpacity>
   ), [gifFile, handleFilePicker, t]);
+
+   useScreenCleanup();
+ 
 
   if (createPlaylistMutation.isPending) {
     return (

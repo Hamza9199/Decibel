@@ -25,6 +25,7 @@ import { API_BASE } from '@/config/api';
 import { styles } from './UrediPjesmu.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const UrediPjesmu: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -331,6 +332,9 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const loading = songQuery.isLoading || albumsQuery.isLoading || usersQuery.isLoading;
   const pjesma = songQuery.data;
   const albumi = albumsQuery.data || [];
+
+    useScreenCleanup();
+  
 
   if (loading) {
     return (

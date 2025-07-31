@@ -21,6 +21,7 @@ import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NoviAlbum.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const NoviAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -275,6 +276,9 @@ const NoviAlbum: React.FC = React.memo(() => {
       </Text>
     </TouchableOpacity>
   ), [gifFile, handleFilePicker, t]);
+
+    useScreenCleanup();
+  
 
   if (createAlbumMutation.isPending) {
     return (

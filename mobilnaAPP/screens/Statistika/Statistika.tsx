@@ -17,6 +17,7 @@ import { Statistika, Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Statistika.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -139,6 +140,9 @@ const StatistikaScreen: React.FC = React.memo(() => {
   ), [refreshing, onRefresh]);
 
   const loading = statisticsQuery.isLoading;
+
+   useScreenCleanup();
+ 
 
   if (loading) {
     return (

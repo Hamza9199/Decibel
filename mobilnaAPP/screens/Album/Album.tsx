@@ -24,12 +24,12 @@ import { Album, Pjesma, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Album.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 
 const AlbumScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { albumId } = useLocalSearchParams();
-  const [repeatAll, setRepeatAll] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
 
@@ -315,6 +315,9 @@ const AlbumScreen: React.FC = React.memo(() => {
       tintColor="#b91d95"
     />
   ), [refreshing, onRefresh]);
+
+    useScreenCleanup();
+  
 
   if (loading) {
     return (

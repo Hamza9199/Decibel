@@ -23,6 +23,7 @@ import { API_BASE } from '@/config/api';
 import { styles } from './UrediPlaylistu.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const UrediPlaylistu: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -39,6 +40,8 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   const [javno, setJavno] = useState(false);
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+
+  useScreenCleanup();
 
 
   const loadUserData = useCallback(async () => {

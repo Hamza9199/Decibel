@@ -107,7 +107,7 @@ const Register: React.FC = React.memo(() => {
   }, [ime, prezime, korisnicko_ime, email, lozinka, t, router]);
 
   const navigateToLogin = useCallback(() => {
-    router.push('/login');
+    router.replace('/login');
   }, [router]);
 
   const handleFocus = useCallback((field: string) => {

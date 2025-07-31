@@ -22,6 +22,7 @@ import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SvePjesme.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const SvePjesme: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -104,7 +105,7 @@ const SvePjesme: React.FC = React.memo(() => {
   }, [t]);
 
   const handleEdit = useCallback((songId: number) => {
-    router.push(`/uredi-pjesmu/${songId}`);
+    router.replace(`/uredi-pjesmu/${songId}`);
   }, [router]);
 
   const handleDelete = useCallback((id: number) => {
@@ -123,11 +124,11 @@ const SvePjesme: React.FC = React.memo(() => {
   }, [deleteSongMutation, t]);
 
   const handleNavigateToSong = useCallback((songId: number) => {
-    router.push(`/pjesma/${songId}`);
+    router.replace(`/pjesma/${songId}`);
   }, [router]);
 
   const handleNavigateToArtist = useCallback((artistId: string) => {
-    router.push(`/izvodjac/${artistId}`);
+    router.replace(`/izvodjac/${artistId}`);
   }, [router]);
 
   const filtriranePjesme = useMemo(() => {
@@ -147,6 +148,9 @@ const SvePjesme: React.FC = React.memo(() => {
 
   const loading = songsQuery.isLoading;
   const pjesme = songsQuery.data || [];
+
+    useScreenCleanup();
+  
 
   if (loading) {
     return (

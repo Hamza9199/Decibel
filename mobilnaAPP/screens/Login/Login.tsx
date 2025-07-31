@@ -85,7 +85,7 @@ const Login: React.FC = React.memo(() => {
   }, [email, lozinka, t, router]);
 
   const navigateToRegister = useCallback(() => {
-    router.push('/register');
+    router.replace('/register');
   }, [router]);
 
   const handleEmailFocus = useCallback(() => {

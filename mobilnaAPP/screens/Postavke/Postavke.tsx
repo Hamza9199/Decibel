@@ -18,6 +18,7 @@ import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './Postavke.styles';
 import { useRouter } from 'expo-router';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const Postavke: React.FC = React.memo(() => {
   const { t, i18n } = useTranslation();
@@ -184,6 +185,9 @@ const Postavke: React.FC = React.memo(() => {
     <Picker.Item key="en" label="English" value="en" />,
     <Picker.Item key="de" label="German" value="de" />
   ], []);
+
+    useScreenCleanup();
+  
 
   return (
     <View style={styles.container}>

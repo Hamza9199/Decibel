@@ -23,6 +23,7 @@ import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Playlista.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const Playlista: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -391,6 +392,9 @@ const Playlista: React.FC = React.memo(() => {
   const pjesme = songsQuery.data || [];
   const likePlaylist = playlistLikeQuery.data || false;
   const likeCount = playlista?.brojLajkova || 0;
+
+    useScreenCleanup();
+  
 
   if (loading) {
     return (

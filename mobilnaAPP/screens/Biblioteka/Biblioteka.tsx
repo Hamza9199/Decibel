@@ -22,6 +22,7 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Biblioteka.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 type LibraryFilter = 'prateci' | 'pjesme' | 'albumi' | 'playliste';
 
@@ -541,7 +542,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
-        onPress={() => router.push(`/izvodjac/${item.id}`)}
+        onPress={() => router.replace(`/izvodjac/${item.id}`)}
       >
         <OptimizedImage
           uri={item.putanjaProfilneSlike}
@@ -585,7 +586,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
       <View style={styles.itemCard}>
         <TouchableOpacity 
           style={styles.itemHeader}
-          onPress={() => router.push(`/pjesma/${item.id}`)}
+          onPress={() => router.replace(`/pjesma/${item.id}`)}
         >
           <OptimizedImage
             uri={item.putanjaSlika}
@@ -624,7 +625,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
-        onPress={() => router.push(`/album/${item.id}`)}
+        onPress={() => router.replace(`/album/${item.id}`)}
       >
         <OptimizedImage
           uri={item.putanjaSlika}
@@ -660,7 +661,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
-        onPress={() => router.push(`/playlista/${item.id}`)}
+        onPress={() => router.replace(`/playlista/${item.id}`)}
       >
         <OptimizedImage
           uri={item.putanjaSlika}
@@ -808,6 +809,8 @@ const useLikedAlbums = (userId?: string) => useQuery({
       tintColor="#b91d95"
     />
   ), [currentQuery.isFetching, isLoading, onRefresh]);
+
+  useScreenCleanup();
 
   if (!korisnik) {
     return (

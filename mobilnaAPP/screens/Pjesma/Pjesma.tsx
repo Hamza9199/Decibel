@@ -23,6 +23,7 @@ import { Pjesma, Korisnik, Komentar } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pjesma.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const PjesmePage: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -417,6 +418,9 @@ const PjesmePage: React.FC = React.memo(() => {
   const topPjesme = recommendedQuery.data || [];
   const liked = likeQuery.data || false;
   const likeCount = pjesma?.brojLajkova || 0;
+
+    useScreenCleanup();
+  
 
   if (loading) {
     return (

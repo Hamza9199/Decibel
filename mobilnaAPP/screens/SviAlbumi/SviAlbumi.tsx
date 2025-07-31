@@ -22,6 +22,7 @@ import { Album, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SviAlbumi.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const SviAlbumi: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -29,6 +30,8 @@ const SviAlbumi: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  useScreenCleanup();
 
 
   const loadUserData = useCallback(async () => {
@@ -124,7 +127,7 @@ const SviAlbumi: React.FC = React.memo(() => {
   }, [songsQuery.data, t]);
 
   const handleEdit = useCallback((albumId: number) => {
-    router.push(`/uredi-album/${albumId}`);
+    router.replace(`/uredi-album/${albumId}`);
   }, [router]);
 
   const handleDelete = useCallback((albumId: number) => {
@@ -143,11 +146,11 @@ const SviAlbumi: React.FC = React.memo(() => {
   }, [deleteAlbumMutation, t]);
 
   const handleNavigateToAlbum = useCallback((albumId: number) => {
-    router.push(`/album/${albumId}`);
+    router.replace(`/album/${albumId}`);
   }, [router]);
 
   const handleNavigateToArtist = useCallback((artistId: string) => {
-    router.push(`/izvodjac/${artistId}`);
+    router.replace(`/izvodjac/${artistId}`);
   }, [router]);
 
   const filtriraniAlbumi = useMemo(() => {

@@ -20,6 +20,7 @@ import { API_BASE } from '@/config/api';
 import { styles } from './UrediProfil.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -276,6 +277,8 @@ const UrediProfil: React.FC = React.memo(() => {
 
   const loading = userQuery.isLoading || updateProfileMutation.isPending;
 
+  useScreenCleanup();
+
   if (loading && !ime) {
     return (
       <View style={styles.loadingContainer}>
@@ -296,7 +299,6 @@ const UrediProfil: React.FC = React.memo(() => {
           </View>
 
           <View style={styles.form}>
-            {/* Name Input */}
             <View>
               <Text style={styles.label}>{t('name')}:</Text>
               <TextInput

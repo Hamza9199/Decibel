@@ -22,6 +22,7 @@ import { API_BASE } from '@/config/api';
 import { styles } from './UrediAlbum.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const UrediAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -39,6 +40,7 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
+  useScreenCleanup();
 
   const loadUserData = useCallback(async () => {
     try {
@@ -101,7 +103,7 @@ const UrediAlbum: React.FC = React.memo(() => {
       setSuccess(t('album_updated_successfully') || 'Album updated successfully');
       
       setTimeout(() => {
-        router.push(`/album/${albumQuery.data?.id}`);
+        router.replace(`/album/${albumQuery.data?.id}`);
       }, 1500);
     },
     onError: (error) => {

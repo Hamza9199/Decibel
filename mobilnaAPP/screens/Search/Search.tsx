@@ -20,6 +20,7 @@ import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Search.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
@@ -434,6 +435,8 @@ const Search: React.FC = React.memo(() => {
       </Text>
     </TouchableOpacity>
   ), [activeFilter, handleFilterPress]);
+
+  useScreenCleanup();
 
   return (
     <KeyboardAvoidingView

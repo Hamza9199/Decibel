@@ -29,19 +29,8 @@ const Home: React.FC = React.memo(() => {
   
   const { playAudio, playPlaylist } = useAudio();
 
-   useScreenCleanup({
-    queryKeys: [
-      ['songs'],
-      ['albums'], 
-      ['playlists'],
-      ['artists'],
-      ['playlistSongs']
-    ],
-    stateCleanup: () => {
-      setActiveSongId(null);
-      setPlayingPlaylistId(null);
-    }
-  });
+     useScreenCleanup();
+   
 
   const getRandomItems = useCallback(<T,>(arr: T[], count: number): T[] => {
     const shuffled = [...arr].sort(() => Math.random() - 0.5);
@@ -158,19 +147,19 @@ const Home: React.FC = React.memo(() => {
   }, [playAudio]);
 
   const handleNavigateToSong = useCallback((songId: number) => {
-    router.push(`/pjesma/${songId}`);
+    router.replace(`/pjesma/${songId}`);
   }, [router]);
 
   const handleNavigateToAlbum = useCallback((albumId: number) => {
-    router.push(`/album/${albumId}`);
+    router.replace(`/album/${albumId}`);
   }, [router]);
 
   const handleNavigateToPlaylist = useCallback((playlistaId: number) => {
-    router.push(`/playlista/${playlistaId}`);
+    router.replace(`/playlista/${playlistaId}`);
   }, [router]);
 
   const handleNavigateToArtist = useCallback((artistId: string) => {
-    router.push(`/izvodjac/${artistId}`);
+    router.replace(`/izvodjac/${artistId}`);
   }, [router]);
 
   const handlePlayAlbum = useCallback(async (album: Album) => {

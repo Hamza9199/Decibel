@@ -23,6 +23,7 @@ import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Izvodjac.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -30,7 +31,6 @@ const Izvodjac: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   
-
 
   const loadUserData = useCallback(async () => {
     try {
@@ -240,6 +240,9 @@ const Izvodjac: React.FC = React.memo(() => {
     }
   }, [handlePlaySong, t]);
 
+   useScreenCleanup();
+ 
+
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
     <View style={styles.itemCard}>
       <View style={styles.itemHeader}>
@@ -365,7 +368,7 @@ const Izvodjac: React.FC = React.memo(() => {
     );
   }
 
- 
+  
 
   return (
     <View style={styles.container}>

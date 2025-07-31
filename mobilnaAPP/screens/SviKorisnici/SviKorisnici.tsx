@@ -22,6 +22,7 @@ import { Korisnik, PrijavaIzvodjaca } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SviKorisnici.styles';
 import { queryClient } from '@/config/queryClient';
+import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 const SviKorisnici: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -35,6 +36,9 @@ const SviKorisnici: React.FC = React.memo(() => {
     poruka: string;
     vrijemeDo: string;
   } | null>(null);
+
+
+  useScreenCleanup();
 
 
   const usersQuery = useQuery({

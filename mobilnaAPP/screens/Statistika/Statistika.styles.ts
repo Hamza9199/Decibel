@@ -1,12 +1,12 @@
-import { StyleSheet, Dimensions } from 'react-native';
+import { StyleSheet } from 'react-native';
 
-const { width } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#181818',
     marginBottom: 50,
+    zIndex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -162,6 +162,37 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 20,
   },
+  chartLabelContainer: {
+    marginTop: 10,
+    paddingHorizontal: 5,
+  },
+  chartLabel: {
+    color: '#b3b3b3',
+    fontSize: 12,
+    textAlign: 'center',
+    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
+  chartLabelRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  chartLabelItem: {
+    width: '48%',
+    marginBottom: 4,
+  },
+  chartLabelText: {
+    color: '#fff',
+    fontSize: 11,
+    textAlign: 'left',
+  },
+  chartLabelValue: {
+    color: '#b91d95',
+    fontSize: 11,
+    fontWeight: '600',
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -172,5 +203,37 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     marginTop: 16,
+  },
+  genreVisualContainer: {
+    paddingVertical: 10,
+  },
+  genreBarContainer: {
+    marginBottom: 12,
+  },
+  genreBarInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  genreBarLabel: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  genreBarValue: {
+    color: '#b91d95',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  genreBarBackground: {
+    height: 8,
+    backgroundColor: '#444',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  genreBarFill: {
+    height: '100%',
+    borderRadius: 4,
   },
 });

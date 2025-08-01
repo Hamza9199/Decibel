@@ -8,6 +8,7 @@ import { AudioProvider, useAudio } from '@/context/AudioContext';
 import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function RootLayout() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -92,24 +93,26 @@ export default function RootLayout() {
   };
 
   return (
-      <QueryClientProvider client={queryClient}>
-        <AudioProvider>
-          <StatusBar style="dark" />
-          <Stack
-            key={isLoggedIn === false ? 'loggedOut' : 'loggedIn'}
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: '#181818' },
-              freezeOnBlur: true,
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="login" options={{ headerShown: false }} />
-            <Stack.Screen name="register" options={{ headerShown: false }} />
-          </Stack>
-          <AudioPlayerWrapper />
-        </AudioProvider>
-      </QueryClientProvider>
+      <GestureHandlerRootView  style={{ flex: 1 } }>
+        <QueryClientProvider client={queryClient}>
+          <AudioProvider>
+            <StatusBar style="dark" />
+            <Stack
+              key={isLoggedIn === false ? 'loggedOut' : 'loggedIn'}
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: '#181818' },
+                freezeOnBlur: true,
+              }}
+            >
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="login" options={{ headerShown: false }} />
+              <Stack.Screen name="register" options={{ headerShown: false }} />
+            </Stack>
+            <AudioPlayerWrapper />
+          </AudioProvider>
+        </QueryClientProvider>
+      </GestureHandlerRootView>
   );
 }
 

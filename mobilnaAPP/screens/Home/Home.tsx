@@ -147,7 +147,7 @@ const Home: React.FC = React.memo(() => {
   }, [playAudio]);
 
   const handleNavigateToSong = useCallback((songId: number) => {
-    router.replace(`/pjesma/${songId}`);
+    router.replace(`/pjesma/${songId}?from=home`);
   }, [router]);
 
   const handleNavigateToAlbum = useCallback((albumId: number) => {
@@ -184,45 +184,48 @@ const Home: React.FC = React.memo(() => {
     setPlayingPlaylistId(playlist.id);
   }, []);
 
-  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
-    <TouchableOpacity 
-      style={[styles.card, activeSongId === item.id && styles.activeCard]} 
-      onPress={() => handleNavigateToSong(item.id)}
-    >
-      <View style={styles.cardImageWrap}>
-        <Image
-          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
-          style={styles.cardImage}
-          cachePolicy="memory-disk"
-        />
-        {item.putanjaAudio && (
-          <TouchableOpacity 
-            style={styles.playButton} 
-            onPress={(e) => {
-              e.stopPropagation();
-              handlePlaySong(item);
-            }}
-          >
-            <MaterialIcons name="play-arrow" size={24} color="#fff" />
-          </TouchableOpacity>
-        )}
-       
-      </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>
-        {item.naziv}
-      </Text>
+  const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
+    if (!item.odobreno) return null;
+
+    return (
       <TouchableOpacity
-        onPress={() => {
-          if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
-        }}
-        disabled={!item.korisnikID}
+        style={[styles.card, activeSongId === item.id && styles.activeCard]}
+        onPress={() => handleNavigateToSong(item.id)}
       >
-        <Text style={styles.cardDesc} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+        <View style={styles.cardImageWrap}>
+          <Image
+            source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
+            style={styles.cardImage}
+            cachePolicy="memory-disk"
+          />
+          {item.putanjaAudio && (
+            <TouchableOpacity
+              style={styles.playButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                handlePlaySong(item);
+              }}
+            >
+              <MaterialIcons name="play-arrow" size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {item.naziv}
         </Text>
+        <TouchableOpacity
+          onPress={() => {
+            if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
+          }}
+          disabled={!item.korisnikID}
+        >
+          <Text style={styles.cardDesc} numberOfLines={1}>
+            {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+          </Text>
+        </TouchableOpacity>
       </TouchableOpacity>
-    </TouchableOpacity>
-  ), [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t]);
+    );
+  }, [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <TouchableOpacity 
@@ -431,5 +434,5 @@ const Home: React.FC = React.memo(() => {
 Home.displayName = "Home";
 
 export default Home;
-            
+
 

@@ -5,11 +5,13 @@ import {
   ScrollView,
   ActivityIndicator,
   RefreshControl,
+  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
+import { CartesianChart, Bar } from 'victory-native';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -18,6 +20,9 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Statistika.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+
+const { width: screenWidth } = Dimensions.get('window');
+const chartWidth = screenWidth - 70;
 
 const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -142,7 +147,52 @@ const StatistikaScreen: React.FC = React.memo(() => {
   const loading = statisticsQuery.isLoading;
 
    useScreenCleanup();
- 
+
+  type ChartData = { x: string; y: number; index: number };
+
+  
+
+  const topSongsChartData: ChartData[] = useMemo(() => {
+    return topPjesme.slice(0, 10).map((pjesma, index) => ({
+      x: pjesma.naziv.length > 10 ? `${pjesma.naziv.substring(0, 10)}...` : pjesma.naziv,
+      y: pjesma.brojLajkova || 0,
+      index,
+    }));
+  }, [topPjesme]);
+
+  const topAlbumsChartData: ChartData[] = useMemo(() => {
+    return topAlbumi.slice(0, 10).map((album, index) => ({
+      x: album.naziv.length > 10 ? `${album.naziv.substring(0, 10)}...` : album.naziv,
+      y: album.brojLajkova || 0,
+      index,
+    }));
+  }, [topAlbumi]);
+
+  const topPlaylistsChartData: ChartData[] = useMemo(() => {
+    return topPlayliste.slice(0, 10).map((playlista, index) => ({
+      x: playlista.naziv.length > 10 ? `${playlista.naziv.substring(0, 10)}...` : playlista.naziv,
+      y: playlista.brojLajkova || 0,
+      index,
+    }));
+  }, [topPlayliste]);
+
+  const topArtistsChartData: ChartData[] = useMemo(() => {
+    return topIzvodjaci.slice(0, 10).map((artist, index) => ({
+      x: artist.korisnicko_ime.length > 10 ? `${artist.korisnicko_ime.substring(0, 10)}...` : artist.korisnicko_ime,
+      y: artist.brojPratilaca || 0,
+      index,
+    }));
+  }, [topIzvodjaci]);
+
+  const topPlayedChartData: ChartData[] = useMemo(() => {
+    return topSlusane.slice(0, 10).map(
+      (item: { pjesma: Pjesma; brojReprodukcija: number }, index: number) => ({
+        x: item.pjesma.naziv.length > 10 ? `${item.pjesma.naziv.substring(0, 10)}...` : item.pjesma.naziv,
+        y: item.brojReprodukcija,
+        index,
+      })
+    );
+  }, [topSlusane]);
 
   if (loading) {
     return (
@@ -152,6 +202,8 @@ const StatistikaScreen: React.FC = React.memo(() => {
       </View>
     );
   }
+
+ 
 
   return (
     <View style={styles.container}>
@@ -186,65 +238,157 @@ const StatistikaScreen: React.FC = React.memo(() => {
 
           <Text style={styles.sectionTitle}>{t('top_10_songs_likes') || 'Top 10 Songs (Likes)'}</Text>
           <View style={styles.chartCard}>
-            {topPjesme.length === 0 ? (
+            {topSongsChartData.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              topPjesme.map((pjesma, index) => (
-                <View key={pjesma.id} style={styles.listItem}>
-                  <Text style={styles.listItemTitle} numberOfLines={1}>
-                    {index + 1}. {pjesma.naziv}
-                  </Text>
-                  <Text style={styles.listItemValue}>{pjesma.brojLajkova || 0}</Text>
+              <>
+                <View style={{ height: 350, width: chartWidth }}>
+                  <CartesianChart
+                    data={topSongsChartData}
+                    xKey="x"
+                    yKeys={["y"]}
+                    domainPadding={{ left: 30, right: 30, top: 30, bottom: 60 }}
+                  >
+                    {({ points, chartBounds }) => (
+                      <Bar
+                        points={points["y"]}
+                        chartBounds={chartBounds}
+                        color="#b91d95"
+                        roundedCorners={{ topLeft: 4, topRight: 4 }}
+                      />
+                    )}
+                  </CartesianChart>
                 </View>
-              ))
+                <View style={styles.chartLabelContainer}>
+                  <View style={styles.chartLabelRow}>
+                    {topPjesme.slice(0, 10).map((pjesma, index) => (
+                      <View key={pjesma.id} style={styles.chartLabelItem}>
+                        <Text style={styles.chartLabelText} numberOfLines={2}>
+                          {index + 1}. {pjesma.naziv}
+                        </Text>
+                        <Text style={styles.chartLabelValue}>{pjesma.brojLajkova || 0} likes</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
             )}
           </View>
 
           <Text style={styles.sectionTitle}>{t('top_10_albums_likes') || 'Top 10 Albums (Likes)'}</Text>
           <View style={styles.chartCard}>
-            {topAlbumi.length === 0 ? (
+            {topAlbumsChartData.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              topAlbumi.map((album, index) => (
-                <View key={album.id} style={styles.listItem}>
-                  <Text style={styles.listItemTitle} numberOfLines={1}>
-                    {index + 1}. {album.naziv}
-                  </Text>
-                  <Text style={styles.listItemValue}>{album.brojLajkova || 0}</Text>
+              <>
+                <View style={{ height: 350, width: chartWidth }}>
+                  <CartesianChart
+                    data={topAlbumsChartData}
+                    xKey="x"
+                    yKeys={["y"]}
+                    domainPadding={{ left: 30, right: 60, top: 30, bottom: 60 }}
+                  >
+                    {({ points, chartBounds }) => (
+                      <Bar
+                        points={points.y}
+                        chartBounds={chartBounds}
+                        color="#e91e63"
+                        roundedCorners={{ topLeft: 4, topRight: 4 }}
+                      />
+                    )}
+                  </CartesianChart>
                 </View>
-              ))
+                <View style={styles.chartLabelContainer}>
+                  <View style={styles.chartLabelRow}>
+                    {topAlbumi.slice(0, 10).map((album, index) => (
+                      <View key={album.id} style={styles.chartLabelItem}>
+                        <Text style={styles.chartLabelText} numberOfLines={2}>
+                          {index + 1}. {album.naziv}
+                        </Text>
+                        <Text style={styles.chartLabelValue}>{album.brojLajkova || 0} likes</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
             )}
           </View>
 
           <Text style={styles.sectionTitle}>{t('top_10_playlists_likes') || 'Top 10 Playlists (Likes)'}</Text>
           <View style={styles.chartCard}>
-            {topPlayliste.length === 0 ? (
+            {topPlaylistsChartData.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              topPlayliste.map((playlist, index) => (
-                <View key={playlist.id} style={styles.listItem}>
-                  <Text style={styles.listItemTitle} numberOfLines={1}>
-                    {index + 1}. {playlist.naziv}
-                  </Text>
-                  <Text style={styles.listItemValue}>{playlist.brojLajkova || 0}</Text>
+              <>
+                <View style={{ height: 350, width: chartWidth }}>
+                  <CartesianChart
+                    data={topPlaylistsChartData}
+                    xKey="x"
+                    yKeys={["y"]}
+                    domainPadding={{ left: 30, right: 60, top: 30, bottom: 60 }}
+                  >
+                    {({ points, chartBounds }) => (
+                      <Bar
+                        points={points.y}
+                        chartBounds={chartBounds}
+                        color="#ff5722"
+                        roundedCorners={{ topLeft: 4, topRight: 4 }}
+                      />
+                    )}
+                  </CartesianChart>
                 </View>
-              ))
+                <View style={styles.chartLabelContainer}>
+                  <View style={styles.chartLabelRow}>
+                    {topPlayliste.slice(0, 10).map((playlista, index) => (
+                      <View key={playlista.id} style={styles.chartLabelItem}>
+                        <Text style={styles.chartLabelText} numberOfLines={2}>
+                          {index + 1}. {playlista.naziv}
+                        </Text>
+                        <Text style={styles.chartLabelValue}>{playlista.brojLajkova || 0} likes</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
             )}
           </View>
 
           <Text style={styles.sectionTitle}>{t('top_10_artists_followers') || 'Top 10 Artists (Followers)'}</Text>
           <View style={styles.chartCard}>
-            {topIzvodjaci.length === 0 ? (
+            {topArtistsChartData.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              topIzvodjaci.map((artist, index) => (
-                <View key={artist.id} style={styles.listItem}>
-                  <Text style={styles.listItemTitle} numberOfLines={1}>
-                    {index + 1}. {artist.korisnicko_ime}
-                  </Text>
-                  <Text style={styles.listItemValue}>{artist.brojPratilaca || 0}</Text>
+              <>
+                <View style={{ height: 350, width: chartWidth }}>
+                  <CartesianChart
+                    data={topArtistsChartData}
+                    xKey="x"
+                    yKeys={["y"]}
+                    domainPadding={{ left: 30, right: 30, top: 30, bottom: 60 }}
+                  >
+                    {({ points, chartBounds }) => (
+                      <Bar
+                        points={points.y}
+                        chartBounds={chartBounds}
+                        color="#4caf50"
+                        roundedCorners={{ topLeft: 4, topRight: 4 }}
+                      />
+                    )}
+                  </CartesianChart>
                 </View>
-              ))
+                <View style={styles.chartLabelContainer}>
+                  <View style={styles.chartLabelRow}>
+                    {topIzvodjaci.slice(0, 10).map((artist, index) => (
+                      <View key={artist.id} style={styles.chartLabelItem}>
+                        <Text style={styles.chartLabelText} numberOfLines={2}>
+                          {index + 1}. {artist.korisnicko_ime}
+                        </Text>
+                        <Text style={styles.chartLabelValue}>{artist.brojPratilaca || 0} followers</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
             )}
           </View>
 
@@ -253,33 +397,78 @@ const StatistikaScreen: React.FC = React.memo(() => {
             {songsbyGenre.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              songsbyGenre.map((item, index) => (
-                <View key={index} style={styles.genreItem}>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Text style={styles.genreTitle}>{item.genre.replace('_', ' ')}</Text>
-                      <Text style={styles.genreCount}>{item.count}</Text>
-                    </View>
-                    <View style={styles.genreBar} />
-                  </View>
+              <>
+                <View style={styles.genreVisualContainer}>
+                  {songsbyGenre.map((item, index) => {
+                    const colors = ['#9c27b0', '#e91e63', '#ff5722', '#4caf50', '#2196f3', '#ff9800', '#795548', '#607d8b', '#f44336'];
+                    const totalSongs = songsbyGenre.reduce((sum, genre) => sum + genre.count, 0);
+                    const percentage = (item.count / totalSongs) * 100;
+                    
+                    return (
+                      <View key={index} style={styles.genreBarContainer}>
+                        <View style={styles.genreBarInfo}>
+                          <Text style={styles.genreBarLabel}>
+                            {item.genre.replace('_', ' ').toUpperCase()}
+                          </Text>
+                          <Text style={styles.genreBarValue}>
+                            {item.count} ({percentage.toFixed(1)}%)
+                          </Text>
+                        </View>
+                        <View style={styles.genreBarBackground}>
+                          <View 
+                            style={[
+                              styles.genreBarFill,
+                              { 
+                                width: `${percentage}%`,
+                                backgroundColor: colors[index % colors.length]
+                              }
+                            ]} 
+                          />
+                        </View>
+                      </View>
+                    );
+                  })}
                 </View>
-              ))
+              </>
             )}
           </View>
 
           <Text style={styles.sectionTitle}>{t('top_10_most_played_songs') || 'Top 10 Most Played Songs'}</Text>
           <View style={styles.chartCard}>
-            {topSlusane.length === 0 ? (
+            {topPlayedChartData.length === 0 ? (
               <Text style={styles.noDataText}>{t('no_data') || 'No data available'}</Text>
             ) : (
-              topSlusane.map((item: { pjesma: Pjesma; brojReprodukcija: number }, index: number) => (
-                <View key={item.pjesma?.id || index} style={styles.listItem}>
-                  <Text style={styles.listItemTitle} numberOfLines={1}>
-                    {index + 1}. {item.pjesma?.naziv || 'Unknown'}
-                  </Text>
-                  <Text style={styles.listItemValue}>{item.brojReprodukcija}</Text>
+              <>
+                <View style={{ height: 350, width: chartWidth }}>
+                  <CartesianChart
+                    data={topPlayedChartData}
+                    xKey="x"
+                    yKeys={["y"]}
+                    domainPadding={{ left: 10, right: 80, top: 30, bottom: 60 }}
+                  >
+                    {({ points, chartBounds }) => (
+                      <Bar
+                        points={points.y}
+                        chartBounds={chartBounds}
+                        color="#ff9800"
+                        roundedCorners={{ topLeft: 4, topRight: 4 }}
+                      />
+                    )}
+                  </CartesianChart>
                 </View>
-              ))
+                <View style={styles.chartLabelContainer}>
+                  <View style={styles.chartLabelRow}>
+                    {topSlusane.slice(0, 10).map((item: { pjesma: Pjesma; brojReprodukcija: number }, index: number) => (
+                      <View key={item.pjesma?.id || index} style={styles.chartLabelItem}>
+                        <Text style={styles.chartLabelText} numberOfLines={2}>
+                          {index + 1}. {item.pjesma?.naziv || 'Unknown'}
+                        </Text>
+                        <Text style={styles.chartLabelValue}>{item.brojReprodukcija} plays</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </>
             )}
           </View>
         </View>

@@ -1,11 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Modal,
   FlatList,
   Alert,
   RefreshControl,
@@ -15,6 +14,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -28,8 +28,11 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 const Historija: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
-  const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
+  const [selectedSongId, setSelectedSongId] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ['25%', '50%'], []);
 
   useScreenCleanup();
 
@@ -147,12 +150,12 @@ const Historija: React.FC = React.memo(() => {
       return { songId, playlistId };
     },
     onSuccess: () => {
-      setShowPlaylistModal(null);
+      setSelectedSongId(null);
       Alert.alert(t('success'), t('song_added_to_playlist'));
     },
     onError: (error) => {
       console.error('Error adding song to playlist:', error);
-      setShowPlaylistModal(null);
+      setSelectedSongId(null);
       Alert.alert(t('error'), t('error_adding_to_playlist'));
     }
   });
@@ -185,10 +188,17 @@ const Historija: React.FC = React.memo(() => {
 
   const handleAddToPlaylist = useCallback((songId: number, playlistId: number) => {
     addToPlaylistMutation.mutate({ songId, playlistId });
+    bottomSheetRef.current?.close();
   }, [addToPlaylistMutation]);
 
-  const handleModalClose = useCallback(() => {
-    setShowPlaylistModal(null);
+  const handleOpenPlaylistSheet = useCallback((songId: number) => {
+    setSelectedSongId(songId);
+    bottomSheetRef.current?.expand();
+  }, []);
+
+  const handleClosePlaylistSheet = useCallback(() => {
+    bottomSheetRef.current?.close();
+    setSelectedSongId(null);
   }, []);
 
   const formatDate = useCallback((dateString?: string): string => {
@@ -256,13 +266,29 @@ const Historija: React.FC = React.memo(() => {
         
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => setShowPlaylistModal(item.pjesmaID)}
+          onPress={() => handleOpenPlaylistSheet(item.pjesmaID)}
         >
           <MaterialIcons name="playlist-add" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlaySong, handleLikeSong, likesQuery.data, formatDate, t]);
+  ), [handlePlaySong, handleLikeSong, likesQuery.data, formatDate, t, handleOpenPlaylistSheet]);
+
+  const renderPlaylistItem = useCallback(({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.playlistItem}
+      onPress={() => selectedSongId && handleAddToPlaylist(selectedSongId, item.id)}
+    >
+      <View style={styles.playlistItemContent}>
+        <Image
+          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/40' }}
+          style={styles.playlistItemImage}
+        />
+        <Text style={styles.playlistItemText}>{item.naziv}</Text>
+      </View>
+      <MaterialIcons name="chevron-right" size={24} color="#b3b3b3" />
+    </TouchableOpacity>
+  ), [selectedSongId, handleAddToPlaylist]);
 
   const refreshControl = useMemo(() => (
     <RefreshControl
@@ -308,38 +334,26 @@ const Historija: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={showPlaylistModal !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={handleModalClose}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.bottomSheetIndicator}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t('add_to_playlist') || 'Add to Playlist'}
-            </Text>
-            <FlatList
-              data={playlistsQuery.data || []}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.playlistItem}
-                  onPress={() => showPlaylistModal && handleAddToPlaylist(showPlaylistModal, item.id)}
-                >
-                  <Text style={styles.playlistItemText}>{item.naziv}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={handleModalClose}
-            >
-              <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        <BottomSheetView style={styles.bottomSheetContent}>
+          <Text style={styles.bottomSheetTitle}>
+            {t('add_to_playlist') || 'Add to Playlist'}
+          </Text>
+          <BottomSheetFlatList
+            data={playlistsQuery.data || []}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderPlaylistItem}
+            contentContainerStyle={styles.bottomSheetList}
+          />
+        </BottomSheetView>
+      </BottomSheet>
 
       <Tabs currentRoute="history" />
     </View>
@@ -349,5 +363,3 @@ const Historija: React.FC = React.memo(() => {
 Historija.displayName = "Historija";
 
 export default Historija;
-
-

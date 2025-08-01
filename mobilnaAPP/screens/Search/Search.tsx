@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -16,11 +15,11 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pjesma, Album, Playlista, Korisnik } from '@/types';
-import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
 import { styles } from './Search.styles';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { router } from 'expo-router';
 
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
@@ -33,7 +32,6 @@ interface ResultItem {
 
 const Search: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const { playAudio, playPlaylist } = useAudio();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('sve');
@@ -125,73 +123,11 @@ const Search: React.FC = React.memo(() => {
     staleTime: 2 * 60 * 1000, 
   });
 
-  const playAlbumMutation = useMutation({
-    mutationFn: async (album: Album) => {
-      const response = await axios.get(`${API_BASE}/pjesme/`);
-      const albumSongs = (response.data as Pjesma[])
-        .filter(s => s.albumID === album.id && s.odobreno && s.putanjaAudio)
-        .sort((a, b) => a.id - b.id);
+  
 
-      if (albumSongs.length === 0) {
-        throw new Error('Album has no playable songs');
-      }
+  
 
-      return albumSongs;
-    },
-    onSuccess: (songs) => {
-      playPlaylist(songs, 0);
-    },
-    onError: (error) => {
-      console.error('Error playing album:', error);
-      Alert.alert(t('error'), 'Failed to play album');
-    }
-  });
-
-  const playPlaylistMutation = useMutation({
-    mutationFn: async (playlist: Playlista) => {
-      const response = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
-      const songIds: number[] = response.data || [];
-
-      if (songIds.length === 0) {
-        throw new Error('Playlist is empty');
-      }
-
-      const songPromises = songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`));
-      const songResponses = await Promise.all(songPromises);
-      const songs = songResponses
-        .map(res => res.data)
-        .filter(song => song && song.odobreno && song.putanjaAudio);
-
-      if (songs.length === 0) {
-        throw new Error('No playable songs in playlist');
-      }
-
-      return songs;
-    },
-    onSuccess: (songs) => {
-      playPlaylist(songs, 0);
-    },
-    onError: (error) => {
-      console.error('Error playing playlist:', error);
-      Alert.alert(t('error'), 'Failed to play playlist');
-    }
-  });
-
-  const handlePlaySong = useCallback((song: Pjesma) => {
-    if (!song.putanjaAudio) {
-      Alert.alert(t('error'), 'Song has no audio file');
-      return;
-    }
-    playAudio(song);
-  }, [playAudio, t]);
-
-  const handlePlayAlbum = useCallback((album: Album) => {
-    playAlbumMutation.mutate(album);
-  }, [playAlbumMutation]);
-
-  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
-    playPlaylistMutation.mutate(playlist);
-  }, [playPlaylistMutation]);
+  
 
   const clearSearch = useCallback(() => {
     setSearchTerm('');
@@ -266,11 +202,16 @@ const Search: React.FC = React.memo(() => {
     return items;
   }, [activeFilter, searchQuery.data, t]);
 
+
+  const handleNavigate = useCallback((tip: string) => {
+    router.replace(`/${tip}`);
+  }, []);
+
   const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);
   const hasResults = useMemo(() => filteredResults.length > 0, [filteredResults]);
 
   const renderSongItem = useCallback((item: Pjesma) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlaySong(item)}>
+    <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate(`pjesma/${item.id}`)}>
       <Image
         source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
         style={styles.resultImage}
@@ -283,14 +224,12 @@ const Search: React.FC = React.memo(() => {
           {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {item.zanr || 'Unknown'}
         </Text>
       </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => handlePlaySong(item)}>
-        <MaterialIcons name="play-arrow" size={20} color="#fff" />
-      </TouchableOpacity>
+     
     </TouchableOpacity>
-  ), [handlePlaySong, t]);
+  ), [handleNavigate, t]);
 
   const renderAlbumItem = useCallback((item: Album) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlayAlbum(item)}>
+    <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("album/" + item.id)}>
       <Image
         source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
         style={styles.resultImage}
@@ -303,14 +242,12 @@ const Search: React.FC = React.memo(() => {
           {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {t('album')}
         </Text>
       </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => handlePlayAlbum(item)}>
-        <MaterialIcons name="play-arrow" size={20} color="#fff" />
-      </TouchableOpacity>
+      
     </TouchableOpacity>
-  ), [handlePlayAlbum, t]);
+  ), [handleNavigate, t]);
 
   const renderPlaylistItem = useCallback((item: Playlista) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handlePlayPlaylist(item)}>
+    <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("playlista/" + item.id)}>
       <Image
         source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
         style={styles.resultImage}
@@ -323,14 +260,12 @@ const Search: React.FC = React.memo(() => {
           {item.korisnik?.korisnicko_ime || t('unknown_user')} • {t('playlist')}
         </Text>
       </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => handlePlayPlaylist(item)}>
-        <MaterialIcons name="play-arrow" size={20} color="#fff" />
-      </TouchableOpacity>
+      
     </TouchableOpacity>
-  ), [handlePlayPlaylist, t]);
+  ), [handleNavigate, t]);
 
   const renderUserItem = useCallback((item: Korisnik) => (
-    <TouchableOpacity style={styles.resultItem}>
+    <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("izvodjac/" + item.id)}>
       <Image
         source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/60' }}
         style={[styles.resultImage, styles.artistImage]}
@@ -349,7 +284,7 @@ const Search: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
-  ), [t]);
+  ), [t, handleNavigate]);
 
   const renderResultItem = useCallback(({ item }: { item: ResultItem }) => {
     if (item.id.startsWith('header-')) {

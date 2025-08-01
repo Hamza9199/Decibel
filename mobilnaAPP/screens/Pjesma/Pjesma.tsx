@@ -13,7 +13,7 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -24,10 +24,18 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Pjesma.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import Back from '@/komponente/Back/Back';
 
-const PjesmePage: React.FC = React.memo(() => {
+
+interface PjesmaProps {
+  navigiranSa: string;
+}
+
+const PjesmePage: React.FC<PjesmaProps> = React.memo(({ 
+  navigiranSa
+})=> {
   const { t } = useTranslation();
-  const { pjesmaId } = useLocalSearchParams<{ pjesmaId: string }>();
+  const { pjesmaId, from } = useLocalSearchParams<{ pjesmaId: string; from?: string }>();
   
   const [refreshing, setRefreshing] = useState(false);
   const [noviKomentar, setNoviKomentar] = useState('');
@@ -420,6 +428,15 @@ const PjesmePage: React.FC = React.memo(() => {
   const likeCount = pjesma?.brojLajkova || 0;
 
     useScreenCleanup();
+
+
+  const handleBackPress = useCallback(() => {
+    if (from === 'home') {
+      router.replace('/');
+    } else {
+      router.back();
+    }
+  }, [from]);
   
 
   if (loading) {
@@ -444,9 +461,15 @@ const PjesmePage: React.FC = React.memo(() => {
     );
   }
 
+  
+
   return (
     <View style={styles.container}>
-      <Header />
+      <Back 
+        title={pjesma.naziv} 
+        onBackPress={handleBackPress} 
+        onProfilePress={() => router.push('/profile')} 
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}
@@ -531,7 +554,7 @@ const PjesmePage: React.FC = React.memo(() => {
                         <Text style={styles.artistName}>{artist.korisnicko_ime}</Text>
                       </View>
                     ))
-                  )}
+)}
                 </View>
               </View>
             </View>

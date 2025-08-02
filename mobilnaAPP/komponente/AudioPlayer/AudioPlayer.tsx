@@ -24,7 +24,6 @@ import * as FileSystem from 'expo-file-system';
 import { queryClient } from '@/config/queryClient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-
 interface AudioPlayerProps {
   id?: number;
   src?: string;

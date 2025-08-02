@@ -14,7 +14,9 @@ import axios from 'axios';
 import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Back.styles';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useBackPress } from '@/hooks/handleBackPress';
+
 interface BackProps {
   title: string;
   onBackPress?: () => void;
@@ -28,6 +30,9 @@ const Back: React.FC<BackProps> = React.memo(({
 }) => {
   const { ready } = useTranslation();
   const [userId, setUserId] = useState<string | null>(null);
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  
+  const defaultBackPress = useBackPress({ from, defaultRoute: '/' });
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -81,9 +86,9 @@ const Back: React.FC<BackProps> = React.memo(({
     if (onBackPress) {
       onBackPress();
     } else {
-      router.back();
+      defaultBackPress();
     }
-  }, [onBackPress]);
+  }, [onBackPress, defaultBackPress]);
 
   const handleProfilePress = useCallback(() => {
     if (onProfilePress) {

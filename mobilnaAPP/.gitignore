@@ -79,3 +79,4 @@ yarn-error.log
 
 # EAS Configuration (contains sensitive project info)
 eas.json
+google-services.json

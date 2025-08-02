@@ -344,7 +344,8 @@
   "error_downloading_song": "Fehler beim Herunterladen des Songs",
   "song_downloaded_offline": "Song wurde erfolgreich für das Offline-Hören heruntergeladen",
   "song_already_downloaded": "Song ist bereits für das Offline-Hören heruntergeladen",
-  "follows": "Folgt"
+  "follows": "Folgt",
+  "now_playing": "Jetzt wird gespielt"
 
 }
 

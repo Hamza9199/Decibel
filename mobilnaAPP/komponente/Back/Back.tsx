@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -13,8 +14,7 @@ import axios from 'axios';
 import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Back.styles';
-import { router } from 'expo-router';
-
+import { router, useFocusEffect } from 'expo-router';
 interface BackProps {
   title: string;
   onBackPress?: () => void;
@@ -45,6 +45,25 @@ const Back: React.FC<BackProps> = React.memo(({
 
     loadUserId();
   }, []);
+
+  useFocusEffect(() => {
+  const backAction = () => {
+    if (onBackPress) {
+      onBackPress();
+    } else {
+      router.back();
+    }
+    return true; 
+  };
+
+  const backHandler = BackHandler.addEventListener(
+    'hardwareBackPress',
+    backAction
+  );
+
+  return () => backHandler.remove();
+});
+
 
   const { data: korisnik } = useQuery({
     queryKey: ['user', userId],

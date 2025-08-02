@@ -13,17 +13,18 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Playlista.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const Playlista: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -32,6 +33,8 @@ const Playlista: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -408,7 +411,11 @@ const Playlista: React.FC = React.memo(() => {
   if (!playlista) {
     return (
       <View style={styles.notFoundContainer}>
-        <Header />
+        <Back
+          title={t('playlist_not_found') || 'Playlist Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+        />
         <MaterialIcons name="queue-music" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('playlist_not_found') || 'Playlist not found'}
@@ -420,7 +427,11 @@ const Playlista: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={playlista.naziv}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

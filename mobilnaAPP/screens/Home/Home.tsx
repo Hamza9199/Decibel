@@ -151,15 +151,15 @@ const Home: React.FC = React.memo(() => {
   }, [router]);
 
   const handleNavigateToAlbum = useCallback((albumId: number) => {
-    router.replace(`/album/${albumId}`);
+    router.replace(`/album/${albumId}?from=home`);
   }, [router]);
 
   const handleNavigateToPlaylist = useCallback((playlistaId: number) => {
-    router.replace(`/playlista/${playlistaId}`);
+    router.replace(`/playlista/${playlistaId}?from=home`);
   }, [router]);
 
   const handleNavigateToArtist = useCallback((artistId: string) => {
-    router.replace(`/izvodjac/${artistId}`);
+    router.replace(`/izvodjac/${artistId}?from=home`);
   }, [router]);
 
   const handlePlayAlbum = useCallback(async (album: Album) => {
@@ -351,7 +351,7 @@ const Home: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header source="home" />
       
       <ScrollView
         style={styles.scrollContainer}

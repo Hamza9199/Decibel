@@ -12,11 +12,10 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
@@ -24,12 +23,16 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Izvodjac.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const { izvodjacId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/izvodjac' });
   
 
   const loadUserData = useCallback(async () => {
@@ -358,7 +361,11 @@ const Izvodjac: React.FC = React.memo(() => {
   if (error || !artistQuery.data) {
     return (
       <View style={styles.notFoundContainer}>
-        <Header />
+        <Back 
+          title={t('artist_not_found') || 'Artist Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+        />
         <MaterialIcons name="person" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('artist_not_found') || 'Artist not found'}
@@ -372,7 +379,11 @@ const Izvodjac: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back 
+        title={artistQuery.data.korisnicko_ime || t('artist')}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

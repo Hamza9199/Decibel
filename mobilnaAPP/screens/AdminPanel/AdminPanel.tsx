@@ -13,13 +13,15 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './AdminPanel.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import { router, useLocalSearchParams } from 'expo-router';
+import Back from '@/komponente/Back/Back';
 
 
 type ActiveTab = 'songs' | 'albums' | 'playlists';
@@ -30,6 +32,8 @@ const AdminPanel: React.FC = React.memo(() => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('songs');
   const [search, setSearch] = useState('');
+  const {from } = useLocalSearchParams<{ pjesmaId: string; from?: string }>();
+  const handleBackPress  = useBackPress({ from, defaultRoute: '/admin-panel' });
 
   const { data: songs = [], isLoading: songsLoading, refetch: refetchSongs } = useQuery({
     queryKey: ['admin-songs'],
@@ -385,7 +389,11 @@ const AdminPanel: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+       <Back 
+        title={t('admin_panel') || 'Admin Panel'} 
+        onBackPress={handleBackPress} 
+        onProfilePress={() => router.push('/profile')} 
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

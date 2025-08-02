@@ -12,7 +12,6 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { CartesianChart, Bar } from 'victory-native';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Statistika, Pjesma, Album, Playlista, Korisnik } from '@/types';
@@ -20,6 +19,9 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Statistika.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import { router, useLocalSearchParams } from 'expo-router';
+import Back from '@/komponente/Back/Back';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 70;
@@ -27,6 +29,9 @@ const chartWidth = screenWidth - 70;
 const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/statistika' });
 
 
   const statisticsQuery = useQuery({
@@ -207,7 +212,11 @@ const StatistikaScreen: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('platform_statistics') || 'Platform Statistics'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

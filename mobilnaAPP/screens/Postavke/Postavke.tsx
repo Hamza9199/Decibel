@@ -13,12 +13,13 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './Postavke.styles';
-import { useRouter } from 'expo-router';
+import { useRouter,useLocalSearchParams } from 'expo-router';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const Postavke: React.FC = React.memo(() => {
   const { t, i18n } = useTranslation();
@@ -28,6 +29,9 @@ const Postavke: React.FC = React.memo(() => {
   const [jezik, setJezik] = useState(i18n.language || 'bs');
   const [tema, setTema] = useState('dark');
   const router = useRouter();
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/settings' });
 
   const loadSettings = useCallback(async () => {
     try {
@@ -191,7 +195,11 @@ const Postavke: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('settings') || 'Settings'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+        />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View>
           <View style={styles.headerRow}>

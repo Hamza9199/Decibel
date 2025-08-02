@@ -13,13 +13,14 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPretplata.styles';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const NovaPretplata: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -37,6 +38,9 @@ const NovaPretplata: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/pretplata' });
 
 
   useScreenCleanup();
@@ -216,7 +220,11 @@ const NovaPretplata: React.FC = React.memo(() => {
   if (subscriptionQuery.error || !pretplata) {
     return (
       <View style={styles.notFoundContainer}>
-        <Header />
+        <Back
+          title={t('subscription_not_found') || 'Subscription Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+          />
         <MaterialIcons name="credit-card" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('subscription_not_found') || 'Subscription not found'}
@@ -228,7 +236,11 @@ const NovaPretplata: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('new_subscription') || 'New Subscription'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <Text style={styles.title}>

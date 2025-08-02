@@ -15,7 +15,6 @@ import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from '@/types';
@@ -24,12 +23,17 @@ import { styles } from './Historija.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import { router, useLocalSearchParams } from 'expo-router';
+import Back from '@/komponente/Back/Back';
 
 const Historija: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/history' });
   
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['25%', '50%'], []);
@@ -196,10 +200,7 @@ const Historija: React.FC = React.memo(() => {
     bottomSheetRef.current?.expand();
   }, []);
 
-  const handleClosePlaylistSheet = useCallback(() => {
-    bottomSheetRef.current?.close();
-    setSelectedSongId(null);
-  }, []);
+
 
   const formatDate = useCallback((dateString?: string): string => {
     if (!dateString) return '';
@@ -311,7 +312,11 @@ const Historija: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('history') || 'History'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

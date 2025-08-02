@@ -13,11 +13,10 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Album, Pjesma, Playlista, KorisnikPjesma } from '@/types';
@@ -25,6 +24,8 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Album.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 
 const AlbumScreen: React.FC = React.memo(() => {
@@ -32,6 +33,8 @@ const AlbumScreen: React.FC = React.memo(() => {
   const { albumId } = useLocalSearchParams();
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/album' });
 
   const { data: userData } = useQuery({
     queryKey: ['user'],
@@ -331,7 +334,11 @@ const AlbumScreen: React.FC = React.memo(() => {
   if (!album) {
     return (
       <View style={styles.notFoundContainer}>
-        <Header />
+         <Back 
+        title={t('album_not_found') || 'Album Not Found'}
+        onBackPress={handleBackPress} 
+        onProfilePress={() => router.push('/profile')} 
+      />
         <MaterialIcons name="album" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('album_not_found') || 'Album not found'}
@@ -343,7 +350,11 @@ const AlbumScreen: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+       <Back 
+        title={album.naziv}
+        onBackPress={handleBackPress} 
+        onProfilePress={() => router.push('/profile')} 
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

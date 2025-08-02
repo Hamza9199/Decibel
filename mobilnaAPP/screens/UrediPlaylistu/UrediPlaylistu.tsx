@@ -16,7 +16,6 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import { Checkbox } from 'expo-checkbox';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
@@ -24,6 +23,9 @@ import { styles } from './UrediPlaylistu.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
+
 
 const UrediPlaylistu: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -40,6 +42,9 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   const [javno, setJavno] = useState(false);
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista'});
 
   useScreenCleanup();
 
@@ -309,7 +314,11 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   if (!playlista) {
     return (
       <View style={styles.container}>
-        <Header />
+        <Back
+          title={t('playlist_not_found') || 'Playlist Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+          />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('playlist_not_found') || 'Playlist not found'}
@@ -323,7 +332,11 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Header />
+        <Back
+          title={t('no_permission_to_edit') || 'No Permission to Edit'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+          />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this playlist'}
@@ -336,7 +349,11 @@ const UrediPlaylistu: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={playlista.naziv || t('edit_playlist') || 'Edit Playlist'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

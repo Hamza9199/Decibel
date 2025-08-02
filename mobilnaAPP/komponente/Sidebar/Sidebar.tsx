@@ -20,13 +20,15 @@ import { styles } from './Sidebar.styles';
 interface SidebarProps {
   visible: boolean;
   onClose: () => void;
+  source?: string; 
 }
 
 type Role = 'korisnik' | 'izvodac' | 'admin';
 
-const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }) => {
   const { t } = useTranslation();
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [user, setUser] = useState<Korisnik | null>(null);
   const [role, setRole] = useState<Role>('korisnik');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -132,82 +134,82 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
       action();
     } else if (route) {
       if (route === '/settings') {
-        router.replace('/settings');
+        router.replace(`/settings?from=${source}`);
         onClose();
         return;
       }
       if (route === '/profile/edit') {
-        router.replace('/edit-profile');
+        router.replace(`/edit-profile?from=${source}`);
         onClose();
         return;
       }
       if (route === '/admin-panel') {
-        router.replace('/admin-panel');
+        router.replace(`/admin-panel?from=${source}`);
         onClose();
         return;
       }
       if (route === '/history') {
-        router.replace('/history');
+        router.replace(`/history?from=${source}`);
         onClose();
         return;
       }
       if (route === '/profile/subscription') {
-        router.replace('/pretplata');
+        router.replace(`/pretplata?from=${source}`);
         onClose();
         return;
       }
       if (route === '/favorites/songs') {
-        router.replace('/omiljeno/pjesme');
+        router.replace(`/omiljeno/pjesme?from=${source}`);
         onClose();
         return;
       }
       if (route === '/favorites/playlists') {
-        router.replace('/omiljeno/playliste');
+        router.replace(`/omiljeno/playliste?from=${source}`);
         onClose();
         return;
       }
       if (route === '/favorites/albums') {
-        router.replace('/omiljeno/albumi');
+        router.replace(`/omiljeno/albumi?from=${source}`);
         onClose();
         return;
       }
       if (route === '/playlists') {
-        router.replace('/sve-playliste');
+        router.replace(`/sve-playliste?from=${source}`);
         onClose();
         return;
       }
       if (route === '/playlists/create') {
-        router.replace('/nova-playlista');
+        router.replace(`/nova-playlista?from=${source}`);
         onClose();
         return;
       }
       if (route === '/songs') {
-        router.replace('/svepjesme');
+        router.replace(`/svepjesme?from=${source}`);
         onClose();
         return;
       }
       if (route === '/songs/add') {
-        router.replace('/nova-pjesma');
+        router.replace(`/nova-pjesma?from=${source}`);
         onClose();
         return;
       }
       if (route === '/albums') {
-        router.replace('/svi-albumi');
+        router.replace(`/svi-albumi?from=${source}`);
         onClose();
         return;
       }
       if (route === '/albums/add') {
-        router.replace('/novi-album');
+        router.replace(`/novi-album?from=${source}`);
         onClose();
         return;
       }
       if (route === '/statistics') {
-        router.replace('/statistika');
+        router.replace(`/statistika?from=${source}`);
         onClose();
         return;
       }
       if (route === '/users') {
-        router.replace('/svi-korisnici');
+        router.replace(`/svi-korisnici?from=${source}`);
         onClose();
         return;
       }
@@ -217,7 +219,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
       );
     }
     onClose();
-  }, [router, onClose, t]);
+  }, [router, onClose, t, source]);
 
   const renderIcon = useCallback((name: keyof typeof MaterialIcons.glyphMap, size = 22, color = '#ffe6ec') => (
     <MaterialIcons name={name} size={size} color={color} />
@@ -240,13 +242,13 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose }) => {
   }, [showAlbumsMenu]);
 
   const handleLogoPress = useCallback(() => {
-    router.replace('/(tabs)');
-  }, [router]);
+    router.replace('/(tabs)?from=' + source);
+  }, [router, source]);
 
   const handleOfflinePress = useCallback(() => {
-    router.replace('/offline');
+    router.replace('/offline?from=' + source);
     onClose();
-  }, [router, onClose]);
+  }, [router, onClose, source]);
 
   const isArtistOrAdmin = useMemo(() => role === 'izvodac' || role === 'admin', [role]);
   const isAdmin = useMemo(() => role === 'admin', [role]);

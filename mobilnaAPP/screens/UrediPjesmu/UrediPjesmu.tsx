@@ -17,7 +17,6 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import { Checkbox } from 'expo-checkbox';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from '@/types';
@@ -26,6 +25,8 @@ import { styles } from './UrediPjesmu.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const UrediPjesmu: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -50,6 +51,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState('');
+
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: `/pjesma/${pjesmaId}` });
 
 
   const loadUserData = useCallback(async () => {
@@ -348,7 +353,11 @@ const UrediPjesmu: React.FC = React.memo(() => {
   if (!pjesma) {
     return (
       <View style={styles.container}>
-        <Header />
+        <Back
+          title={t('song_not_found') || 'Song Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+        />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('song_not_found') || 'Song not found'}
@@ -362,7 +371,11 @@ const UrediPjesmu: React.FC = React.memo(() => {
   if (!hasPermission) {
     return (
       <View style={styles.container}>
-        <Header />
+        <Back
+          title={t('unauthorized_edit') || 'Unauthorized Edit'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.push('/profile')}
+          />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this song'}
@@ -375,7 +388,12 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={pjesma.naziv}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
+      
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

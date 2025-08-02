@@ -13,13 +13,15 @@ import { useRouter } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { KorisnikPretplata, Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './Pretplata.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useLocalSearchParams } from 'expo-router';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -27,6 +29,9 @@ const PretplataScreen: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [kupovinaLoading] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/pretplata' });
 
   useScreenCleanup();
 
@@ -172,7 +177,11 @@ const PretplataScreen: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('subscription') || 'Subscription'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+        />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

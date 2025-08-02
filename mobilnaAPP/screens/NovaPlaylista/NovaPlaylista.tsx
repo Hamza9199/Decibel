@@ -10,16 +10,17 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useRouter,useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './NovaPlaylista.styles';
 import { useMutation } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const NovaPlaylista: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -34,6 +35,8 @@ const NovaPlaylista: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -214,7 +217,11 @@ const NovaPlaylista: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('new_playlist') || 'New Playlist'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+        />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <Text style={styles.title}>{t('new_playlist')}</Text>

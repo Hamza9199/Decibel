@@ -204,7 +204,7 @@ const Search: React.FC = React.memo(() => {
 
 
   const handleNavigate = useCallback((tip: string) => {
-    router.replace(`/${tip}`);
+    router.replace(`/${tip}?from=search`);
   }, []);
 
   const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);

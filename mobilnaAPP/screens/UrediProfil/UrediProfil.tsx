@@ -10,17 +10,18 @@ import {
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles } from './UrediProfil.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import Back from '@/komponente/Back/Back';
 
 const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -39,6 +40,9 @@ const UrediProfil: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const  handleBackPress  = useBackPress({ from, defaultRoute: '/profile' });
 
 
   const loadUserFromStorage = useCallback(async () => {
@@ -290,7 +294,11 @@ const UrediProfil: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('edit_profile') || 'Edit Profile'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+        />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
           <View style={styles.headerRow}>

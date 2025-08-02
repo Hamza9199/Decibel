@@ -25,6 +25,7 @@ import { styles } from './Pjesma.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import Back from '@/komponente/Back/Back';
+import { useBackPress } from '@/hooks/handleBackPress';
 
 
 interface PjesmaProps {
@@ -44,6 +45,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [mojID, setMojID] = useState<string>('');
 
+  const handleBackPress = useBackPress({ from, defaultRoute: '/' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -428,15 +430,6 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   const likeCount = pjesma?.brojLajkova || 0;
 
     useScreenCleanup();
-
-
-  const handleBackPress = useCallback(() => {
-    if (from === 'home') {
-      router.replace('/');
-    } else {
-      router.back();
-    }
-  }, [from]);
   
 
   if (loading) {

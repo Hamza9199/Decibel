@@ -542,7 +542,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
-        onPress={() => router.replace(`/izvodjac/${item.id}`)}
+        onPress={() => router.replace(`/izvodjac/${item.id}?from=library`)}
       >
         <OptimizedImage
           uri={item.putanjaProfilneSlike}
@@ -586,7 +586,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
       <View style={styles.itemCard}>
         <TouchableOpacity 
           style={styles.itemHeader}
-          onPress={() => router.replace(`/pjesma/${item.id}`)}
+          onPress={() => router.replace(`/pjesma/${item.id}?from=library`)}
         >
           <OptimizedImage
             uri={item.putanjaSlika}
@@ -625,7 +625,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
-        onPress={() => router.replace(`/album/${item.id}`)}
+        onPress={() => router.replace(`/album/${item.id}?from=library`)}
       >
         <OptimizedImage
           uri={item.putanjaSlika}
@@ -661,7 +661,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     <View style={styles.itemCard}>
       <TouchableOpacity 
         style={styles.itemHeader}
-        onPress={() => router.replace(`/playlista/${item.id}`)}
+        onPress={() => router.replace(`/playlista/${item.id}?from=library`)}
       >
         <OptimizedImage
           uri={item.putanjaSlika}
@@ -823,7 +823,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Header source="library" />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

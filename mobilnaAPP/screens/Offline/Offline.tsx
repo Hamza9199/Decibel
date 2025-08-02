@@ -2,12 +2,14 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { styles } from './Offline.styles';
 import { useAudio } from '@/context/AudioContext';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import { router,useLocalSearchParams } from 'expo-router';
+import Back from '@/komponente/Back/Back';
 
 interface OfflineSong {
   id: number;
@@ -22,6 +24,9 @@ const Offline: React.FC = React.memo(() => {
   const [offlineSongs, setOfflineSongs] = useState<OfflineSong[]>([]);
   const [loading, setLoading] = useState(true);
   const { playAudio } = useAudio();
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/offline' });
 
   const loadOfflineSongs = useCallback(async () => {
     setLoading(true);
@@ -112,7 +117,11 @@ const Offline: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('offline_mode') || 'Offline Mode'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+        />
       <View style={styles.content}>
         <Text style={styles.title}>
           {t('offline_mode') || 'Offline Mode'}

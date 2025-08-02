@@ -16,13 +16,15 @@ import { Picker } from '@react-native-picker/picker';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Korisnik, PrijavaIzvodjaca } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles } from './SviKorisnici.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import { useBackPress } from '@/hooks/handleBackPress';
+import { router, useLocalSearchParams } from 'expo-router';
+import Back from '@/komponente/Back/Back';
 
 const SviKorisnici: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -36,6 +38,10 @@ const SviKorisnici: React.FC = React.memo(() => {
     poruka: string;
     vrijemeDo: string;
   } | null>(null);
+
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/svi-korisnici' });
 
 
   useScreenCleanup();
@@ -386,7 +392,11 @@ const SviKorisnici: React.FC = React.memo(() => {
 
   return (
     <View style={styles.container}>
-      <Header />
+      <Back
+        title={t('all_users') || 'All Users'}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.push('/profile')}
+      />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         refreshControl={refreshControl}

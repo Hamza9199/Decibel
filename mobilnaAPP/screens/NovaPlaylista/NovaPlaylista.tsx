@@ -36,7 +36,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/nova-playlista', currentRoute: '/nova-playlista' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -209,8 +209,16 @@ const NovaPlaylista: React.FC = React.memo(() => {
   if (createPlaylistMutation.isPending) {
     return (
       <View style={styles.loadingContainer}>
+        <Back 
+          title={t('creating_playlist') || 'Creating Playlist'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('creating_playlist')}</Text>
+        
+        <Tabs currentRoute="nova-playlista" />
       </View>
     );
   }
@@ -220,7 +228,8 @@ const NovaPlaylista: React.FC = React.memo(() => {
       <Back
         title={t('new_playlist') || 'New Playlist'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
@@ -328,7 +337,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="create" />
+      <Tabs currentRoute="nova-playlista" />
     </View>
   );
 });

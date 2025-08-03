@@ -40,7 +40,7 @@ const NovaPretplata: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/pretplata' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/nova-pretplata', currentRoute: '/nova-pretplata' });
 
 
   useScreenCleanup();
@@ -211,8 +211,15 @@ const NovaPretplata: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('new_subscription') || 'New Subscription'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="nova-pretplata" />
       </View>
     );
   }
@@ -223,13 +230,13 @@ const NovaPretplata: React.FC = React.memo(() => {
         <Back
           title={t('subscription_not_found') || 'Subscription Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
           />
         <MaterialIcons name="credit-card" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('subscription_not_found') || 'Subscription not found'}
         </Text>
-        <Tabs currentRoute="subscription" />
+        <Tabs currentRoute="nova-pretplata" />
       </View>
     );
   }
@@ -239,7 +246,8 @@ const NovaPretplata: React.FC = React.memo(() => {
       <Back
         title={t('new_subscription') || 'New Subscription'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
@@ -374,7 +382,7 @@ const NovaPretplata: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="subscription" />
+      <Tabs currentRoute="nova-pretplata" />
     </View>
   );
 });

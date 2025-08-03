@@ -42,7 +42,7 @@ const UrediProfil: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const  handleBackPress  = useBackPress({ from, defaultRoute: '/profile' });
+  const  handleBackPress  = useBackPress({ from, defaultRoute: '/edit-profile', currentRoute: '/edit-profile' });
 
 
   const loadUserFromStorage = useCallback(async () => {
@@ -286,8 +286,16 @@ const UrediProfil: React.FC = React.memo(() => {
   if (loading && !ime) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_profile') || 'Loading Profile'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
+
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="/edit-profile" />
       </View>
     );
   }
@@ -297,7 +305,8 @@ const UrediProfil: React.FC = React.memo(() => {
       <Back
         title={t('edit_profile') || 'Edit Profile'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
@@ -467,7 +476,7 @@ const UrediProfil: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="profile" />
+      <Tabs currentRoute="edit-profile" />
     </View>
   );
 });

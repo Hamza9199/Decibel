@@ -34,7 +34,7 @@ const AlbumScreen: React.FC = React.memo(() => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/album' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/album/[albumId]', currentRoute: '/album/[albumId]' });
 
   const { data: userData } = useQuery({
     queryKey: ['user'],
@@ -325,8 +325,15 @@ const AlbumScreen: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back 
+          title={t('loading_album') || 'Loading Album...'}
+          onBackPress={handleBackPress} 
+           onProfilePress={() => router.replace('/edit-profile')}
+                          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="album" />
       </View>
     );
   }
@@ -337,8 +344,10 @@ const AlbumScreen: React.FC = React.memo(() => {
          <Back 
         title={t('album_not_found') || 'Album Not Found'}
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.push('/profile')} 
-      />
+        onProfilePress={() => router.replace('/edit-profile')}
+                          source={from}
+                />
+      
         <MaterialIcons name="album" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('album_not_found') || 'Album not found'}
@@ -353,7 +362,8 @@ const AlbumScreen: React.FC = React.memo(() => {
        <Back 
         title={album.naziv}
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.push('/profile')} 
+         onProfilePress={() => router.replace('/edit-profile')}
+                          source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

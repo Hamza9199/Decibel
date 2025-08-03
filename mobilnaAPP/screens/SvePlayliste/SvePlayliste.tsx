@@ -33,7 +33,7 @@ const SvePlayliste: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/sve-playliste' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/sve-playliste', currentRoute: '/sve-playliste' });
   
 
   useScreenCleanup();
@@ -181,8 +181,15 @@ const SvePlayliste: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_playlists') || 'Loading Playlists...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="sve-playliste" />
       </View>
     );
   }
@@ -192,7 +199,8 @@ const SvePlayliste: React.FC = React.memo(() => {
       <Back
         title={t('all_playlists') || 'All Playlists'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -272,7 +280,7 @@ const SvePlayliste: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="playlists" />
+      <Tabs currentRoute="sve-playliste" />
     </View>
   );
 });

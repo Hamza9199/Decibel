@@ -34,7 +34,7 @@ const Playlista: React.FC = React.memo(() => {
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista/[playlistaId]', currentRoute: '/playlista/[playlistaId]' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -402,8 +402,15 @@ const Playlista: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_playlist') || 'Loading Playlist...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="playlista/[playlistaId" />
       </View>
     );
   }
@@ -414,13 +421,14 @@ const Playlista: React.FC = React.memo(() => {
         <Back
           title={t('playlist_not_found') || 'Playlist Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/profile')}
+          source={from}
         />
         <MaterialIcons name="queue-music" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('playlist_not_found') || 'Playlist not found'}
         </Text>
-        <Tabs currentRoute="playlist" />
+        <Tabs currentRoute="playlista/[playlistaId]" />
       </View>
     );
   }
@@ -430,7 +438,8 @@ const Playlista: React.FC = React.memo(() => {
       <Back
         title={playlista.naziv}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -539,7 +548,7 @@ const Playlista: React.FC = React.memo(() => {
         </View>
       </Modal>
 
-      <Tabs currentRoute="playlist" />
+      <Tabs currentRoute="playlista/[playlistaId]" />
     </View>
   );
 });

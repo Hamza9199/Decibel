@@ -26,7 +26,7 @@ const Offline: React.FC = React.memo(() => {
   const { playAudio } = useAudio();
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/offline' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/offline', currentRoute: '/offline' });
 
   const loadOfflineSongs = useCallback(async () => {
     setLoading(true);
@@ -120,7 +120,8 @@ const Offline: React.FC = React.memo(() => {
       <Back
         title={t('offline_mode') || 'Offline Mode'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <View style={styles.content}>
         <Text style={styles.title}>

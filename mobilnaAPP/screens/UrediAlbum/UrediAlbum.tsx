@@ -38,7 +38,7 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: `/album/${albumId}` });
+  const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-album/${albumId}`, currentRoute: `/uredi-album/${albumId}` });
 
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
@@ -337,8 +337,15 @@ const UrediAlbum: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_album') || 'Loading Album...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute={`/uredi-album/${albumId}`} />
       </View>
     );
   }
@@ -349,7 +356,8 @@ const UrediAlbum: React.FC = React.memo(() => {
         <Back 
           title={t('album_not_found') || 'Album Not Found'}
           onBackPress={handleBackPress} 
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
         />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
@@ -367,7 +375,8 @@ const UrediAlbum: React.FC = React.memo(() => {
         <Back
           title={t('no_permission_to_edit') || 'No Permission to Edit'}
           onBackPress={handleBackPress} 
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
         />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
@@ -384,7 +393,8 @@ const UrediAlbum: React.FC = React.memo(() => {
       <Back
         title={naziv}
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -516,7 +526,7 @@ const UrediAlbum: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="albums" />
+      <Tabs currentRoute={`/uredi-album/${albumId}`} />
     </View>
   );
 });

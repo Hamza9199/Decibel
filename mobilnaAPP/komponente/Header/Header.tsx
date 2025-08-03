@@ -10,12 +10,11 @@ import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
-import Sidebar from '@/komponente/Sidebar/Sidebar';
 import { styles } from './Header.styles';
 import { router } from 'expo-router';
+import { useGlobalSidebar } from '@/app/_layout';
 
 interface HeaderProps {
   onSearchPress?: () => void;
@@ -31,8 +30,8 @@ const Header: React.FC<HeaderProps> = React.memo(({
   source
 }) => {
   const { ready } = useTranslation();
-  const [showSidebar, setShowSidebar] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const { showSidebar } = useGlobalSidebar();
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -64,12 +63,8 @@ const Header: React.FC<HeaderProps> = React.memo(({
   });
 
   const handleMenuPress = useCallback(() => {
-    setShowSidebar(true);
-  }, []);
-
-  const handleSidebarClose = useCallback(() => {
-    setShowSidebar(false);
-  }, []);
+    showSidebar();
+  }, [showSidebar]);
 
   const handleProfilePress = useCallback(() => {
     if (onProfilePress) {
@@ -90,23 +85,6 @@ const Header: React.FC<HeaderProps> = React.memo(({
   const profileImageUri = korisnik?.putanjaProfilneSlike || 
     'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8';
 
-  const onSwipeGestureEvent = useCallback((event: any) => {
-    const { translationX, absoluteX } = event.nativeEvent;
-    if (absoluteX < 50 && translationX > 50) {
-      setShowSidebar(true);
-    }
-  }, []);
-
-  const onSwipeHandlerStateChange = useCallback((event: any) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      const { translationX, absoluteX } = event.nativeEvent;
-      
-      if (absoluteX < 50 && translationX > 100) {
-        setShowSidebar(true);
-      }
-    }
-  }, []);
-
   if (!ready) {
     return (
       <View style={styles.header}>
@@ -116,61 +94,48 @@ const Header: React.FC<HeaderProps> = React.memo(({
   }
 
   return (
-    <>
-      <PanGestureHandler
-        onGestureEvent={onSwipeGestureEvent}
-        onHandlerStateChange={onSwipeHandlerStateChange}
+    <View style={styles.header}>
+      <TouchableOpacity 
+        style={styles.menuButton}
+        onPress={handleMenuPress}
       >
-        <View style={styles.header}>
+        <MaterialIcons name="menu" size={24} color="#ffe6ec" />
+      </TouchableOpacity>
+
+      <TouchableOpacity  
+        style={styles.logoContainer}
+        onPress={handleLogoPress}
+      >
+        <Image
+          source={require('../../assets/images/logo.gif')}
+          style={styles.logoImg}
+          contentFit="contain"
+        />
+        <Text style={styles.logo}>Decibel</Text>
+      </TouchableOpacity>
+
+      <View style={styles.rightActions}>
+        {onSearchPress && (
           <TouchableOpacity 
-            style={styles.menuButton}
-            onPress={handleMenuPress}
+            style={styles.searchButton} 
+            onPress={onSearchPress}
           >
-            <MaterialIcons name="menu" size={24} color="#ffe6ec" />
+            <MaterialIcons name="search" size={24} color="#ffe6ec" />
           </TouchableOpacity>
+        )}
 
-          <TouchableOpacity  
-            style={styles.logoContainer}
-            onPress={handleLogoPress}
-          >
-            <Image
-              source={require('../../assets/images/logo.gif')}
-              style={styles.logoImg}
-              contentFit="contain"
-            />
-            <Text style={styles.logo}>Decibel</Text>
-          </TouchableOpacity>
-
-          <View style={styles.rightActions}>
-            {onSearchPress && (
-              <TouchableOpacity 
-                style={styles.searchButton} 
-                onPress={onSearchPress}
-              >
-                <MaterialIcons name="search" size={24} color="#ffe6ec" />
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity 
-              style={styles.profileButton} 
-              onPress={handleProfilePress}
-            >
-              <Image
-                source={{ uri: profileImageUri }}
-                style={styles.profileImgMobile}
-                contentFit="cover"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </PanGestureHandler>
-
-      <Sidebar 
-        visible={showSidebar} 
-        onClose={handleSidebarClose}
-        source={source || '(tabs)'} 
-      />
-    </>
+        <TouchableOpacity 
+          style={styles.profileButton} 
+          onPress={handleProfilePress}
+        >
+          <Image
+            source={{ uri: profileImageUri }}
+            style={styles.profileImgMobile}
+            contentFit="cover"
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 });
 

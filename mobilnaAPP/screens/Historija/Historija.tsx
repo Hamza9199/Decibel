@@ -33,7 +33,7 @@ const Historija: React.FC = React.memo(() => {
   const [selectedSongId, setSelectedSongId] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/history' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/history', currentRoute: '/history' });
   
   const bottomSheetRef = useRef<BottomSheet>(null);
   const snapPoints = useMemo(() => ['25%', '50%'], []);
@@ -304,9 +304,17 @@ const Historija: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back 
+          title={t('history') || 'History'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="history" />
       </View>
+
     );
   }
 
@@ -315,7 +323,8 @@ const Historija: React.FC = React.memo(() => {
       <Back
         title={t('history') || 'History'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+                source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -346,6 +355,7 @@ const Historija: React.FC = React.memo(() => {
         enablePanDownToClose
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.bottomSheetIndicator}
+        style={{ zIndex: 1000, elevation: 1000 }}
       >
         <BottomSheetView style={styles.bottomSheetContent}>
           <Text style={styles.bottomSheetTitle}>

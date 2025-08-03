@@ -33,7 +33,7 @@ const AdminPanel: React.FC = React.memo(() => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('songs');
   const [search, setSearch] = useState('');
   const {from } = useLocalSearchParams<{ pjesmaId: string; from?: string }>();
-  const handleBackPress  = useBackPress({ from, defaultRoute: '/admin-panel' });
+  const handleBackPress  = useBackPress({ from, defaultRoute: '/admin-panel', currentRoute: '/admin-panel' });
 
   const { data: songs = [], isLoading: songsLoading, refetch: refetchSongs } = useQuery({
     queryKey: ['admin-songs'],
@@ -381,8 +381,15 @@ const AdminPanel: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back 
+          title={t('admin_panel') || 'Admin Panel'} 
+          onBackPress={handleBackPress} 
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="admin" />
       </View>
     );
   }
@@ -392,7 +399,8 @@ const AdminPanel: React.FC = React.memo(() => {
        <Back 
         title={t('admin_panel') || 'Admin Panel'} 
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.push('/profile')} 
+         onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

@@ -384,8 +384,15 @@ const SviKorisnici: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_users') || 'Loading Users...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="svi-korisnici" />
       </View>
     );
   }
@@ -395,7 +402,8 @@ const SviKorisnici: React.FC = React.memo(() => {
       <Back
         title={t('all_users') || 'All Users'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -571,7 +579,7 @@ const SviKorisnici: React.FC = React.memo(() => {
         </View>
       </Modal>
 
-      <Tabs currentRoute="users" />
+      <Tabs currentRoute="svi-korisnici" />
     </View>
   );
 });

@@ -333,6 +333,7 @@ const Home: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Header source="home" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
       </View>
     );
@@ -341,6 +342,7 @@ const Home: React.FC = React.memo(() => {
   if (error) {
     return (
       <View style={styles.loadingContainer}>
+        <Header source="home" />
         <Text style={styles.loadingText}>{t('connection_error')}</Text>
         <TouchableOpacity onPress={onRefresh} style={{ marginTop: 10 }}>
           <Text style={styles.cardDesc}>{t('retry')}</Text>

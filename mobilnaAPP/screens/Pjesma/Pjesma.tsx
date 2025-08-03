@@ -17,7 +17,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import Header from '@/komponente/Header/Header';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Korisnik, Komentar } from '@/types';
 import { API_BASE } from '@/config/api';
@@ -45,7 +44,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [mojID, setMojID] = useState<string>('');
 
-  const handleBackPress = useBackPress({ from, defaultRoute: '/' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/pjesma/[pjesmaId]', currentRoute: '/pjesma/[pjesmaId]' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -435,8 +434,15 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back 
+          title={t('song_loading') || 'Loading Song...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="/pjesma/[pjesmaId]" />
       </View>
     );
   }
@@ -444,12 +450,18 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   if (!pjesma) {
     return (
       <View style={styles.notFoundContainer}>
-        <Header />
+        <Back 
+          title={t('song_not_found') || 'Song Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
+        
         <MaterialIcons name="music-note" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('song_not_found') || 'Song not found'}
         </Text>
-        <Tabs currentRoute="song" />
+        <Tabs currentRoute="/pjesma/[pjesmaId]" />
       </View>
     );
   }
@@ -461,7 +473,8 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
       <Back 
         title={pjesma.naziv} 
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.push('/profile')} 
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -604,7 +617,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="song" />
+      <Tabs currentRoute="/pjesma/[pjesmaId]" />
     </View>
   );
 });

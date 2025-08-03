@@ -178,8 +178,15 @@ const SviAlbumi: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_albums') || 'Loading Albums...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="svi-albumi" />
       </View>
     );
   }
@@ -189,7 +196,8 @@ const SviAlbumi: React.FC = React.memo(() => {
       <Back
         title={t('my_albums') || 'My Albums'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -269,7 +277,7 @@ const SviAlbumi: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="albums" />
+      <Tabs currentRoute="svi-albumi" />
     </View>
   );
 });

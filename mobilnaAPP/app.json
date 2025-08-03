@@ -50,32 +50,8 @@
           "backgroundColor": "#333333",
           "borderTopColor": "#333333"
         }
-      ],
-     [
-        "expo-notifications",
-        {
-        "icon": "./assets/images/icon.png",
-        "color": "#b91d95",
-        "sounds": [],
-        "iosDisplayInForeground": true,
-        "notificationCategories": [
-          {
-            "identifier": "NOW_PLAYING",
-            "actions": [
-              {
-                "identifier": "PLAY",
-                "buttonTitle": "Play",
-                "options": {
-                  "foreground": true,
-                  "destructive": false,
-                  "authenticationRequired": false
-                }
-              }
-            ]
-          }
-        ]
-        }
       ]
+     
     ],
     "experiments": {
       "typedRoutes": true

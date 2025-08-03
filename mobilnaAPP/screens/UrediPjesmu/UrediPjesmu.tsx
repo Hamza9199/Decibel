@@ -54,7 +54,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: `/pjesma/${pjesmaId}` });
+  const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-pjesmu/${pjesmaId}`, currentRoute: `/uredi-pjesmu/${pjesmaId}` });
 
 
   const loadUserData = useCallback(async () => {
@@ -344,8 +344,15 @@ const UrediPjesmu: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_song') || 'Loading Song...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute={`/uredi-pjesmu/${pjesmaId}`} />
       </View>
     );
   }
@@ -356,14 +363,15 @@ const UrediPjesmu: React.FC = React.memo(() => {
         <Back
           title={t('song_not_found') || 'Song Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
         />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('song_not_found') || 'Song not found'}
           </Text>
         </View>
-        <Tabs currentRoute="songs" />
+        <Tabs currentRoute={`/uredi-pjesmu/${pjesmaId}`} />
       </View>
     );
   }
@@ -374,14 +382,15 @@ const UrediPjesmu: React.FC = React.memo(() => {
         <Back
           title={t('unauthorized_edit') || 'Unauthorized Edit'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
           />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this song'}
           </Text>
         </View>
-        <Tabs currentRoute="songs" />
+        <Tabs currentRoute={`/uredi-pjesmu/${pjesmaId}`}/>
       </View>
     );
   }
@@ -607,7 +616,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="songs" />
+      <Tabs currentRoute={`/uredi-pjesmu/${pjesmaId}`} />
     </View>
   );
 });

@@ -35,7 +35,7 @@ const SvePjesme: React.FC = React.memo(() => {
 
   
   const { from } = useLocalSearchParams<{ from?: string }>();
-const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme' });
+const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', currentRoute: '/sve-pjesme' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -159,8 +159,15 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme' });
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_songs') || 'Loading Songs...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute="sve-pjesme" />
       </View>
     );
   }
@@ -170,7 +177,8 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme' });
       <Back
         title={t('my_songs') || 'My Songs'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -260,7 +268,7 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme' });
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="songs" />
+      <Tabs currentRoute="sve-pjesme" />
     </View>
   );
 });

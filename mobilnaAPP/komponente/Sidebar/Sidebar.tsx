@@ -16,6 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Korisnik } from '@/types';
 import { styles } from './Sidebar.styles';
+import { navigateWithHistory, clearNavigationHistory } from '@/hooks/handleBackPress';
 
 interface SidebarProps {
   visible: boolean;
@@ -65,11 +66,9 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
     if (event.nativeEvent.oldState === State.ACTIVE) {
       const { translationX, velocityX } = event.nativeEvent;
       
-      // If swiped left significantly or with high velocity, close sidebar
       if (translationX < -100 || velocityX < -500) {
         onClose();
       } else {
-        // Return to open position
         Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
@@ -114,6 +113,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('korisnik');
+              await clearNavigationHistory(); 
               onClose();
               
               setTimeout(() => {
@@ -129,87 +129,116 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
     );
   }, [t, onClose, router]);
 
-  const handleNavPress = useCallback((route?: string, action?: () => void) => {
+  const handleNavPress = useCallback(async (route?: string, action?: () => void) => {
     if (action) {
       action();
     } else if (route) {
+      const sourceToRouteMap: { [key: string]: string } = {
+        'home': '/(tabs)',
+        'library': '/(tabs)/library',
+        'search': '/(tabs)/search',
+        'history': '/history',
+        'statistika': '/statistika',
+        'offline': '/offline',
+        'settings': '/settings',
+        'edit-profile': '/edit-profile',
+        'admin-panel': '/admin-panel',
+        'pretplata': '/pretplata',
+        'omiljeno/pjesme': '/omiljeno/pjesme',
+        'omiljeno/playliste': '/omiljeno/playliste',
+        'omiljeno/albumi': '/omiljeno/albumi',
+        'sve-playliste': '/sve-playliste',
+        'nova-playlista': '/nova-playlista',
+        'svepjesme': '/svepjesme',
+        'nova-pjesma': '/nova-pjesma',
+        'svi-albumi': '/svi-albumi',
+        'svi-korisnici': '/svi-korisnici',
+        'nova-pretplata': '/nova-pretplata',
+        'novi-album': '/novi-album',
+        'login': '/login',
+        'register': '/register',
+  
+      };
+      
+      const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
+      
       if (route === '/settings') {
-        router.replace(`/settings?from=${source}`);
+        await navigateWithHistory(`/settings?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/profile/edit') {
-        router.replace(`/edit-profile?from=${source}`);
+        await navigateWithHistory(`/edit-profile?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/admin-panel') {
-        router.replace(`/admin-panel?from=${source}`);
+        await navigateWithHistory(`/admin-panel?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/history') {
-        router.replace(`/history?from=${source}`);
+        await navigateWithHistory(`/history?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/profile/subscription') {
-        router.replace(`/pretplata?from=${source}`);
+        await navigateWithHistory(`/pretplata?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/favorites/songs') {
-        router.replace(`/omiljeno/pjesme?from=${source}`);
+        await navigateWithHistory(`/omiljeno/pjesme?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/favorites/playlists') {
-        router.replace(`/omiljeno/playliste?from=${source}`);
+        await navigateWithHistory(`/omiljeno/playliste?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/favorites/albums') {
-        router.replace(`/omiljeno/albumi?from=${source}`);
+        await navigateWithHistory(`/omiljeno/albumi?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/playlists') {
-        router.replace(`/sve-playliste?from=${source}`);
+        await navigateWithHistory(`/sve-playliste?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/playlists/create') {
-        router.replace(`/nova-playlista?from=${source}`);
+        await navigateWithHistory(`/nova-playlista?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/songs') {
-        router.replace(`/svepjesme?from=${source}`);
+        await navigateWithHistory(`/svepjesme?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/songs/add') {
-        router.replace(`/nova-pjesma?from=${source}`);
+        await navigateWithHistory(`/nova-pjesma?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/albums') {
-        router.replace(`/svi-albumi?from=${source}`);
+        await navigateWithHistory(`/svi-albumi?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/albums/add') {
-        router.replace(`/novi-album?from=${source}`);
+        await navigateWithHistory(`/novi-album?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/statistics') {
-        router.replace(`/statistika?from=${source}`);
+        await navigateWithHistory(`/statistika?from=${source}`, currentRoute);
         onClose();
         return;
       }
       if (route === '/users') {
-        router.replace(`/svi-korisnici?from=${source}`);
+        await navigateWithHistory(`/svi-korisnici?from=${source}`, currentRoute);
         onClose();
         return;
       }
@@ -219,7 +248,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
       );
     }
     onClose();
-  }, [router, onClose, t, source]);
+  }, [onClose, t, source]);
 
   const renderIcon = useCallback((name: keyof typeof MaterialIcons.glyphMap, size = 22, color = '#ffe6ec') => (
     <MaterialIcons name={name} size={size} color={color} />
@@ -241,14 +270,43 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
     setShowAlbumsMenu(!showAlbumsMenu);
   }, [showAlbumsMenu]);
 
-  const handleLogoPress = useCallback(() => {
-    router.replace('/(tabs)?from=' + source);
-  }, [router, source]);
+  const handleLogoPress = useCallback(async () => {
+    // Map source to proper route for current route tracking
+    const sourceToRouteMap: { [key: string]: string } = {
+      'home': '/(tabs)',
+      'library': '/(tabs)/library',
+      'search': '/(tabs)/search',
+      'history': '/history',
+      'statistika': '/statistika',
+      'offline': '/offline',
+      'settings': '/settings',
+      'edit-profile': '/edit-profile',
+      'admin-panel': '/admin-panel',
+      'pretplata': '/pretplata'
+    };
+    
+    const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
+    await navigateWithHistory('/(tabs)?from=' + source, currentRoute);
+  }, [source]);
 
-  const handleOfflinePress = useCallback(() => {
-    router.replace('/offline?from=' + source);
+  const handleOfflinePress = useCallback(async () => {
+    const sourceToRouteMap: { [key: string]: string } = {
+      'home': '/(tabs)',
+      'library': '/(tabs)/library',
+      'search': '/(tabs)/search',
+      'history': '/history',
+      'statistika': '/statistika',
+      'offline': '/offline',
+      'settings': '/settings',
+      'edit-profile': '/edit-profile',
+      'admin-panel': '/admin-panel',
+      'pretplata': '/pretplata'
+    };
+    
+    const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
+    await navigateWithHistory('/offline?from=' + source, currentRoute);
     onClose();
-  }, [router, onClose, source]);
+  }, [source, onClose]);
 
   const isArtistOrAdmin = useMemo(() => role === 'izvodac' || role === 'admin', [role]);
   const isAdmin = useMemo(() => role === 'admin', [role]);
@@ -259,8 +317,10 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
       animationType="none"
       transparent
       onRequestClose={onClose}
+      statusBarTranslucent
+      presentationStyle="overFullScreen"
     >
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, zIndex: 99999, elevation: 99999 }}>
         <TouchableOpacity style={styles.overlay} onPress={onClose} />
         <PanGestureHandler
           onGestureEvent={onGestureEvent}
@@ -271,6 +331,8 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
               styles.sidebar,
               {
                 transform: [{ translateX }],
+                zIndex: 99999,
+                elevation: 99999,
               }
             ]}
           >

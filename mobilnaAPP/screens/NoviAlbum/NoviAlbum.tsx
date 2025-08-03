@@ -38,7 +38,7 @@ const NoviAlbum: React.FC = React.memo(() => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/novi-album' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/novi-album', currentRoute: '/novi-album' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -286,8 +286,15 @@ const NoviAlbum: React.FC = React.memo(() => {
   if (createAlbumMutation.isPending) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('new_album') || 'New Album'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('creating_album')}</Text>
+        <Tabs currentRoute="novi-album" />
       </View>
     );
   }
@@ -299,7 +306,8 @@ const NoviAlbum: React.FC = React.memo(() => {
       <Back
         title={t('new_album') || 'New Album'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
@@ -419,7 +427,7 @@ const NoviAlbum: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="create" />
+      <Tabs currentRoute="novi-album" />
     </View>
   );
 });

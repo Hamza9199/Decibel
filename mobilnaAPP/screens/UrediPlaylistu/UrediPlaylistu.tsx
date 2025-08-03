@@ -44,7 +44,7 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista'});
+  const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-playlistu/${playlistaId}`, currentRoute: `/uredi-playlistu/${playlistaId}` });
 
   useScreenCleanup();
 
@@ -305,8 +305,15 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('loading_playlist') || 'Loading Playlist...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Tabs currentRoute={`/uredi-playlistu/${playlistaId}`} />
       </View>
     );
   }
@@ -317,14 +324,15 @@ const UrediPlaylistu: React.FC = React.memo(() => {
         <Back
           title={t('playlist_not_found') || 'Playlist Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
           />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('playlist_not_found') || 'Playlist not found'}
           </Text>
         </View>
-        <Tabs currentRoute="playlists" />
+        <Tabs currentRoute={`/uredi-playlistu/${playlistaId}`} />
       </View>
     );
   }
@@ -335,14 +343,14 @@ const UrediPlaylistu: React.FC = React.memo(() => {
         <Back
           title={t('no_permission_to_edit') || 'No Permission to Edit'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
           />
         <View style={styles.loadingContainer}>
           <Text style={styles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this playlist'}
           </Text>
         </View>
-        <Tabs currentRoute="playlists" />
+        <Tabs currentRoute={`/uredi-playlistu/${playlistaId}`} />
       </View>
     );
   }
@@ -352,7 +360,8 @@ const UrediPlaylistu: React.FC = React.memo(() => {
       <Back
         title={playlista.naziv || t('edit_playlist') || 'Edit Playlist'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
        />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -476,7 +485,7 @@ const UrediPlaylistu: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="playlists" />
+      <Tabs currentRoute={`/uredi-playlistu/${playlistaId}`}/>
     </View>
   );
 });

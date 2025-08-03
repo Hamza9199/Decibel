@@ -31,7 +31,7 @@ const StatistikaScreen: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/statistika' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/statistika', currentRoute: '/statistika' });
 
 
   const statisticsQuery = useQuery({

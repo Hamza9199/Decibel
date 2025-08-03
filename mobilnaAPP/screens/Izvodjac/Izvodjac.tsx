@@ -32,7 +32,7 @@ const Izvodjac: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/izvodjac' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/izvodjac/[izvodjacId]', currentRoute: '/izvodjac/[izvodjacId]' });
   
 
   const loadUserData = useCallback(async () => {
@@ -352,8 +352,16 @@ const Izvodjac: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+         <Back 
+          title={t('artist_not_found') || 'Artist Not Found'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+                  source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
+                <Tabs currentRoute="artist" />
+
       </View>
     );
   }
@@ -364,7 +372,8 @@ const Izvodjac: React.FC = React.memo(() => {
         <Back 
           title={t('artist_not_found') || 'Artist Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.push('/profile')}
+          onProfilePress={() => router.replace('/edit-profile')}
+                  source={from}
         />
         <MaterialIcons name="person" size={64} color="#666" />
         <Text style={styles.notFoundText}>
@@ -382,7 +391,8 @@ const Izvodjac: React.FC = React.memo(() => {
       <Back 
         title={artistQuery.data.korisnicko_ime || t('artist')}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+       onProfilePress={() => router.replace('/edit-profile')}
+               source={from}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

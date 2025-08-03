@@ -31,7 +31,7 @@ const Postavke: React.FC = React.memo(() => {
   const router = useRouter();
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/settings' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/settings', currentRoute: '/settings' });
 
   const loadSettings = useCallback(async () => {
     try {
@@ -198,7 +198,8 @@ const Postavke: React.FC = React.memo(() => {
       <Back
         title={t('settings') || 'Settings'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
         />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View>
@@ -207,7 +208,6 @@ const Postavke: React.FC = React.memo(() => {
             <View style={styles.spacer} />
           </View>
 
-          {/* Appearance Settings */}
           <View style={styles.section}>
             <Text style={styles.label}>{t('appearance')}:</Text>
             <Picker
@@ -220,7 +220,6 @@ const Postavke: React.FC = React.memo(() => {
             </Picker>
           </View>
 
-          {/* Language Settings */}
           <View style={styles.section}>
             <Text style={styles.label}>{t('language')}:</Text>
             <Picker
@@ -233,7 +232,6 @@ const Postavke: React.FC = React.memo(() => {
             </Picker>
           </View>
 
-          {/* Artist Application */}
           <View style={styles.section}>
             <View style={styles.linkSection}>
               <Text style={styles.label}>{t('artist_application')}:</Text>
@@ -243,7 +241,6 @@ const Postavke: React.FC = React.memo(() => {
             </View>
           </View>
 
-          {/* Delete Profile */}
           <View style={styles.section}>
             <View style={styles.linkSection}>
               <Text style={styles.label}>{t('delete_profile')}:</Text>
@@ -259,7 +256,6 @@ const Postavke: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      {/* Use the new Tabs component */}
       <Tabs currentRoute="settings" />
 
       <Modal

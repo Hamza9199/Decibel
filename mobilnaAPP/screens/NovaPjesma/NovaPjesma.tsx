@@ -39,7 +39,7 @@ const NovaPjesma: React.FC = React.memo(() => {
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/nova-pjesma' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/nova-pjesma', currentRoute: '/nova-pjesma' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -245,8 +245,15 @@ const NovaPjesma: React.FC = React.memo(() => {
   if (createSongMutation.isPending) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('creating_song') || 'Creating Song...'}
+          onBackPress={handleBackPress}
+          onProfilePress={() => router.replace('/edit-profile')}
+          source={from}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('creating_song')}</Text>
+        <Tabs currentRoute="nova-pjesma" />
       </View>
     );
   }
@@ -256,7 +263,8 @@ const NovaPjesma: React.FC = React.memo(() => {
       <Back
         title={t('new_song') || 'New Song'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => router.replace('/edit-profile')}
+        source={from}
       />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.content}>
@@ -407,7 +415,7 @@ const NovaPjesma: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="create" />
+      <Tabs currentRoute="nova-pjesma" />
     </View>
   );
 });

@@ -170,9 +170,10 @@ const UrediPjesmu: React.FC = () => {
     <>
     <Header/>
     <Sidebar/>
-    <div className={styles.editSongBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-      <form className={styles.editSongForm} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>{t("edit_song") || "Uredi pjesmu"}</h2>
+    <div className={styles.editSongBg}>
+      <div className={styles.formContainer}>
+        <form className={styles.editSongForm} onSubmit={handleSubmit}>
+          <h2 className={styles.title}>{t("edit_song") || "Uredi pjesmu"}</h2>
         <label className={styles.label}>{t("song_name") || "Naziv"}</label>
         <input
           className={styles.input}
@@ -250,58 +251,22 @@ const UrediPjesmu: React.FC = () => {
           {t("save_changes")}
         </button>
       </form>
-      <div style={{
-        marginLeft: 32,
-        background: "#232323",
-        borderRadius: 14,
-        padding: "24px 18px",
-        minWidth: 260,
-        maxHeight: 480,
-        overflowY: "auto",
-        boxShadow: "0 4px 24px #b91d9533"
-      }}>
-        <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("song_artists") || "Izvođači na pjesmi"}</h4>
+      
+      <div className={styles.artistsSection}>
+        <h4 className={styles.artistsTitle}>{t("song_artists") || "Izvođači na pjesmi"}</h4>
         <input
           type="text"
           placeholder={t("search_artists") || "Pretraži izvođače..."}
           value={search}
           onChange={e => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            borderRadius: 8,
-            border: "1px solid #b91d95",
-            padding: "8px 10px",
-            fontSize: "1.05rem",
-            marginBottom: 10,
-            background: "#181818",
-            color: "#fff"
-          }}
+          className={styles.artistSearch}
         />
-        <div style={{ marginBottom: 10 }}>
+        <div className={styles.selectedArtists}>
           {izabraniIzvodjaci.map((k) => (
-            <span key={k.id} style={{
-              display: "inline-flex",
-              alignItems: "center",
-              background: "#b91d95",
-              color: "#fff",
-              borderRadius: 8,
-              padding: "4px 10px",
-              marginRight: 6,
-              marginBottom: 6,
-              fontWeight: 600,
-              fontSize: "0.98rem"
-            }}>
+            <span key={k.id} className={styles.artistTag}>
               {k.korisnicko_ime}
               <button
-                style={{
-                  marginLeft: 6,
-                  background: "none",
-                  border: "none",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  fontSize: "1.1rem"
-                }}
+                className={styles.removeArtistBtn}
                 onClick={() => handleRemoveIzvodjac(k.id)}
                 title={k.id === korisnikID ? t("remove_self_artist") || "Ukloni sebe kao izvođača" : t("remove_artist") || "Ukloni izvođača"}
                 type="button"
@@ -310,11 +275,11 @@ const UrediPjesmu: React.FC = () => {
               </button>
             </span>
           ))}
-          <div style={{ color: "#bbb", fontSize: "0.93rem", marginTop: 4 }}>
+          <div className={styles.artistNote}>
             {t("can_remove_self_artist") || "Možete ukloniti bilo kojeg izvođača, uključujući i sebe."}
           </div>
         </div>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul className={styles.availableArtists}>
           {sviIzvodjaci
             .filter((k) =>
               k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()) &&
@@ -322,20 +287,9 @@ const UrediPjesmu: React.FC = () => {
             )
             .slice(0, 8)
             .map((k) => (
-              <li key={k.id} style={{ marginBottom: 8 }}>
+              <li key={k.id} className={styles.artistItem}>
                 <button
-                  style={{
-                    background: "#b91d95",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "8px 0",
-                    fontSize: "1.05rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    width: "100%",
-                    transition: "background 0.18s",
-                  }}
+                  className={styles.addArtistBtn}
                   type="button"
                   onClick={() => handleAddIzvodjac(k)}
                 >
@@ -344,6 +298,7 @@ const UrediPjesmu: React.FC = () => {
               </li>
             ))}
         </ul>
+      </div>
       </div>
     </div>
     <Footer/>

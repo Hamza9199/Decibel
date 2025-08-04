@@ -199,45 +199,21 @@ const AdminPanel: React.FC = () => {
       <div className={styles.adminBg}>
         <div className={styles.container}>
           <h2 className={styles.title}>{t("admin_panel") || "Admin panel"}</h2>
-          <div style={{ display: "flex", gap: 16, marginBottom: 28, justifyContent: "center" }}>
+          <div className={styles.tabContainer}>
             <button
-              className={styles.btn}
-              style={{
-                background: activeTab === "pjesme" ? "#b91d95" : "#232323",
-                color: activeTab === "pjesme" ? "#fff" : "#ffe6ec",
-                border: activeTab === "pjesme" ? "2px solid #b91d95" : "2px solid #232323",
-                fontWeight: activeTab === "pjesme" ? 700 : 500,
-                fontSize: "1.07rem",
-                padding: "10px 28px"
-              }}
+              className={`${styles.tabButton} ${activeTab === "pjesme" ? styles.active : ""}`}
               onClick={() => { setActiveTab("pjesme"); setSearch(""); }}
             >
               {t("songs") || "Pjesme"}
             </button>
             <button
-              className={styles.btn}
-              style={{
-                background: activeTab === "albumi" ? "#b91d95" : "#232323",
-                color: activeTab === "albumi" ? "#fff" : "#ffe6ec",
-                border: activeTab === "albumi" ? "2px solid #b91d95" : "2px solid #232323",
-                fontWeight: activeTab === "albumi" ? 700 : 500,
-                fontSize: "1.07rem",
-                padding: "10px 28px"
-              }}
+              className={`${styles.tabButton} ${activeTab === "albumi" ? styles.active : ""}`}
               onClick={() => { setActiveTab("albumi"); setSearch(""); }}
             >
               {t("albums") || "Albumi"}
             </button>
             <button
-              className={styles.btn}
-              style={{
-                background: activeTab === "playliste" ? "#b91d95" : "#232323",
-                color: activeTab === "playliste" ? "#fff" : "#ffe6ec",
-                border: activeTab === "playliste" ? "2px solid #b91d95" : "2px solid #232323",
-                fontWeight: activeTab === "playliste" ? 700 : 500,
-                fontSize: "1.07rem",
-                padding: "10px 28px"
-              }}
+              className={`${styles.tabButton} ${activeTab === "playliste" ? styles.active : ""}`}
               onClick={() => { setActiveTab("playliste"); setSearch(""); }}
             >
               {t("playlists") || "Playliste"}
@@ -254,20 +230,7 @@ const AdminPanel: React.FC = () => {
             }
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              maxWidth: 340,
-              marginBottom: 24,
-              padding: "10px 14px",
-              borderRadius: 8,
-              border: "1px solid #b91d95",
-              background: "#181818",
-              color: "#fff",
-              fontSize: "1.08rem",
-              display: "block",
-              marginLeft: "auto",
-              marginRight: "auto"
-            }}
+            className={styles.searchInput}
           />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>
@@ -302,15 +265,15 @@ const AdminPanel: React.FC = () => {
                       ) : (
                         filtriranePjesme.map((p) => (
                           <tr key={p.id}>
-                            <td>
+                            <td data-label={t("song_name") || "Naziv"}>
                               <Link className="link" to={`/pjesma/${p.id}`}>{p.naziv}</Link>
                             </td>
-                            <td>
+                            <td data-label={t("artist") || "Izvođač"}>
                               <Link className="link" to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
                                 {p.korisnik?.korisnicko_ime || p.korisnikID}
                               </Link>
                             </td>
-                            <td>
+                            <td data-label={t("play") || "Preslušaj"}>
                               {p.putanjaAudio && (
                                 <button
                                   className={styles.btn}
@@ -322,7 +285,7 @@ const AdminPanel: React.FC = () => {
                                 </button>
                               )}
                             </td>
-                            <td>
+                            <td data-label={t("approved") || "Odobreno"}>
                               <span
                                 className={
                                   p.odobreno
@@ -333,7 +296,7 @@ const AdminPanel: React.FC = () => {
                                 {p.odobreno ? t("yes") || "DA" : t("no") || "NE"}
                               </span>
                             </td>
-                            <td>
+                            <td data-label={t("action") || "Akcija"}>
                               <button
                                 className={styles.btn}
                                 style={{
@@ -346,7 +309,7 @@ const AdminPanel: React.FC = () => {
                                 {p.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
                               </button>
                             </td>
-                            <td>
+                            <td data-label={t("delete") || "Obriši"}>
                               <button
                                 className={styles.btn}
                                 style={{ background: "#e53935", margin: 0 }}
@@ -391,16 +354,16 @@ const AdminPanel: React.FC = () => {
                       ) : (
                         filtriraniAlbumi.map((a) => (
                           <tr key={a.id}>
-                            <td>
+                            <td data-label={t("album_name") || "Naziv"}>
                               <Link className="link" to={`/album/${a.id}`}>{a.naziv}</Link>
                             </td>
-                            <td>
+                            <td data-label={t("artist") || "Korisnik"}>
                               <Link className="link" to={`/izvodjac/${a.korisnik?.id || a.korisnikID}`}>
                                 {a.korisnik?.korisnicko_ime || a.korisnikID}
                               </Link>
                             </td>
-                            <td>{a.brojLajkova}</td>
-                            <td>
+                            <td data-label={t("number_of_likes") || "Broj lajkova"}>{a.brojLajkova}</td>
+                            <td data-label={t("play") || "Preslušaj"}>
                               <button
                                 className={styles.btn}
                                 style={{ background: "#2ecc40", margin: 0 }}
@@ -410,7 +373,7 @@ const AdminPanel: React.FC = () => {
                                 ▶
                               </button>
                             </td>
-                            <td>
+                            <td data-label={t("approved") || "Odobreno"}>
                               <span
                                 className={
                                   a.odobreno
@@ -421,7 +384,7 @@ const AdminPanel: React.FC = () => {
                                 {a.odobreno ? t("yes") || "DA" : t("no") || "NE"}
                               </span>
                             </td>
-                            <td>
+                            <td data-label={t("action") || "Akcija"}>
                               <button
                                 className={styles.btn}
                                 style={{
@@ -434,7 +397,7 @@ const AdminPanel: React.FC = () => {
                                 {a.odobreno ? t("revoke_approval") || "Poništi odobrenje" : t("approve") || "Odobri"}
                               </button>
                             </td>
-                            <td>
+                            <td data-label={t("delete") || "Obriši"}>
                               <button
                                 className={styles.btn}
                                 style={{ background: "#e53935", margin: 0 }}
@@ -477,16 +440,16 @@ const AdminPanel: React.FC = () => {
                       ) : (
                         filtriranePlayliste.map((pl) => (
                           <tr key={pl.id}>
-                            <td>
+                            <td data-label={t("playlist_name") || "Naziv"}>
                               <Link className="link" to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
                             </td>
-                            <td>
+                            <td data-label={t("artist") || "Korisnik"}>
                               <Link className="link" to={`/izvodjac/${pl.korisnik?.id || pl.korisnikID}`}>
                                 {pl.korisnik?.korisnicko_ime || pl.korisnikID}
                               </Link>
                             </td>
-                            <td>{pl.brojLajkova}</td>
-                            <td>
+                            <td data-label={t("number_of_likes") || "Broj lajkova"}>{pl.brojLajkova}</td>
+                            <td data-label={t("play") || "Preslušaj"}>
                               <button
                                 className={styles.btn}
                                 style={{ background: "#2ecc40", margin: 0 }}
@@ -496,7 +459,7 @@ const AdminPanel: React.FC = () => {
                                 ▶
                               </button>
                             </td>
-                            <td>
+                            <td data-label={t("delete") || "Obriši"}>
                               <button
                                 className={styles.btn}
                                 style={{ background: "#e53935", margin: 0 }}

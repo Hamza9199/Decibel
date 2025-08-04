@@ -80,17 +80,7 @@ const SviAlbumi: React.FC = () => {
             placeholder={t("search_albums") || "Pretraži albume..."}
             value={search}
             onChange={e => setSearch(e.target.value)}
-            style={{
-              width: "100%",
-              maxWidth: 340,
-              marginBottom: 24,
-              padding: "10px 14px",
-              borderRadius: 8,
-              border: "1px solid #b91d95",
-              background: "#181818",
-              color: "#fff",
-              fontSize: "1.08rem"
-            }}
+            className={styles.searchInput}
           />
           {loading ? (
             <div className={styles.loading}>{t("loading")}</div>

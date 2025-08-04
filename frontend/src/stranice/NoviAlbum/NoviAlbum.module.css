@@ -121,6 +121,73 @@
   font-size: 0.98rem;
 }
 
+/* Form container layout */
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Songs section styling */
+.songsSection {
+  background: #232323;
+  border-radius: 14px;
+  padding: 24px 18px;
+  min-width: 260px;
+  max-height: 480px;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px #b91d9533;
+}
+
+.songsTitle {
+  color: #fff;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.noSongsText {
+  color: #b3b3b3;
+  font-size: 0.95rem;
+}
+
+.songsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.songItem {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.songCheckbox {
+  accent-color: #b91d95;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.songName {
+  color: #ffe6ec;
+  font-weight: 500;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.songDuration {
+  color: #b3b3b3;
+  font-size: 0.85rem;
+  min-width: 40px;
+  text-align: right;
+}
+
 @media (max-width: 600px) {
   .noviAlbumBg {
     margin-top: 70px;
@@ -168,18 +235,62 @@
   .noviAlbumBg {
     margin-top: 60px;
     padding: 15px 0;
-    min-height: 100vh;
+  }
+  
+  .formContainer {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 0 10px;
   }
   
   .noviAlbumForm {
-    min-width: 95vw;
-    max-width: 95vw;
     padding: 20px 16px 20px 16px;
     border-radius: 8px;
     box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
     background: rgba(24,24,24,0.85);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .songsSection {
+    min-width: 90vw;
+    max-width: 90vw;
+    max-height: none;
+    padding: 16px 12px;
+    border-radius: 8px;
+    background: rgba(35, 35, 35, 0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+  }
+  
+  .songsTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .noSongsText {
+    font-size: 0.85rem;
+  }
+  
+  .songItem {
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+  
+  .songCheckbox {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .songName {
+    font-size: 0.85rem;
+  }
+  
+  .songDuration {
+    font-size: 0.8rem;
+    min-width: 35px;
   }
   
   .title {

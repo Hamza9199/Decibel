@@ -91,9 +91,10 @@ const NoviAlbum: React.FC = () => {
     <>
       <Header/>
       <Sidebar/>
-      <div className={styles.noviAlbumBg} style={{ display: "flex", justifyContent: "center", alignItems: "flex-start" }}>
-        <form className={styles.noviAlbumForm} onSubmit={handleSubmit} style={{ minWidth: 340 }}>
-          <h2 className={styles.title}>{t("new_album")}</h2>
+      <div className={styles.noviAlbumBg}>
+        <div className={styles.formContainer}>
+          <form className={styles.noviAlbumForm} onSubmit={handleSubmit} style={{ minWidth: 340 }}>
+            <h2 className={styles.title}>{t("new_album")}</h2>
           <input
             type="text"
             placeholder={t("album_name") || "Naziv albuma"}
@@ -140,37 +141,30 @@ const NoviAlbum: React.FC = () => {
             {t("cancel")}
           </button>
         </form>
-        <div style={{
-          marginLeft: 32,
-          background: "#232323",
-          borderRadius: 14,
-          padding: "24px 18px",
-          minWidth: 260,
-          maxHeight: 480,
-          overflowY: "auto",
-          boxShadow: "0 4px 24px #b91d9533"
-        }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("add_existing_songs") || "Dodaj postojeće pjesme"}</h4>
+        
+        <div className={styles.songsSection}>
+          <h4 className={styles.songsTitle}>{t("add_existing_songs") || "Dodaj postojeće pjesme"}</h4>
           {svePjesme.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>{t("no_available_songs") || "Nema dostupnih pjesama."}</div>
+            <div className={styles.noSongsText}>{t("no_available_songs") || "Nema dostupnih pjesama."}</div>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.songsList}>
               {svePjesme.map((p) => (
-                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
+                <li key={p.id} className={styles.songItem}>
                   <input
                     type="checkbox"
                     checked={odabranePjesme.includes(p.id)}
                     onChange={() => handleTogglePjesma(p.id)}
-                    style={{ marginRight: 10 }}
+                    className={styles.songCheckbox}
                   />
-                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
-                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
+                  <span className={styles.songName}>{p.naziv}</span>
+                  <span className={styles.songDuration}>
                     {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
                   </span>
                 </li>
               ))}
             </ul>
           )}
+        </div>
         </div>
       </div>
       <Footer/>

@@ -74,6 +74,116 @@
   margin-bottom: 8px;
   font-size: 0.98rem;
 }
+/* Form container layout */
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Artists section styling */
+.artistsSection {
+  background: #232323;
+  border-radius: 14px;
+  padding: 24px 18px;
+  min-width: 260px;
+  max-height: 480px;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px #b91d9533;
+}
+
+.artistsTitle {
+  color: #fff;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.artistSearch {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #b91d95;
+  padding: 8px 10px;
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  background: #181818;
+  color: #fff;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.artistSearch:focus {
+  border: 1.5px solid #e754a2;
+}
+
+.selectedArtists {
+  margin-bottom: 10px;
+}
+
+.artistTag {
+  display: inline-flex;
+  align-items: center;
+  background: #b91d95;
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.removeArtistBtn {
+  margin-left: 6px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: transform 0.1s;
+}
+
+.removeArtistBtn:hover {
+  transform: scale(1.2);
+}
+
+.artistNote {
+  color: #bbb;
+  font-size: 0.93rem;
+  margin-top: 4px;
+}
+
+.availableArtists {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.artistItem {
+  margin-bottom: 8px;
+}
+
+.addArtistBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.18s;
+}
+
+.addArtistBtn:hover {
+  background: #e754a2;
+}
+
 @media (max-width: 600px) {
   .editSongBg {
     margin-top: 20px;
@@ -124,9 +234,14 @@
     min-height: 100vh;
   }
   
+  .formContainer {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 0 10px;
+  }
+  
   .editSongForm {
-    min-width: 95vw;
-    max-width: 95vw;
     padding: 16px 12px 16px 12px;
     border-radius: 8px;
     gap: 6px;
@@ -134,6 +249,58 @@
     background: rgba(35, 35, 35, 0.95);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .artistsSection {
+    min-width: 90vw;
+    max-width: 90vw;
+    max-height: none;
+    padding: 16px 12px;
+    border-radius: 8px;
+    background: rgba(35, 35, 35, 0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+  }
+  
+  .artistsTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .artistSearch {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+  }
+  
+  .artistTag {
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+  }
+  
+  .removeArtistBtn {
+    font-size: 1rem;
+    margin-left: 4px;
+  }
+  
+  .artistNote {
+    font-size: 0.8rem;
+    margin-top: 6px;
+  }
+  
+  .addArtistBtn {
+    font-size: 0.9rem;
+    padding: 6px 0;
+    border-radius: 6px;
+  }
+  
+  .artistItem {
+    margin-bottom: 6px;
   }
   
   .title {
@@ -152,6 +319,7 @@
     font-size: 0.8rem;
     margin-bottom: 2px;
     border-radius: 6px;
+    width: 90%;
   }
   
   .input:focus {
@@ -163,6 +331,8 @@
     font-size: 0.9rem;
     margin-top: 6px;
     border-radius: 6px;
+        width: 95%;
+
   }
   
   .error, .success {

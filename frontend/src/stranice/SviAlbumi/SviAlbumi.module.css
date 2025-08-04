@@ -4,6 +4,18 @@
   padding-bottom: 60px;
   background: rgba(24,24,24,0.97);
 }
+
+.searchInput{
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 24px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #b91d95;
+  background: #181818;
+  color: #fff;
+  font-size: 1.08rem;
+}
 .playButton {
   position: absolute;
   bottom: 10px;
@@ -264,7 +276,13 @@
     gap: 8px;
     margin-bottom: 16px;
   }
-  
+  .searchInput {
+    width: 80%;
+    max-width: 100%;
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
   .card {
     min-width: 85px;
     max-width: 85px;

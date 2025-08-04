@@ -105,6 +105,55 @@
   text-align: center;
 }
 
+/* Search input styling */
+.searchInput {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto 28px auto;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1.5px solid #b91d95;
+  background: #181818;
+  color: #fff;
+  font-size: 1.1rem;
+  outline: none;
+  transition: all 0.2s ease;
+  display: block;
+  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.1);
+}
+
+.searchInput:focus {
+  border: 2px solid #e754a2;
+  box-shadow: 0 4px 16px rgba(231, 84, 162, 0.2);
+  transform: translateY(-1px);
+}
+
+.searchInput::placeholder {
+  color: #b3b3b3;
+  font-style: italic;
+}
+
+.showApplicationBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.18s;
+}
+
+.showApplicationBtn:hover {
+  background: #e754a2;
+}
+
+.noApplicationText {
+  color: #b3b3b3;
+  font-style: italic;
+}
+
 @media (max-width: 900px) {
   .bg {
     padding-top: 60px;
@@ -141,6 +190,13 @@
     padding: 4px 8px;
     font-size: 0.9rem;
   }
+  
+  .searchInput {
+    font-size: 1rem;
+    padding: 10px 14px;
+    max-width: 350px;
+    margin-bottom: 24px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -176,102 +232,139 @@
     padding: 3px 6px;
     font-size: 0.8rem;
   }
+  
+  .searchInput {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    max-width: 300px;
+    margin-bottom: 20px;
+  }
 }
 
 @media (max-width: 480px) {
   .bg {
     padding-top: 55px;
-    padding-bottom: 30px;
+    padding-bottom: 100px;
     min-height: 100vh;
   }
   
   .container {
-    max-width: 100vw;
+    max-width: 95%;
     margin: 0 auto;
-    padding: 12px 8px 20px 8px;
-    border-radius: 0;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
-    background: rgba(24,24,24,0.85);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    padding: 20px 20px 20px 20px;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+    background: rgba(35, 35, 35, 0.97);
   }
   
   .title {
-    font-size: 1.2rem;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
+    font-size: 1.75rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  
+  .searchInput {
+    font-size: 1rem;
+    padding: 12px 14px;
+    max-width: 85%;
+    margin-bottom: 24px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(185, 29, 149, 0.15);
+  }
+  
+  .searchInput:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(231, 84, 162, 0.25);
   }
   
   .table {
-    border-radius: 8px;
-    margin-top: 12px;
-    overflow-x: auto;
     display: block;
-    white-space: nowrap;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+    margin-top: 0;
   }
   
-  .table thead,
-  .table tbody,
-  .table tr {
-    display: block;
+  .table thead {
+    display: none;
   }
   
-  .table thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  .table tbody {
+    display: block;
   }
   
   .table tr {
-    border: 1px solid #333;
-    margin-bottom: 8px;
-    padding: 8px;
-    border-radius: 6px;
+    display: block;
     background: #232323;
-    display: block;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #333;
     white-space: normal;
+    position: relative;
   }
   
   .table td {
+    display: block;
     border: none;
-    padding: 4px 0;
+    padding: 0;
     text-align: left;
     white-space: normal;
-    display: block;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+  }
+  
+  .table td:last-child {
+    margin-bottom: 0;
   }
   
   .table td:before {
     content: attr(data-label) ": ";
     font-weight: bold;
     color: #b91d95;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
+    display: inline-block;
+    min-width: 100px;
   }
   
   .profileImg {
-    width: 24px;
-    height: 24px;
-    margin-right: 6px;
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
     vertical-align: middle;
   }
   
   .select {
-    padding: 2px 4px;
-    font-size: 0.7rem;
-    border-radius: 4px;
-    width: 80px;
-    max-width: 80px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    min-width: 120px;
+    margin-top: 4px;
+  }
+  
+  .showApplicationBtn {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    margin-top: 4px;
+  }
+  
+  .noApplicationText {
+    font-size: 0.8rem;
+    margin-top: 4px;
   }
   
   .loading {
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin-top: 40px;
   }
   
   .error, .success {
-    font-size: 0.8rem;
-    padding: 6px 8px;
-    margin-bottom: 6px;
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
   }
 }
 

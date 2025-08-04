@@ -170,8 +170,6 @@
   }
   
   .novaPlaylistaForm {
-    min-width: 95vw;
-    max-width: 95vw;
     padding: 20px 16px 20px 16px;
     border-radius: 8px;
     box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
@@ -191,6 +189,7 @@
     font-size: 0.9rem;
     margin-bottom: 10px;
     border-radius: 6px;
+    width: 85%;
   }
   
   .input:focus, .textarea:focus {

@@ -9,6 +9,22 @@ import { Pjesma, Album, Playlista, Korisnik, KorisnikPjesma, KorisnikAlbum, Kori
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 
+// Interface for API responses with embedded data
+interface KorisnikPjesmaWithData extends KorisnikPjesma {
+  pjesma?: Pjesma;
+  korisnik?: Korisnik;
+}
+
+interface KorisnikAlbumWithData extends KorisnikAlbum {
+  album?: Album;
+  korisnik?: Korisnik;
+}
+
+interface KorisnikPlaylistaWithData extends KorisnikPlaylista {
+  playlista?: Playlista;
+  korisnik?: Korisnik;
+}
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Omiljeno: React.FC = () => {
@@ -45,42 +61,92 @@ const Omiljeno: React.FC = () => {
     if (!korisnikID) return;
     setLoading(true);
     Promise.all([
-      axios.get(`${API_BASE}/pjesme/`).then(res => res.data).catch(() => []),
-      axios.get(`${API_BASE}/albumi/`).then(res => res.data).catch(() => []),
-      axios.get(`${API_BASE}/playliste/`).then(res => res.data).catch(() => []),
+      // Use new API endpoints like Biblioteka
+      axios.get(`${API_BASE}/korisnik_pjesma/korisnik/${korisnikID}`).then(res => {
+        const likedSongs = (res.data || [])
+          .filter((l: KorisnikPjesmaWithData) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+          .map((l: KorisnikPjesmaWithData) => ({
+            korisnikID: l.korisnikID,
+            pjesmaID: l.pjesmaID,
+            kreiranDatumVrijeme: l.kreiranDatumVrijeme
+          }));
+        
+        const songs = (res.data || [])
+          .filter((l: KorisnikPjesmaWithData) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+          .map((l: KorisnikPjesmaWithData) => ({
+            ...l.pjesma!,
+            korisnik: l.korisnik || l.pjesma!.korisnik || null
+          }));
+        
+        return { likedSongs, songs };
+      }).catch(() => ({ likedSongs: [], songs: [] })),
+      
+      axios.get(`${API_BASE}/korisnik_album/korisnik/${korisnikID}`).then(res => {
+        const likedAlbums = (res.data || [])
+          .filter((l: KorisnikAlbumWithData) => l.album && l.album.odobreno)
+          .map((l: KorisnikAlbumWithData) => ({
+            korisnikID: l.korisnikID,
+            albumID: l.albumID,
+            kreiranDatumVrijeme: l.kreiranDatumVrijeme
+          }));
+        
+        const albums = (res.data || [])
+          .filter((l: KorisnikAlbumWithData) => l.album && l.album.odobreno)
+          .map((l: KorisnikAlbumWithData) => ({
+            ...l.album!,
+            korisnik: l.korisnik || l.album!.korisnik || null
+          }));
+        
+        return { likedAlbums, albums };
+      }).catch(() => ({ likedAlbums: [], albums: [] })),
+      
+      axios.get(`${API_BASE}/korisnik_playlista/korisnik/${korisnikID}`).then(res => {
+        const likedPlaylists = (res.data || [])
+          .filter((l: KorisnikPlaylistaWithData) => l.playlista && l.playlista.javno)
+          .map((l: KorisnikPlaylistaWithData) => ({
+            korisnikID: l.korisnikID,
+            playlistaID: l.playlistaID,
+            kreiranDatumVrijeme: l.kreiranDatumVrijeme
+          }));
+        
+        const playlists = (res.data || [])
+          .filter((l: KorisnikPlaylistaWithData) => l.playlista && l.playlista.javno)
+          .map((l: KorisnikPlaylistaWithData) => ({
+            ...l.playlista!,
+            korisnik: l.korisnik || l.playlista!.korisnik || null
+          }));
+        
+        return { likedPlaylists, playlists };
+      }).catch(() => ({ likedPlaylists: [], playlists: [] })),
+      
       axios.get(`${API_BASE}/korisnici/`).then(res => res.data).catch(() => []),
-      axios.get(`${API_BASE}/korisnik_pjesma/`).then(res => res.data).catch(() => []),
-      axios.get(`${API_BASE}/korisnik_album/`).then(res => res.data).catch(() => []),
-      axios.get(`${API_BASE}/korisnik_playlista/`).then(res => res.data).catch(() => []),
-    ]).then(([pjesmeData, albumiData, playlisteData, korisniciData, kpData, kaData, kplData]) => {
-      setPjesme(pjesmeData);
-      setAlbumi(albumiData);
-      setPlayliste(playlisteData);
+      axios.get(`${API_BASE}/playliste/`).then(res => res.data).catch(() => []),
+    ]).then(([songsResult, albumsResult, playlistsResult, korisniciData, allPlaylistsData]) => {
+      // Set the fetched data
+      setPjesme(songsResult.songs);
+      setAlbumi(albumsResult.albums);
+      setPlayliste(playlistsResult.playlists);
       setKorisnici(korisniciData);
-      setOmiljenePjesme((kpData || []).filter((k: KorisnikPjesma) => k.korisnikID === korisnikID));
-      setOmiljeniAlbumi((kaData || []).filter((k: KorisnikAlbum) => k.korisnikID === korisnikID));
-      setOmiljenePlayliste((kplData || []).filter((k: KorisnikPlaylista) => k.korisnikID === korisnikID));
+      setOmiljenePjesme(songsResult.likedSongs);
+      setOmiljeniAlbumi(albumsResult.likedAlbums);
+      setOmiljenePlayliste(playlistsResult.likedPlaylists);
+      setPlaylists(allPlaylistsData);
+      
+      // Set like maps
+      const songLikeMap: { [pjesmaId: number]: boolean } = {};
+      songsResult.likedSongs.forEach((l: KorisnikPjesma) => { songLikeMap[l.pjesmaID] = true; });
+      setLikeMap(songLikeMap);
+      
+      const albumLikeMap: { [albumId: number]: boolean } = {};
+      albumsResult.likedAlbums.forEach((l: KorisnikAlbum) => { albumLikeMap[l.albumID] = true; });
+      setLikeAlbumMap(albumLikeMap);
+      
+      const playlistLikeMap: { [playlistaId: number]: boolean } = {};
+      playlistsResult.likedPlaylists.forEach((l: KorisnikPlaylista) => { playlistLikeMap[l.playlistaID] = true; });
+      setLikePlaylistMap(playlistLikeMap);
+      
       setLoading(false);
     });
-    axios.get(`${API_BASE}/playliste/`).then(res => setPlaylists(res.data || [])).catch(() => setPlaylists([]));
-    axios.get(`${API_BASE}/korisnik_pjesma/`).then(res => {
-      const veze = res.data as KorisnikPjesma[];
-      const map: { [pjesmaId: number]: boolean } = {};
-      veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.pjesmaID] = true; });
-      setLikeMap(map);
-    }).catch(() => setLikeMap({}));
-    axios.get(`${API_BASE}/korisnik_album/`).then(res => {
-      const veze = res.data as KorisnikAlbum[];
-      const map: { [albumId: number]: boolean } = {};
-      veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.albumID] = true; });
-      setLikeAlbumMap(map);
-    }).catch(() => setLikeAlbumMap({}));
-    axios.get(`${API_BASE}/korisnik_playlista/`).then(res => {
-      const veze = res.data as KorisnikPlaylista[];
-      const map: { [playlistaId: number]: boolean } = {};
-      veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.playlistaID] = true; });
-      setLikePlaylistMap(map);
-    }).catch(() => setLikePlaylistMap({}));
   }, [korisnikID, tipRaw]);
 
   const handlePlay = (p: Pjesma) => {

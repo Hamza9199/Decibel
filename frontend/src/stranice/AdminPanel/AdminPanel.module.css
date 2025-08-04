@@ -121,6 +121,61 @@
   text-align: center;
 }
 
+/* Tab buttons styling */
+.tabContainer {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  justify-content: center;
+}
+
+.tabButton {
+  background: #232323;
+  color: #ffe6ec;
+  border: 2px solid #232323;
+  font-weight: 500;
+  font-size: 1.07rem;
+  padding: 10px 28px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.tabButton.active {
+  background: #b91d95;
+  color: #fff;
+  border: 2px solid #b91d95;
+  font-weight: 700;
+}
+
+.tabButton:hover {
+  background: #e754a2;
+  color: #fff;
+  border: 2px solid #e754a2;
+}
+
+/* Search input styling */
+.searchInput {
+  width: 100%;
+  max-width: 340px;
+  margin-bottom: 24px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #b91d95;
+  background: #181818;
+  color: #fff;
+  font-size: 1.08rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  outline: none;
+  transition: border 0.2s;
+}
+
+.searchInput:focus {
+  border: 1.5px solid #e754a2;
+}
+
 @media (max-width: 900px) {
   .adminBg {
     padding-top: 60px;
@@ -162,6 +217,17 @@
     padding: 6px 12px;
     font-size: 0.9rem;
   }
+  
+  .tabButton {
+    font-size: 0.9rem;
+    padding: 8px 20px;
+  }
+  
+  .searchInput {
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    max-width: 280px;
+  }
 }
 
 @media (max-width: 600px) {
@@ -199,105 +265,145 @@
     padding: 5px 10px;
     font-size: 0.8rem;
   }
+  
+  .tabContainer {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  
+  .tabButton {
+    font-size: 0.8rem;
+    padding: 6px 16px;
+  }
+  
+  .searchInput {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    max-width: 250px;
+  }
 }
 
 @media (max-width: 480px) {
   .adminBg {
     padding-top: 55px;
-    padding-bottom: 30px;
-    min-height: 100vh;
+    padding-bottom: 100px;
   }
   
   .container {
-    max-width: 100vw;
+    max-width: 85%;
     margin: 0 auto;
-    padding: 12px 8px 20px 8px;
-    border-radius: 0;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
-    background: rgba(24,24,24,0.85);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    padding: 20px 20px 20px 20px;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+    background: rgba(35, 35, 35, 0.97);
   }
   
   .title {
-    font-size: 1.2rem;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
+    font-size: 1.75rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    font-weight: 700;
   }
   
   .section {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
   
   .sectionTitle {
-    font-size: 0.95rem;
-    margin-bottom: 8px;
-    border-left: 2px solid #b91d95;
-    padding-left: 4px;
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+    border-left: 3px solid #b91d95;
+    padding-left: 8px;
   }
   
   .table {
-    border-radius: 8px;
-    margin-top: 6px;
-    overflow-x: auto;
     display: block;
-    white-space: nowrap;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+    margin-top: 0;
   }
   
-  .table thead,
-  .table tbody,
-  .table tr {
-    display: block;
+  .table thead {
+    display: none;
   }
   
-  .table thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  .table tbody {
+    display: block;
   }
   
   .table tr {
-    border: 1px solid #333;
-    margin-bottom: 8px;
-    padding: 8px;
-    border-radius: 6px;
+    display: block;
     background: #232323;
-    display: block;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #333;
     white-space: normal;
+    position: relative;
   }
   
   .table td {
+    display: block;
     border: none;
-    padding: 4px 0;
+    padding: 0;
     text-align: left;
     white-space: normal;
-    display: block;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
+    margin-bottom: 8px;
+  }
+  
+  .table td:last-child {
+    margin-bottom: 0;
   }
   
   .table td:before {
     content: attr(data-label) ": ";
     font-weight: bold;
     color: #b91d95;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
+    display: inline-block;
+    min-width: 80px;
   }
   
   .btn {
-    padding: 4px 8px;
-    font-size: 0.7rem;
-    border-radius: 4px;
-    margin: 2px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    margin: 2px 4px 2px 0;
+    display: inline-block;
   }
   
   .loading {
-    font-size: 1rem;
+    font-size: 1.1rem;
     margin-top: 40px;
   }
   
   .error, .success {
+    font-size: 0.85rem;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+  }
+  
+  .tabContainer {
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  
+  .tabButton {
+    font-size: 0.75rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+  }
+  
+  .searchInput {
     font-size: 0.8rem;
-    padding: 6px 8px;
-    margin-bottom: 6px;
+    padding: 8px 10px;
+    max-width: 90%;
+    margin-bottom: 16px;
+    border-radius: 6px;
   }
 }
 

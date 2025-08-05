@@ -1,5 +1,4 @@
 .novaPretplataBg {
-  min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
   background: rgba(24,24,24,0.7);
@@ -9,13 +8,12 @@
 }
 
 .container {
-  max-width: 420px;
+  max-width: 430px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 24px 32px 24px;
+  padding: 32px 81px 32px 34px;
   background: #232323;
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -34,28 +32,186 @@
   font-size: 1.08rem;
 }
 
-.karticaForm {
+.cardContainer {
+  margin-bottom: 24px;
+}
+
+.cardPreview {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  border-radius: 16px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  font-family: 'Courier New', monospace;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardType {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  height: 40px;
+}
+
+.cardIcon {
+  height: 32px;
+  width: auto;
+  filter: brightness(0) invert(1);
+}
+
+.unknownCard {
+  font-size: 28px;
+  opacity: 0.7;
+}
+
+.cardNumber {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.cardDetails {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.cardName {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cardExp {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.inputGroup label {
+  color: #ffe6ec;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.input {
+  background: #181818;
+  color: #fff;
+  border: 2px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  border-color: #b91d95;
+  box-shadow: 0 0 0 3px rgba(185, 29, 149, 0.1);
+}
+
+.input::placeholder {
+  color: #666;
+}
+
+.input.visa:focus {
+  border-color: #1a1f71;
+  box-shadow: 0 0 0 3px rgba(26, 31, 113, 0.1);
+}
+
+.input.mastercard:focus {
+  border-color: #eb001b;
+  box-shadow: 0 0 0 3px rgba(235, 0, 27, 0.1);
+}
+
+.input.amex:focus {
+  border-color: #006fcf;
+  box-shadow: 0 0 0 3px rgba(0, 111, 207, 0.1);
+}
+
+.input.discover:focus {
+  border-color: #ff6000;
+  box-shadow: 0 0 0 3px rgba(255, 96, 0, 0.1);
+}
+
+/* Month input specific styling */
+.input[type="month"] {
+  color-scheme: dark;
+}
+
+.input[type="month"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.buttonGroup {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-top: 24px;
 }
 
-.karticaForm label {
+.cancelBtn {
+  width: 100%;
+  background: transparent;
   color: #ffe6ec;
-  font-size: 1.08rem;
+  border: 2px solid #b91d95;
+  border-radius: 12px;
+  padding: 16px 0;
+  font-size: 16px;
   font-weight: 600;
-  margin-bottom: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
-.karticaForm input {
-  background: #181818;
-  color: #fff;
-  border: 1px solid #b91d95;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 1.08rem;
-  margin-bottom: 8px;
-  outline: none;
+.cancelBtn:hover {
+  background: rgba(185, 29, 149, 0.1);
+}
+
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.karticaForm {
+  display: flex;
+  flex-direction: column;
 }
 
 .kupiBtn {
@@ -63,17 +219,26 @@
   background: #b91d95;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 12px 0;
-  font-size: 1.08rem;
+  border-radius: 12px;
+  padding: 16px 0;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  margin-top: 8px;
-  transition: background 0.18s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.kupiBtn:hover {
+.kupiBtn:hover:not(:disabled) {
   background: #e754a2;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(185, 29, 149, 0.3);
+}
+
+.kupiBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .success {
@@ -92,6 +257,114 @@
   padding: 8px 10px;
   margin-bottom: 4px;
   text-align: center;
+}
+
+/* Date Picker Styles */
+.datePickerContainer {
+  position: relative;
+}
+
+.calendarIcon {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 20px;
+  user-select: none;
+  z-index: 2;
+}
+
+.datePickerDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #232323;
+  border: 2px solid #b91d95;
+  border-radius: 12px;
+  z-index: 2000;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-height: 300px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.datePickerHeader {
+  padding: 16px;
+  background: #b91d95;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.monthsList {
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+
+.monthOption {
+  padding: 12px 16px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.monthOption:hover {
+  background: rgba(185, 29, 149, 0.1);
+  border-left-color: #b91d95;
+}
+
+.monthOption.selected {
+  background: rgba(185, 29, 149, 0.2);
+  border-left-color: #b91d95;
+  color: #ffe6ec;
+  font-weight: 600;
+}
+
+/* Scrollbar styling for month list */
+.monthsList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.monthsList::-webkit-scrollbar-track {
+  background: #181818;
+  border-radius: 3px;
+}
+
+.monthsList::-webkit-scrollbar-thumb {
+  background: #b91d95;
+  border-radius: 3px;
+}
+
+.monthsList::-webkit-scrollbar-thumb:hover {
+  background: #e754a2;
 }
 
 @media (max-width: 600px) {
@@ -118,24 +391,45 @@
     margin-bottom: 12px;
   }
   
-  .karticaForm {
-    gap: 8px;
+  .cardPreview {
+    height: 160px;
+    padding: 20px;
   }
   
-  .karticaForm label {
-    font-size: 1rem;
-    margin-bottom: 4px;
+  .cardNumber {
+    font-size: 20px;
+    margin: 16px 0;
   }
   
-  .karticaForm input {
-    padding: 8px 10px;
-    font-size: 1rem;
-    margin-bottom: 6px;
+  .cardName, .cardExp {
+    font-size: 12px;
   }
   
-  .kupiBtn {
-    padding: 10px 0;
-    font-size: 1rem;
+  .inputGroup label {
+    font-size: 13px;
+  }
+  
+  .input {
+    padding: 14px;
+    font-size: 14px;
+  }
+  
+  .kupiBtn, .cancelBtn {
+    padding: 14px 0;
+    font-size: 14px;
+  }
+  
+  .datePickerDropdown {
+    max-height: 250px;
+  }
+  
+  .monthsList {
+    max-height: 180px;
+  }
+  
+  .monthOption {
+    padding: 10px 14px;
+    font-size: 13px;
   }
 }
 
@@ -169,37 +463,75 @@
     margin-bottom: 10px;
   }
   
-  .karticaForm {
-    gap: 6px;
+  .cardPreview {
+    height: 140px;
+    padding: 16px;
+    border-radius: 12px;
+  width: 90%;  }
+  
+  .cardNumber {
+    font-size: 18px;
+    margin: 12px 0;
+    letter-spacing: 2px;
   }
   
-  .karticaForm label {
-    font-size: 0.85rem;
-    margin-bottom: 3px;
+  .cardName, .cardExp {
+    font-size: 11px;
   }
   
-  .karticaForm input {
-    padding: 8px 10px;
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-    border-radius: 6px;
+  .inputGroup {
+    margin-bottom: 12px;
   }
   
-  .karticaForm input:focus {
-    border: 1.5px solid #e754a2;
+  .inputGroup label {
+    font-size: 12px;
+    margin-bottom: 6px;
   }
   
-  .kupiBtn {
-    padding: 10px 0;
-    font-size: 0.9rem;
-    margin-top: 6px;
-    border-radius: 6px;
+  .input {
+    padding: 12px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+  
+  .inputRow {
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .kupiBtn, .cancelBtn {
+    padding: 12px 0;
+    font-size: 13px;
+    border-radius: 8px;
   }
   
   .success, .error {
     font-size: 0.8rem;
     padding: 6px 8px;
     margin-bottom: 6px;
+  }
+  
+  .datePickerDropdown {
+    max-height: 200px;
+  }
+  
+  .monthsList {
+    max-height: 140px;
+  }
+  
+  .monthOption {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .datePickerHeader {
+    padding: 12px;
+    font-size: 12px;
+  }
+  
+  .calendarIcon {
+    right: 12px;
+    font-size: 18px;
   }
 }
 
@@ -217,17 +549,32 @@
     font-size: 0.85rem;
   }
   
-  .karticaForm label {
-    font-size: 0.8rem;
+  .cardPreview {
+    height: 120px;
+    padding: 14px;
   }
   
-  .karticaForm input {
-    font-size: 0.8rem;
-    padding: 6px 8px;
+  .cardNumber {
+    font-size: 16px;
+    margin: 10px 0;
+    letter-spacing: 1px;
   }
   
-  .kupiBtn {
-    font-size: 0.85rem;
-    padding: 8px 0;
+  .cardName, .cardExp {
+    font-size: 10px;
+  }
+  
+  .inputGroup label {
+    font-size: 11px;
+  }
+  
+  .input {
+    font-size: 12px;
+    padding: 10px;
+  }
+  
+  .kupiBtn, .cancelBtn {
+    font-size: 12px;
+    padding: 10px 0;
   }
 }

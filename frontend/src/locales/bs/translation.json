@@ -233,5 +233,6 @@
   "search_users": "Pretraži korisnike",
   "no_results": "Nema rezultata za pretragu.",
   "name": "Ime",
-  "surname": "Prezime"
+  "surname": "Prezime",
+  "select_expiry": "Odaberite datum"
 }

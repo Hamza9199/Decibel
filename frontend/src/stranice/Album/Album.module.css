@@ -2,7 +2,7 @@
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
-  background: rgba(24,24,24,0.97);
+  background: rgba(24,24,24,0.7);
   display: flex;
   align-items: start;
   justify-content: center;
@@ -184,6 +184,27 @@
   text-align: center;
 }
 
+.modalContent {
+  background: #232323;
+  border-radius: 14px;
+  padding: 32px 24px 24px 24px;
+  min-width: 320px;
+  max-width: 480px;
+  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.2);
+  text-align: center;
+  color: #fff;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modalTitle {
+  margin-bottom: 18px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffe6ec;
+  margin-top: 0;
+}
+
 .playlistList {
   list-style: none;
   padding: 0;
@@ -232,6 +253,69 @@
   align-items: center;
   justify-content: center;
   background: rgba(24,24,24,0.97);
+}
+
+/* Song row styling */
+.songRow {
+  transition: background 0.15s, color 0.15s;
+}
+
+.songNumber {
+  font-weight: 600;
+  color: #b91d95;
+}
+
+.songNameCell {
+  text-align: left !important;
+}
+
+.songInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.songImage {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.15);
+}
+
+.songName {
+  font-weight: 500;
+  color: #ffe6ec;
+}
+
+.songDetails {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.songArtist {
+  font-size: 0.85rem;
+  color: #b3b3b3;
+  font-weight: 400;
+}
+
+.songDuration {
+  font-size: 0.8rem;
+  color: #999;
+  margin-top: 2px;
+}
+
+.songActions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.songPlayBtn.liked {
+  background: #e754a2;
 }
 
 @media (max-width: 900px) {
@@ -350,153 +434,237 @@
 @media (max-width: 480px) {
   .albumBg {
     padding-top: 55px;
-    padding-bottom: 30px;
+    padding-bottom: 100px;
     min-height: 100vh;
   }
   
   .container {
-    max-width: 100vw;
+    max-width: 95vw;
     margin: 0 auto;
-    padding: 12px 8px 20px 8px;
-    border-radius: 0;
+    padding: 16px 12px 20px 12px;
+    border-radius: 12px;
     box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
-    background: rgba(24,24,24,0.85);
+    background: rgba(35, 35, 35, 0.95);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
   }
   
   .albumMain {
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 16px;
+    margin-bottom: 20px;
   }
   
   .albumSlikaWrap {
     width: 120px;
     height: 120px;
-    border-radius: 8px;
+    border-radius: 12px;
   }
   
   .albumSlika {
-    border-radius: 8px;
+    border-radius: 12px;
   }
   
-  .playBtn, .likeBtn, .repeatBtn {
-    width: 32px;
-    height: 32px;
-    bottom: 6px;
+  .repeatBtn {
+    display: none;
   }
   
-  .playBtn { left: 4px; }
-  .likeBtn { left: 40px; }
-  .repeatBtn { right: 4px; }
+  .playBtn, .likeBtn {
+    width: 36px;
+    height: 36px;
+    bottom: 8px;
+  }
+  
+  .playBtn { 
+    left: 8px;
+  }
+  
+  .likeBtn { 
+    right: 8px;
+    left: auto;
+  }
   
   .albumNaziv {
     font-size: 1.3rem;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     letter-spacing: 0.5px;
   }
   
   .albumOpis {
-    font-size: 0.8rem;
-    margin-bottom: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
   }
   
   .albumMeta {
-    font-size: 0.75rem;
-    gap: 8px;
-    margin-bottom: 6px;
+    font-size: 0.8rem;
+    gap: 12px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .pjesmeSection {
-    margin-top: 20px;
+    margin-top: 24px;
   }
   
   .pjesmeTitle {
     font-size: 1.1rem;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     border-left: 3px solid #b91d95;
-    padding-left: 8px;
+    padding-left: 10px;
   }
   
   .noSongs {
     font-size: 0.9rem;
-    margin-bottom: 6px;
   }
   
+  /* Mobile card-based layout for songs */
   .pjesmeTable {
-    border-radius: 8px;
-    margin-top: 6px;
-    overflow-x: auto;
     display: block;
-    white-space: nowrap;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+    margin-top: 8px;
   }
   
-  .pjesmeTable thead,
-  .pjesmeTable tbody,
-  .pjesmeTable tr {
-    display: block;
+  .pjesmeTable thead {
+    display: none;
   }
   
-  .pjesmeTable thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
+  .pjesmeTable tbody {
+    display: block;
   }
   
   .pjesmeTable tr {
-    border: 1px solid #333;
-    margin-bottom: 8px;
-    padding: 8px;
-    border-radius: 6px;
+    display: block;
     background: #232323;
-    display: block;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #333;
     white-space: normal;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(185, 29, 149, 0.1);
   }
   
   .pjesmeTable td {
+    display: block;
     border: none;
-    padding: 4px 0;
+    padding: 0;
     text-align: left;
     white-space: normal;
-    display: block;
-    font-size: 0.75rem;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+  }
+  
+  .pjesmeTable td:last-child {
+    margin-bottom: 0;
   }
   
   .pjesmeTable td:before {
-    content: attr(data-label) ": ";
-    font-weight: bold;
-    color: #b91d95;
-    font-size: 0.7rem;
+    display: none;
+  }
+  
+  .songNumber {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    color: #fff;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+  
+  .songNameCell {
+    margin-bottom: 12px;
+  }
+  
+  .songInfo {
+    gap: 12px;
+    align-items: flex-start;
+    flex-direction: row;
+  }
+  
+  .songImage {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    flex-shrink: 0;
+  }
+  
+  .songName {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    flex: 1;
+    margin-bottom: 4px;
+  }
+  
+  .songDetails {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  
+  .songArtist {
+    font-size: 0.85rem;
+    color: #b3b3b3;
+    font-weight: 400;
+  }
+  
+  .songDuration {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 2px;
+  }
+  
+  .songActions {
+    justify-content: flex-start;
+    gap: 12px;
+    margin-top: 8px;
   }
   
   .songPlayBtn, .songAddBtn {
-    width: 24px;
-    height: 24px;
-    margin-right: 4px;
-    vertical-align: middle;
+    width: 32px;
+    height: 32px;
+    margin-right: 10;
   }
   
   .songPlayBtn svg, .songAddBtn svg {
-    width: 14px;
-    height: 14px;
+    width: 18px;
+    height: 18px;
   }
   
-  .modal {
+  .modalContent {
     min-width: 280px;
     max-width: 90vw;
     padding: 20px 16px 16px 16px;
-    border-radius: 8px;
+    border-radius: 10px;
+    max-height: 85vh;
+  }
+  
+  .modalTitle {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
   }
   
   .playlistBtn {
-    font-size: 0.9rem;
-    padding: 8px 0;
-    margin-bottom: 6px;
+    padding: 12px 0;
+    font-size: 1rem;
   }
   
-  .closeModalBtn {
-    font-size: 0.9rem;
-    padding: 8px 0;
+  .modalCloseBtn {
+    padding: 12px 0;
+    font-size: 0.95rem;
+  }
+  
+  .notFound {
+    padding: 20px 12px;
+    text-align: center;
   }
 }
 

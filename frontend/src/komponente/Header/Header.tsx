@@ -56,7 +56,6 @@ const Header: React.FC = () => {
               src="/logo.gif"
               alt="Decibel logo"
               className={styles.logoImg}
-              style={{ height: "45px", marginRight: "14px", marginLeft: "18px" }}
             />
           </Link>
           <Link to="/">
@@ -82,20 +81,17 @@ const Header: React.FC = () => {
             <button
               className={styles.logoutBtn}
               onClick={handleLogout}
-              style={{
-                background: "#b91d95",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px 18px",
-                fontWeight: 600,
-                cursor: "pointer",
-                fontSize: "1rem",
-                marginTop: 0,
-                marginLeft: 0,
-                marginRight: "8px",
-              }}
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className={styles.logoutIcon}
+                viewBox="0 0 24 24"
+              >
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+              </svg>
               {t("logout")}
             </button>
           )}
@@ -116,20 +112,17 @@ const Header: React.FC = () => {
             <button
               className={styles.logoutBtn}
               onClick={handleLogout}
-              style={{
-                marginLeft: "auto",
-                marginRight: "24px",
-                marginTop: "-5px",
-                background: "#b91d95",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                padding: "8px 18px",
-                fontWeight: 600,
-                cursor: "pointer",
-                fontSize: "1rem",
-              }}
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className={styles.logoutIcon}
+                viewBox="0 0 24 24"
+              >
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+              </svg>
               {t("logout")}
             </button>
           )}

@@ -42,9 +42,44 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  margin-right: 30px;
+  margin-right: 25px;
   object-fit: cover;
 
+}
+
+.searchWrap {
+  flex: 1;
+  margin: 0 20px;
+  max-width: 500px;
+}
+
+.logoutBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+  margin-left: auto;
+  margin-right: 24px;
+  margin-bottom: 4px;
+}
+
+.logoutBtn:hover {
+  background: #e754a2;
+  transform: translateY(-1px);
+}
+
+.logoutIcon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 @media (max-width: 480px) {
@@ -80,7 +115,7 @@
   .profileImg {
     width: 26px;
     height: 26px;
-    margin-right: 6px;
+    margin-right: 8px;
     margin-left: 8px;
     order: 2;
     align-self: center;
@@ -91,9 +126,18 @@
     padding: 4px 10px !important;
     margin-right: 8px !important;
     margin-left: 0 !important;
+    margin-top: 7px !important;
     border-radius: 6px !important;
     order: 3;
     height: 28px;
     align-self: center;
+    gap: 4px;
+      margin-bottom: 7px;
+
+  }
+  
+  .logoutIcon {
+    width: 14px;
+    height: 14px;
   }
 }

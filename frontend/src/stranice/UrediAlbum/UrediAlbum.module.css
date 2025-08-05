@@ -2,7 +2,7 @@
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
-  background: rgba(24,24,24,0.97);
+  background: rgba(24,24,24,0.7);
   display: flex;
   align-items: start;
   justify-content: center;
@@ -81,6 +81,113 @@
   text-align: center;
 }
 
+/* Form container layout */
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Songs section styling */
+.songsSection {
+  background: #232323;
+  border-radius: 14px;
+  padding: 24px 18px;
+  min-width: 260px;
+  max-height: 480px;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px #b91d9533;
+}
+
+.songsTitle {
+  color: #fff;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.addSongsTitle {
+  color: #fff;
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.noSongsText,
+.noAvailableSongs {
+  color: #b3b3b3;
+  font-size: 0.95rem;
+}
+
+.songsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.songItem {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.songInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.songName {
+  color: #ffe6ec;
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.songDuration {
+  color: #b3b3b3;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
+
+.removeBtn,
+.addBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.18s;
+  flex-shrink: 0;
+}
+
+.removeBtn:hover,
+.addBtn:hover {
+  background: #e754a2;
+}
+
+.removeBtn:disabled,
+.addBtn:disabled {
+  cursor: not-allowed;
+}
+
+.divider {
+  margin: 18px 0;
+  border: none;
+  border-top: 1px solid #444;
+}
+
 @media (max-width: 600px) {
   .editAlbumBg {
     padding-top: 60px;
@@ -121,12 +228,17 @@
 @media (max-width: 480px) {
   .editAlbumBg {
     padding-top: 55px;
-    padding-bottom: 30px;
-    min-height: 100vh;
+    padding-bottom: 100px;
+  }
+  
+  .formContainer {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 0 10px;
   }
   
   .editAlbumForm {
-    max-width: 95vw;
     margin: 0 auto;
     padding: 16px 12px 16px 12px;
     border-radius: 8px;
@@ -135,6 +247,56 @@
     background: rgba(35, 35, 35, 0.95);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .songsSection {
+    min-width: 80%;
+    max-height: none;
+    padding: 16px 12px;
+    border-radius: 8px;
+    background: rgba(35, 35, 35, 0.85);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+  }
+  
+  .songsTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .addSongsTitle {
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+  }
+  
+  .noSongsText,
+  .noAvailableSongs {
+    font-size: 0.85rem;
+  }
+  
+  .songItem {
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+  
+  .songName {
+    font-size: 0.85rem;
+  }
+  
+  .songDuration {
+    font-size: 0.8rem;
+  }
+  
+  .removeBtn,
+  .addBtn {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+  
+  .divider {
+    margin: 12px 0;
   }
   
   .title {
@@ -153,6 +315,7 @@
     font-size: 0.85rem;
     margin-bottom: 5px;
     border-radius: 6px;
+    width: 95%;
   }
   
   .input:focus {

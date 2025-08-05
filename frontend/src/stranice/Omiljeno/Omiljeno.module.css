@@ -1,10 +1,9 @@
-/* Osnovni stilovi za Omiljeno stranicu */
 
 .pjesmaBg {
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
-  background: rgba(24,24,24,0.97);
+  background: rgba(24,24,24,0.7);
   display: flex;
   align-items: start;
   justify-content: center;
@@ -88,19 +87,12 @@
   transform: scale(1.08);
 }
 
-/* Content wrapper for song info */
-.table td:nth-child(3),
-.table td:nth-child(4) {
-  position: absolute;
-  left: 78px;
-}
-
 .table td:nth-child(3) {
-  top: 16px;
+  text-align: center;
 }
 
 .table td:nth-child(4) {
-  top: 40px;
+  text-align: center;
 }
 
 @media (max-width: 900px) {
@@ -248,7 +240,11 @@
     margin-right: 12px;
   }
   
+  /* Mobile-specific positioning for content */
   .table td:nth-child(3) {
+    position: absolute;
+    left: 78px;
+    top: 16px;
     color: #fff;
     font-size: 1rem;
     font-weight: 600;
@@ -257,6 +253,9 @@
   }
   
   .table td:nth-child(4) {
+    position: absolute;
+    left: 78px;
+    top: 40px;
     color: #b3b3b3;
     font-size: 0.875rem;
     margin-top: -4px;

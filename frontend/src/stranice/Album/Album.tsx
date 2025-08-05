@@ -17,7 +17,6 @@ const Album: React.FC = () => {
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
   const [loading, setLoading] = useState(true);
-  const [repeatAll, setRepeatAll] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
@@ -95,7 +94,6 @@ const Album: React.FC = () => {
         detail: {
           playlist: pjesme,
           idx: 0,
-          repeatAll,
         }
       })
     );
@@ -214,20 +212,6 @@ const Album: React.FC = () => {
                 </svg>
                 <span>{likeCount}</span>
               </button>
-              <button
-                className={styles.repeatBtn}
-                onClick={() => setRepeatAll((r) => !r)}
-                title={repeatAll ? t("cancel") || "Isključi ponavljanje albuma" : t("play_album") || "Ponovi album"}
-              >
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="#fff">
-                  <g>
-                    <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                  </g>
-                </svg>
-              </button>
             </div>
             <div className={styles.albumInfo}>
               <h2 className={styles.albumNaziv}>{album.naziv}</h2>
@@ -260,12 +244,26 @@ const Album: React.FC = () => {
                 </thead>
                 <tbody>
                   {pjesme.map((p, idx) => (
-                    <tr key={p.id}>
-                      <td>{idx + 1}</td>
-                      <td>{p.naziv}</td>
-                      <td>{formatTrajanje(p.trajanjeSekunde)}</td>
-                      <td>{p.korisnik?.korisnicko_ime || ""}</td>
-                      <td>
+                    <tr
+                      key={p.id}
+                      className={styles.songRow}
+                    >
+                      <td data-label="#" className={styles.songNumber}>{idx + 1}</td>
+                      <td data-label={t("song_name") || "Naziv"} className={styles.songNameCell}>
+                        <div className={styles.songInfo}>
+                          <img 
+                            src={p.putanjaSlika || p.putanjaGif || "/logo.gif"} 
+                            alt={p.naziv}
+                            className={styles.songImage}
+                          />
+                          <div className={styles.songDetails}>
+                            <span className={styles.songName}>{p.naziv}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td data-label={t("duration_seconds") || "Trajanje"}>{formatTrajanje(p.trajanjeSekunde)}</td>
+                      <td data-label={t("artist") || "Izvođač"}>{p.korisnik?.korisnicko_ime || ""}</td>
+                      <td data-label={t("actions") || "Akcije"} className={styles.songActions}>
                         <button
                           className={styles.songPlayBtn}
                           onClick={() => handlePlaySong(p)}
@@ -290,9 +288,9 @@ const Album: React.FC = () => {
                           title={t("add_song_to_playlist") || "Dodaj u playlistu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
-            <rect x="18" y="8" width="8" height="28" />
-            <rect x="8" y="18" width="28" height="8" />
-          </svg>
+                            <rect x="18" y="8" width="8" height="28" />
+                            <rect x="8" y="18" width="28" height="8" />
+                          </svg>
                         </button>
                       </td>
                     </tr>
@@ -304,11 +302,11 @@ const Album: React.FC = () => {
         </div>
         {showPlaylistModal && (
           <div className={styles.modalOverlay} onClick={() => setShowPlaylistModal(false)}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-              <h4>{t("add_song_to_playlist") || "Dodaj pjesmu u playlistu"}</h4>
+            <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              <h4 className={styles.modalTitle}>{t("add_song_to_playlist") || "Dodaj pjesmu u playlistu"}</h4>
               <ul className={styles.playlistList}>
                 {playlists.map((pl) => (
-                  <li key={pl.id}>
+                  <li key={pl.id} className={styles.playlistItem}>
                     <button
                       className={styles.playlistBtn}
                       onClick={() => handleSelectPlaylist(pl.id)}
@@ -318,7 +316,7 @@ const Album: React.FC = () => {
                   </li>
                 ))}
               </ul>
-              <button className={styles.closeModalBtn} onClick={() => setShowPlaylistModal(false)}>
+              <button className={styles.modalCloseBtn} onClick={() => setShowPlaylistModal(false)}>
                 {t("close") || "Zatvori"}
               </button>
             </div>

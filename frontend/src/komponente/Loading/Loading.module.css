@@ -33,7 +33,6 @@
   animation-delay: 0.5s;
 }
 
-/* SVG kao background-image za notu */
 .note::before {
   content: "";
   display: block;

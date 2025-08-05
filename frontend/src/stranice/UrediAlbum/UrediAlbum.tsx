@@ -140,8 +140,9 @@ const UrediAlbum: React.FC = () => {
       <Header />
       <Sidebar />
       <div className={styles.editAlbumBg}>
-        <form className={styles.editAlbumForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>{t("edit_album") || "Uredi album"}</h2>
+        <div className={styles.formContainer}>
+          <form className={styles.editAlbumForm} onSubmit={handleSubmit}>
+            <h2 className={styles.title}>{t("edit_album") || "Uredi album"}</h2>
           <label className={styles.label}>{t("album_name") || "Naziv"}</label>
           <input
             className={styles.input}
@@ -174,43 +175,26 @@ const UrediAlbum: React.FC = () => {
             {t("save_changes")}
           </button>
         </form>
-        <div style={{
-          marginLeft: 32,
-          background: "#232323",
-          borderRadius: 14,
-          padding: "24px 18px",
-          minWidth: 260,
-          maxHeight: 480,
-          overflowY: "auto",
-          boxShadow: "0 4px 24px #b91d9533"
-        }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("songs_on_album") || "Pjesme na albumu"}</h4>
+        
+        <div className={styles.songsSection}>
+          <h4 className={styles.songsTitle}>{t("songs_on_album") || "Pjesme na albumu"}</h4>
           {pjesmeAlbuma.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>{t("no_songs_on_album") || "Nema pjesama na ovom albumu."}</div>
+            <div className={styles.noSongsText}>{t("no_songs_on_album") || "Nema pjesama na ovom albumu."}</div>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.songsList}>
               {pjesmeAlbuma.map((p) => (
-                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
-                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
-                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
-                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
-                  </span>
+                <li key={p.id} className={styles.songItem}>
+                  <div className={styles.songInfo}>
+                    <span className={styles.songName}>{p.naziv}</span>
+                    <span className={styles.songDuration}>
+                      {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                    </span>
+                  </div>
                   <button
-                    style={{
-                      marginLeft: "auto",
-                      background: "#b91d95",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 8,
-                      padding: "6px 14px",
-                      fontWeight: 600,
-                      fontSize: "0.98rem",
-                      cursor: "pointer",
-                      transition: "background 0.18s",
-                      opacity: removing === p.id ? 0.6 : 1
-                    }}
+                    className={styles.removeBtn}
                     disabled={removing === p.id}
                     onClick={() => handleRemoveSong(p.id)}
+                    style={{ opacity: removing === p.id ? 0.6 : 1 }}
                   >
                     {removing === p.id ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
                   </button>
@@ -218,34 +202,25 @@ const UrediAlbum: React.FC = () => {
               ))}
             </ul>
           )}
-          <hr style={{ margin: "18px 0", border: "none", borderTop: "1px solid #444" }} />
-          <h4 style={{ color: "#fff", marginBottom: 10, fontWeight: 600 }}>{t("add_songs") || "Dodaj pjesme"}</h4>
+          <hr className={styles.divider} />
+          <h4 className={styles.addSongsTitle}>{t("add_songs") || "Dodaj pjesme"}</h4>
           {svePjesme.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>{t("no_available_songs") || "Nema dostupnih pjesama."}</div>
+            <div className={styles.noAvailableSongs}>{t("no_available_songs") || "Nema dostupnih pjesama."}</div>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.songsList}>
               {svePjesme.map((p) => (
-                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
-                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
-                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
-                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
-                  </span>
+                <li key={p.id} className={styles.songItem}>
+                  <div className={styles.songInfo}>
+                    <span className={styles.songName}>{p.naziv}</span>
+                    <span className={styles.songDuration}>
+                      {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                    </span>
+                  </div>
                   <button
-                    style={{
-                      marginLeft: "auto",
-                      background: "#b91d95",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 8,
-                      padding: "6px 14px",
-                      fontWeight: 600,
-                      fontSize: "0.98rem",
-                      cursor: "pointer",
-                      transition: "background 0.18s",
-                      opacity: dodajuci === p.id ? 0.6 : 1
-                    }}
+                    className={styles.addBtn}
                     disabled={dodajuci === p.id}
                     onClick={() => handleAddSong(p.id)}
+                    style={{ opacity: dodajuci === p.id ? 0.6 : 1 }}
                   >
                     {dodajuci === p.id ? t("adding") || "Dodajem..." : t("add") || "Dodaj"}
                   </button>
@@ -253,6 +228,7 @@ const UrediAlbum: React.FC = () => {
               ))}
             </ul>
           )}
+        </div>
         </div>
       </div>
       <Footer />

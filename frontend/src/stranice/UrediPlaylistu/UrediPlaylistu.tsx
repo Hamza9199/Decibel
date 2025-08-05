@@ -130,8 +130,9 @@ const UrediPlaylistu: React.FC = () => {
       <Header />
       <Sidebar />
       <div className={styles.editPlaylistBg}>
-        <form className={styles.editPlaylistForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>{t("edit_playlist") || "Uredi playlistu"}</h2>
+        <div className={styles.formContainer}>
+          <form className={styles.editPlaylistForm} onSubmit={handleSubmit}>
+            <h2 className={styles.title}>{t("edit_playlist") || "Uredi playlistu"}</h2>
           <label className={styles.label}>{t("playlist_name") || "Naziv"}</label>
           <input
             className={styles.input}
@@ -173,43 +174,26 @@ const UrediPlaylistu: React.FC = () => {
             {t("save_changes")}
           </button>
         </form>
-        <div style={{
-          marginLeft: 32,
-          background: "#232323",
-          borderRadius: 14,
-          padding: "24px 18px",
-          minWidth: 260,
-          maxHeight: 480,
-          overflowY: "auto",
-          boxShadow: "0 4px 24px #b91d9533"
-        }}>
-          <h4 style={{ color: "#fff", marginBottom: 14, fontWeight: 600 }}>{t("songs_in_playlist") || "Pjesme u playlisti"}</h4>
+        
+        <div className={styles.songsSection}>
+          <h4 className={styles.songsTitle}>{t("songs_in_playlist") || "Pjesme u playlisti"}</h4>
           {pjesme.length === 0 ? (
-            <div style={{ color: "#b3b3b3" }}>{t("no_songs_in_playlist") || "Nema pjesama u ovoj playlisti."}</div>
+            <div className={styles.noSongsText}>{t("no_songs_in_playlist") || "Nema pjesama u ovoj playlisti."}</div>
           ) : (
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            <ul className={styles.songsList}>
               {pjesme.map((p) => (
-                <li key={p.id} style={{ marginBottom: 8, display: "flex", alignItems: "center" }}>
-                  <span style={{ color: "#ffe6ec", fontWeight: 500 }}>{p.naziv}</span>
-                  <span style={{ color: "#b3b3b3", marginLeft: 8, fontSize: "0.98rem" }}>
-                    {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
-                  </span>
+                <li key={p.id} className={styles.songItem}>
+                  <div className={styles.songInfo}>
+                    <span className={styles.songName}>{p.naziv}</span>
+                    <span className={styles.songDuration}>
+                      {p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}
+                    </span>
+                  </div>
                   <button
-                    style={{
-                      marginLeft: "auto",
-                      background: "#b91d95",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 8,
-                      padding: "6px 14px",
-                      fontWeight: 600,
-                      fontSize: "0.98rem",
-                      cursor: "pointer",
-                      transition: "background 0.18s",
-                      opacity: removing === p.id ? 0.6 : 1
-                    }}
+                    className={styles.removeBtn}
                     disabled={removing === p.id}
                     onClick={() => handleRemoveSong(p.id)}
+                    style={{ opacity: removing === p.id ? 0.6 : 1 }}
                   >
                     {removing === p.id ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
                   </button>
@@ -217,6 +201,7 @@ const UrediPlaylistu: React.FC = () => {
               ))}
             </ul>
           )}
+        </div>
         </div>
       </div>
       <Footer />

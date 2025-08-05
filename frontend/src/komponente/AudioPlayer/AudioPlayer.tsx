@@ -303,7 +303,6 @@ useEffect(() => {
    const handleLike = async () => {
     if (!pjesma || !korisnik?.id) return;
     if (liked) {
-      // Un-like
       await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`).catch(() => {});
       setLiked(false);
     } else {

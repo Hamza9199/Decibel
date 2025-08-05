@@ -99,7 +99,6 @@ const Sidebar: React.FC = () => {
         )}
         <nav className={styles.nav}>
           <button className={styles.navBtn} onClick={() => { navigate("/"); if (isMobile) handleCloseSidebar(); }}>
-          {/* Home icon */}
           <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
             <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
               <path d="M3 12L12 4l9 8v7a2 2 0 0 1-2 2h-3v-5h-6v5H5a2 2 0 0 1-2-2z" />

@@ -30,9 +30,6 @@ const Home: React.FC = () => {
       window.dispatchEvent(
         new CustomEvent("activeSongBg", { detail: { gif: bgGif, slika: bgSlika } })
       );
-    } else {
-      console.log('Resetting background - no active song');
-      window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
     }
   }, [activeSong]);
 
@@ -182,7 +179,6 @@ const Home: React.FC = () => {
                       className={styles.playButton}
                       onClick={() => handlePlayAlbum(a.id)}
                       title="Pusti album"
-                      style={{ left: 50 }}
                     >
                       <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
                         <polygon points="12,8 36,22 12,36" />
@@ -212,7 +208,6 @@ const Home: React.FC = () => {
                       className={styles.playButton}
                       onClick={() => handlePlayPlaylist(pl.id)}
                       title="Pusti playlistu"
-                      style={{ left: 50 }}
                     >
                       <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
                         <polygon points="12,8 36,22 12,36" />

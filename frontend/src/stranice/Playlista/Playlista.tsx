@@ -16,7 +16,6 @@ const Playlista: React.FC = () => {
   const [playlista, setPlaylista] = useState<PlaylistaType | null>(null);
   const [pjesme, setPjesme] = useState<Pjesma[]>([]);
   const [loading, setLoading] = useState(true);
-  const [repeatAll, setRepeatAll] = useState(false);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [draggedIdx, setDraggedIdx] = useState<number | null>(null);
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
@@ -120,7 +119,6 @@ const Playlista: React.FC = () => {
         detail: {
           playlist: pjesme,
           idx: 0,
-          repeatAll,
         }
       })
     );
@@ -268,6 +266,7 @@ const Playlista: React.FC = () => {
                 alt={playlista.naziv}
                 className={styles.playlistaSlika}
               />
+              <div className={styles.playlistActions}>
               <button className={styles.playBtn} onClick={handlePlayPlaylist} title={t("play_playlist") || "Pusti playlistu"}>
                 <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
                   <polygon points="12,8 36,22 12,36" />
@@ -283,20 +282,8 @@ const Playlista: React.FC = () => {
                 </svg>
                 <span>{likeCount}</span>
               </button>
-              <button
-                className={styles.repeatBtn}
-                onClick={() => setRepeatAll((r) => !r)}
-                title={repeatAll ? t("cancel") || "Isključi ponavljanje playliste" : t("play_playlist") || "Ponovi playlistu"}
-              >
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="#fff">
-                  <g>
-                    <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                    <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-                  </g>
-                </svg>
-              </button>
+              </div>
+              
             </div>
             <div className={styles.playlistaInfo}>
               <h2 className={styles.playlistaNaziv}>{playlista.naziv}</h2>
@@ -333,30 +320,32 @@ const Playlista: React.FC = () => {
                   {pjesme.map((p, idx) => (
                     <tr
                       key={p.id}
-                      draggable
+                      draggable={isOwner}
                       onDragStart={() => handleDragStart(idx)}
                       onDragOver={(e) => {
                         e.preventDefault();
                         handleDragOver(idx);
                       }}
                       onDrop={() => handleDrop(idx)}
-                      style={{
-                        background:
-                          dragOverIdx === idx
-                            ? "#b91d95"
-                            : draggedIdx === idx
-                            ? "#e754a2"
-                            : undefined,
-                        color: dragOverIdx === idx || draggedIdx === idx ? "#fff" : undefined,
-                        cursor: "move",
-                        transition: "background 0.15s",
-                      }}
+                      className={`${styles.songRow} ${
+                        dragOverIdx === idx ? styles.dragOver : 
+                        draggedIdx === idx ? styles.dragging : ''
+                      }`}
                     >
-                      <td>{idx + 1}</td>
-                      <td>{p.naziv}</td>
-                      <td>{formatTrajanje(p.trajanjeSekunde)}</td>
-                      <td>{p.korisnik?.korisnicko_ime || ""}</td>
-                      <td>
+                      <td data-label="#" className={styles.songNumber}>{idx + 1}</td>
+                      <td data-label={t("song_name") || "Naziv"} className={styles.songNameCell}>
+                        <div className={styles.songInfo}>
+                          <img 
+                            src={p.putanjaSlika || p.putanjaGif || "/logo.gif"} 
+                            alt={p.naziv}
+                            className={styles.songImage}
+                          />
+                          <span className={styles.songName}>{p.naziv}</span>
+                        </div>
+                      </td>
+                      <td data-label={t("duration_seconds") || "Trajanje"}>{formatTrajanje(p.trajanjeSekunde)}</td>
+                      <td data-label={t("artist") || "Izvođač"}>{p.korisnik?.korisnicko_ime || ""}</td>
+                      <td data-label={t("actions") || "Akcije"} className={styles.songActions}>
                         <button
                           className={styles.songPlayBtn}
                           onClick={() => handlePlaySong(p)}
@@ -387,8 +376,7 @@ const Playlista: React.FC = () => {
                         </button>
                         {isOwner && (
                           <button
-                            className={styles.songPlayBtn}
-                            style={{ background: "#e754a2", marginLeft: 0 }}
+                            className={styles.removeSongBtn}
                             onClick={() => handleRemoveSong(p.id)}
                             title={t("remove") || "Izbaci iz playliste"}
                           >
@@ -398,48 +386,16 @@ const Playlista: React.FC = () => {
                           </button>
                         )}
                         {showPlaylistModal === p.id && (
-                          <div
-                            style={{
-                              position: "fixed",
-                              inset: 0,
-                              background: "rgba(24,24,24,0.85)",
-                              zIndex: 3000,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                            onClick={() => setShowPlaylistModal(null)}
-                          >
-                            <div
-                              style={{
-                                background: "#232323",
-                                borderRadius: 14,
-                                padding: "32px 24px 24px 24px",
-                                minWidth: 320,
-                                boxShadow: "0 4px 24px #b91d9533",
-                                textAlign: "center",
-                              }}
-                              onClick={e => e.stopPropagation()}
-                            >
-                              <h4 style={{ color: "#fff", marginBottom: 18 }}>{t("add_song_to_playlist") || "Dodaj pjesmu u playlistu"}</h4>
-                              <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 18 }}>
+                          <div className={styles.modalOverlay} onClick={() => setShowPlaylistModal(null)}>
+                            <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                              <h4 className={styles.modalTitle}>{t("add_song_to_playlist") || "Dodaj pjesmu u playlistu"}</h4>
+                              <ul className={styles.playlistList}>
                                 {playlists
                                   .filter((pl) => String(pl.id) !== String(playlistaId))
                                   .map((pl) => (
-                                    <li key={pl.id} style={{ marginBottom: 8 }}>
+                                    <li key={pl.id} className={styles.playlistItem}>
                                       <button
-                                        style={{
-                                          background: "#b91d95",
-                                          color: "#fff",
-                                          border: "none",
-                                          borderRadius: 8,
-                                          padding: "10px 0",
-                                          fontSize: "1.08rem",
-                                          fontWeight: 600,
-                                          cursor: "pointer",
-                                          width: "100%",
-                                          transition: "background 0.18s",
-                                        }}
+                                        className={styles.playlistBtn}
                                         onClick={() => handleAddToPlaylist(p.id, pl.id)}
                                       >
                                         {pl.naziv}
@@ -447,21 +403,7 @@ const Playlista: React.FC = () => {
                                     </li>
                                   ))}
                               </ul>
-                              <button
-                                style={{
-                                  background: "#232323",
-                                  color: "#ffe6ec",
-                                  border: "1px solid #b91d95",
-                                  borderRadius: 8,
-                                  padding: "10px 0",
-                                  fontSize: "1rem",
-                                  fontWeight: 500,
-                                  cursor: "pointer",
-                                  width: "100%",
-                                  transition: "background 0.18s, color 0.18s",
-                                }}
-                                onClick={() => setShowPlaylistModal(null)}
-                              >
+                              <button className={styles.modalCloseBtn} onClick={() => setShowPlaylistModal(null)}>
                                 {t("close") || "Zatvori"}
                               </button>
                             </div>

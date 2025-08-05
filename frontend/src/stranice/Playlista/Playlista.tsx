@@ -183,51 +183,51 @@ const Playlista: React.FC = () => {
     return;
   }
 
-  const pjesmeBez = pjesme.filter((_, i) => i !== draggedIdx);
-
+  const draggedPjesma = pjesme[draggedIdx];
   let nova_pozicija_iza_pjesmeID: number | null = null;
 
   if (idx === 0) {
+    // Stavi na početak - trebamo staviti iza zadnje pjesme (nova_pozicija_iza_pjesmeID = null)
     nova_pozicija_iza_pjesmeID = null;
-    return;
-  } else if (idx === pjesme.length - 1) {
-    nova_pozicija_iza_pjesmeID = pjesmeBez[pjesmeBez.length - 1]?.id ?? null;
-  } else if (draggedIdx < idx) {
-    nova_pozicija_iza_pjesmeID = pjesmeBez[idx - 1]?.id ?? null;
   } else {
-    nova_pozicija_iza_pjesmeID = pjesmeBez[idx - 1]?.id ?? null;
+    // Stavi iza pjesme na poziciji idx-1
+    nova_pozicija_iza_pjesmeID = pjesme[idx - 1].id;
   }
 
-  const draggedPjesma = pjesme[draggedIdx];
-  await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
-    playlistaID: playlistaId,
-    pjesmaID: draggedPjesma.id,
-    nova_pozicija_iza_pjesmeID,
-  });
-  setDraggedIdx(null);
-  setDragOverIdx(null);
-  setLoading(true);
-  
-  const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
-  const idsZaDohvat: number[] = res.data || [];
-  
-  if (idsZaDohvat.length === 0) {
-    setPjesme([]);
-    setLoading(false);
-    return;
+  try {
+    await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
+      playlistaID: Number(playlistaId),
+      pjesmaID: draggedPjesma.id,
+      nova_pozicija_iza_pjesmeID,
+    });
+
+    setDraggedIdx(null);
+    setDragOverIdx(null);
+    
+    // Refresh liste
+    const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
+    const idsZaDohvat: number[] = res.data || [];
+    
+    if (idsZaDohvat.length === 0) {
+      setPjesme([]);
+      return;
+    }
+    
+    const pjesmeArr = await Promise.all(
+      idsZaDohvat.map((id) =>
+        axios
+          .get(`${API_BASE}/pjesme/${id}`)
+          .then((r) => r.data)
+          .catch(() => null)
+      )
+    );
+    
+    setPjesme(pjesmeArr.filter(Boolean));
+  } catch (error) {
+    console.error("Greška pri promjeni redoslijeda:", error);
+    setDraggedIdx(null);
+    setDragOverIdx(null);
   }
-  
-  const pjesmeArr = await Promise.all(
-    idsZaDohvat.map((id) =>
-      axios
-        .get(`${API_BASE}/pjesme/${id}`)
-        .then((r) => r.data)
-        .catch(() => null)
-    )
-  );
-  
-  setPjesme(pjesmeArr.filter(Boolean));
-  setLoading(false);
 };
 
   const handleRemoveSong = async (pjesmaId: number) => {

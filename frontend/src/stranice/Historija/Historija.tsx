@@ -89,7 +89,6 @@ const Historija: React.FC = () => {
         playlistaID,
       });
       setShowPlaylistModal(null);
-      alert("Pjesma je dodana u playlistu!");
     } catch {
       alert("Greška pri dodavanju pjesme u playlistu.");
     }

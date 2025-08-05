@@ -42,76 +42,97 @@ async def dodaj_pjesmu_na_kraj(session: AsyncSession, playlistaID: int, pjesmaID
         await session.commit()
         return nova
     else:
-        # Pronađi zadnju pjesmu (ona kojoj pokazivacNaSljedecuPjesmuID == prva pjesma)
-        # i prvu pjesmu (ona kojoj pokazivacNaPrethodnuPjesmuID == zadnja pjesma)
-        # U kružnoj listi, možeš uzeti bilo koju pjesmu i pratiti pointere
-        curr = veze[0]
-        visited = set()
-        while curr.pokazivacNaSljedecuPjesmuID != veze[0].pjesmaID and curr.pokazivacNaSljedecuPjesmuID not in visited:
-            visited.add(curr.pjesmaID)
-            next_obj = next((v for v in veze if v.pjesmaID == curr.pokazivacNaSljedecuPjesmuID), None)
-            if not next_obj:
-                break
-            curr = next_obj
-        zadnja = curr
-        prva = next((v for v in veze if v.pjesmaID == zadnja.pokazivacNaSljedecuPjesmuID), None)
-        if not prva:
-            prva = veze[0]
+        # Pronađi pravu zadnju pjesmu
+        zadnja_id = await pronadji_zadnju_pjesmu(session, playlistaID)
+        prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
+        
+        # Dohvati objekte
+        zadnja_obj = next((v for v in veze if v.pjesmaID == zadnja_id), None)
+        prva_obj = next((v for v in veze if v.pjesmaID == prva_id), None)
+        
+        if not zadnja_obj or not prva_obj:
+            raise ValueError("Neispravna struktura playliste")
 
-        # Nova pjesma ide iza zadnje, ispred prve
+        # Nova pjesma postaje nova zadnja
         nova = PjesmaPlaylistaORM(
             pjesmaID=pjesmaID,
             playlistaID=playlistaID,
-            pokazivacNaPrethodnuPjesmuID=zadnja.pjesmaID,
-            pokazivacNaSljedecuPjesmuID=prva.pjesmaID
+            pokazivacNaPrethodnuPjesmuID=zadnja_id,  # Pokazuje na staru zadnju
+            pokazivacNaSljedecuPjesmuID=prva_id      # Pokazuje na prvu (kružno)
         )
         session.add(nova)
 
-        # Ažuriraj pokazivače
-        zadnja.pokazivacNaSljedecuPjesmuID = pjesmaID
-        prva.pokazivacNaPrethodnuPjesmuID = pjesmaID
-        session.add(zadnja)
-        session.add(prva)
+        # Ažuriraj staru zadnju da pokazuje na novu
+        zadnja_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
+        session.add(zadnja_obj)
+        
+        # Ažuriraj prvu da pokazuje na novu zadnju kao prethodnu
+        prva_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
+        session.add(prva_obj)
 
         await session.commit()
         return nova
 
 async def pronadji_prvu_pjesmu(session: AsyncSession, playlistaID: int):
-    """Pronalazi prvu pjesmu u kružnoj listi"""
+    """Pronalazi prvu pjesmu u kružnoj listi - počinje sa bilo koju i prati unazad"""
     result = await session.execute(
         select(PjesmaPlaylistaORM).where(PjesmaPlaylistaORM.playlistaID == playlistaID)
     )
     veze = result.scalars().all()
     if not veze:
         return None
-    # U kružnoj listi, možeš uzeti bilo koju pjesmu i pratiti pointere unazad dok se ne vratiš na početak
-    curr = veze[0]
+    
+    if len(veze) == 1:
+        return veze[0].pjesmaID
+    
+    # Početni čvor
+    start = veze[0]
+    current = start
     visited = set()
-    while curr.pokazivacNaPrethodnuPjesmuID != curr.pjesmaID and curr.pokazivacNaPrethodnuPjesmuID not in visited:
-        visited.add(curr.pjesmaID)
-        prev_obj = next((v for v in veze if v.pjesmaID == curr.pokazivacNaPrethodnuPjesmuID), None)
+    
+    # Prati pokazivače unazad dok ne dođemo do čvora koji pokazuje na početni
+    while current.pjesmaID not in visited:
+        visited.add(current.pjesmaID)
+        prev_id = current.pokazivacNaPrethodnuPjesmuID
+        
+        # Ako pokazuje na sebe, to je jedina pjesma ili greška
+        if prev_id == current.pjesmaID:
+            return current.pjesmaID
+            
+        prev_obj = next((v for v in veze if v.pjesmaID == prev_id), None)
         if not prev_obj:
             break
-        curr = prev_obj
-    return curr.pjesmaID
+            
+        # Ako prev_obj pokazuje na start, onda je start prva pjesma
+        if prev_obj.pokazivacNaSljedecuPjesmuID == start.pjesmaID:
+            return start.pjesmaID
+            
+        current = prev_obj
+    
+    return start.pjesmaID
 
 async def pronadji_zadnju_pjesmu(session: AsyncSession, playlistaID: int):
-    """Pronalazi zadnju pjesmu u kružnoj listi"""
+    """Pronalazi zadnju pjesmu u kružnoj listi - ona koja pokazuje na prvu"""
     result = await session.execute(
         select(PjesmaPlaylistaORM).where(PjesmaPlaylistaORM.playlistaID == playlistaID)
     )
     veze = result.scalars().all()
     if not veze:
         return None
-    curr = veze[0]
-    visited = set()
-    while curr.pokazivacNaSljedecuPjesmuID != curr.pjesmaID and curr.pokazivacNaSljedecuPjesmuID not in visited:
-        visited.add(curr.pjesmaID)
-        next_obj = next((v for v in veze if v.pjesmaID == curr.pokazivacNaSljedecuPjesmuID), None)
-        if not next_obj:
-            break
-        curr = next_obj
-    return curr.pjesmaID
+        
+    if len(veze) == 1:
+        return veze[0].pjesmaID
+    
+    # Pronađi prvu pjesmu prvo
+    prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
+    
+    # Zadnja pjesma je ona koja pokazuje na prvu
+    for veza in veze:
+        if veza.pokazivacNaSljedecuPjesmuID == prva_id:
+            return veza.pjesmaID
+    
+    # Ako nema, vrati bilo koju kao zadnju
+    return veze[0].pjesmaID
 
 async def obrisi_pjesmu(session: AsyncSession, playlistaID: int, pjesmaID: int):
     """Briše pjesmu iz kružne playliste i ažurira pointere"""
@@ -174,7 +195,7 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
     Pomjera pjesmu na novo mjesto u kružnoj playlisti.
     Ako je nova_pozicija_iza_pjesmeID=None, pjesma ide na početak (prije prve).
     """
-    # Pronađi objekt pjesme
+    # Pronađi objekt pjesme koju pomjeramo
     result = await session.execute(
         select(PjesmaPlaylistaORM).where(
             and_(
@@ -187,11 +208,13 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
     if not obj:
         return None
 
-    # Ako je samo jedna pjesma, nema smisla mijenjati redoslijed
+    # Dohvati sve veze u playlisti
     result_all = await session.execute(
         select(PjesmaPlaylistaORM).where(PjesmaPlaylistaORM.playlistaID == playlistaID)
     )
     veze = result_all.scalars().all()
+    
+    # Ako je samo jedna pjesma, nema smisla mijenjati redoslijed
     if len(veze) <= 1:
         return obj
 
@@ -200,96 +223,82 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
         await session.commit()
         return obj
 
-    # 1. Izbaci pjesmu iz trenutnog mjesta (spoji susjede)
+    # Dohvati trenutne susjedne pjesme prije uklanjanja
     stari_prethodna = obj.pokazivacNaPrethodnuPjesmuID
     stari_sljedeca = obj.pokazivacNaSljedecuPjesmuID
 
-    if stari_prethodna and stari_prethodna != pjesmaID:
-        preth_result = await session.execute(
-            select(PjesmaPlaylistaORM).where(
-                and_(
-                    PjesmaPlaylistaORM.playlistaID == playlistaID,
-                    PjesmaPlaylistaORM.pjesmaID == stari_prethodna
-                )
-            )
-        )
-        preth_obj = preth_result.scalar_one_or_none()
-        if preth_obj:
+    # Ako premještamo na prvo mjesto
+    if nova_pozicija_iza_pjesmeID is None:
+        # Trebamo pronaći koja je trenutno prva i zadnja pjesma
+        # Prva je ona na koju pokazuje naša prethodna
+        # Zadnja je ona koja pokazuje na našu sljedeću
+        
+        if len(veze) == 1:
+            # Jedina pjesma - pokazuje na sebe
+            obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
+            obj.pokazivacNaSljedecuPjesmuID = pjesmaID
+            session.add(obj)
+            await session.commit()
+            return obj
+        
+        # Pronađi pravu prvu i zadnju bez pozivanja funkcija
+        trenutna_prva_id = None
+        trenutna_zadnja_id = None
+        
+        # Ako je naša sljedeća različita od nas, to je prva
+        if stari_sljedeca and stari_sljedeca != pjesmaID:
+            trenutna_prva_id = stari_sljedeca
+        
+        # Ako je naša prethodna različita od nas, to je zadnja  
+        if stari_prethodna and stari_prethodna != pjesmaID:
+            trenutna_zadnja_id = stari_prethodna
+            
+        if not trenutna_prva_id or not trenutna_zadnja_id:
+            # Fallback - pronađi bilo koju drugu pjesmu
+            for v in veze:
+                if v.pjesmaID != pjesmaID:
+                    if not trenutna_prva_id:
+                        trenutna_prva_id = v.pjesmaID
+                    if not trenutna_zadnja_id:  
+                        trenutna_zadnja_id = v.pjesmaID
+                    break
+
+        # 1. Spoji susjedne pjesme da uklonimo trenutnu
+        preth_obj = next((v for v in veze if v.pjesmaID == stari_prethodna), None)
+        sljed_obj = next((v for v in veze if v.pjesmaID == stari_sljedeca), None)
+        
+        if preth_obj and preth_obj.pjesmaID != pjesmaID:
             preth_obj.pokazivacNaSljedecuPjesmuID = stari_sljedeca
             session.add(preth_obj)
-
-    if stari_sljedeca and stari_sljedeca != pjesmaID:
-        sljed_result = await session.execute(
-            select(PjesmaPlaylistaORM).where(
-                and_(
-                    PjesmaPlaylistaORM.playlistaID == playlistaID,
-                    PjesmaPlaylistaORM.pjesmaID == stari_sljedeca
-                )
-            )
-        )
-        sljed_obj = sljed_result.scalar_one_or_none()
-        if sljed_obj:
+            
+        if sljed_obj and sljed_obj.pjesmaID != pjesmaID:
             sljed_obj.pokazivacNaPrethodnuPjesmuID = stari_prethodna
             session.add(sljed_obj)
 
-    # 2. Umetni na novo mjesto
-    if nova_pozicija_iza_pjesmeID is None:
-        # Dodaj na početak (prije prve, iza zadnje)
-        prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
-        zadnja_id = await pronadji_zadnju_pjesmu(session, playlistaID)
-        if prva_id == pjesmaID:
-            await session.commit()
-            return obj
-
-        # Nova pjesma ide iza zadnje, ispred prve
-        obj.pokazivacNaPrethodnuPjesmuID = zadnja_id
-        obj.pokazivacNaSljedecuPjesmuID = prva_id
-
-        # Ažuriraj zadnju da pokazuje na novu prvu
-        zadnja_result = await session.execute(
-            select(PjesmaPlaylistaORM).where(
-                and_(
-                    PjesmaPlaylistaORM.playlistaID == playlistaID,
-                    PjesmaPlaylistaORM.pjesmaID == zadnja_id
-                )
-            )
-        )
-        zadnja_obj = zadnja_result.scalar_one_or_none()
-        if zadnja_obj:
-            zadnja_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
-            session.add(zadnja_obj)
-
-        # Ažuriraj staru prvu da pokazuje na novu prvu kao prethodnu
-        prva_result = await session.execute(
-            select(PjesmaPlaylistaORM).where(
-                and_(
-                    PjesmaPlaylistaORM.playlistaID == playlistaID,
-                    PjesmaPlaylistaORM.pjesmaID == prva_id
-                )
-            )
-        )
-        prva_obj = prva_result.scalar_one_or_none()
-        if prva_obj:
-            prva_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
-            session.add(prva_obj)
+        # 2. Postavi novu pjesmu kao prvu
+        if trenutna_prva_id and trenutna_zadnja_id:
+            obj.pokazivacNaPrethodnuPjesmuID = trenutna_zadnja_id
+            obj.pokazivacNaSljedecuPjesmuID = trenutna_prva_id
+            
+            # Ažuriraj zadnju da pokazuje na novu prvu
+            zadnja_obj = next((v for v in veze if v.pjesmaID == trenutna_zadnja_id), None)
+            if zadnja_obj:
+                zadnja_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
+                session.add(zadnja_obj)
+            
+            # Ažuriraj staru prvu da pokazuje na novu kao prethodnu
+            prva_obj = next((v for v in veze if v.pjesmaID == trenutna_prva_id), None)
+            if prva_obj:
+                prva_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
+                session.add(prva_obj)
 
     else:
         # Dodaj iza određene pjesme (target)
-        target_result = await session.execute(
-            select(PjesmaPlaylistaORM).where(
-                and_(
-                    PjesmaPlaylistaORM.playlistaID == playlistaID,
-                    PjesmaPlaylistaORM.pjesmaID == nova_pozicija_iza_pjesmeID
-                )
-            )
-        )
-        target = target_result.scalar_one_or_none()
-        if not target or target.pjesmaID == pjesmaID:
+        target = next((v for v in veze if v.pjesmaID == nova_pozicija_iza_pjesmeID), None)
+        if not target:
             await session.commit()
             return obj
 
-        # Ako je target zadnja pjesma, sljedeća je prva
-        prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
         sljedeca_id = target.pokazivacNaSljedecuPjesmuID
 
         # Ako je targetova sljedeća pjesma ona koju pomjeramo, nema potrebe za promjenom
@@ -297,27 +306,32 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             await session.commit()
             return obj
 
+        # 1. Prvo ukloni pjesmu iz trenutnog mjesta
+        preth_obj = next((v for v in veze if v.pjesmaID == stari_prethodna), None)
+        sljed_obj = next((v for v in veze if v.pjesmaID == stari_sljedeca), None)
+        
+        if preth_obj and preth_obj.pjesmaID != pjesmaID:
+            preth_obj.pokazivacNaSljedecuPjesmuID = stari_sljedeca
+            session.add(preth_obj)
+            
+        if sljed_obj and sljed_obj.pjesmaID != pjesmaID:
+            sljed_obj.pokazivacNaPrethodnuPjesmuID = stari_prethodna
+            session.add(sljed_obj)
+
+        # 2. Postavi novu pjesmu iza targeta
         obj.pokazivacNaPrethodnuPjesmuID = target.pjesmaID
         obj.pokazivacNaSljedecuPjesmuID = sljedeca_id
 
-        # Ažuriraj target da pokazuje na ovu pjesmu
+        # Ažuriraj target da pokazuje na novu pjesmu
         target.pokazivacNaSljedecuPjesmuID = pjesmaID
         session.add(target)
 
-        # Ažuriraj sljedeću pjesmu (ako nije None i nije sama pjesma)
+        # Ažuriraj sljedeću pjesmu (ako postoji i nije sama pjesma)
         if sljedeca_id and sljedeca_id != pjesmaID:
-            sljed_result = await session.execute(
-                select(PjesmaPlaylistaORM).where(
-                    and_(
-                        PjesmaPlaylistaORM.playlistaID == playlistaID,
-                        PjesmaPlaylistaORM.pjesmaID == sljedeca_id
-                    )
-                )
-            )
-            sljed_obj = sljed_result.scalar_one_or_none()
-            if sljed_obj:
-                sljed_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
-                session.add(sljed_obj)
+            next_obj = next((v for v in veze if v.pjesmaID == sljedeca_id), None) 
+            if next_obj:
+                next_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
+                session.add(next_obj)
 
     session.add(obj)
     await session.commit()

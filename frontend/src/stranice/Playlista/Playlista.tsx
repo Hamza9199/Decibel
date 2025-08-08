@@ -190,9 +190,13 @@ const Playlista: React.FC = () => {
     // Stavi na početak - prva pjesma ima pokazivacNaPrethodnuPjesmuID = NULL
     nova_pozicija_iza_pjesmeID = null;
   } else {
-    // Stavi iza pjesme na poziciji idx-1
-    nova_pozicija_iza_pjesmeID = pjesme[idx - 1].id;
+    // Kao u starom HTML/JS kodu - uzmi ID pjesme koja je TRENUTNO na poziciji idx-1
+    const previousSongID = pjesme[idx - 1].id;
+    nova_pozicija_iza_pjesmeID = previousSongID;
   }
+
+  console.log(`Povlačim pjesmu ${draggedPjesma.id} sa pozicije ${draggedIdx} na poziciju ${idx}`);
+  console.log(`nova_pozicija_iza_pjesmeID: ${nova_pozicija_iza_pjesmeID}`);
 
   try {
     const response = await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {

@@ -184,16 +184,21 @@ const Playlista: React.FC = () => {
   }
 
   const draggedPjesma = pjesme[draggedIdx];
-  let nova_pozicija_iza_pjesmeID: number | null = null;
 
-  if (idx === 0) {
-    nova_pozicija_iza_pjesmeID = null;
+  // Izračunaj ispravan previous tako što simuliraš premještanje u listi
+  const temp = [...pjesme];
+  const [moved] = temp.splice(draggedIdx, 1);
+  const insertIndex = draggedIdx < idx ? idx - 1 : idx; // ako ide dolje, ciljni indeks se smanjuje za 1
+  temp.splice(insertIndex, 0, moved);
+
+  let nova_pozicija_iza_pjesmeID: number | null = null;
+  if (insertIndex === 0) {
+    nova_pozicija_iza_pjesmeID = null; // na početak
   } else {
-    const previousSongID = pjesme[idx - 1].id;
-    nova_pozicija_iza_pjesmeID = previousSongID;
+    nova_pozicija_iza_pjesmeID = temp[insertIndex - 1].id; // prethodnik u NOVOJ listi
   }
 
-  console.log(`Povlačim pjesmu ${draggedPjesma.id} sa pozicije ${draggedIdx} na poziciju ${idx}`);
+  console.log(`Povlačim pjesmu ${draggedPjesma.id} sa pozicije ${draggedIdx} na poziciju ${idx} (insertIndex=${insertIndex})`);
   console.log(`nova_pozicija_iza_pjesmeID: ${nova_pozicija_iza_pjesmeID}`);
 
   try {

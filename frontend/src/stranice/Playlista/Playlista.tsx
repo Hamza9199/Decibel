@@ -187,25 +187,9 @@ const Playlista: React.FC = () => {
   let nova_pozicija_iza_pjesmeID: number | null = null;
 
   if (idx === 0) {
-    // Stavi na početak - prva pjesma ima pokazivacNaPrethodnuPjesmuID = NULL
     nova_pozicija_iza_pjesmeID = null;
   } else {
-    // Trebamo pronaći pjesmu iza koje stvarno želimo staviti
-    let targetIdx = idx - 1;
-    
-    // Ako povlačimo prema dolje, trebamo preskočiti samu sebe
-    if (draggedIdx < idx) {
-      // Povlačimo prema dolje - ako je targetIdx === draggedIdx, uzmi sljedeći
-      if (targetIdx === draggedIdx) {
-        targetIdx = idx; // Uzmi pjesmu na poziciji gdje stavljamo
-        if (targetIdx >= pjesme.length) {
-          targetIdx = pjesme.length - 1; // Ne možemo ići izvan granica
-        }
-      }
-    }
-    
-    // Dohvati ID pjesme iza koje stavljamo
-    const previousSongID = pjesme[targetIdx].id;
+    const previousSongID = pjesme[idx - 1].id;
     nova_pozicija_iza_pjesmeID = previousSongID;
   }
 

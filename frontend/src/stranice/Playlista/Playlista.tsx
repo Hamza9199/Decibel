@@ -190,8 +190,22 @@ const Playlista: React.FC = () => {
     // Stavi na početak - prva pjesma ima pokazivacNaPrethodnuPjesmuID = NULL
     nova_pozicija_iza_pjesmeID = null;
   } else {
-    // Kao u starom HTML/JS kodu - uzmi ID pjesme koja je TRENUTNO na poziciji idx-1
-    const previousSongID = pjesme[idx - 1].id;
+    // Trebamo pronaći pjesmu iza koje stvarno želimo staviti
+    let targetIdx = idx - 1;
+    
+    // Ako povlačimo prema dolje, trebamo preskočiti samu sebe
+    if (draggedIdx < idx) {
+      // Povlačimo prema dolje - ako je targetIdx === draggedIdx, uzmi sljedeći
+      if (targetIdx === draggedIdx) {
+        targetIdx = idx; // Uzmi pjesmu na poziciji gdje stavljamo
+        if (targetIdx >= pjesme.length) {
+          targetIdx = pjesme.length - 1; // Ne možemo ići izvan granica
+        }
+      }
+    }
+    
+    // Dohvati ID pjesme iza koje stavljamo
+    const previousSongID = pjesme[targetIdx].id;
     nova_pozicija_iza_pjesmeID = previousSongID;
   }
 

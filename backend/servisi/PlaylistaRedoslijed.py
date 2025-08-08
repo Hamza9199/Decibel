@@ -184,6 +184,12 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
     if nova_pozicija_iza_pjesmeID and not await postoji_pjesma_u_playlisti(session, playlistaID, nova_pozicija_iza_pjesmeID):
         print(f"Ciljna pjesma {nova_pozicija_iza_pjesmeID} ne postoji u playlisti")
         return None
+    
+    # Provjeri ako pokušavaš staviti pjesmu odmah iza sebe
+    if nova_pozicija_iza_pjesmeID == pjesmaID:
+        print("Pokušava staviti iza sebe - nema mijenjanja")
+        await session.commit()
+        return None
 
     # Dohvati sve veze u playlisti
     result_all = await session.execute(
@@ -210,6 +216,12 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
     og_sljedbenik_id = target_obj.pokazivacNaSljedecuPjesmuID
     
     print(f"Target pjesma {pjesmaID}: prev={og_prethodnik_id}, next={og_sljedbenik_id}")
+
+    # Provjeri ako pokušavaš staviti iza pjesme koja je trenutno sljedeća (bez promjene)
+    if nova_pozicija_iza_pjesmeID == og_prethodnik_id:
+        print("Pokušava staviti iza svoje trenutne prethodne pjesme - nema mijenjanja")
+        await session.commit()
+        return target_obj
 
     # Ako premještamo na početak (nova_pozicija_iza_pjesmeID je None)
     if nova_pozicija_iza_pjesmeID is None:
@@ -278,42 +290,49 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
             await session.commit()
             return target_obj
         
-        # Postavi nove pokazivače za target pjesmu
-        target_obj.pokazivacNaPrethodnuPjesmuID = nova_pozicija_iza_pjesmeID
-        target_obj.pokazivacNaSljedecuPjesmuID = sljedbenik_id
-        session.add(target_obj)
-        
-        # Ažuriraj početnu da pokazuje na target
-        pocetna_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
-        session.add(pocetna_obj)
-        
-        # Ažuriraj sljedbenika (ako postoji)
-        if sljedbenik_id:
-            sljed_obj = next((v for v in veze if v.pjesmaID == sljedbenik_id), None)
-            if sljed_obj:
-                sljed_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
-                session.add(sljed_obj)
-        
-        # Spoji susjedne pjesme iz stare pozicije
+        # PRVO: Ukloni pjesmu iz stare pozicije - spoji susjedne pjesme
+        print("=== KORAK 1: Uklanjam iz stare pozicije ===")
         if og_prethodnik_id:
             preth_obj = next((v for v in veze if v.pjesmaID == og_prethodnik_id), None)
             if preth_obj:
+                print(f"Ažuriram prethodnu {og_prethodnik_id}: next {preth_obj.pokazivacNaSljedecuPjesmuID} -> {og_sljedbenik_id}")
                 preth_obj.pokazivacNaSljedecuPjesmuID = og_sljedbenik_id
                 session.add(preth_obj)
         
         if og_sljedbenik_id:
             sljed_obj = next((v for v in veze if v.pjesmaID == og_sljedbenik_id), None)
             if sljed_obj:
+                print(f"Ažuriram sljedeću {og_sljedbenik_id}: prev {sljed_obj.pokazivacNaPrethodnuPjesmuID} -> {og_prethodnik_id}")
                 sljed_obj.pokazivacNaPrethodnuPjesmuID = og_prethodnik_id
                 session.add(sljed_obj)
         
-        # Posebno rukovanje ako je target bio prva pjesma
-        if pjesmaID == prva_id:
-            if og_sljedbenik_id:
-                nova_prva_obj = next((v for v in veze if v.pjesmaID == og_sljedbenik_id), None)
-                if nova_prva_obj:
-                    nova_prva_obj.pokazivacNaPrethodnuPjesmuID = None  # Nova prva pjesma
-                    session.add(nova_prva_obj)
+        # Posebno rukovanje ako je target bila prva pjesma
+        if pjesmaID == prva_id and og_sljedbenik_id:
+            print(f"Target je bila prva pjesma - postavljam {og_sljedbenik_id} kao novu prvu")
+            nova_prva_obj = next((v for v in veze if v.pjesmaID == og_sljedbenik_id), None)
+            if nova_prva_obj:
+                nova_prva_obj.pokazivacNaPrethodnuPjesmuID = None  # Nova prva pjesma
+                session.add(nova_prva_obj)
+        
+        # DRUGO: Postavi novu pjesmu na novu poziciju
+        print("=== KORAK 2: Postavljam na novu poziciju ===")
+        print(f"Postavljam pjesmu {pjesmaID}: prev={nova_pozicija_iza_pjesmeID}, next={sljedbenik_id}")
+        target_obj.pokazivacNaPrethodnuPjesmuID = nova_pozicija_iza_pjesmeID
+        target_obj.pokazivacNaSljedecuPjesmuID = sljedbenik_id
+        session.add(target_obj)
+        
+        # Ažuriraj početnu da pokazuje na target
+        print(f"Ažuriram početnu {nova_pozicija_iza_pjesmeID}: next {pocetna_obj.pokazivacNaSljedecuPjesmuID} -> {pjesmaID}")
+        pocetna_obj.pokazivacNaSljedecuPjesmuID = pjesmaID
+        session.add(pocetna_obj)
+        
+        # Ažuriraj sljedbenika (ako postoji i nije target)
+        if sljedbenik_id and sljedbenik_id != pjesmaID:
+            sljed_obj = next((v for v in veze if v.pjesmaID == sljedbenik_id), None)
+            if sljed_obj:
+                print(f"Ažuriram sljedbenika {sljedbenik_id}: prev {sljed_obj.pokazivacNaPrethodnuPjesmuID} -> {pjesmaID}")
+                sljed_obj.pokazivacNaPrethodnuPjesmuID = pjesmaID
+                session.add(sljed_obj)
 
     print("=== COMMIT PROMJENA ===")
     await session.commit()

@@ -187,7 +187,7 @@ const Playlista: React.FC = () => {
   let nova_pozicija_iza_pjesmeID: number | null = null;
 
   if (idx === 0) {
-    // Stavi na početak - trebamo staviti iza zadnje pjesme (nova_pozicija_iza_pjesmeID = null)
+    // Stavi na početak - prva pjesma ima pokazivacNaPrethodnuPjesmuID = NULL
     nova_pozicija_iza_pjesmeID = null;
   } else {
     // Stavi iza pjesme na poziciji idx-1
@@ -195,36 +195,35 @@ const Playlista: React.FC = () => {
   }
 
   try {
-    await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
+    const response = await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
       playlistaID: Number(playlistaId),
       pjesmaID: draggedPjesma.id,
       nova_pozicija_iza_pjesmeID,
     });
 
-    setDraggedIdx(null);
-    setDragOverIdx(null);
-    
-    // Refresh liste
-    const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
-    const idsZaDohvat: number[] = res.data || [];
-    
-    if (idsZaDohvat.length === 0) {
-      setPjesme([]);
-      return;
+    if (response.data?.success) {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
+      const idsZaDohvat: number[] = res.data || [];
+      
+      if (idsZaDohvat.length === 0) {
+        setPjesme([]);
+      } else {
+        const pjesmeArr = await Promise.all(
+          idsZaDohvat.map((id) =>
+            axios
+              .get(`${API_BASE}/pjesme/${id}`)
+              .then((r) => r.data)
+              .catch(() => null)
+          )
+        );
+        setPjesme(pjesmeArr.filter(Boolean));
+      }
+    } else {
+      console.error("Backend je vratio neuspješan odgovor");
     }
-    
-    const pjesmeArr = await Promise.all(
-      idsZaDohvat.map((id) =>
-        axios
-          .get(`${API_BASE}/pjesme/${id}`)
-          .then((r) => r.data)
-          .catch(() => null)
-      )
-    );
-    
-    setPjesme(pjesmeArr.filter(Boolean));
   } catch (error) {
     console.error("Greška pri promjeni redoslijeda:", error);
+  } finally {
     setDraggedIdx(null);
     setDragOverIdx(null);
   }

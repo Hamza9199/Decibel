@@ -15,7 +15,8 @@ from servisi.PlaylistaRedoslijed import (
     promjeni_redoslijed,
     dodaj_pjesmu_na_kraj,
     dobij_redoslijed_playliste,
-    obrisi_pjesmu
+    obrisi_pjesmu,
+    premjesti_na_pocetak
 )
 
 router = APIRouter(prefix="/api/pjesma_playlista", tags=["PjesmaPlaylista"])
@@ -47,6 +48,10 @@ class PromjeniRedoslijedRequest(BaseModel):
     playlistaID: int
     pjesmaID: int
     nova_pozicija_iza_pjesmeID: int | None = None 
+
+class PremjestiNaPocetakRequest(BaseModel):
+    playlistaID: int
+    pjesmaID: int 
 
 @router.get("/", response_model=List[PjesmaPlaylista])
 async def sve_pjesma_playlista(session: AsyncSession = Depends(get_session)):
@@ -115,5 +120,21 @@ async def promjeni_redoslijed_pjesme(
     )
     if rezultat is None:
         raise HTTPException(status_code=400, detail="Neuspješna promjena redoslijeda")
+        
+    return {"success": True}
+
+@router.post("/premjesti-na-pocetak/", response_model=dict)
+async def premjesti_na_pocetak_endpoint(
+    data: PremjestiNaPocetakRequest,
+    session: AsyncSession = Depends(get_session)
+):
+    """Premješta pjesmu na početak playliste"""
+    rezultat = await premjesti_na_pocetak(
+        session, 
+        data.playlistaID, 
+        data.pjesmaID
+    )
+    if rezultat is None:
+        raise HTTPException(status_code=400, detail="Neuspješno premještanje na početak")
         
     return {"success": True}

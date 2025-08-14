@@ -30,7 +30,7 @@
    - [Testiranje](#testiranje-backenda)
    - [Primjeri API poziva](#primjeri-api-poziva)
    - [Napredne funkcionalnosti](#napredne-funkcionalnosti)
-   - [Noviteti 2025](#noviteti-2025)
+   - [Noviteti](#noviteti)
 4. [Frontend](#frontend)
    - [Tehnologije](#tehnologije-frontenda)
    - [Struktura direktorijuma](#struktura-direktorijuma-frontend)
@@ -42,7 +42,7 @@
    - [Deploy](#deploy-frontend)
    - [Testiranje](#testiranje-frontenda)
    - [Napredne funkcionalnosti](#napredne-funkcionalnosti-frontend)
-   - [Noviteti 2025](#noviteti-2025-frontend)
+   - [Noviteti](#noviteti-frontend)
 5. [Mobilna aplikacija](#mobilna-aplikacija)
    - [Tehnologije](#tehnologije-mobilne-aplikacije)
    - [Struktura direktorijuma](#struktura-direktorijuma-mobilna)
@@ -55,7 +55,7 @@
    - [Dozvole](#dozvole)
    - [Testiranje](#testiranje-mobilne-aplikacije)
    - [Distribucija APK](#distribucija-apk)
-   - [Noviteti 2025](#noviteti-2025-mobilna)
+   - [Noviteti](#noviteti-mobilna)
 6. [Dodatno](#dodatno)
    - [CORS i sigurnost](#cors-i-sigurnost)
    - [Okruženja i konfiguracija](#okruzenja-i-konfiguracija)
@@ -406,7 +406,7 @@ GET /api/v1/statistika/top-songs
 - Auto-obnova pretplate; suspendovanje korisnika; statistika sa embed objektima
 - Offline režim (preuzimanje pjesama); QR kodovi; AI preporuke (eksperimentalno)
 
-### Noviteti 2025
+### Noviteti
 
 - Offline tokeni i čišćenje starih fajlova; fuzzy/autocomplete pretraga
 - Push/email notifikacije (FCM/SMTP); QR generacija/validacija; Admin panel endpointi
@@ -489,7 +489,7 @@ api.interceptors.response.use(r=>r, e=>Promise.reject(e))
 - Dynamic backgrounds; suspendovan/obrisan screen
 - i18n (BS/EN/DE); QR kodovi; web push (opciono)
 
-### Noviteti 2025 (frontend)
+### Noviteti (frontend)
 
 - PWA offline; fuzzy/autocomplete search; AI preporuke
 
@@ -570,7 +570,7 @@ await FileSystem.downloadAsync(remoteUrl, FileSystem.documentDirectory + 'audio/
 
 - EAS build (Android), TestFlight (iOS), OTA updates (opciono)
 
-### Noviteti 2025 (mobilna)
+### Noviteti (mobilna)
 
 - Offline preuzimanje/brisanje; real-time pretraga; FCM; QR skeniranje; AI preporuke
 

@@ -1,105 +1,129 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useCallback, useState, memo } from "react";
 import styles from "./Historija.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
-import { Pjesma, HistorijaSlusanja, Playlista, KorisnikPjesma } from "../../types";
+import { Pjesma, HistorijaSlusanja, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Historija: React.FC = () => {
-  const [historija, setHistorija] = useState<HistorijaSlusanja[]>([]);
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
-  const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null); // pjesmaID
-  const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
   const { t } = useTranslation();
+  const qc = useQueryClient();
+  const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null);
 
-  let korisnikID = "";
-  try {
-    const user = JSON.parse(localStorage.getItem("korisnik") || "");
-    korisnikID = user?.id || "";
-  } catch {
-    korisnikID = "";
-  }
-
-  useEffect(() => {
-    if (!korisnikID) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    axios
-      .get(`${API_BASE}/historija/`)
-      .then((res) => {
-        const sve: HistorijaSlusanja[] = res.data || [];
-        const sortirano = sve
-          .filter((h) => h.korisnikID === korisnikID)
-          .sort((a, b) =>
-            new Date(b.kreiranDatumVrijeme || "").getTime() -
-            new Date(a.kreiranDatumVrijeme || "").getTime()
-          );
-        setHistorija(sortirano);
-      })
-      .catch(() => setHistorija([]));
-    axios
-      .get(`${API_BASE}/pjesme/`)
-      .then((res) => setPjesme(res.data || []))
-      .catch(() => setPjesme([]));
-    axios
-      .get(`${API_BASE}/playliste/`)
-      .then((res) => setPlaylists(res.data || []))
-      .catch(() => setPlaylists([]));
-    axios
-      .get(`${API_BASE}/korisnik_pjesma/`)
-      .then((res) => {
-        const veze = res.data as KorisnikPjesma[];
-        const map: { [pjesmaId: number]: boolean } = {};
-        veze.filter(v => v.korisnikID === korisnikID).forEach(v => { map[v.pjesmaID] = true; });
-        setLikeMap(map);
-      })
-      .catch(() => setLikeMap({}));
-    setLoading(false);
-  }, [korisnikID]);
-
-  const handleLike = async (pjesmaId: number) => {
-    if (!korisnikID || !pjesmaId) return;
-    if (likeMap[pjesmaId]) {
-      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${pjesmaId}`).catch(() => {});
-      setLikeMap((prev) => ({ ...prev, [pjesmaId]: false }));
-    } else {
-      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-        korisnikID,
-        pjesmaID: pjesmaId,
-        kreiranDatumVrijeme: new Date().toISOString(),
-      }).catch(() => {});
-      setLikeMap((prev) => ({ ...prev, [pjesmaId]: true }));
-    }
-  };
-
-   const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
+  const korisnikID = useMemo(() => {
     try {
-      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
-        pjesmaID,
-        playlistaID,
-      });
-      setShowPlaylistModal(null);
+      const u = JSON.parse(localStorage.getItem("korisnik") || "");
+      return u?.id || "";
     } catch {
-      alert("Greška pri dodavanju pjesme u playlistu.");
+      return "";
     }
-  };
+  }, []);
 
-  const historijaPjesme = historija
-    .map((h) => ({
-      ...h,
-      pjesma: pjesme.find((p) => p.id === h.pjesmaID),
-    }))
-    .filter((h) => h.pjesma && h.pjesma.odobreno); 
+  const historijaQ = useQuery<HistorijaSlusanja[]>({
+    queryKey: ["historija", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/historija/`);
+      const sve: HistorijaSlusanja[] = r.data || [];
+      return sve
+        .filter((h) => h.korisnikID === korisnikID)
+        .sort(
+          (a, b) => new Date(b.kreiranDatumVrijeme || "").getTime() - new Date(a.kreiranDatumVrijeme || "").getTime()
+        );
+    },
+  });
+
+  const pjesmeQ = useQuery<Pjesma[]>({
+    queryKey: ["pjesme"],
+    queryFn: async () => axios.get(`${API_BASE}/pjesme/`).then((r) => r.data || []),
+  });
+
+  const playlisteQ = useQuery<Playlista[]>({
+    queryKey: ["playliste", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
+    initialData: [],
+  });
+
+  const likeMapQ = useQuery<Record<number, boolean>>({
+    queryKey: ["likeMap", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+      const veze = (r.data || []) as { korisnikID: string; pjesmaID: number }[];
+      const map: Record<number, boolean> = {};
+      veze.filter((v) => v.korisnikID === korisnikID).forEach((v) => (map[v.pjesmaID] = true));
+      return map;
+    },
+    initialData: {},
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async (vars: { pjesmaId: number; liked: boolean }) => {
+      if (!korisnikID || !vars.pjesmaId) return;
+      if (vars.liked) {
+        await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${vars.pjesmaId}`);
+      } else {
+        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+          korisnikID,
+          pjesmaID: vars.pjesmaId,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+      }
+      return vars.pjesmaId;
+    },
+    onSuccess: (pId) => {
+      qc.setQueryData<Record<number, boolean>>(["likeMap", korisnikID], (old) => ({ ...(old || {}), [pId as number]: !((old || {})[pId as number]) }));
+    },
+  });
+
+  const addToPlaylistMutation = useMutation({
+    mutationFn: async (vars: { pjesmaID: number; playlistaID: number }) => {
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, vars);
+    },
+    onSuccess: () => {
+      setShowPlaylistModal(null);
+    },
+    onError: () => {
+      alert("Greška pri dodavanju pjesme u playlistu.");
+    },
+  });
+
+  const historijaPjesme = useMemo(() => {
+    const h = historijaQ.data || [];
+    const p = pjesmeQ.data || [];
+    return h
+      .map((x) => ({ ...x, pjesma: p.find((pp) => pp.id === x.pjesmaID) }))
+      .filter((x) => x.pjesma && x.pjesma.odobreno);
+  }, [historijaQ.data, pjesmeQ.data]);
+
+  const loading = useMemo(() => {
+    const a = historijaQ.isLoading || pjesmeQ.isLoading;
+    const b = korisnikID ? playlisteQ.isLoading || likeMapQ.isLoading : false;
+    return a || b;
+  }, [historijaQ.isLoading, pjesmeQ.isLoading, playlisteQ.isLoading, likeMapQ.isLoading, korisnikID]);
+
+  const handleLike = useCallback(
+    (pjesmaId: number) => {
+      const lm = likeMapQ.data || {};
+      likeMutation.mutate({ pjesmaId, liked: !!lm[pjesmaId] });
+    },
+    [likeMutation, likeMapQ.data]
+  );
+
+  const handleAddToPlaylist = useCallback(
+    (pjesmaID: number, playlistaID: number) => {
+      addToPlaylistMutation.mutate({ pjesmaID, playlistaID });
+    },
+    [addToPlaylistMutation]
+  );
 
   if (loading) return <Loading />;
 
@@ -160,11 +184,11 @@ const Historija: React.FC = () => {
                         </svg>
                       </button>
                       <button
-                        className={`${styles.likeBtn} ${likeMap[h.pjesmaID] ? styles.liked : ""}`}
+                        className={`${styles.likeBtn} ${(likeMapQ.data || {})[h.pjesmaID] ? styles.liked : ""}`}
                         onClick={() => handleLike(h.pjesmaID)}
-                        title={likeMap[h.pjesmaID] ? t("remove") : t("add_to_favorites") || "Lajkuj pjesmu"}
+                        title={(likeMapQ.data || {})[h.pjesmaID] ? t("remove") : t("add_to_favorites") || "Lajkuj pjesmu"}
                       >
-                        <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
+                        <svg width="22" height="22" viewBox="0 0 28 28" fill={(likeMapQ.data || {})[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
                           <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                         </svg>
                       </button>
@@ -180,15 +204,12 @@ const Historija: React.FC = () => {
                       </button>
                       {showPlaylistModal === h.pjesmaID && (
                         <div className={styles.modalOverlay} onClick={() => setShowPlaylistModal(null)}>
-                          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+                          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
                             <h4>{t("add_song_to_playlist")}</h4>
                             <ul className={styles.playlistList}>
-                              {playlists.map((pl) => (
+                              {(playlisteQ.data || []).map((pl) => (
                                 <li key={pl.id}>
-                                  <button
-                                    className={styles.playlistBtn}
-                                    onClick={() => handleAddToPlaylist(h.pjesmaID, pl.id)}
-                                  >
+                                  <button className={styles.playlistBtn} onClick={() => handleAddToPlaylist(h.pjesmaID, pl.id)}>
                                     {pl.naziv}
                                   </button>
                                 </li>
@@ -213,4 +234,4 @@ const Historija: React.FC = () => {
   );
 };
 
-export default Historija;
+export default memo(Historija);

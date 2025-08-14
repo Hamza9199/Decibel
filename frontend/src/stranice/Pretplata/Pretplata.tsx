@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState, useCallback, memo, useEffect } from "react";
 import styles from "./Pretplata.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -8,68 +8,80 @@ import Loading from "../../komponente/Loading/Loading";
 import { useNavigate } from "react-router-dom";
 import type { KorisnikPretplata, Pretplata } from "../../types";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Pretplata: React.FC = () => {
-  const [loading, setLoading] = useState(true);
-  const [korisnikPretplata, setKorisnikPretplata] = useState<KorisnikPretplata | null>(null);
-  const [ponude, setPonude] = useState<Pretplata[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [kupovinaLoading, setKupovinaLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const qc = useQueryClient();
 
-  let korisnikID = "";
-  try {
-    const user = JSON.parse(localStorage.getItem("korisnik") || "");
-    korisnikID = user?.id || "";
-  } catch {
-    korisnikID = "";
-  }
+  const korisnikID = useMemo(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("korisnik") || "");
+      return user?.id || "";
+    } catch {
+      return "";
+    }
+  }, []);
+
+  const korisnikPretplataQ = useQuery<KorisnikPretplata | null>({
+    queryKey: ["korisnikPretplata", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
+      const pretplate: KorisnikPretplata[] = res.data || [];
+      return pretplate.find((p) => p.korisnikID === korisnikID) || null;
+    },
+  });
+
+  const ponudeQ = useQuery<Pretplata[]>({
+    queryKey: ["pretplatePonude"],
+    enabled: korisnikPretplataQ.isFetched && !korisnikPretplataQ.data,
+    queryFn: async () => axios.get(`${API_BASE}/pretplate/`).then((r) => (r.data || []).filter((p: Pretplata) => p.dostupno)),
+    initialData: [],
+  });
 
   useEffect(() => {
-    if (!korisnikID) {
-      setLoading(false);
-      setError("Morate biti prijavljeni.");
-      return;
-    }
-    setLoading(true);
-    axios
-      .get(`${API_BASE}/korisnik_pretplata/`)
-      .then((res) => {
-        const pretplate: KorisnikPretplata[] = res.data || [];
-        const moja = pretplate.find((p) => p.korisnikID === korisnikID);
-        setKorisnikPretplata(moja || null);
-        if (!moja) {
-          axios
-            .get(`${API_BASE}/pretplate/`)
-            .then((r) => setPonude((r.data || []).filter((p: Pretplata) => p.dostupno)))
-            .catch(() => setPonude([]));
-        }
-      })
-      .catch((error) => setError("Greška pri dohvatu podataka. " + (error?.response?.status === 404 ? "Nema podataka." : error)))
-      .finally(() => setLoading(false));
-  }, [korisnikID]);
+    if (korisnikPretplataQ.error || ponudeQ.error) setError("Greška pri dohvatu podataka.");
+  }, [korisnikPretplataQ.error, ponudeQ.error]);
 
-  const handleOtkaziPretplatu = async () => {
-    if (!korisnikPretplata) return;
+  const cancelMut = useMutation({
+    mutationFn: async () => {
+      const kp = korisnikPretplataQ.data as KorisnikPretplata | null;
+      const id = kp?.id;
+      if (!id) throw new Error("no-sub");
+      await axios.delete(`${API_BASE}/korisnik_pretplata/${id}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["korisnikPretplata", korisnikID] });
+    },
+    onError: () => setError("Greška pri otkazivanju pretplate."),
+  });
+
+  const handleOtkaziPretplatu = useCallback(() => {
+    if (!korisnikPretplataQ.data) return;
     if (!window.confirm("Jeste li sigurni da želite otkazati pretplatu?")) return;
-    setKupovinaLoading(true);
-    try {
-      await axios.delete(`${API_BASE}/korisnik_pretplata/${korisnikPretplata.id}`);
-      window.location.reload();
-    } catch {
-      setError("Greška pri otkazivanju pretplate.");
-    } finally {
-      setKupovinaLoading(false);
-    }
-  };
+    cancelMut.mutate();
+  }, [cancelMut, korisnikPretplataQ.data]);
 
-  const handleObnoviPretplatu = () => {
-    if (!korisnikPretplata?.pretplataID) return;
-    navigate(`/nova-pretplata/${korisnikPretplata.pretplataID}`);
-  };
+  const handleObnoviPretplatu = useCallback(() => {
+    const pid = korisnikPretplataQ.data?.pretplataID;
+    if (!pid) return;
+    navigate(`/nova-pretplata/${pid}`);
+  }, [korisnikPretplataQ.data, navigate]);
+
+  const loading = useMemo(() => {
+    if (!korisnikID) return false;
+    return korisnikPretplataQ.isLoading || ponudeQ.isLoading;
+  }, [korisnikID, korisnikPretplataQ.isLoading, ponudeQ.isLoading]);
+
+  const displayError = useMemo(() => (!korisnikID ? "Morate biti prijavljeni." : error), [korisnikID, error]);
+
+  const korisnikPretplata = korisnikPretplataQ.data as KorisnikPretplata | null;
+  const ponude = (ponudeQ.data as Pretplata[]) || [];
 
   return (
     <>
@@ -80,8 +92,8 @@ const Pretplata: React.FC = () => {
           <h2 className={styles.title}>{t("subscription")}</h2>
           {loading ? (
             <Loading />
-          ) : error ? (
-            <div className={styles.error}>{error}</div>
+          ) : displayError ? (
+            <div className={styles.error}>{displayError}</div>
           ) : korisnikPretplata ? (
             <div className={styles.infoBox}>
               <div className={styles.status}>
@@ -90,9 +102,7 @@ const Pretplata: React.FC = () => {
               <div className={styles.naziv}>
                 {t("package") || "Paket"}: <b>{korisnikPretplata.pretplata?.naziv || t("no_data")}</b>
               </div>
-              <div className={styles.opis}>
-                {korisnikPretplata.pretplata?.opis}
-              </div>
+              <div className={styles.opis}>{korisnikPretplata.pretplata?.opis}</div>
               <div className={styles.cijena}>
                 {t("price") || "Cijena"}: <b>{korisnikPretplata.pretplata?.cijena} KM / mj</b>
               </div>
@@ -102,20 +112,10 @@ const Pretplata: React.FC = () => {
                 </div>
               )}
               <div style={{ display: "flex", gap: 12, marginTop: 16, justifyContent: "center" }}>
-                <button
-                  className={styles.kupiBtn}
-                  style={{ background: "#e754a2" }}
-                  onClick={handleObnoviPretplatu}
-                  disabled={kupovinaLoading}
-                >
+                <button className={styles.kupiBtn} style={{ background: "#e754a2" }} onClick={handleObnoviPretplatu} disabled={cancelMut.isPending}>
                   {t("renew_subscription") || "Obnovi pretplatu"}
                 </button>
-                <button
-                  className={styles.kupiBtn}
-                  style={{ background: "#232323", color: "#ffe6ec", border: "1px solid #b91d95" }}
-                  onClick={handleOtkaziPretplatu}
-                  disabled={kupovinaLoading}
-                >
+                <button className={styles.kupiBtn} style={{ background: "#232323", color: "#ffe6ec", border: "1px solid #b91d95" }} onClick={handleOtkaziPretplatu} disabled={cancelMut.isPending}>
                   {t("cancel_subscription") || "Otkaži pretplatu"}
                 </button>
               </div>
@@ -123,23 +123,17 @@ const Pretplata: React.FC = () => {
             </div>
           ) : (
             <div className={styles.noSub}>
-              <div className={styles.warning}>
-                {t("no_active_subscription") || "Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:"}
-              </div>
+              <div className={styles.warning}>{t("no_active_subscription") || "Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:"}</div>
               <div className={styles.ponudeGrid}>
                 {ponude.length === 0 ? (
                   <div className={styles.error}>{t("no_available_subscriptions") || "Nema dostupnih pretplata."}</div>
                 ) : (
-                  ponude.map((p) => (
+                  ponude.map((p: Pretplata) => (
                     <div key={p.id} className={styles.ponudaCard}>
                       <div className={styles.ponudaNaziv}>{p.naziv}</div>
                       <div className={styles.ponudaOpis}>{p.opis}</div>
                       <div className={styles.ponudaCijena}>{p.cijena} KM / mj</div>
-                      <button
-                        className={styles.kupiBtn}
-                        onClick={() => navigate(`/nova-pretplata/${p.id}`)}
-                        disabled={kupovinaLoading}
-                      >
+                      <button className={styles.kupiBtn} onClick={() => navigate(`/nova-pretplata/${p.id}`)} disabled={cancelMut.isPending}>
                         {t("buy_subscription")}
                       </button>
                     </div>
@@ -155,6 +149,6 @@ const Pretplata: React.FC = () => {
   );
 };
 
-export default Pretplata;
+export default memo(Pretplata);
 
 

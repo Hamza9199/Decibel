@@ -1,142 +1,119 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState, useCallback, memo } from "react";
 import styles from "./SviKorisnici.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
-import { Korisnik } from "../../types";
-import { PrijavaIzvodjaca } from "../../types"; 
+import { Korisnik, PrijavaIzvodjaca } from "../../types";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const SviKorisnici: React.FC = () => {
-  const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [prijave, setPrijave] = useState<PrijavaIzvodjaca[]>([]);
   const [prijavaModal, setPrijavaModal] = useState<{ korisnikID: string; prijava: PrijavaIzvodjaca } | null>(null);
-  const [suspendModal, setSuspendModal] = useState<{
-    korisnik: Korisnik;
-    poruka: string;
-    vrijemeDo: string;
-  } | null>(null);
+  const [suspendModal, setSuspendModal] = useState<{ korisnik: Korisnik; poruka: string; vrijemeDo: string } | null>(null);
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
+  const qc = useQueryClient();
 
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      axios.get(`${API_BASE}/korisnici/`).then((res) => res.data || []).catch(() => []),
-      axios.get(`${API_BASE}/prijave_izvodjaca/`).then((res) => res.data || []).catch(() => []),
-    ])
-      .then(([korisniciData, prijaveData]) => {
-        setKorisnici(korisniciData);
-        setPrijave(prijaveData);
-      })
-      .catch(() => setError("Greška pri dohvatu korisnika ili prijava."))
-      .finally(() => setLoading(false));
-  }, []);
+  const usersQ = useQuery<Korisnik[]>({
+    queryKey: ["korisnici"],
+    queryFn: async () => axios.get(`${API_BASE}/korisnici/`).then((r) => r.data || []),
+    initialData: [],
+  });
+  const prijaveQ = useQuery<PrijavaIzvodjaca[]>({
+    queryKey: ["prijave_izvodjaca"],
+    queryFn: async () => axios.get(`${API_BASE}/prijave_izvodjaca/`).then((r) => r.data || []),
+    initialData: [],
+  });
 
-  const handleChange = async (
-    korisnik: Korisnik,
-    field: "rola" | "statusKorisnika",
-    value: string
-  ) => {
-    setError(null);
-    setSuccess(null);
+  const korisnici = useMemo(() => usersQ.data || [], [usersQ.data]);
+  const prijave = useMemo(() => prijaveQ.data || [], [prijaveQ.data]);
 
-    if (field === "statusKorisnika" && value === "suspendovan") {
-      setSuspendModal({
-        korisnik,
-        poruka: "",
-        vrijemeDo: "",
-      });
-      return;
-    }
-
-    try {
-      await axios.put(`${API_BASE}/korisnici/${korisnik.id}`, {
-        ...korisnik,
-        rola: field === "rola" ? value : korisnik.rola,
-        statusKorisnika: field === "statusKorisnika" ? value : korisnik.statusKorisnika,
-      });
-
-      if (
-        field === "statusKorisnika" &&
-        (value === "aktivan" || value === "neaktivan")
-      ) {
+  const updateUserMut = useMutation({
+    mutationFn: async (vars: { korisnik: Korisnik; field: "rola" | "statusKorisnika"; value: string }) => {
+      const body = {
+        ...vars.korisnik,
+        rola: vars.field === "rola" ? vars.value : vars.korisnik.rola,
+        statusKorisnika: vars.field === "statusKorisnika" ? vars.value : vars.korisnik.statusKorisnika,
+      };
+      await axios.put(`${API_BASE}/korisnici/${vars.korisnik.id}`, body);
+      if (vars.field === "statusKorisnika" && (vars.value === "aktivan" || vars.value === "neaktivan")) {
         try {
-          const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${korisnik.id}`);
-          if (res.data && res.data.id) {
-            await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
-          }
+          const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${vars.korisnik.id}`);
+          if (res.data && res.data.id) await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
         } catch {
-          console.error("Greška pri brisanju suspenzije korisnika.");
+          // Ignore
         }
       }
-
+      return body as Korisnik;
+    },
+    onSuccess: (updated) => {
       setSuccess("Uspješno ažurirano.");
-      setKorisnici((prev) =>
-        prev.map((k) =>
-          k.id === korisnik.id
-            ? {
-                ...k,
-                rola: field === "rola" ? value : k.rola,
-                statusKorisnika: field === "statusKorisnika" ? value : k.statusKorisnika,
-              }
-            : k
-        )
-      );
-    } catch {
-      setError("Greška pri ažuriranju korisnika.");
-    }
-  };
+      qc.setQueryData<Korisnik[]>(["korisnici"], (old) => (old || []).map((k) => (k.id === updated.id ? updated : k)));
+    },
+    onError: () => setError("Greška pri ažuriranju korisnika."),
+  });
 
-  const handlePotvrdiSuspenziju = async () => {
+  const suspendMut = useMutation({
+    mutationFn: async (vars: { korisnik: Korisnik; poruka: string; vrijemeDo: string }) => {
+      await axios.put(`${API_BASE}/korisnici/${vars.korisnik.id}`, { ...vars.korisnik, statusKorisnika: "suspendovan" });
+      await axios.post(`${API_BASE}/suspendovani/`, { korisnikID: vars.korisnik.id, vrijemeDo: vars.vrijemeDo, poruka: vars.poruka });
+      return vars.korisnik.id;
+    },
+    onSuccess: (id) => {
+      setSuccess("Korisnik je suspendovan.");
+      qc.setQueryData<Korisnik[]>(["korisnici"], (old) => (old || []).map((k) => (k.id === id ? { ...k, statusKorisnika: "suspendovan" } : k)));
+      setSuspendModal(null);
+    },
+    onError: () => setError("Greška pri suspenziji korisnika."),
+  });
+
+  const deletePrijavaMut = useMutation({
+    mutationFn: async (id: number) => {
+      await axios.delete(`${API_BASE}/prijave_izvodjaca/${id}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["prijave_izvodjaca"] });
+      setPrijavaModal(null);
+    },
+    onError: () => alert(t("error_deleting_application") || "Greška pri brisanju prijave."),
+  });
+
+  const handleChange = useCallback(
+    (korisnik: Korisnik, field: "rola" | "statusKorisnika", value: string) => {
+      setError(null);
+      setSuccess(null);
+      if (field === "statusKorisnika" && value === "suspendovan") {
+        setSuspendModal({ korisnik, poruka: "", vrijemeDo: "" });
+        return;
+      }
+      updateUserMut.mutate({ korisnik, field, value });
+    },
+    [updateUserMut]
+  );
+
+  const handlePotvrdiSuspenziju = useCallback(async () => {
     if (!suspendModal) return;
     setError(null);
     setSuccess(null);
-    try {
-      await axios.put(`${API_BASE}/korisnici/${suspendModal.korisnik.id}`, {
-        ...suspendModal.korisnik,
-        statusKorisnika: "suspendovan",
-      });
-      await axios.post(`${API_BASE}/suspendovani/`, {
-        korisnikID: suspendModal.korisnik.id,
-        vrijemeDo: suspendModal.vrijemeDo,
-        poruka: suspendModal.poruka,
-      });
-      setSuccess("Korisnik je suspendovan.");
-      setKorisnici((prev) =>
-        prev.map((k) =>
-          k.id === suspendModal.korisnik.id
-            ? { ...k, statusKorisnika: "suspendovan" }
-            : k
-        )
-      );
-      setSuspendModal(null);
-    } catch {
-      setError("Greška pri suspenziji korisnika.");
-    }
-  };
+    suspendMut.mutate({ korisnik: suspendModal.korisnik, poruka: suspendModal.poruka, vrijemeDo: suspendModal.vrijemeDo });
+  }, [suspendModal, suspendMut]);
 
-  const handlePrekiniSuspenziju = () => {
+  const handlePrekiniSuspenziju = useCallback(() => {
     if (!suspendModal) return;
-    setKorisnici((prev) =>
-      prev.map((k) =>
-        k.id === suspendModal.korisnik.id
-          ? { ...k, statusKorisnika: "aktivan" }
-          : k
-      )
-    );
+    qc.setQueryData<Korisnik[]>(["korisnici"], (old) => (old || []).map((k) => (k.id === suspendModal.korisnik.id ? { ...k, statusKorisnika: "aktivan" } : k)));
     setSuspendModal(null);
-  };
+  }, [suspendModal, qc]);
 
-  const filtriraniKorisnici = korisnici.filter((k) =>
-    k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
+  const filtriraniKorisnici = useMemo(
+    () => (korisnici || []).filter((k) => k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())),
+    [korisnici, search]
   );
+  const loading = usersQ.isLoading || prijaveQ.isLoading;
 
   return (
     <>
@@ -149,7 +126,7 @@ const SviKorisnici: React.FC = () => {
             type="text"
             placeholder={t("search_users") || "Pretraži korisnike..."}
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className={styles.searchInput}
           />
           {loading ? (
@@ -229,24 +206,18 @@ const SviKorisnici: React.FC = () => {
               </table>
               {prijavaModal && (
                 <div className={styles.modalOverlay} onClick={() => setPrijavaModal(null)}>
-                  <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                  <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                     <h4 className={styles.modalTitle}>{t("artist_application")}</h4>
                     <div className={styles.modalSection}>
                       <b>{t("user")}:</b>{" "}
-                      {
-                        (() => {
-                          const korisnik = korisnici.find(k => k.id === prijavaModal.korisnikID);
-                          return korisnik
-                            ? `${korisnik.korisnicko_ime} (${korisnik.ime} ${korisnik.prezime})`
-                            : prijavaModal.korisnikID;
-                        })()
-                      }
+                      {(() => {
+                        const korisnik = korisnici.find((x) => x.id === prijavaModal.korisnikID);
+                        return korisnik ? `${korisnik.korisnicko_ime} (${korisnik.ime} ${korisnik.prezime})` : prijavaModal.korisnikID;
+                      })()}
                     </div>
                     <div className={styles.modalSection}>
                       <b>{t("message") || "Poruka"}:</b>
-                      <div className={styles.messageBox}>
-                        {prijavaModal.prijava.poruka}
-                      </div>
+                      <div className={styles.messageBox}>{prijavaModal.prijava.poruka}</div>
                     </div>
                     <div className={styles.modalSection}>
                       <b>{t("date") || "Datum"}:</b> {prijavaModal.prijava.datum ? new Date(prijavaModal.prijava.datum).toLocaleString() : ""}
@@ -254,15 +225,9 @@ const SviKorisnici: React.FC = () => {
                     <div className={styles.modalButtons}>
                       <button
                         className={styles.deleteBtn}
-                        onClick={async () => {
+                        onClick={() => {
                           if (!window.confirm(t("confirm_delete_application") || "Jeste li sigurni da želite obrisati ovu prijavu?")) return;
-                          try {
-                            await axios.delete(`${API_BASE}/prijave_izvodjaca/${prijavaModal.prijava.id}`);
-                            setPrijave((prev) => prev.filter((p) => p.id !== prijavaModal.prijava.id));
-                            setPrijavaModal(null);
-                          } catch {
-                            alert(t("error_deleting_application") || "Greška pri brisanju prijave.");
-                          }
+                          deletePrijavaMut.mutate(Number(prijavaModal.prijava.id));
                         }}
                       >
                         {t("delete_application") || "Obriši prijavu"}
@@ -276,7 +241,7 @@ const SviKorisnici: React.FC = () => {
               )}
               {suspendModal && (
                 <div className={styles.suspendModalOverlay} onClick={handlePrekiniSuspenziju}>
-                  <div className={styles.suspendModalContent} onClick={e => e.stopPropagation()}>
+                  <div className={styles.suspendModalContent} onClick={(e) => e.stopPropagation()}>
                     <h4 className={styles.suspendModalTitle}>{t("suspend_user") || "Suspenduj korisnika"}</h4>
                     <div className={styles.suspendUserInfo}>
                       <b>{t("user")}:</b> {suspendModal.korisnik.korisnicko_ime}
@@ -287,11 +252,7 @@ const SviKorisnici: React.FC = () => {
                         <textarea
                           className={styles.suspendTextarea}
                           value={suspendModal.poruka}
-                          onChange={e =>
-                            setSuspendModal((prev) =>
-                              prev ? { ...prev, poruka: e.target.value } : prev
-                            )
-                          }
+                          onChange={(e) => setSuspendModal((prev) => (prev ? { ...prev, poruka: e.target.value } : prev))}
                           required
                         />
                       </label>
@@ -303,28 +264,16 @@ const SviKorisnici: React.FC = () => {
                           type="datetime-local"
                           className={styles.suspendDateInput}
                           value={suspendModal.vrijemeDo}
-                          onChange={e =>
-                            setSuspendModal((prev) =>
-                              prev ? { ...prev, vrijemeDo: e.target.value } : prev
-                            )
-                          }
+                          onChange={(e) => setSuspendModal((prev) => (prev ? { ...prev, vrijemeDo: e.target.value } : prev))}
                           required
                         />
                       </label>
                     </div>
                     <div className={styles.suspendModalButtons}>
-                      <button
-                        className={styles.confirmSuspendBtn}
-                        onClick={async () => {
-                          await handlePotvrdiSuspenziju();
-                        }}
-                      >
+                      <button className={styles.confirmSuspendBtn} onClick={handlePotvrdiSuspenziju}>
                         {t("confirm_suspension") || "Potvrdi suspenziju"}
                       </button>
-                      <button
-                        className={styles.cancelSuspendBtn}
-                        onClick={handlePrekiniSuspenziju}
-                      >
+                      <button className={styles.cancelSuspendBtn} onClick={handlePrekiniSuspenziju}>
                         {t("cancel")}
                       </button>
                     </div>
@@ -340,4 +289,4 @@ const SviKorisnici: React.FC = () => {
   );
 };
 
-export default SviKorisnici;
+export default memo(SviKorisnici);

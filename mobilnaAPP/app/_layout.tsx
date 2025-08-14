@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState, createContext, useContext } from 'react';
+import { useEffect, useState, createContext, useContext, type ReactNode, type ReactElement } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useSegments, Stack } from 'expo-router';
 import { AppState, InteractionManager, View } from 'react-native';
@@ -26,7 +26,7 @@ export const useGlobalSidebar = () => {
   return context;
 };
 
-function GlobalSwipeHandler({ children }: { children: React.ReactNode }) {
+function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement {
   const [showSidebar, setShowSidebar] = useState(false);
   const segments = useSegments();
   
@@ -35,9 +35,9 @@ function GlobalSwipeHandler({ children }: { children: React.ReactNode }) {
   const onGestureEvent = (event: any) => {
     if (isAuthScreen) return;
     
-    const { translationX, absoluteX } = event.nativeEvent;
+    const { translationX, translationY, absoluteX } = event.nativeEvent;
     
-    if (absoluteX < 100 && translationX > 15) {
+    if (absoluteX <= 12 && Math.abs(translationY) < 8 && translationX > 140) {
       setShowSidebar(true);
     }
   };
@@ -46,9 +46,9 @@ function GlobalSwipeHandler({ children }: { children: React.ReactNode }) {
     if (isAuthScreen) return;
     
     if (event.nativeEvent.oldState === State.ACTIVE) {
-      const { translationX, absoluteX, velocityX } = event.nativeEvent;
+      const { translationX, translationY, absoluteX, velocityX } = event.nativeEvent;
       
-      if (absoluteX < 100 && (translationX > 30 || velocityX > 200)) {
+      if (absoluteX <= 12 && Math.abs(translationY) < 10 && (translationX > 160 || velocityX > 1200)) {
         setShowSidebar(true);
       }
     }
@@ -105,48 +105,43 @@ function GlobalSwipeHandler({ children }: { children: React.ReactNode }) {
 
   const currentSource = getCurrentSource();
 
-  if (isAuthScreen) {
-    return (
-      <SidebarContext.Provider value={{ showSidebar: showSidebarFn, hideSidebar: hideSidebarFn }}>
-        {children}
-      </SidebarContext.Provider>
-    );
-  }
-
   return (
     <SidebarContext.Provider value={{ showSidebar: showSidebarFn, hideSidebar: hideSidebarFn }}>
       <PanGestureHandler
         onGestureEvent={onGestureEvent}
         onHandlerStateChange={onHandlerStateChange}
-        activeOffsetX={1}
-        failOffsetY={[-100, 100]}
+        activeOffsetX={[80, 9999]}
+        failOffsetY={[-4, 4]}
         minPointers={1}
         maxPointers={1}
-        shouldCancelWhenOutside={false}
-        enabled={true}
+        shouldCancelWhenOutside={true}
+        enabled={!isAuthScreen}
         simultaneousHandlers={[]}
+        hitSlop={{ left: 0, width: 12 }}
       >
         <View style={{ flex: 1 }}>
           {children}
         </View>
       </PanGestureHandler>
       
-      <View style={{ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 9999,
-        elevation: 9999,
-        pointerEvents: showSidebar ? 'auto' : 'none'
-      }}>
-        <Sidebar 
-          visible={showSidebar} 
-          onClose={handleSidebarClose}
-          source={currentSource}
-        />
-      </View>
+      {!isAuthScreen && (
+        <View style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          elevation: 9999,
+          pointerEvents: showSidebar ? 'auto' : 'none'
+        }}>
+          <Sidebar 
+            visible={showSidebar} 
+            onClose={handleSidebarClose}
+            source={currentSource}
+          />
+        </View>
+      )}
     </SidebarContext.Provider>
   );
 }

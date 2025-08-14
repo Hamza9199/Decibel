@@ -1,10 +1,13 @@
-import React from "react";
+import React, { memo, useMemo } from "react";
 import styles from "./Footer.module.css";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 const Footer: React.FC = () => {
   const { t } = useTranslation();
+  const year = useMemo(() => new Date().getFullYear(), []);
+  
+
   return (
     <footer className={styles.footer}>
       <Link to="/">
@@ -16,19 +19,23 @@ const Footer: React.FC = () => {
         />
       </Link>
       <span className={styles.footerText}>
-        © {new Date().getFullYear()} Decibel.{" "}
-        {t("all_rights_reserved") || "Sva prava zadržana."}
+        © {year} Decibel. {t("all_rights_reserved") || "Sva prava zadržana."}
       </span>
+
+      
       <div className={styles.footerLinks}>
         <a
-          href="https://github.com/ajaykrsingh/decibel"
+          href="https://github.com/Hamza9199/Decibel"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.footerLink}
         >
           GitHub
         </a>
-        <a href="mailto:kontakt@decibel.com" className={styles.footerLink}>
+        <a
+          href="mailto:kontakt@decibel.com"
+          className={styles.footerLink}
+        >
           {t("contact") || "Kontakt"}
         </a>
       </div>
@@ -36,4 +43,4 @@ const Footer: React.FC = () => {
   );
 };
 
-export default Footer;
+export default memo(Footer);

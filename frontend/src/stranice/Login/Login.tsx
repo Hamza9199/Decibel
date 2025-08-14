@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import styles from "./Login.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
+import { useMutation } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -11,56 +12,58 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [lozinka, setLozinka] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await axios.post(`${API_BASE}/korisnici/login`, {
-        email,
-        lozinka,
-      });
-      localStorage.setItem("korisnik", JSON.stringify(res.data));
-      setLoading(false);
+  const loginMut = useMutation({
+    mutationFn: async (vars: { email: string; lozinka: string }) => {
+      const res = await axios.post(`${API_BASE}/korisnici/login`, vars);
+      return res.data;
+    },
+    onSuccess: (data) => {
+      localStorage.setItem("korisnik", JSON.stringify(data));
       window.location.href = "/";
-    } catch {
+    },
+    onError: () => {
       setError("Pogrešan email ili lozinka.");
-      setLoading(false);
+    },
+  });
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      setError(null);
+      loginMut.mutate({ email, lozinka });
+    },
+    [email, lozinka, loginMut]
+  );
+
+  const resetBodyBackground = useCallback(() => {
+    const body = document.body;
+    if (body) {
+      body.style.background = "radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)";
     }
-  };
+  }, []);
 
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("activeSongBg", { detail: {} }));
     resetBodyBackground();
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: {} }));
     window.dispatchEvent(new CustomEvent("hideSubscriptionMsg"));
-    const audio = document.querySelector('audio');
+    const audio = document.querySelector("audio");
     if (audio) {
-      audio.muted = true;
-      audio.pause();
-      audio.currentTime = 0;
+      (audio as HTMLAudioElement).muted = true;
+      (audio as HTMLAudioElement).pause();
+      (audio as HTMLAudioElement).currentTime = 0;
     }
     return () => {
       resetBodyBackground();
     };
-  }, []);
-  
-   const resetBodyBackground = () => {
-    const body = document.body;
-    if (body) {
-      body.style.background = 'radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)';
-    }
-  };
-
- 
+  }, [resetBodyBackground]);
 
   return (
     <div className={styles.loginBg}>
-      {loading ? (
+      {loginMut.isPending ? (
         <Loading />
       ) : (
         <form className={styles.loginForm} onSubmit={handleSubmit}>
@@ -97,4 +100,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default memo(Login);

@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo, useMemo, useCallback } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from "../../types";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type Props = {
   id?: number;
@@ -47,50 +48,246 @@ const AudioPlayer: React.FC<Props> = ({
   const [repeatOne, setRepeatOne] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [playlists, setPlaylists] = useState<Playlista[]>([]);
-   const [liked, setLiked] = useState(false);
-   const [pjesma, setPjesma] = useState<Pjesma>();
-   const [statistikaSent, setStatistikaSent] = useState(false);
-   const [globalPlaylist, setGlobalPlaylist] = useState<Pjesma[]>([]);
-   const [playlistIdx, setPlaylistIdx] = useState<number>(-1);
-   const [playlistRepeat, setPlaylistRepeat] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [pjesma, setPjesma] = useState<Pjesma>();
+  const [statistikaSent, setStatistikaSent] = useState(false);
+  const [globalPlaylist, setGlobalPlaylist] = useState<Pjesma[]>([]);
+  const [playlistIdx, setPlaylistIdx] = useState<number>(-1);
+  const [playlistRepeat, setPlaylistRepeat] = useState(false);
   const [currentSong, setCurrentSong] = useState<Pjesma | null>(null);
   const [currentOwner, setCurrentOwner] = useState<Korisnik | undefined>(undefined);
   const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const location = useLocation();
-  const [isMobile] = useState(window.innerWidth <= 480);
+  const isMobile = useMemo(() => window.innerWidth <= 480, []);
+
+  const queryClient = useQueryClient();
+
+  const slusacID = useMemo(() => {
+    try {
+      const user = JSON.parse(localStorage.getItem("korisnik") || "");
+      return user?.id || "";
+    } catch {
+      return "";
+    }
+  }, []);
+
+  const pretplateQuery = useQuery({
+    queryKey: ["korisnik_pretplata"],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
+      return (res.data || []) as KorisnikPretplata[];
+    },
+    enabled: !!slusacID,
+  });
+
+  useEffect(() => {
+    if (!slusacID) {
+      setPretplataValid(false);
+      return;
+    }
+    if (pretplateQuery?.data) {
+      const moja = pretplateQuery.data.find((p) => p.korisnikID === slusacID);
+      setPretplataValid(!!(moja && moja.datumIsteka && new Date(moja.datumIsteka) > new Date()));
+    } else if (pretplateQuery.isError) {
+      setPretplataValid(false);
+    }
+  }, [pretplateQuery.data, pretplateQuery.isError, slusacID]);
+
+  const korisnikQuery = useQuery({
+    queryKey: ["korisnik", korisnikID],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/korisnici/${korisnikID}`);
+      return res.data as Korisnik;
+    },
+    enabled: !!korisnikID,
+  });
+  useEffect(() => {
+    if (korisnikQuery.data) setKorisnik(korisnikQuery.data);
+    if (korisnikQuery.isError) setKorisnik(undefined);
+  }, [korisnikQuery.data, korisnikQuery.isError]);
+
+  const playlistsQuery = useQuery({
+    queryKey: ["playliste", korisnikID],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/playliste/`);
+      return (res.data || []) as Playlista[];
+    },
+    enabled: !!korisnikID,
+  });
+  useEffect(() => {
+    if (playlistsQuery.data) setPlaylists(playlistsQuery.data);
+    if (playlistsQuery.isError) setPlaylists([]);
+  }, [playlistsQuery.data, playlistsQuery.isError]);
+
+  const pjesmaQuery = useQuery({
+    queryKey: ["pjesmaBySrc", src],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/pjesme/`);
+      const list = (res.data as Pjesma[]) || [];
+      return list.find((p: Pjesma) => p.putanjaAudio === src);
+    },
+    enabled: !!src,
+  });
+  useEffect(() => {
+    if (pjesmaQuery.data !== undefined) {
+      setPjesma(pjesmaQuery.data);
+      if (!pjesmaQuery.data) setLiked(false);
+    }
+    if (pjesmaQuery.isError) {
+      setPjesma(undefined);
+      setLiked(false);
+    }
+  }, [pjesmaQuery.data, pjesmaQuery.isError]);
+
+  const likedQuery = useQuery({
+    queryKey: ["korisnik_pjesma_liked", korisnik?.id, pjesma?.id],
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/korisnik_pjesma/`);
+      const veze = r.data as { korisnikID: string; pjesmaID: number }[];
+      return !!veze.find((v) => v.korisnikID === korisnik?.id && v.pjesmaID === pjesma?.id);
+    },
+    enabled: !!korisnik?.id && !!pjesma?.id,
+  });
+  useEffect(() => {
+    if (likedQuery.data !== undefined) setLiked(!!likedQuery.data);
+    if (likedQuery.isError) setLiked(false);
+  }, [likedQuery.data, likedQuery.isError]);
+
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      if (!pjesma || !korisnik?.id) return;
+      await axios
+        .post(`${API_BASE}/korisnik_pjesma/`, {
+          korisnikID: korisnik.id,
+          pjesmaID: pjesma.id,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        })
+        .catch(() => {});
+    },
+    onSuccess: () => {
+      setLiked(true);
+      queryClient.invalidateQueries({
+        queryKey: ["korisnik_pjesma_liked", korisnik?.id, pjesma?.id],
+      });
+    },
+  });
+
+  const unlikeMutation = useMutation({
+    mutationFn: async () => {
+      if (!pjesma || !korisnik?.id) return;
+      await axios
+        .delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`)
+        .catch(() => {});
+    },
+    onSuccess: () => {
+      setLiked(false);
+      queryClient.invalidateQueries({
+        queryKey: ["korisnik_pjesma_liked", korisnik?.id, pjesma?.id],
+      });
+    },
+  });
+
+  const historijaMutation = useMutation({
+    mutationFn: async ({
+      userId,
+      pjesmaId,
+      trajanje,
+    }: {
+      userId: string;
+      pjesmaId: number;
+      trajanje: number;
+    }) => {
+      await axios
+        .delete(`${API_BASE}/historija/obrisi/${userId}/${pjesmaId}`)
+        .catch(() => {});
+      await axios.post(`${API_BASE}/historija/`, {
+        korisnikID: userId,
+        pjesmaID: pjesmaId,
+        playlistaID: null,
+        kreiranDatumVrijeme: new Date().toISOString(),
+        trajanje,
+        kontekstPustanjaURL: null,
+        offline: false,
+        kontekstPustanja: null,
+      });
+    },
+  });
+
+  const statistikaMutation = useMutation({
+    mutationFn: async (payload: {
+      korisnikID: string;
+      pjesmaID: number;
+      ukupnoTrajanje: number;
+    }) => {
+      await axios
+        .post(`${API_BASE}/statistika/`, {
+          korisnikID: payload.korisnikID,
+          pjesmaID: payload.pjesmaID,
+          brojReprodukcija: 1,
+          ukupnoTrajanje: payload.ukupnoTrajanje,
+          zadnjePustanje: new Date().toISOString(),
+        })
+        .catch(() => {});
+
+      await axios
+        .put(`${API_BASE}/pjesme/${payload.pjesmaID}`, {
+          ...pjesma,
+          brojReprodukcija: (pjesma?.brojReprodukcija || 0) + 1,
+        })
+        .catch(() => {});
+    },
+  });
+
+  const addToPlaylistMutation = useMutation({
+    mutationFn: async (playlistaID: number) => {
+      if (!pjesma?.id) throw new Error("No song");
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
+        pjesmaID: pjesma.id,
+        playlistaID,
+      });
+    },
+    onSuccess: () => {
+      setShowPlaylistModal(false);
+      alert("Pjesma dodana u playlistu!");
+    },
+    onError: (error: unknown) => {
+      const detail =
+        typeof error === "object" && error && "response" in error
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
+      alert(detail || "Greška pri dodavanju pjesme u playlistu.");
+      setShowPlaylistModal(false);
+    },
+  });
+
+  const ownerQuery = useQuery({
+    queryKey: ["owner", currentSong?.korisnikID],
+    queryFn: async () => {
+      const res = await axios.get(`${API_BASE}/korisnici/${currentSong?.korisnikID}`);
+      return res.data as Korisnik;
+    },
+    enabled: !!currentSong?.korisnikID,
+  });
+  useEffect(() => {
+    if (ownerQuery.data) setCurrentOwner(ownerQuery.data);
+    if (ownerQuery.isError) setCurrentOwner(undefined);
+  }, [ownerQuery.data, ownerQuery.isError]);
 
   useEffect(() => {
     let isMounted = true;
-    async function checkPretplata() {
-      let slusacID = "";
-      try {
-        const user = JSON.parse(localStorage.getItem("korisnik") || "");
-        slusacID = user?.id || "";
-      } catch {
-        slusacID = "";
-      }
-      if (!slusacID) {
-        setPretplataValid(false);
-        return;
-      }
-      try {
-        const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
-        const svePretplate = res.data || [];
-        
-        const moja = (svePretplate as KorisnikPretplata[]).find((p) => p.korisnikID === slusacID);
-        if (!moja || !moja.datumIsteka || new Date(moja.datumIsteka) < new Date()) {
-          if (isMounted) setPretplataValid(false);
-        } else {
-          if (isMounted) setPretplataValid(true);
-        }
-      } catch {
-        if (isMounted) setPretplataValid(false);
-      }
+    if (!slusacID) {
+      setPretplataValid(false);
+      return;
     }
-    checkPretplata();
-    return () => { isMounted = false; };
-  }, []);
+    if (isMounted) {
+      const moja = pretplateQuery.data?.find((p) => p.korisnikID === slusacID);
+      setPretplataValid(!!(moja && moja.datumIsteka && new Date(moja.datumIsteka) > new Date()));
+    }
+    return () => {
+      isMounted = false;
+    };
+  }, [slusacID, pretplateQuery.data]);
 
   useEffect(() => {
     const handler = () => setShowNoSubMsg(false);
@@ -144,7 +341,7 @@ const AudioPlayer: React.FC<Props> = ({
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current) {
-      audioRef.current.volume = Number(volume); // ensure float
+      audioRef.current.volume = Number(volume); 
       audioRef.current.muted = muted;
     }
   }, [volume, muted, minimized,pretplataValid]);
@@ -197,234 +394,111 @@ const AudioPlayer: React.FC<Props> = ({
     }
   }, [src, playing, globalPlaylist.length,pretplataValid]);
 
-   useEffect(() => {
+  useEffect(() => {
     if (!src) {
       setPjesma(undefined);
       setLiked(false);
+    }
+  }, [src]);
+
+  useEffect(() => {
+    if (!pjesma || !korisnik?.id || !playing || !src) {
+      setStatistikaSent(false);
       return;
     }
-    axios
-      .get(`${API_BASE}/pjesme/`)
-      .then((res) => {
-        const p = (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src);
-        setPjesma(p);
-        let korisnikID = korisnik?.id;
-        try {
-            const user = JSON.parse(localStorage.getItem("korisnik") || "");
+    if (progress < 30 || statistikaSent) return;
 
-          korisnikID = user?.id || korisnikID;
-        } catch {
-          console.error("Failed to parse user from localStorage");
-        }
-        if (p && korisnikID) {
-          axios
-            .get(`${API_BASE}/korisnik_pjesma/`)
-            .then((r) => {
-              const veze = r.data as { korisnikID: string; pjesmaID: number }[];
-              setLiked(!!veze.find((v) => v.korisnikID === korisnikID && v.pjesmaID === p.id));
-            })
-            .catch(() => setLiked(false));
-        } else {
-          setLiked(false);
-        }
-      })
-      .catch(() => {
-        setPjesma(undefined);
-        setLiked(false);
-      });
-  }, [src, korisnik?.id]);
-
-useEffect(() => {
-  if (!pjesma || !korisnik?.id || !playing || !src) {
-    setStatistikaSent(false);
-    return;
-  }
-  if (progress < 30 || statistikaSent) return;
-
-  const sendStatistika = async () => {
-    try {
-      await axios.post(`${API_BASE}/statistika/`, {
-        korisnikID: korisnik.id,
-        pjesmaID: pjesma.id,
-        brojReprodukcija: 1,
-        ukupnoTrajanje: pjesma.trajanjeSekunde || 0,
-        zadnjePustanje: new Date().toISOString(),
-      }).catch(() => {});
-
-      await axios.put(`${API_BASE}/pjesme/${pjesma.id}`, {
-        ...pjesma,
-        brojReprodukcija: (pjesma.brojReprodukcija || 0) + 1,
-      }).catch(() => {});
-    } catch {
-      console.error("Failed to send statistika reprodukcije");
-    }
+    statistikaMutation.mutate({
+      korisnikID: korisnik.id,
+      pjesmaID: pjesma.id,
+      ukupnoTrajanje: pjesma.trajanjeSekunde || 0,
+    });
     setStatistikaSent(true);
-  };
+    // eslint-disable-next-line
+  }, [progress, pjesma, korisnik?.id, statistikaSent, src]);
 
-  sendStatistika();
-  // eslint-disable-next-line
-}, [progress, pjesma, korisnik?.id, statistikaSent, src]);
-
-useEffect(() => {
-  setStatistikaSent(false);
-}, [src]);
+  useEffect(() => {
+    setStatistikaSent(false);
+  }, [src]);
 
   useEffect(() => {
     if (!pjesma || !korisnik?.id || !src) return;
-    const addToHistorija = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("korisnik") || "");
-        await axios.delete(`${API_BASE}/historija/obrisi/${user?.id}/${pjesma.id}`).catch(() => {});
-        await axios.post(`${API_BASE}/historija/`, {
-          korisnikID: user?.id,
-          pjesmaID: pjesma.id,
-          playlistaID: null,
-          kreiranDatumVrijeme: new Date().toISOString(),
-          trajanje: pjesma.trajanjeSekunde || 0,
-          kontekstPustanjaURL: null,
-          offline: false,
-          kontekstPustanja: null,
-        });
-      } catch {
-        console.error("Failed to add pjesma to historija"); }
-    };
-    addToHistorija();
+    try {
+      const user = JSON.parse(localStorage.getItem("korisnik") || "");
+      historijaMutation.mutate({
+        userId: user?.id,
+        pjesmaId: pjesma.id,
+        trajanje: pjesma.trajanjeSekunde || 0,
+      });
+    } catch {
+      console.error("Failed to add pjesma to historija");
+    }
     // eslint-disable-next-line
   }, [pjesma?.id, korisnik?.id, src]);
 
-  const handlePlayPause = () => {
+  const handlePlayPause = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) {
       setPlaying((p) => !p);
     } else if (globalPlaylist.length === 0 && src) {
       setPlaying((p) => !p);
     }
-  };
+  }, [globalPlaylist.length, playlistIdx, src]);
 
-   const handleLike = async () => {
+  const handleLike = useCallback(() => {
     if (!pjesma || !korisnik?.id) return;
     if (liked) {
-      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`).catch(() => {});
-      setLiked(false);
+      unlikeMutation.mutate();
     } else {
-      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-        korisnikID: korisnik.id,
-        pjesmaID: pjesma.id,
-        kreiranDatumVrijeme: new Date().toISOString(),
-      }).catch(() => {});
-      setLiked(true);
+      likeMutation.mutate();
     }
-  };
+  }, [pjesma, korisnik?.id, liked, unlikeMutation, likeMutation]);
 
+  const handleAddToPlaylist = useCallback((playlistaID: number) => {
+    if (!src || !korisnikID || !pjesma?.id) return;
+    addToPlaylistMutation.mutate(playlistaID);
+  }, [src, korisnikID, pjesma?.id, addToPlaylistMutation]);
 
-  const handleTimeUpdate = () => {
+  const handleTimeUpdate = useCallback(() => {
     if (!audioRef.current) return;
     setProgress(audioRef.current.currentTime);
-  };
+  }, []);
 
-  const handleLoadedMetadata = () => {
+  const handleLoadedMetadata = useCallback(() => {
     if (!audioRef.current) return;
     setDuration(audioRef.current.duration);
-  };
+  }, []);
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (!audioRef.current) return;
     const time = Number(e.target.value);
     audioRef.current.currentTime = time;
     setProgress(time);
-  };
+  }, []);
 
-  const handleRateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleRateChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     setPlaybackRate(Number(e.target.value));
-  };
+  }, []);
 
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVolume(Number(e.target.value)); // ensure float
-    if (muted && Number(e.target.value) > 0) setMuted(false);
-  };
+  const handleVolumeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = Number(e.target.value);
+    setVolume(val);
+    if (muted && val > 0) setMuted(false);
+  }, [muted]);
 
-  const handleMuteToggle = () => {
+  const handleMuteToggle = useCallback(() => {
     setMuted((m) => !m);
-  };
+  }, []);
 
-  const handleRepeatAllToggle = () => {
+  const handleRepeatAllToggle = useCallback(() => {
     setPlaylistRepeat((prev) => !prev);
     if (repeatOne) setRepeatOne(false);
-  };
+  }, [repeatOne]);
 
-  const handleRepeatToggle = () => {
+  const handleRepeatToggle = useCallback(() => {
     setRepeatOne((prev) => {
       if (!prev) setPlaylistRepeat(false);
       return !prev;
     });
-  };
-
-  useEffect(() => {
-    async function fetchKorisnik() {
-      if (!korisnikID) {
-        setKorisnik(undefined);
-        return;
-      }
-      const res = await axios
-        .get(`${API_BASE}/korisnici/${korisnikID}`)
-        .then((res) => res.data)
-        .catch(() => undefined);
-      setKorisnik(res);
-    }
-    fetchKorisnik();
-  }, [korisnikID]);
-
-  useEffect(() => {
-    if (!korisnikID) return;
-    axios
-      .get(`${API_BASE}/playliste/`)
-      .then((res) => setPlaylists(res.data || []))
-      .catch(() => setPlaylists([]));
-  }, [korisnikID]);
-
-  const handleAddToPlaylist = async (playlistaID: number) => {
-    if (!src || !korisnikID) return;
-    const pjesmaRes = await axios
-      .get(`${API_BASE}/pjesme/`)
-      .then((res) => (res.data as Pjesma[] || []).find((p: Pjesma) => p.putanjaAudio === src));
-    if (!pjesmaRes) return;
-
-    try {
-      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
-        pjesmaID: pjesmaRes.id,
-        playlistaID: playlistaID,
-      });
-      setShowPlaylistModal(false);
-      alert("Pjesma dodana u playlistu!");
-    } catch (error: unknown) {
-      if (
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-      ) {
-        alert((error as { response: { data: { detail: string } } }).response.data.detail);
-      } else {
-        alert("Greška pri dodavanju pjesme u playlistu.");
-      }
-      setShowPlaylistModal(false);
-    }
-  };
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const detail = (e as CustomEvent).detail;
-      if (detail?.playlist && Array.isArray(detail.playlist) && typeof detail.idx === "number") {
-        setGlobalPlaylist(detail.playlist);
-        setPlaylistIdx(detail.idx);
-        setPlaylistRepeat(!!detail.repeatAll);
-      } else {
-        setGlobalPlaylist([]);
-        setPlaylistIdx(-1);
-        setPlaylistRepeat(false);
-      }
-    };
-    window.addEventListener("globalAudioPlaylist", handler);
-    return () => window.removeEventListener("globalAudioPlaylist", handler);
   }, []);
 
   useEffect(() => {
@@ -460,15 +534,11 @@ useEffect(() => {
     }
   }, [src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
 
+  // Remove axios owner fetch; rely on query for owner and clear when no korisnikID
   useEffect(() => {
     if (!currentSong?.korisnikID) {
       setCurrentOwner(undefined);
-      return;
     }
-    axios
-      .get(`${API_BASE}/korisnici/${currentSong.korisnikID}`)
-      .then((res) => setCurrentOwner(res.data))
-      .catch(() => setCurrentOwner(undefined));
   }, [currentSong?.korisnikID]);
 
   useEffect(() => {
@@ -512,7 +582,7 @@ useEffect(() => {
     return () => window.removeEventListener("globalAudioPlay", handler);
   }, []);
 
-  const handleEnded = () => {
+  const handleEnded = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
       if (repeatOne) {
         if (audioRef.current) {
@@ -548,9 +618,7 @@ useEffect(() => {
       setPlaying(false);
       setProgress(0);
     }
-  };
-
- 
+  }, [globalPlaylist.length, playlistIdx, repeatOne, playlistRepeat]);
 
   useEffect(() => {
     if (pretplataValid === false && showNoSubMsg) {
@@ -1183,7 +1251,7 @@ useEffect(() => {
           <div
             style={{
               background: "#232323",
-              borderRadius: 14,
+              borderRadius: 8,
               padding: "32px 24px 24px 24px",
               minWidth: 320,
               boxShadow: "0 4px 24px #b91d9533",
@@ -1263,4 +1331,4 @@ function formatTime(sec: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-export default AudioPlayer;
+export default memo(AudioPlayer);

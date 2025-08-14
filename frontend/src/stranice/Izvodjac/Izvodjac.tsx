@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useCallback, memo } from "react";
 import styles from "./Izvodjac.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -8,116 +8,144 @@ import { useParams, Link } from "react-router-dom";
 import type { Korisnik, Pjesma, Album, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Izvodjac: React.FC = () => {
   const { izvodjacId } = useParams<{ izvodjacId: string }>();
-  const [izvodjac, setIzvodjac] = useState<Korisnik | null>(null);
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [albumi, setAlbumi] = useState<Album[]>([]);
-  const [playliste, setPlayliste] = useState<Playlista[]>([]);
-  const [pratim, setPratim] = useState(false);
-  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
+  const qc = useQueryClient();
+  const repeatAll = false;
 
-  let mojID = "";
-  try {
-    const user = JSON.parse(localStorage.getItem("korisnik") || "");
-    mojID = user?.id || "";
-  } catch {
-    mojID = "";
-  }
-
-  useEffect(() => {
-    if (!izvodjacId) return;
-    setLoading(true);
-    axios
-      .get(`${API_BASE}/korisnici/${izvodjacId}`)
-      .then((res) => setIzvodjac(res.data))
-      .catch(() => setIzvodjac(null));
-    axios
-      .get(`${API_BASE}/pjesme/`)
-      .then((res) =>
-        setPjesme(
-          (res.data || []).filter(
-            (p: Pjesma) => p.korisnikID === izvodjacId && p.odobreno
-          )
-        )
-      )
-      .catch(() => setPjesme([]));
-    axios
-      .get(`${API_BASE}/izvodjac_pjesma/`)
-      .then(async (res) => {
-        const veze = res.data || [];
-        const pjesmaIDs = veze
-          .filter((v: { izvodjacID: string }) => v.izvodjacID === izvodjacId)
-          .map((v: { pjesmaID: number }) => v.pjesmaID);
-        if (pjesmaIDs.length > 0) {
-          const dodatnePjesme = await Promise.all(
-            pjesmaIDs.map((id: number) =>
-              axios
-                .get(`${API_BASE}/pjesme/${id}`)
-                .then((r) => r.data)
-                .catch(() => null)
-            )
-          );
-          setPjesme((prev) => {
-            const ids = new Set(prev.map((p) => p.id));
-            return [
-              ...prev,
-              ...dodatnePjesme.filter(
-                (p) => p && !ids.has(p.id) && p.odobreno
-              ),
-            ];
-          });
-        }
-      })
-      .catch(() => {});
-    axios
-      .get(`${API_BASE}/albumi/`)
-      .then((res) =>
-        setAlbumi(
-          (res.data || []).filter(
-            (a: Album) => a.korisnikID === izvodjacId && a.odobreno
-          )
-        )
-      )
-      .catch(() => setAlbumi([]));
-    axios
-      .get(`${API_BASE}/playliste/`)
-      .then((res) =>
-        setPlayliste(
-          (res.data || []).filter(
-            (pl: Playlista) => pl.korisnikID === izvodjacId && pl.javno
-          )
-        )
-      )
-      .catch(() => setPlayliste([]));
-    if (mojID && izvodjacId) {
-      axios
-        .get(`${API_BASE}/pratioci/${izvodjacId}/${mojID}`)
-        .then(() => setPratim(true))
-        .catch(() => setPratim(false));
+  const mojID = useMemo(() => {
+    try {
+      const u = JSON.parse(localStorage.getItem("korisnik") || "");
+      return u?.id || "";
+    } catch {
+      return "";
     }
-    setLoading(false);
-  }, [izvodjacId, mojID]);
+  }, []);
 
-  const handlePrati = async () => {
+  const izvodjacQ = useQuery<Korisnik | null>({
+    queryKey: ["izvodjac", izvodjacId],
+    enabled: Boolean(izvodjacId),
+    queryFn: async () =>
+      axios.get(`${API_BASE}/korisnici/${izvodjacId}`).then((r) => r.data as Korisnik),
+  });
+
+  const pjesmeAuthorQ = useQuery<Pjesma[]>({
+    queryKey: ["pjesme", "byAuthor", izvodjacId],
+    enabled: Boolean(izvodjacId),
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/pjesme/`);
+      const all: Pjesma[] = r.data || [];
+      return all.filter((p) => String(p.korisnikID) === String(izvodjacId) && p.odobreno);
+    },
+  });
+
+  const collabSongsQ = useQuery<Pjesma[]>({
+    queryKey: ["pjesme", "collab", izvodjacId],
+    enabled: Boolean(izvodjacId),
+    queryFn: async () => {
+      const rel = await axios.get(`${API_BASE}/izvodjac_pjesma/`).then((r) => (r.data || []) as { izvodjacID: string; pjesmaID: number }[]);
+      const ids = rel.filter((v) => String(v.izvodjacID) === String(izvodjacId)).map((v) => v.pjesmaID);
+      if (ids.length === 0) return [] as Pjesma[];
+      const arr = await Promise.all(
+        ids.map((id) => axios.get(`${API_BASE}/pjesme/${id}`).then((r) => r.data as Pjesma).catch(() => null))
+      );
+      return (arr.filter(Boolean) as Pjesma[]).filter((p) => p.odobreno);
+    },
+  });
+
+  const albumiQ = useQuery<Album[]>({
+    queryKey: ["albumi", "byAuthor", izvodjacId],
+    enabled: Boolean(izvodjacId),
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/albumi/`);
+      const all: Album[] = r.data || [];
+      return all.filter((a) => String(a.korisnikID) === String(izvodjacId) && a.odobreno);
+    },
+  });
+
+  const playlisteQ = useQuery<Playlista[]>({
+    queryKey: ["playliste", "byAuthor", izvodjacId],
+    enabled: Boolean(izvodjacId),
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/playliste/`);
+      const all: Playlista[] = r.data || [];
+      return all.filter((pl) => String(pl.korisnikID) === String(izvodjacId) && pl.javno);
+    },
+    initialData: [],
+  });
+
+  const pratimQ = useQuery<boolean>({
+    queryKey: ["pratim", izvodjacId, mojID],
+    enabled: Boolean(izvodjacId && mojID),
+    queryFn: async () => {
+      try {
+        await axios.get(`${API_BASE}/pratioci/${izvodjacId}/${mojID}`);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    initialData: false,
+  });
+
+  const pjesme = useMemo(() => {
+    const a = pjesmeAuthorQ.data || [];
+    const b = collabSongsQ.data || [];
+    const map = new Map<number, Pjesma>();
+    a.forEach((p) => map.set(p.id, p));
+    b.forEach((p) => map.set(p.id, p));
+    return Array.from(map.values());
+  }, [pjesmeAuthorQ.data, collabSongsQ.data]);
+
+  const loading = useMemo(() => {
+    return (
+      izvodjacQ.isLoading || pjesmeAuthorQ.isLoading || collabSongsQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || pratimQ.isLoading
+    );
+  }, [izvodjacQ.isLoading, pjesmeAuthorQ.isLoading, collabSongsQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading, pratimQ.isLoading]);
+
+  const pratiMut = useMutation({
+    mutationFn: async () => {
+      if (!mojID || !izvodjacId) return;
+      if (pratimQ.data) {
+        await axios.delete(`${API_BASE}/pratioci/${izvodjacId}/${mojID}`);
+      } else {
+        await axios.post(`${API_BASE}/pratioci/`, { korisnikID: izvodjacId, pratilacID: mojID });
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pratim", izvodjacId, mojID] });
+      qc.invalidateQueries({ queryKey: ["izvodjac", izvodjacId] });
+    },
+  });
+
+  const playPlaylistSongsMut = useMutation({
+    mutationFn: async (playlistId: number) => {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+      const ids: number[] = res.data || [];
+      if (ids.length === 0) return [] as Pjesma[];
+      const pjesmeArr = await Promise.all(
+        ids.map((id) => axios.get(`${API_BASE}/pjesme/${id}`).then((r) => r.data as Pjesma).catch(() => null))
+      );
+      return (pjesmeArr.filter(Boolean) as Pjesma[]);
+    },
+    onSuccess: (playlistSongs) => {
+      if (!playlistSongs || playlistSongs.length === 0) return;
+      window.dispatchEvent(new CustomEvent("globalAudioPlaylist", { detail: { playlist: playlistSongs, idx: 0, repeatAll } }));
+    },
+  });
+
+  const handlePrati = useCallback(() => {
     if (!mojID || !izvodjacId) return;
-    if (pratim) {
-      await axios.delete(`${API_BASE}/pratioci/${izvodjacId}/${mojID}`).catch(() => {});
-      setPratim(false);
-    } else {
-      await axios.post(`${API_BASE}/pratioci/`, {
-        korisnikID: izvodjacId,
-        pratilacID: mojID,
-      }).catch(() => {});
-      setPratim(true);
-    }
-  };
+    pratiMut.mutate();
+  }, [pratiMut, mojID, izvodjacId]);
 
-  const handlePlay = (p: Pjesma) => {
+  const handlePlay = useCallback((p: Pjesma) => {
+    if (!p.putanjaAudio) return;
     window.dispatchEvent(
       new CustomEvent("globalAudioPlay", {
         detail: {
@@ -129,53 +157,26 @@ const Izvodjac: React.FC = () => {
         },
       })
     );
-  };
+  }, []);
 
-  const handlePlayAlbum = (albumId: number) => {
-    const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
-    if (albumSongs.length === 0) return;
-    window.dispatchEvent(
-      new CustomEvent("globalAudioPlaylist", {
-        detail: {
-          playlist: albumSongs,
-          idx: 0,
-          repeatAll: false,
-        }
-      })
-    );
-  };
+  const handlePlayAlbum = useCallback(
+    (albumId: number) => {
+      const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
+      if (albumSongs.length === 0) return;
+      window.dispatchEvent(new CustomEvent("globalAudioPlaylist", { detail: { playlist: albumSongs, idx: 0, repeatAll } }));
+    },
+    [pjesme, repeatAll]
+  );
 
-  const handlePlayPlaylist = async (playlistId: number) => {
-    try {
-      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
-      const idsZaDohvat: number[] = res.data || [];
-      if (idsZaDohvat.length === 0) return;
-      const pjesmeArr = await Promise.all(
-        idsZaDohvat.map((id) =>
-          axios
-            .get(`${API_BASE}/pjesme/${id}`)
-            .then((r) => r.data)
-            .catch(() => null)
-        )
-      );
-      const playlistSongs = pjesmeArr.filter(Boolean);
-      if (playlistSongs.length === 0) return;
-      window.dispatchEvent(
-        new CustomEvent("globalAudioPlaylist", {
-          detail: {
-            playlist: playlistSongs,
-            idx: 0,
-            repeatAll: false,
-          }
-        })
-      );
-    } catch {
-      console.error("Greška prilikom dohvaćanja pjesama iz playliste.");
-    }
-  };
+  const handlePlayPlaylist = useCallback(
+    (playlistId: number) => {
+      playPlaylistSongsMut.mutate(playlistId);
+    },
+    [playPlaylistSongsMut]
+  );
 
   if (loading) return <Loading />;
-  if (!izvodjac)
+  if (!izvodjacQ.data)
     return (
       <div className={styles.notFound}>
         <Header />
@@ -187,6 +188,11 @@ const Izvodjac: React.FC = () => {
       </div>
     );
 
+  const izvodjac = izvodjacQ.data;
+  const albumi = albumiQ.data || [];
+  const playliste = playlisteQ.data || [];
+  const pratim = pratimQ.data || false;
+
   return (
     <>
       <Header />
@@ -194,11 +200,7 @@ const Izvodjac: React.FC = () => {
       <div className={styles.izvodjacBg}>
         <div className={styles.container}>
           <div className={styles.izvodjacMain}>
-            <img
-              src={izvodjac.putanjaProfilneSlike || "/logo.gif"}
-              alt={izvodjac.korisnicko_ime}
-              className={styles.izvodjacSlika}
-            />
+            <img src={izvodjac.putanjaProfilneSlike || "/logo.gif"} alt={izvodjac.korisnicko_ime} className={styles.izvodjacSlika} />
             <div className={styles.izvodjacInfo}>
               <h2 className={styles.izvodjacNaziv}>{izvodjac.korisnicko_ime}</h2>
               <div className={styles.izvodjacMeta}>
@@ -208,10 +210,7 @@ const Izvodjac: React.FC = () => {
               </div>
               <div className={styles.izvodjacBio}>{izvodjac.bio}</div>
               {mojID && mojID !== izvodjac.id && (
-                <button
-                  className={`${styles.pratiBtn} ${pratim ? styles.pratim : ""}`}
-                  onClick={handlePrati}
-                >
+                <button className={`${styles.pratiBtn} ${pratim ? styles.pratim : ""}`} onClick={handlePrati}>
                   {pratim ? t("following") || "Pratim" : t("follow") || "Prati"}
                 </button>
               )}
@@ -226,17 +225,9 @@ const Izvodjac: React.FC = () => {
                 pjesme.map((p) => (
                   <div key={p.id} className={styles.card}>
                     <div className={styles.cardImageWrap}>
-                      <img
-                        src={p.putanjaSlika || "/logo.gif"}
-                        alt={p.naziv}
-                        className={styles.cardImage}
-                      />
+                      <img src={p.putanjaSlika || "/logo.gif"} alt={p.naziv} className={styles.cardImage} />
                       {p.putanjaAudio && (
-                        <button
-                          className={styles.playBtn}
-                          onClick={() => handlePlay(p)}
-                          title={t("play_song")}
-                        >
+                        <button className={styles.playBtn} onClick={() => handlePlay(p)} title={t("play_song")}>
                           <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                             <polygon points="12,8 36,22 12,36" />
                           </svg>
@@ -249,7 +240,6 @@ const Izvodjac: React.FC = () => {
                   </div>
                 ))
               )}
-            
             </div>
           </div>
           <div className={styles.section}>
@@ -261,16 +251,8 @@ const Izvodjac: React.FC = () => {
                 albumi.map((a) => (
                   <div key={a.id} className={styles.card}>
                     <div className={styles.cardImageWrap}>
-                      <img
-                        src={a.putanjaSlika || "/logo.gif"}
-                        alt={a.naziv}
-                        className={styles.cardImage}
-                      />
-                      <button
-                        className={styles.playBtn}
-                        onClick={() => handlePlayAlbum(a.id)}
-                        title={t("play_album")}
-                      >
+                      <img src={a.putanjaSlika || "/logo.gif"} alt={a.naziv} className={styles.cardImage} />
+                      <button className={styles.playBtn} onClick={() => handlePlayAlbum(a.id)} title={t("play_album")}>
                         <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
                         </svg>
@@ -293,16 +275,8 @@ const Izvodjac: React.FC = () => {
                 playliste.map((pl) => (
                   <div key={pl.id} className={styles.card}>
                     <div className={styles.cardImageWrap}>
-                      <img
-                        src={pl.putanjaSlika || "/logo.gif"}
-                        alt={pl.naziv}
-                        className={styles.cardImage}
-                      />
-                      <button
-                        className={styles.playBtn}
-                        onClick={() => handlePlayPlaylist(pl.id)}
-                        title={t("play_playlist")}
-                      >
+                      <img src={pl.putanjaSlika || "/logo.gif"} alt={pl.naziv} className={styles.cardImage} />
+                      <button className={styles.playBtn} onClick={() => handlePlayPlaylist(pl.id)} title={t("play_playlist")}>
                         <svg width="28" height="28" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
                         </svg>
@@ -323,4 +297,4 @@ const Izvodjac: React.FC = () => {
   );
 };
 
-export default Izvodjac;
+export default memo(Izvodjac);

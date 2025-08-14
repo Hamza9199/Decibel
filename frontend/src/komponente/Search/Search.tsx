@@ -1,9 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import styles from "./Search.module.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Album, Korisnik, Pjesma, Playlista } from "../../types";
+import { useQuery } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -16,14 +17,7 @@ type SearchResult = {
 
 const Search: React.FC = () => {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult>({
-    izvodjaci: [],
-    pjesme: [],
-    albumi: [],
-    playliste: [],
-  });
   const [showDropdown, setShowDropdown] = useState(false);
-  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,43 +29,42 @@ const Search: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults({ izvodjaci: [], pjesme: [], albumi: [], playliste: [] });
-      return;
-    }
-    setLoading(true);
-    Promise.all([
-      axios.get(`${API_BASE}/korisnici/`).then(res =>
-        (res.data || []).filter((k: Korisnik) =>
-          k.rola === "izvodac" &&
-          (k.korisnicko_ime?.toLowerCase().includes(query.toLowerCase()) ||
-            k.ime?.toLowerCase().includes(query.toLowerCase()) ||
-            k.prezime?.toLowerCase().includes(query.toLowerCase()))
+  const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
+
+  const { data, isFetching } = useQuery<SearchResult>({
+    queryKey: ["search", normalizedQuery],
+    enabled: normalizedQuery.length > 0,
+    queryFn: async () => {
+      const [korisniciRes, pjesmeRes, albumiRes, playlisteRes] = await Promise.all([
+        axios.get(`${API_BASE}/korisnici/`),
+        axios.get(`${API_BASE}/pjesme/`),
+        axios.get(`${API_BASE}/albumi/`),
+        axios.get(`${API_BASE}/playliste/`),
+      ]);
+      const izvodjaci: Korisnik[] = (korisniciRes.data || []).filter((k: Korisnik) =>
+        k.rola === "izvodac" && (
+          k.korisnicko_ime?.toLowerCase().includes(normalizedQuery) ||
+          k.ime?.toLowerCase().includes(normalizedQuery) ||
+          k.prezime?.toLowerCase().includes(normalizedQuery)
         )
-      ),
-      axios.get(`${API_BASE}/pjesme/`).then(res =>
-        (res.data || []).filter((p: Pjesma) =>
-          p.naziv?.toLowerCase().includes(query.toLowerCase())
-        )
-      ),
-      axios.get(`${API_BASE}/albumi/`).then(res =>
-        (res.data || []).filter((a: Album) =>
-          a.naziv?.toLowerCase().includes(query.toLowerCase())
-        )
-      ),
-      axios.get(`${API_BASE}/playliste/`).then(res =>
-        (res.data || []).filter((pl: Playlista) =>
-          pl.naziv?.toLowerCase().includes(query.toLowerCase())
-        )
-      ),
-    ])
-      .then(([izvodjaci, pjesme, albumi, playliste]) => {
-        setResults({ izvodjaci, pjesme, albumi, playliste });
-        setShowDropdown(true);
-      })
-      .finally(() => setLoading(false));
-  }, [query]);
+      );
+      const pjesme: Pjesma[] = (pjesmeRes.data || []).filter((p: Pjesma) =>
+        p.naziv?.toLowerCase().includes(normalizedQuery)
+      );
+      const albumi: Album[] = (albumiRes.data || []).filter((a: Album) =>
+        a.naziv?.toLowerCase().includes(normalizedQuery)
+      );
+      const playliste: Playlista[] = (playlisteRes.data || []).filter((pl: Playlista) =>
+        pl.naziv?.toLowerCase().includes(normalizedQuery)
+      );
+      return { izvodjaci, pjesme, albumi, playliste };
+    },
+    staleTime: 30_000,
+    refetchOnWindowFocus: false,
+    retry: 1,
+  });
+
+  const results = useMemo<SearchResult>(() => data || { izvodjaci: [], pjesme: [], albumi: [], playliste: [] }, [data]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -102,29 +95,32 @@ const Search: React.FC = () => {
     };
   }, [isMobile, showDropdown]);
 
+  const placeholder = useMemo(() => `${t("search_artists")}, ${t("songs")}...`, [t]);
+  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value), []);
+  const onFocus = useCallback(() => query && setShowDropdown(true), [query]);
+
   return (
     <div className={styles.searchWrap}>
       <input
         ref={inputRef}
         className={styles.searchInput}
         type="text"
-        placeholder={t("search_artists") + ", " + t("songs") + "..."
-        }
+        placeholder={placeholder}
         value={query}
-        onChange={e => setQuery(e.target.value)}
-        onFocus={() => query && setShowDropdown(true)}
+        onChange={onChange}
+        onFocus={onFocus}
         autoComplete="off"
         {...(isMobile ? { inputMode: "search" } : {})}
       />
       <span className={styles.searchIcon}>
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <circle cx="10" cy="10" r="8" stroke="#b91d95" strokeWidth="2"/>
-          <line x1="16" y1="16" x2="21" y2="21" stroke="#b91d95" strokeWidth="2" strokeLinecap="round"/>
+          <circle cx="10" cy="10" r="8" stroke="#b91d95" strokeWidth="2" />
+          <line x1="16" y1="16" x2="21" y2="21" stroke="#b91d95" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </span>
-      {showDropdown && (query.trim() || loading) && (
+      {showDropdown && (normalizedQuery || isFetching) && (
         <div className={styles.dropdown} ref={dropdownRef}>
-          {loading ? (
+          {isFetching ? (
             <div className={styles.loading}>{t("loading")}</div>
           ) : (
             <>
@@ -132,17 +128,8 @@ const Search: React.FC = () => {
                 <div>
                   <div className={styles.sectionTitle}>{t("artists")}</div>
                   {results.izvodjaci.map((k: Korisnik) => (
-                    <Link
-                      key={k.id}
-                      to={`/izvodjac/${k.id}`}
-                      className={styles.resultRow}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <img
-                        src={k.putanjaProfilneSlike || "/logo.gif"}
-                        alt={k.korisnicko_ime}
-                        className={styles.resultImg}
-                      />
+                    <Link key={k.id} to={`/izvodjac/${k.id}`} className={styles.resultRow} style={{ textDecoration: "none" }}>
+                      <img src={k.putanjaProfilneSlike || "/logo.gif"} alt={k.korisnicko_ime} className={styles.resultImg} />
                       <span>{k.korisnicko_ime}</span>
                     </Link>
                   ))}
@@ -152,17 +139,8 @@ const Search: React.FC = () => {
                 <div>
                   <div className={styles.sectionTitle}>{t("songs")}</div>
                   {results.pjesme.map((p: Pjesma) => (
-                    <Link
-                      key={p.id}
-                      to={`/pjesma/${p.id}`}
-                      className={styles.resultRow}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <img
-                        src={p.putanjaSlika || "/logo.gif"}
-                        alt={p.naziv}
-                        className={styles.resultImg}
-                      />
+                    <Link key={p.id} to={`/pjesma/${p.id}`} className={styles.resultRow} style={{ textDecoration: "none" }}>
+                      <img src={p.putanjaSlika || "/logo.gif"} alt={p.naziv} className={styles.resultImg} />
                       <span>{p.naziv}</span>
                     </Link>
                   ))}
@@ -172,17 +150,8 @@ const Search: React.FC = () => {
                 <div>
                   <div className={styles.sectionTitle}>{t("albums")}</div>
                   {results.albumi.map((a: Album) => (
-                    <Link
-                      key={a.id}
-                      to={`/album/${a.id}`}
-                      className={styles.resultRow}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <img
-                        src={a.putanjaSlika || "/logo.gif"}
-                        alt={a.naziv}
-                        className={styles.resultImg}
-                      />
+                    <Link key={a.id} to={`/album/${a.id}`} className={styles.resultRow} style={{ textDecoration: "none" }}>
+                      <img src={a.putanjaSlika || "/logo.gif"} alt={a.naziv} className={styles.resultImg} />
                       <span>{a.naziv}</span>
                     </Link>
                   ))}
@@ -192,17 +161,8 @@ const Search: React.FC = () => {
                 <div>
                   <div className={styles.sectionTitle}>{t("playlists")}</div>
                   {results.playliste.map((pl: Playlista) => (
-                    <Link
-                      key={pl.id}
-                      to={`/playlista/${pl.id}`}
-                      className={styles.resultRow}
-                      style={{ textDecoration: "none" }}
-                    >
-                      <img
-                        src={pl.putanjaSlika || "/logo.gif"}
-                        alt={pl.naziv}
-                        className={styles.resultImg}
-                      />
+                    <Link key={pl.id} to={`/playlista/${pl.id}`} className={styles.resultRow} style={{ textDecoration: "none" }}>
+                      <img src={pl.putanjaSlika || "/logo.gif"} alt={pl.naziv} className={styles.resultImg} />
                       <span>{pl.naziv}</span>
                     </Link>
                   ))}
@@ -222,4 +182,4 @@ const Search: React.FC = () => {
   );
 };
 
-export default Search;
+export default memo(Search);

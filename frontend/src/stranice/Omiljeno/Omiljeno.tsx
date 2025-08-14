@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState, useCallback, memo } from "react";
 import styles from "./Omiljeno.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
@@ -8,8 +8,8 @@ import { useParams, Link } from "react-router-dom";
 import { Pjesma, Album, Playlista, Korisnik, KorisnikPjesma, KorisnikAlbum, KorisnikPlaylista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-// Interface for API responses with embedded data
 interface KorisnikPjesmaWithData extends KorisnikPjesma {
   pjesma?: Pjesma;
   korisnik?: Korisnik;
@@ -30,244 +30,210 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const Omiljeno: React.FC = () => {
   const { "*": tipRaw } = useParams(); 
   const tip = (tipRaw ?? window.location.pathname.split("/").pop() ?? "").toLowerCase(); 
-  const [loading, setLoading] = useState(true);
-  const [korisnikID, setKorisnikID] = useState<string>("");
-  const [pjesme, setPjesme] = useState<Pjesma[]>([]);
-  const [albumi, setAlbumi] = useState<Album[]>([]);
-  const [playliste, setPlayliste] = useState<Playlista[]>([]);
-  const [korisnici, setKorisnici] = useState<Korisnik[]>([]);
-  const [omiljenePjesme, setOmiljenePjesme] = useState<KorisnikPjesma[]>([]);
-  const [omiljeniAlbumi, setOmiljeniAlbumi] = useState<KorisnikAlbum[]>([]);
-  const [omiljenePlayliste, setOmiljenePlayliste] = useState<KorisnikPlaylista[]>([]);
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null); // pjesmaID za modal
-  const [playlists, setPlaylists] = useState<Playlista[]>([]);
-  const [likeMap, setLikeMap] = useState<{ [pjesmaId: number]: boolean }>({});
-  const [likeAlbumMap, setLikeAlbumMap] = useState<{ [albumId: number]: boolean }>({});
-  const [likePlaylistMap, setLikePlaylistMap] = useState<{ [playlistaId: number]: boolean }>({});
   const { t } = useTranslation();
+  const qc = useQueryClient();
 
-  useEffect(() => {
-    let id = "";
+  const korisnikID = useMemo(() => {
     try {
       const user = JSON.parse(localStorage.getItem("korisnik") || "");
-      id = user?.id || "";
+      return user?.id || "";
     } catch {
-      id = "";
+      return "";
     }
-    setKorisnikID(id);
   }, []);
 
-  useEffect(() => {
-    if (!korisnikID) return;
-    setLoading(true);
-    Promise.all([
-      // Use new API endpoints like Biblioteka
-      axios.get(`${API_BASE}/korisnik_pjesma/korisnik/${korisnikID}`).then(res => {
-        const likedSongs = (res.data || [])
-          .filter((l: KorisnikPjesmaWithData) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
-          .map((l: KorisnikPjesmaWithData) => ({
-            korisnikID: l.korisnikID,
-            pjesmaID: l.pjesmaID,
-            kreiranDatumVrijeme: l.kreiranDatumVrijeme
-          }));
-        
-        const songs = (res.data || [])
-          .filter((l: KorisnikPjesmaWithData) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
-          .map((l: KorisnikPjesmaWithData) => ({
-            ...l.pjesma!,
-            korisnik: l.korisnik || l.pjesma!.korisnik || null
-          }));
-        
-        return { likedSongs, songs };
-      }).catch(() => ({ likedSongs: [], songs: [] })),
-      
-      axios.get(`${API_BASE}/korisnik_album/korisnik/${korisnikID}`).then(res => {
-        const likedAlbums = (res.data || [])
-          .filter((l: KorisnikAlbumWithData) => l.album && l.album.odobreno)
-          .map((l: KorisnikAlbumWithData) => ({
-            korisnikID: l.korisnikID,
-            albumID: l.albumID,
-            kreiranDatumVrijeme: l.kreiranDatumVrijeme
-          }));
-        
-        const albums = (res.data || [])
-          .filter((l: KorisnikAlbumWithData) => l.album && l.album.odobreno)
-          .map((l: KorisnikAlbumWithData) => ({
-            ...l.album!,
-            korisnik: l.korisnik || l.album!.korisnik || null
-          }));
-        
-        return { likedAlbums, albums };
-      }).catch(() => ({ likedAlbums: [], albums: [] })),
-      
-      axios.get(`${API_BASE}/korisnik_playlista/korisnik/${korisnikID}`).then(res => {
-        const likedPlaylists = (res.data || [])
-          .filter((l: KorisnikPlaylistaWithData) => l.playlista && l.playlista.javno)
-          .map((l: KorisnikPlaylistaWithData) => ({
-            korisnikID: l.korisnikID,
-            playlistaID: l.playlistaID,
-            kreiranDatumVrijeme: l.kreiranDatumVrijeme
-          }));
-        
-        const playlists = (res.data || [])
-          .filter((l: KorisnikPlaylistaWithData) => l.playlista && l.playlista.javno)
-          .map((l: KorisnikPlaylistaWithData) => ({
-            ...l.playlista!,
-            korisnik: l.korisnik || l.playlista!.korisnik || null
-          }));
-        
-        return { likedPlaylists, playlists };
-      }).catch(() => ({ likedPlaylists: [], playlists: [] })),
-      
-      axios.get(`${API_BASE}/korisnici/`).then(res => res.data).catch(() => []),
-      axios.get(`${API_BASE}/playliste/`).then(res => res.data).catch(() => []),
-    ]).then(([songsResult, albumsResult, playlistsResult, korisniciData, allPlaylistsData]) => {
-      // Set the fetched data
-      setPjesme(songsResult.songs);
-      setAlbumi(albumsResult.albums);
-      setPlayliste(playlistsResult.playlists);
-      setKorisnici(korisniciData);
-      setOmiljenePjesme(songsResult.likedSongs);
-      setOmiljeniAlbumi(albumsResult.likedAlbums);
-      setOmiljenePlayliste(playlistsResult.likedPlaylists);
-      setPlaylists(allPlaylistsData);
-      
-      // Set like maps
-      const songLikeMap: { [pjesmaId: number]: boolean } = {};
-      songsResult.likedSongs.forEach((l: KorisnikPjesma) => { songLikeMap[l.pjesmaID] = true; });
-      setLikeMap(songLikeMap);
-      
-      const albumLikeMap: { [albumId: number]: boolean } = {};
-      albumsResult.likedAlbums.forEach((l: KorisnikAlbum) => { albumLikeMap[l.albumID] = true; });
-      setLikeAlbumMap(albumLikeMap);
-      
-      const playlistLikeMap: { [playlistaId: number]: boolean } = {};
-      playlistsResult.likedPlaylists.forEach((l: KorisnikPlaylista) => { playlistLikeMap[l.playlistaID] = true; });
-      setLikePlaylistMap(playlistLikeMap);
-      
-      setLoading(false);
-    });
-  }, [korisnikID, tipRaw]);
+  const likedSongsQ = useQuery<KorisnikPjesmaWithData[]>({
+    queryKey: ["likedSongs", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => axios.get(`${API_BASE}/korisnik_pjesma/korisnik/${korisnikID}`).then((r) => r.data || []),
+    initialData: [],
+  });
+  const likedAlbumsQ = useQuery<KorisnikAlbumWithData[]>({
+    queryKey: ["likedAlbums", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => axios.get(`${API_BASE}/korisnik_album/korisnik/${korisnikID}`).then((r) => r.data || []),
+    initialData: [],
+  });
+  const likedPlaylistsQ = useQuery<KorisnikPlaylistaWithData[]>({
+    queryKey: ["likedPlaylists", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () => axios.get(`${API_BASE}/korisnik_playlista/korisnik/${korisnikID}`).then((r) => r.data || []),
+    initialData: [],
+  });
+  const korisniciQ = useQuery<Korisnik[]>({
+    queryKey: ["korisnici"],
+    queryFn: async () => axios.get(`${API_BASE}/korisnici/`).then((r) => r.data || []),
+    initialData: [],
+  });
+  const allPlaylistsQ = useQuery<Playlista[]>({
+    queryKey: ["playliste"],
+    queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
+    initialData: [],
+  });
 
-  const handlePlay = (p: Pjesma) => {
-    window.dispatchEvent(
-      new CustomEvent("globalAudioPlay", {
-        detail: {
-          id: p.id,
-          src: p.putanjaAudio,
-          title: p.naziv,
-          putanjaGif: p.putanjaGif,
-          putanjaSlika: p.putanjaSlika,
-          korisnikID: p.korisnikID,
-        },
-      })
-    );
-  };
+  const omiljenePjesme = useMemo(() => {
+    return (likedSongsQ.data || [])
+      .filter((l) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+      .map((l) => ({ korisnikID: l.korisnikID, pjesmaID: l.pjesmaID, kreiranDatumVrijeme: l.kreiranDatumVrijeme }));
+  }, [likedSongsQ.data]);
+  const pjesme = useMemo(() => {
+    return (likedSongsQ.data || [])
+      .filter((l) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+      .map((l) => ({ ...(l.pjesma as Pjesma), korisnik: l.korisnik || l.pjesma?.korisnik || null } as Pjesma));
+  }, [likedSongsQ.data]);
 
-  const handlePlayAlbum = (albumId: number) => {
-    const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
-    if (albumSongs.length === 0) return;
-    window.dispatchEvent(
-      new CustomEvent("globalAudioPlaylist", {
-        detail: {
-          playlist: albumSongs,
-          idx: 0,
-          repeatAll: false,
-        }
-      })
-    );
-  };
+  const omiljeniAlbumi = useMemo(() => {
+    return (likedAlbumsQ.data || [])
+      .filter((l) => l.album && l.album.odobreno)
+      .map((l) => ({ korisnikID: l.korisnikID, albumID: l.albumID, kreiranDatumVrijeme: l.kreiranDatumVrijeme }));
+  }, [likedAlbumsQ.data]);
+  const albumi = useMemo(() => {
+    return (likedAlbumsQ.data || [])
+      .filter((l) => l.album && l.album.odobreno)
+      .map((l) => ({ ...(l.album as Album), korisnik: l.korisnik || l.album?.korisnik || null } as Album));
+  }, [likedAlbumsQ.data]);
 
-  const handlePlayPlaylist = async (playlistId: number) => {
-    try {
-      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
-      const idsZaDohvat: number[] = res.data || [];
-      if (idsZaDohvat.length === 0) return;
-      const pjesmeArr = await Promise.all(
-        idsZaDohvat.map((id) =>
-          axios
-            .get(`${API_BASE}/pjesme/${id}`)
-            .then((r) => r.data)
-            .catch(() => null)
-        )
-      );
-      const playlistSongs = pjesmeArr.filter(Boolean);
-      if (playlistSongs.length === 0) return;
-      window.dispatchEvent(
-        new CustomEvent("globalAudioPlaylist", {
-          detail: {
-            playlist: playlistSongs,
-            idx: 0,
-            repeatAll: false,
-          }
-        })
-      );
-    } catch {
-      console.error("Greška pri dohvaćanju pjesama iz playliste");
-    }
-  };
+  const omiljenePlayliste = useMemo(() => {
+    return (likedPlaylistsQ.data || [])
+      .filter((l) => l.playlista && l.playlista.javno)
+      .map((l) => ({ korisnikID: l.korisnikID, playlistaID: l.playlistaID, kreiranDatumVrijeme: l.kreiranDatumVrijeme }));
+  }, [likedPlaylistsQ.data]);
+  const playliste = useMemo(() => {
+    return (likedPlaylistsQ.data || [])
+      .filter((l) => l.playlista && l.playlista.javno)
+      .map((l) => ({ ...(l.playlista as Playlista), korisnik: l.korisnik || l.playlista?.korisnik || null } as Playlista));
+  }, [likedPlaylistsQ.data]);
 
-  const handleLike = async (p: Pjesma) => {
-    if (!korisnikID || !p.id) return;
-    if (likeMap[p.id]) {
-      await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${p.id}`).catch(() => {});
-      setLikeMap((prev) => ({ ...prev, [p.id]: false }));
-    } else {
-      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-        korisnikID,
-        pjesmaID: p.id,
-        kreiranDatumVrijeme: new Date().toISOString(),
-      }).catch(() => {});
-      setLikeMap((prev) => ({ ...prev, [p.id]: true }));
-    }
-  };
+  const likeMap = useMemo(() => {
+    const m: Record<number, boolean> = {};
+    omiljenePjesme.forEach((l) => (m[l.pjesmaID] = true));
+    return m;
+  }, [omiljenePjesme]);
+  const likeAlbumMap = useMemo(() => {
+    const m: Record<number, boolean> = {};
+    omiljeniAlbumi.forEach((l) => (m[l.albumID] = true));
+    return m;
+  }, [omiljeniAlbumi]);
+  const likePlaylistMap = useMemo(() => {
+    const m: Record<number, boolean> = {};
+    omiljenePlayliste.forEach((l) => (m[l.playlistaID] = true));
+    return m;
+  }, [omiljenePlayliste]);
 
-  const handleLikeAlbum = async (albumId: number) => {
-    if (!korisnikID || !albumId) return;
-    if (likeAlbumMap[albumId]) {
-      await axios.delete(`${API_BASE}/korisnik_album/${korisnikID}/${albumId}`).catch(() => {});
-      setLikeAlbumMap((prev) => ({ ...prev, [albumId]: false }));
-    } else {
-      await axios.post(`${API_BASE}/korisnik_album/`, {
-        korisnikID,
-        albumID: albumId,
-        kreiranDatumVrijeme: new Date().toISOString(),
-      }).catch(() => {});
-      setLikeAlbumMap((prev) => ({ ...prev, [albumId]: true }));
-    }
-  };
+  const likeSongMut = useMutation({
+    mutationFn: async (p: Pjesma) => {
+      if (!korisnikID || !p.id) return;
+      if (likeMap[p.id]) {
+        await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${p.id}`);
+      } else {
+        await axios.post(`${API_BASE}/korisnik_pjesma/`, { korisnikID, pjesmaID: p.id, kreiranDatumVrijeme: new Date().toISOString() });
+      }
+      return p.id;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["likedSongs", korisnikID] });
+    },
+  });
 
-  const handleLikePlaylist = async (playlistaId: number) => {
-    if (!korisnikID || !playlistaId) return;
-    if (likePlaylistMap[playlistaId]) {
-      await axios.delete(`${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`).catch(() => {});
-      setLikePlaylistMap((prev) => ({ ...prev, [playlistaId]: false }));
-    } else {
-      await axios.post(`${API_BASE}/korisnik_playlista/`, {
-        korisnikID,
-        playlistaID: playlistaId,
-        kreiranDatumVrijeme: new Date().toISOString(),
-      }).catch(() => {});
-      setLikePlaylistMap((prev) => ({ ...prev, [playlistaId]: true }));
-    }
-  };
+  const likeAlbumMut = useMutation({
+    mutationFn: async (albumId: number) => {
+      if (!korisnikID || !albumId) return;
+      if (likeAlbumMap[albumId]) {
+        await axios.delete(`${API_BASE}/korisnik_album/${korisnikID}/${albumId}`);
+      } else {
+        await axios.post(`${API_BASE}/korisnik_album/`, { korisnikID, albumID: albumId, kreiranDatumVrijeme: new Date().toISOString() });
+      }
+      return albumId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["likedAlbums", korisnikID] });
+    },
+  });
 
-    const handleAddToPlaylist = async (pjesmaID: number, playlistaID: number) => {
-    try {
-      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
-        pjesmaID,
-        playlistaID,
-      });
+  const likePlaylistMut = useMutation({
+    mutationFn: async (playlistaId: number) => {
+      if (!korisnikID || !playlistaId) return;
+      if (likePlaylistMap[playlistaId]) {
+        await axios.delete(`${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`);
+      } else {
+        await axios.post(`${API_BASE}/korisnik_playlista/`, { korisnikID, playlistaID: playlistaId, kreiranDatumVrijeme: new Date().toISOString() });
+      }
+      return playlistaId;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["likedPlaylists", korisnikID] });
+    },
+  });
+
+  const addToPlaylistMut = useMutation({
+    mutationFn: async (vars: { pjesmaID: number; playlistaID: number }) => {
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, vars);
+    },
+    onSuccess: () => {
       setShowPlaylistModal(null);
       alert("Pjesma je dodana u playlistu!");
-    } catch {
-      alert("Greška pri dodavanju pjesme u playlistu.");
-    }
-  };
-  
+    },
+    onError: () => alert("Greška pri dodavanju pjesme u playlistu."),
+  });
+
+  const playPlaylistSongsMut = useMutation({
+    mutationFn: async (playlistId: number) => {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
+      const ids: number[] = res.data || [];
+      if (ids.length === 0) return [] as Pjesma[];
+      const pjesmeArr = await Promise.all(ids.map((id) => axios.get(`${API_BASE}/pjesme/${id}`).then((r) => r.data).catch(() => null)));
+      return (pjesmeArr.filter(Boolean) as Pjesma[]);
+    },
+    onSuccess: (playlistSongs) => {
+      if (!playlistSongs || playlistSongs.length === 0) return;
+      window.dispatchEvent(new CustomEvent("globalAudioPlaylist", { detail: { playlist: playlistSongs, idx: 0, repeatAll: false } }));
+    },
+    onError: () => console.error("Greška pri dohvaćanju pjesama iz playliste"),
+  });
+
+  const handlePlay = useCallback((p: Pjesma) => {
+    window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: { id: p.id, src: p.putanjaAudio, title: p.naziv, putanjaGif: p.putanjaGif, putanjaSlika: p.putanjaSlika, korisnikID: p.korisnikID } }));
+  }, []);
+
+  const handlePlayAlbum = useCallback((albumId: number) => {
+    const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
+    if (albumSongs.length === 0) return;
+    window.dispatchEvent(new CustomEvent("globalAudioPlaylist", { detail: { playlist: albumSongs, idx: 0, repeatAll: false } }));
+  }, [pjesme]);
+
+  const handlePlayPlaylist = useCallback((playlistId: number) => {
+    playPlaylistSongsMut.mutate(playlistId);
+  }, [playPlaylistSongsMut]);
+
+  const handleLike = useCallback((p: Pjesma) => {
+    likeSongMut.mutate(p);
+  }, [likeSongMut]);
+
+  const handleLikeAlbum = useCallback((albumId: number) => {
+    likeAlbumMut.mutate(albumId);
+  }, [likeAlbumMut]);
+
+  const handleLikePlaylist = useCallback((playlistaId: number) => {
+    likePlaylistMut.mutate(playlistaId);
+  }, [likePlaylistMut]);
+
+  const handleAddToPlaylist = useCallback((pjesmaID: number, playlistaID: number) => {
+    addToPlaylistMut.mutate({ pjesmaID, playlistaID });
+  }, [addToPlaylistMut]);
+
+  const loading = useMemo(() => {
+    return (
+      likedSongsQ.isLoading || likedAlbumsQ.isLoading || likedPlaylistsQ.isLoading || korisniciQ.isLoading || allPlaylistsQ.isLoading
+    );
+  }, [likedSongsQ.isLoading, likedAlbumsQ.isLoading, likedPlaylistsQ.isLoading, korisniciQ.isLoading, allPlaylistsQ.isLoading]);
+
   if (loading) return <Loading />;
 
-  let content = null;
+  const korisnici = korisniciQ.data || [];
+  const playlists = allPlaylistsQ.data || [];
+
+  let content = null as React.ReactNode;
   if (tip === "pjesme" || tip === "albumi" || tip === "playliste") {
     if (tip === "pjesme") {
       content = (
@@ -601,5 +567,5 @@ const Omiljeno: React.FC = () => {
   );
 };
 
-export default Omiljeno;
+export default memo(Omiljeno);
 

@@ -133,7 +133,7 @@ dist
 .vscode
 .vscode/*
 
-.dokumentacija/tree-backend.txt
-.dokumentacija/tree-frontend.txt
-.dokumentacija/tree-mobilna.txt
-.dokumentacija/tree-root.txt
+dokumentacija/tree-backend.txt
+dokumentacija/tree-frontend.txt
+dokumentacija/tree-mobilna.txt
+dokumentacija/tree-root.txt

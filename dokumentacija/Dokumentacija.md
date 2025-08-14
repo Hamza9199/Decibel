@@ -2,19 +2,31 @@
 
 ## Sadržaj
 
+0. [Šta je novo (2025-08)](#sta-je-novo-2025-08)
 1. [Uvod](#uvod)
+   - [Brzi start (lokalni razvoj)](#brzi-start-lokalni-razvoj)
 2. [Arhitektura](#arhitektura)
+   - [API verzionisanje i deprecijacija](#api-verzionisanje-i-deprecijacija)
+   - [Tok zahtjeva i observability](#tok-zahtjeva-i-observability)
+   - [Cross-cutting: middleware, validacija i standardni odgovori](#cross-cutting-middleware-validacija-i-standardni-odgovori)
 3. [Backend](#backend)
    - [Tehnologije](#tehnologije-backenda)
    - [Struktura direktorijuma](#struktura-direktorijuma-backend)
+   - [Konvencije i standardi](#konvencije-i-standardi-backend)
    - [Modeli](#modeli)
+   - [Standardi API-ja](#standardi-api-ja)
    - [Rute](#rute)
    - [Kontroleri](#kontroleri)
+   - [Streaming, keširanje i CDN](#streaming-kesiranje-i-cdn)
+   - [Upload i obrada medija](#upload-i-obrada-medija)
    - [Baza podataka](#baza-podataka)
    - [Firebase Storage](#firebase-storage)
    - [Pokretanje i razvoj](#pokretanje-i-razvoj)
+   - [Docker](#docker-backend)
    - [Deploy](#deploy-backend)
    - [Sigurnost i autentikacija](#sigurnost-i-autentikacija)
+   - [Logovanje i metrike](#logovanje-i-metrike)
+   - [Background poslovi](#background-poslovi)
    - [Testiranje](#testiranje-backenda)
    - [Primjeri API poziva](#primjeri-api-poziva)
    - [Napredne funkcionalnosti](#napredne-funkcionalnosti)
@@ -22,18 +34,25 @@
 4. [Frontend](#frontend)
    - [Tehnologije](#tehnologije-frontenda)
    - [Struktura direktorijuma](#struktura-direktorijuma-frontend)
-   - [Prikaz podataka](#prikaz-podataka)
-   - [Audio player](#audio-player)
+   - [Arhitekturni principi](#arhitekturni-principi-frontend)
+   - [Konvencije i standardi](#konvencije-i-standardi-frontend)
+   - [Konfiguracija i build](#konfiguracija-i-build-frontend)
+   - [Prikaz podataka i audio player](#prikaz-podataka-i-audio-player)
+   - [Performanse i PWA](#performanse-i-pwa)
    - [Deploy](#deploy-frontend)
    - [Testiranje](#testiranje-frontenda)
-   - [Primjeri UI/UX](#primjeri-ui-ux)
    - [Napredne funkcionalnosti](#napredne-funkcionalnosti-frontend)
    - [Noviteti 2025](#noviteti-2025-frontend)
 5. [Mobilna aplikacija](#mobilna-aplikacija)
    - [Tehnologije](#tehnologije-mobilne-aplikacije)
    - [Struktura direktorijuma](#struktura-direktorijuma-mobilna)
+   - [Konvencije i standardi](#konvencije-i-standardi-mobilna)
+   - [Konfiguracija i build](#konfiguracija-i-build-mobilna)
    - [React Native komponente](#react-native-komponente)
    - [Audio player](#audio-player-mobilna)
+   - [Offline režim](#offline-rezim-mobilna)
+   - [Push, background i deep linkovi](#push-background-i-deep-linkovi)
+   - [Dozvole](#dozvole)
    - [Testiranje](#testiranje-mobilne-aplikacije)
    - [Distribucija APK](#distribucija-apk)
    - [Noviteti 2025](#noviteti-2025-mobilna)
@@ -46,55 +65,97 @@
    - [Pravila i migracije baze](#pravila-i-migracije-baze)
    - [Pravila za komentare, historiju i pretplate](#pravila-za-komentare-historiju-i-pretplate)
    - [Automatizacija i AI](#automatizacija-i-ai)
-7. [Reference](#reference)
+   - [Politika verzionisanja i deprecijacije](#politika-verzionisanja-i-deprecijacije)
+   - [Privatnost i zaštita podataka](#privatnost-i-zastita-podataka)
+   - [Stil i konvencije](#stil-i-konvencije)
+7. [Appendix](#appendix)
+   - [Matrica okruženja](#matrica-okruzenja)
+   - [Katalog grešaka](#katalog-gresaka)
+   - [Mapiranje API ruta](#mapiranje-api-ruta)
+   - [Referenca .env varijabli (sažeto)](#referenca-env-varijabli-sazeto)
+   - [Primjeri sigurnosnih zaglavlja](#primjeri-sigurnosnih-zaglavlja)
+8. [Troubleshooting](#troubleshooting)
+9. [Reference](#reference)
+10. [Changelog](#changelog)
+11. [FAQ](#faq)
+
+---
+
+## 0. Šta je novo (2025-08)
+
+- Standardizovan API envelope (data/meta/traceId) i dosljedni error format sa traceId za korelaciju.
+- Verzija API-ja /api/v1 ostaje default; uveden jasan plan deprecijacije (6–12 mjeseci) i changelog.
+- Paginacija, filtriranje i sortiranje usklađeni između web i mobilne aplikacije (isti parametri i ponašanje).
+- Proširena sigurnost: rate limiting preporuke (SlowAPI), sigurnosna zaglavlja, validacija upload-a (MIME/veličina) i hard‑limit za audio/slike.
+- Streaming i performanse: podrška za Range zaglavlja, ETag/Cache-Control, preporuka za CDN pred frontend.
+- Observability: strukturisano JSON logovanje sa request-id/traceId, /healthz i /readyz endpointi; preporuka za Prometheus/Grafana i Sentry.
+- CI/CD: gate-ovi (lint/test), automatske migracije prije deploy-a, matrica (backend Koyeb, frontend Vercel, mobilna EAS).
+- Mobilna: detaljniji offline režim (limit keša, LRU čišćenje, putanja fajlova), background audio, FCM push, cleanup hook-ovi.
+- I18n: konsolidovana struktura prevoda (BS/EN/DE) i uputstvo za dodavanje novih jezika.
+- Dodatne smjernice: pristupačnost (a11y), performanse (LCP/TTI budžeti), pravila za commit poruke (Conventional Commits), stil kodiranja.
+- Expo Router standardizovan na mobilnoj aplikaciji (dinamičke rute npr. app/pjesma/[pjesmaId].tsx, tabovi u app/(tabs)).
+- Novo: referentni primjeri sigurnosnih zaglavlja, primjer GitHub Actions CI za backend i frontend, i proširen Troubleshooting.
 
 ---
 
 ## 1. Uvod
 
-Decibel je moderna muzička platforma (web + mobilna aplikacija) za upravljanje, prikaz i slušanje pjesama, albuma, plejlista i korisnika. Projekat je razvijen kao diplomski rad i koristi moderne tehnologije za backend, frontend i mobilnu aplikaciju (React Native). Platforma omogućava korisnicima da otkrivaju novu muziku, prate izvođače, kreiraju i uređuju playliste, komentarišu pjesme, prate statistiku slušanja, koriste napredni audio player i još mnogo toga.
+Decibel je moderna muzička platforma (web + mobilna aplikacija) za upravljanje, prikaz i slušanje pjesama, albuma, plejlista i korisnika. Projekat koristi moderne tehnologije za backend (FastAPI), frontend (React + Vite) i mobilnu aplikaciju (React Native + Expo). 
 
-**Najnovije implementirane funkcionalnosti (2024):**
+Najvažnije mogućnosti:
+- Offline režim (mobilna), napredna pretraga, historija slušanja sa unique constraintom
+- Napredni filteri/sort, paginacija i lazy loading
+- Notifikacije (push/email), suspendovanje korisnika, prijava izvođača
+- Statistika (grafovi, top liste), automatska obnova pretplate
+- Napredni audio player (web & mobilni) sa background play
+- Komentari sa uređivanjem, globalni state, centralizovana konfiguracija
+- CI/CD, i18n (BS/EN/DE), Dark/Light tema, QR kodovi, Firebase Storage, backup baze
 
-- **Offline režim** za mobilnu aplikaciju (preuzimanje pjesama, offline slušanje)
-- **Napredna pretraga** (multi-field, fuzzy, autocomplete, real-time search)
-- **Historija slušanja** sa jedinstvenim constraintima i automatskim ažuriranjem
-- **Napredni filteri** i sortiranje na svim listama (po datumu, lajkovima, trajanju, žanru)
-- **Paginacija i lazy loading** za velike liste (infinite scroll, server-side paginacija)
-- **Notifikacije** (push i email) za važne događaje (komentari, lajkovi, nove pjesme)
-- **Suspendovanje korisnika** sa porukom i trajanjem, automatsko reaktiviranje
-- **Prijava za izvođača** sa automatskim odobravanjem i admin panelom
-- **Statistika platforme** sa grafovima, top listama i embed objektima
-- **Automatska obnova pretplate** sa validacijom i evidencijom obnova
-- **Napredni audio player** (web & mobilni): repeat, shuffle, brza promjena, volume, progress bar, mini-player, background play
-- **Komentari sa uređivanjem** i privilegijama vlasnika/admina
-- **Globalni state management** (AudioContext, React Query)
-- **Centralizovana konfiguracija i environment-based setup**
-- **CI/CD pipeline** sa automatskim buildom i deployem
-- **AI preporuke** za pjesme i albume (eksperimentalno)
-- **Podrška za više jezika** (BS, EN, DE)
-- **Dark/light tema** (web & mobilni)
-- **QR kodovi** za dijeljenje pjesama i plejlista
-- **Firebase Storage** za slike, audio i gif fajlove
-- **Automatski backup baze** i logova
+### Brzi start (lokalni razvoj)
+
+- Backend
+  - `cd backend && pip install -r requirements.txt`
+  - U .env postaviti DATABASE_URL_ASYNC i DATABASE_URL_SYNC; pokrenuti: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`
+- Frontend (Vite)
+  - `cd frontend && npm i && echo VITE_API_URL=http://localhost:8000 >> .env && npm run dev`
+- Mobilna (Expo)
+  - `cd mobilnaAPP && npm i && echo EXPO_PUBLIC_API_URL=http://localhost:8000 >> .env && npx expo start`
+- Preporuka: pokrenuti backend prije klijentskih aplikacija; provjeriti Swagger na http://localhost:8000/docs
 
 ---
 
 ## 2. Arhitektura
 
-Aplikacija je podijeljena na tri glavna dijela:
-- **Backend**: FastAPI (Python), MySQL (Aiven Cloud), Firebase Storage
-- **Frontend**: React (TypeScript), Vite, CSS Modules
-- **Mobilna aplikacija**: React Native (Expo), TypeScript, Expo Audio
+Aplikacija je podijeljena na tri dijela:
+- Backend: FastAPI (Python), MySQL (Aiven Cloud), Firebase Storage
+- Frontend: React (TypeScript), Vite, CSS Modules
+- Mobilna: React Native (Expo), TypeScript, Expo AV
 
-Komunikacija između frontenda/mobilne aplikacije i backenda se odvija putem REST API-ja. Svi servisi su nezavisni i mogu se deployovati odvojeno.
+Komunikacija: REST API. Servisi su nezavisni i deployuju se odvojeno. 
 
-**Novi pristup arhitekturi:**
-- **Environment-based konfiguracija**: Svi URL-ovi i konfiguracija se čuvaju u .env fajlovima
-- **Centralizovani API klijenti**: Pojednostavljen i tipiziran pristup API pozivima
-- **Globalni state management**: AudioContext za mobilnu aplikaciju i React Query za server state
-- **Unified error handling**: Konzistentno rukovanje greškama kroz sve slojeve
-- **Automatsko testiranje i deploy** (CI/CD)
+Novi pristup:
+- Environment-based konfiguracija (.env)
+- Centralizovani API klijenti (tipizirani), React Query/AudioContext za state
+- Unified error handling i standardizovan odgovor
+- Automatsko testiranje i deploy (CI/CD)
+- Verzije API-ja: /api/v1, plan deprecijacije 6–12 mjeseci uz changelog
+
+### API verzionisanje i deprecijacija
+- Aktivna verzija: /api/v1
+- Deprecijacija: release note + HTTP Warning + Sunset datum
+- Održavanje: stare verzije samo sigurnosne ispravke; funkcionalne promjene idu u novu verziju
+- Klijenti čitaju base URL iz env (VITE_API_URL / EXPO_PUBLIC_API_URL)
+
+### Tok zahtjeva i observability
+- Klijent može poslati X-Request-Id; backend kreira traceId ako nije poslan
+- Logovi (JSON) uključuju: metoda, putanja, status, trajanje ms, userId (ako postoji), traceId
+- Health endpointi: /healthz (liveness), /readyz (readiness), opcioni /metrics
+
+### Cross-cutting: middleware, validacija i standardni odgovori
+- Middleware dodaje/propagira traceId, normalizuje CORS i sigurnosna zaglavlja
+- Svi uspješni odgovori: `{ data, meta?, traceId }`
+- Greške: `{ error: { code, message, details? }, traceId }`
+- Pydantic validacija inputa i izlaza; katalog kodova grešaka u Appendix-u
 
 ---
 
@@ -102,220 +163,223 @@ Komunikacija između frontenda/mobilne aplikacije i backenda se odvija putem RES
 
 ### Tehnologije backenda
 
-- **FastAPI** – web framework za Python, brz i tipiziran
-- **SQLAlchemy** – ORM za rad sa bazom (sa async podrškom)
-- **databases** – async rad sa bazom
-- **aiomysql** – async MySQL drajver
-- **Alembic** – migracije baze
-- **python-dotenv** – rad sa .env fajlovima
-- **passlib** – heširanje lozinki
-- **firebase-admin** – rad sa Firebase servisima
-- **Uvicorn** – ASGI server za FastAPI
-- **python-multipart** – za file upload podršku
-- **pytest** – testiranje
+- FastAPI, SQLAlchemy (async), databases, aiomysql, Alembic
+- python-dotenv, passlib[bcrypt], firebase-admin, uvicorn, python-multipart, pytest
 
 ### Struktura direktorijuma (backend)
 
 ```plaintext
 backend/
-│
 ├── main.py
 ├── requirements.txt
 ├── .env
 ├── alembic/
-│   └── ... (migracije)
-├── modeli/
-│   ├── Korisnik.py
-│   ├── Album.py
-│   ├── Pjesma.py
-│   ├── Playlista.py
-│   ├── Komentar.py
-│   ├── IzvodjacPjesma.py
-│   ├── PjesmaPlaylista.py
-│   ├── KorisnikPlaylista.py
-│   ├── KorisnikPjesma.py
-│   ├── KorisnikAlbum.py
-│   ├── PratilacKorisnik.py
-│   ├── RedoslijedPjesama.py
-│   ├── StatistikaReprodukcije.py
-│   ├── HistorijaSlusanja.py
-│   ├── Pretplata.py
-│   ├── PretplataStatus.py
-│   ├── KorisnikPretplata.py
-│   ├── ObnovaPretplate.py
-│   ├── PrijavaIzvodjaca.py
-│   ├── SuspendovaniKorisnik.py
-│   └── __init__.py
-├── kontroleri/
-│   ├── KorisnikKontroler.py
-│   ├── PjesmaKontroler.py
-│   ├── AlbumKontroler.py
-│   ├── PlaylistaKontroler.py
-│   ├── PratilacKorisnikKontroler.py
-│   ├── KomentarKontroler.py
-│   ├── StatistikaReprodukcijeKontroler.py
-│   ├── HistorijaSlusanjaKontroler.py
-│   ├── KorisnikPretplataKontroler.py
-│   ├── PrijavaIzvodjacaKontroler.py
-│   └── __init__.py
-├── rute/
-│   ├── KorisnikRuta.py
-│   ├── PjesmaRuta.py
-│   ├── AlbumRuta.py
-│   ├── PlaylistaRuta.py
-│   ├── PratilacKorisnikRuta.py
-│   ├── KomentarRuta.py
-│   ├── StatistikaReprodukcijeRuta.py
-│   ├── HistorijaSlusanjaRuta.py
-│   ├── PretplataRuta.py
-│   ├── KorisnikPretplataRuta.py
-│   ├── ObnovaPretplateRuta.py
-│   ├── PrijavaIzvodjacaRuta.py
-│   └── __init__.py
-├── servisi/
-│   ├── Baza.py
-│   ├── FirebaseStorage.py
-│   ├── PlaylistaRedoslijed.py
-│   └── __init__.py
-└── ...
+├── modeli/ ...
+├── kontroleri/ ...
+├── rute/ ...
+└── servisi/ ...
 ```
+
+### Konvencije i standardi (backend)
+
+- Imenovanje: snake_case (DB), PascalCase (ORM), camelCase (JSON)
+- Datumi/vrijeme: ISO 8601 (UTC), sufiksi At/Do
+- Paginacija: limit (≤100), offset; total u meta (opcionalno)
+- Sort: `?sort=polje,-drugo`
+- Filtriranje: `q` + specifični filteri (zanr, jezik, javno, korisnikId...)
+- Greške (JSON): vidi standardni odgovor i katalog kodova
 
 ### Modeli
 
-- **KorisnikORM**: Model korisnika sa podrškom za suspendovanje (statusKorisnika: aktivan/suspendovan/neaktivan), rola (korisnik/izvođač/admin), profilna slika, email, bio.
-- **PjesmaORM**: Model pjesme sa embed korisnik objektom, podrška za više izvođača (veza), slike, gif, audio, žanr, jezik, licenca, eksplicitni sadržaj, odobrenje od admina.
-- **AlbumORM**: Model albuma sa embed korisnik objektom, slike, gif, javnost, broj lajkova, status.
-- **PlaylistaORM**: Model playliste sa embed korisnik objektom, slike, gif, javnost, redoslijed pjesama.
-- **KomentarORM**: Komentari sa uređivanjem, embed korisnik objektom, privilegijama vlasnika/admina.
-- **IzvodjacPjesmaORM**: Veza između pjesama i izvođača (više izvođača po pjesmi, potvrda vlasnika).
-- **KorisnikPretplataORM**: Model pretplate sa automatskim upravljanjem obnove, datumi, status, embed pretplata.
-- **ObnovaPretplateORM**: Evidencija obnova sa iznosom i datumom.
-- **SuspendovaniKorisnikORM**: Model suspendovanja (korisnikID, poruka, vrijemeDo).
-- **PrijavaIzvodjacaORM**: Model prijava za izvođače (UUID, korisnikID, poruka, datum).
-- **StatistikaReprodukcijeORM**: Model statistike sa embed pjesma objektom.
-- **HistorijaSlusanjaORM**: Model historije sa jedinstvenim constraintima po korisniku i pjesmi, automatsko brisanje duplikata.
-- **RedoslijedPjesamaORM**: Redoslijed pjesama u playlisti.
+- KorisnikORM, PjesmaORM, AlbumORM, PlaylistaORM, KomentarORM
+- IzvodjacPjesmaORM, PjesmaPlaylistaORM, KorisnikPlaylistaORM, KorisnikPjesmaORM
+- KorisnikPretplataORM, PretplataORM, ObnovaPretplateORM, PretplataStatus
+- StatistikaReprodukcijeORM, HistorijaSlusanjaORM (unique korisnik+pjesma)
+- RedoslijedPjesamaORM (redoslijed u playlisti)
 
-**Noviteti 2024:**
-- **Offline podrška** (lokalno čuvanje pjesama za slušanje bez interneta)
-- **Notifikacije** (push/email)
-- **QR kodovi** za dijeljenje
-- **AI preporuke** (eksperimentalno, integracija sa vanjskim AI servisom)
-- **Napredna statistika** (embed objekti, grafovi, top 10, paginacija)
-- **Automatska obnova pretplate** (sa validacijom i evidencijom)
+Napomene:
+- Indeksi na često filtriranim poljima (npr. korisnikId, createdAt)
+- FK i on delete pravila; validacija unique constraint-a na aplikativnom sloju
+
+### Standardi API-ja
+
+- Prefiks: /api/v1
+- Uspjeh:
+```json
+{
+  "data": [],
+  "meta": {"count": 20, "offset": 0, "total": 135},
+  "traceId": "req-123"
+}
+```
+- Greška:
+```json
+{
+  "error": {"code": "RESOURCE_NOT_FOUND", "message": "Pjesma nije pronađena"},
+  "traceId": "req-123"
+}
+```
+- OpenAPI tagovi: Korisnici, Pjesme, Albumi, Playliste, Komentari, Statistika, Pretplate
 
 ### Rute
 
-Sve rute su proširene sa boljim error handlingom, async podrškom i embed objektima:
-
-- `/api/korisnici/` – CRUD, registracija, login, promjena slike, suspendovanje, embed profilna slika
-- `/api/pjesme/` – CRUD sa multipart/form-data, više izvođača, embed korisnik, AI preporuke
-- `/api/albumi/` – CRUD sa file upload, embed korisnik
-- `/api/playliste/` – CRUD sa redoslijedom pjesama, embed korisnik
-- `/api/prijave_izvodjaca/` – CRUD prijava izvođača, admin panel
-- `/api/suspendovani/` – Upravljanje suspendovanim korisnicima
-- `/api/korisnik_pretplata/` – Upravljanje pretplatama, automatska obnova, embed pretplata
-- `/api/obnove_pretplate/` – Evidencija obnova pretplate
-- `/api/komentari/` – CRUD komentara sa privilegijama vlasnika/admina, uređivanje
-- `/api/statistika/` – Statistika sa embed objektima, top liste, grafovi
-- `/api/historija/` – Historija slušanja sa unique constraintima, automatsko brisanje duplikata
-- `/api/qr/` – Generisanje i validacija QR kodova za pjesme i playliste (novitet)
+- `/api/v1/korisnici`, `/api/v1/pjesme`, `/api/v1/albumi`, `/api/v1/playliste`, `/api/v1/komentari`
+- `/api/v1/statistika`, `/api/v1/historija`, `/api/v1/qr`
+- Pretplate: `/api/v1/korisnik_pretplata`, `/api/v1/obnove_pretplate`
+- Operativno: `/healthz`, `/readyz`, `/openapi.json`, `/redoc` (+ opcioni `/metrics`)
 
 ### Kontroleri
 
-Svi kontroleri su poboljšani sa:
-- **Async/await** podrška
-- **Error handling** sa try-catch blokovima
-- **Type safety** sa Pydantic modelima
-- **Relationship loading** sa selectinload/joinedload
-- **Unique constraint** validacija
-- **File upload** podrška (audio, slike, gif)
-- **Embed objekti** za frontend/mobilnu
-- **Automatska obnova pretplate** (validacija i evidencija)
-- **Offline podrška** (API endpointi za preuzimanje pjesama)
-- **QR kod generacija** (za dijeljenje pjesama/playlisti)
+- Try/except uz mapiranje izuzetaka u katalog kodova (VALIDATION_ERROR, NOT_FOUND, CONFLICT...)
+- Relationship loading (selectinload/joinedload) radi prevencije N+1
+- Multipart upload za slike/audio; provjere MIME i veličine
+- Scheduler/cron za automatizovane procese (pretplate, čišćenja)
+
+### Streaming, keširanje i CDN
+
+- Audio streaming: Range zaglavlja (206 Partial Content), Content-Range, Content-Length, Accept-Ranges
+- Keširanje: ETag i/ili Last-Modified; Cache-Control za javne resurse
+- Rekonekcija i resume: poštovati byte-range zahtjeve klijenta
+- Preporuka: CDN ispred frontend-a i Firebase Storage-a gdje je moguće
+
+### Upload i obrada medija
+
+- Validacija: Content-Type whitelist, veličina (audio ≤ 20MB, slika ≤ 5MB – konfigurabilno)
+- Sigurno ime fajla; čuvanje metapodataka (trajanje, dimenzije, veličina)
+- Generisanje signed URL-ova sa rokom trajanja
+- Opcionalno AV skeniranje (pre-deploy/worker)
 
 ### Baza podataka
 
-- **MySQL** sa async podrškom (Aiven Cloud)
-- **Unique constrainti** na historiji slušanja i pretplatama
-- **Foreign key** relationshipi između svih modela
-- **Indexi** za performanse
-- **Migracije** kroz Alembic sa --autogenerate
-- **Backup i restore procedure**
-- **Automatski backup** (cron job)
+- MySQL (Aiven). Alembic migracije izvor istine
+- Indeksi: `(korisnik_id, datum)`, `(pjesma_id)`, `(playlista_id, poredak)`
+- Backup: dnevno, retention 30 dana; restore procedura dokumentovana
 
 ### Firebase Storage
 
-- **REST API** upload i download (audio, slike, gif)
-- **Temporary files** sa automatskim clean-up
-- **Multiple file types** (audio, slike, gif)
-- **Error handling** sa retry logikom
-- **Secure URLs** sa tokenima
-- **Offline download** endpointi
+- Upload/download za slike/audio/gif
+- Signed URL-ovi; periodično čišćenje privremenih fajlova
 
 ### Pokretanje i razvoj
 
-1. **Instaliraj zavisnosti**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+1) Instalacija
+```bash
+pip install -r requirements.txt
+```
+2) Lokalni razvoj
+```bash
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+3) Migracije
+```bash
+alembic revision --autogenerate -m "opis"
+alembic upgrade head
+```
+4) .env primjer
+```
+DATABASE_URL_ASYNC=mysql+aiomysql://user:pass@host/db
+DATABASE_URL_SYNC=mysql+pymysql://user:pass@host/db
+FIREBASE_BUCKET_NAME=your-bucket
+ALLOWED_ORIGINS=https://frontend.example.com,https://app.example.com
+MAX_UPLOAD_MB_AUDIO=20
+MAX_UPLOAD_MB_IMAGE=5
+RATE_LIMIT_PER_MINUTE=120
+SECURITY_HEADERS_ENABLED=true
+```
+5) Swagger: http://localhost:8000/docs
 
-2. **Pokreni backend**:
-   ```bash
-   uvicorn main:app --reload
-   ```
+### Docker (backend)
 
-3. **Pokreni migracije**:
-   ```bash
-   alembic revision --autogenerate -m "opis_promjene"
-   alembic upgrade head
-   ```
+Minimalni Dockerfile:
+```dockerfile
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
 
-4. **Podesi .env fajl**:
-   ```
-   DATABASE_URL_ASYNC=mysql+aiomysql://user:pass@host/db
-   DATABASE_URL_SYNC=mysql+pymysql://user:pass@host/db
-   FIREBASE_BUCKET_NAME=your-bucket-name
-   ```
-
-5. **Testiraj API**:
-   ```
-   http://localhost:8000/docs
-   ```
+docker-compose (API + MySQL):
+```yaml
+services:
+  db:
+    image: mysql:8
+    environment:
+      MYSQL_DATABASE: decibel
+      MYSQL_ROOT_PASSWORD: root
+    ports: ["3306:3306"]
+  api:
+    build: .
+    environment:
+      DATABASE_URL_ASYNC: mysql+aiomysql://root:root@db:3306/decibel
+      DATABASE_URL_SYNC: mysql+pymysql://root:root@db:3306/decibel
+    ports: ["8000:8000"]
+    depends_on: [db]
+```
 
 ### Deploy (backend)
 
-- **Koyeb** deployment sa Spacefile
-- **Keep-alive** thread za sprečavanje spavanja
-- **Environment variables** za produkciju
-- **Alembic migrations** za bazu
-- **CORS** konfiguracija za frontend/mobilnu
-- **Health check** endpoint
-- **Automatski backup** (cron job, cloud storage)
+- Koyeb: build & run; `alembic upgrade head` prije starta
+- CORS iz .env; Health check `/healthz`; Readiness nakon konekcije na bazu
+- Backup i rotacija logova; tajne kroz Secret management
 
 ### Sigurnost i autentikacija
 
-- **bcrypt** heširanje lozinki
-- **CORS** ograničenja
-- **SQL injection** zaštita sa SQLAlchemy
-- **File upload** validacija (tip, veličina)
-- **Rate limiting** (opciono)
-- **HTTPS** za produkciju
-- **JWT autentikacija** (eksperimentalno)
+- Lozinke: bcrypt + per-user salt; nikad plain tekst
+- CORS: ALLOWED_ORIGINS; metode GET/POST/PUT/DELETE/OPTIONS
+- Upload: Content-Type/veličina; whitelist ekstenzija
+- RBAC: korisnik/izvođač/admin; provjera vlasništva
+- JWT (opciono): access 15min, refresh 7–30 dana, rotacija i blacklist/whitelist
+- Rate limiting: SlowAPI ili na proxy sloju (Cloudflare, Nginx)
+- Sigurnosna zaglavlja: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- HTTPS u produkciji; bez mixed content-a
+- Tokeni: Bearer u Authorization; refresh u secure storage (mobilna) ili httpOnly cookie
+
+Brzi JWT primjer (FastAPI):
+```python
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+import jwt, datetime as dt
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/korisnici/login")
+SECRET = "change-me"
+
+def create_access(user_id: int):
+    return jwt.encode({"sub": user_id, "exp": dt.datetime.utcnow()+dt.timedelta(minutes=15)}, SECRET, algorithm="HS256")
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(token, SECRET, algorithms=["HS256"])
+        return payload["sub"]
+    except Exception:
+        raise HTTPException(status_code=401, detail="INVALID_TOKEN")
+```
+
+### Logovanje i metrike
+
+- JSON logovi sa: metoda, putanja, status, ms, userId, traceId
+- Zaglavlja: X-Request-Id (opciono); traceId vraćen u tijelu
+- `/healthz`, `/readyz`, opcioni `/metrics` (Prometheus)
+- Sentry (opciono) za error tracking
+
+### Background poslovi
+
+- Čišćenje: stari signed URL-ovi, privremeni fajlovi
+- Pretplate: dnevna provjera isteka i auto-obnova
+- Statistika: preagregacija top-lista/grafova
 
 ### Testiranje (backend)
 
-- **Swagger UI** za API testiranje
-- **Postman** kolekcije
-- **Unit tests** za kontrolere (pytest)
-- **Integration tests** za API endpoints
-- **Load testing** za performanse
+- Pytest: unit/integration; fixtures
+- Postman/Swagger za ručno testiranje
+- Load test (k6/Locust) za kritične rute
+- Coverage cilj: ≥ 70% na kritičnim domainima
 
 ### Primjeri API poziva
 
 ```http
-POST /api/korisnici/register
+POST /api/v1/korisnici/register
 Content-Type: application/json
 {
   "ime": "Marko",
@@ -326,7 +390,7 @@ Content-Type: application/json
   "rola": "korisnik"
 }
 
-POST /api/pjesme/
+POST /api/v1/pjesme
 Content-Type: multipart/form-data
 naziv=Moja Pjesma
 opis=Opis pjesme
@@ -334,40 +398,18 @@ zanr=Pop
 file_audio=audio.mp3
 file_slika=slika.jpg
 
-GET /api/statistika/top-songs
-Response: [
-  {
-    "pjesma": { "id": 1, "naziv": "Hit", "korisnik": {...} },
-    "brojReprodukcija": 1500
-  }
-]
+GET /api/v1/statistika/top-songs
 ```
 
 ### Napredne funkcionalnosti
 
-- **Automatska obnova pretplate** sa validacijom i evidencijom
-- **Suspendovanje korisnika** sa porukom i vremenom
-- **Statistika sa embed objektima** za frontend
-- **Unique constrainti** sa proper error handling
-- **File upload** sa temporary files
-- **Async database operations** za performanse
-- **Relationship loading** za optimizaciju
-- **Offline režim** (preuzimanje pjesama)
-- **QR kodovi** za dijeljenje pjesama/playlisti
-- **AI preporuke** (eksperimentalno)
+- Auto-obnova pretplate; suspendovanje korisnika; statistika sa embed objektima
+- Offline režim (preuzimanje pjesama); QR kodovi; AI preporuke (eksperimentalno)
 
 ### Noviteti 2025
 
-- **Offline režim**: Endpointi za preuzimanje pjesama, offline tokeni, automatsko brisanje starih fajlova
-- **Napredna pretraga**: Fuzzy search, autocomplete, multi-field search
-- **Push/email notifikacije**: Integracija sa Firebase Cloud Messaging i SMTP serverom
-- **QR kodovi**: Generisanje, validacija, dijeljenje linkova za pjesme/plejliste
-- **AI preporuke**: Preporučivanje pjesama i albuma na osnovu historije slušanja (integracija sa AI servisom)
-- **Paginacija i lazy loading**: Na svim endpointima sa velikim listama
-- **Jedinstvena historija slušanja**: Unique constraint po korisniku i pjesmi, automatsko brisanje duplikata
-- **Admin panel**: Endpointi za upravljanje korisnicima, prijavama, suspendovanjem, statistikama
-- **Embed objekti**: Svuda gdje je potrebno za frontend/mobilnu (npr. korisnik u pjesmi, albumu, playlisti)
-- **Automatski backup baze i logova**: Cron job, cloud storage
+- Offline tokeni i čišćenje starih fajlova; fuzzy/autocomplete pretraga
+- Push/email notifikacije (FCM/SMTP); QR generacija/validacija; Admin panel endpointi
 
 ---
 
@@ -375,105 +417,81 @@ Response: [
 
 ### Tehnologije frontenda
 
-- **React 18** sa TypeScript
-- **Vite** – build tool i dev server
-- **CSS Modules** – scoped styling
-- **Axios** – HTTP klijent
-- **React Router** – SPA routing
-- **react-chartjs-2** – grafovi za statistiku
-- **React Hook Form** – form handling
-- **React Query** – server state management
-- **i18next** – internacionalizacija
-- **Jest/Cypress** – testiranje
+- React 18 + TypeScript, Vite, CSS Modules
+- Axios, React Router, React Query, i18next
+- Jest/Cypress
 
 ### Struktura direktorijuma (frontend)
 
 ```plaintext
 frontend/
-│
 ├── src/
-│   ├── App.tsx
-│   ├── App.css
-│   ├── types/
-│   ├── stranice/
-│   ├── komponente/
-│   ├── locales/
-│   └── ...
+│   ├── api/           (Axios instance, hooks)
+│   ├── components/    (UI komponente)
+│   ├── pages/         (stranice)
+│   ├── hooks/         (custom hooks)
+│   ├── locales/       (prevodi)
+│   ├── styles/        (globalni stilovi)
+│   └── types/         (tipovi)
 ├── public/
 ├── .env
-├── package.json
-└── ...
+└── package.json
 ```
 
-### Prikaz podataka
+### Arhitekturni principi (frontend)
 
-- **Spotify-style** kartice za pjesme, albume, playliste
-- **Hover effects** sa play dugmetom
-- **Responsive grid** layout
-- **Infinite scroll** za velike liste
-- **Loading states** sa skeletons
-- **Error boundaries** za error handling
-- **Dynamic backgrounds** bazirane na trenutnoj pjesmi
-- **Napredni filteri i sortiranje** (po datumu, lajkovima, žanru, trajanju)
-- **Paginacija** (server-side i client-side)
+- „By feature“ grupisanje gdje ima smisla; shared u `components/`
+- Tipizirani API sloj (ApiResponse<T>); interceptori i globalni error handler
+- React Query za data fetching sa cache keyevima po domenu (npr. ['songs', params])
 
-### Audio player
+### Konvencije i standardi (frontend)
 
-**Desktop verzija:**
-- **Fiksiran na dnu** sa gradient pozadinom
-- **Kontrole**: play/pause, progress, repeat, shuffle, brzina, volume
-- **Metapodaci**: slika, naziv, izvođač, vrijeme
-- **Akcije**: lajk, dodaj u playlistu, komentari
-- **Minimizacija** u floating button
-- **Background play** (PWA)
-- **Offline support** (PWA cache)
+- Axios instance sa baseURL=`VITE_API_URL`; interceptori (auth, error)
+- i18n: default iz `VITE_I18N_DEFAULT_LANG`; lazy load prevoda
+- ESLint/Prettier; a11y (semantika, ARIA za player kontrole)
+
+Axios primjer:
+```ts
+import axios from 'axios'
+export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL })
+api.interceptors.response.use(r=>r, e=>Promise.reject(e))
+```
+
+### Konfiguracija i build (frontend)
+
+- .env (VITE_ prefiks); `npm run dev/build/preview`
+- QueryClient centralizovan (config)
+- CSP preporuka: `default-src 'self'; connect-src 'self' API_URL; img-src 'self' data: Firebase;`
+
+### Prikaz podataka i audio player
+
+- Kartice (Spotify-style), responsive grid, infinite scroll
+- Skeleton loading, error boundaries
+- Player fiksiran na dnu: play/pause, progress, repeat/shuffle, brzina, volume, mini-player
+- Range streaming (seek preko Range zaglavlja)
+
+### Performanse i PWA
+
+- Budžeti: LCP < 2.5s (p75); TTI < 3.5s; code splitting i lazy routes
+- PWA: manifest + service worker; offline cache za statiku i liste (stale-while-revalidate)
+- No-store za osjetljive rute/podatke
 
 ### Deploy (frontend)
 
-- **Vercel** deployment sa automatskim build-om
-- **Environment variables** za API URL
-- **Static site generation** za SEO
-- **CDN** za brže učitavanje
-- **Custom domain** podrška
+- Vercel: auto-build iz main; env varijable; CDN; custom domain
 
 ### Testiranje (frontend)
 
-- **Jest** za unit tests
-- **React Testing Library** za component tests
-- **Cypress** za E2E tests
-- **Storybook** za component dokumentaciju
-- **Visual regression** testing
-
-### Primjeri UI/UX
-
-- **Home stranica**: Hero sekcija, horizontalni scroll, shuffle, play all
-- **Detalj pjesme**: Veliki cover art, izvođači, komentari, preporučene pjesme, statistika
-- **Audio player**: Smooth animacije, progress bar, volume, repeat, shuffle, speed control
+- Jest + RTL; Cypress E2E; opcioni Storybook
 
 ### Napredne funkcionalnosti (frontend)
 
-- **Dynamic backgrounds**: Automatska promjena pozadine bazirane na trenutnoj pjesmi
-- **Suspendovan/obrisan screen**: Specijalni UI za suspendovane/obrisane korisnike
-- **Audio player upgrades**: Progress seeking, volume slider, speed control, mini-player
-- **Internationalization**: Podrška za više jezika (BS, EN, DE)
-- **Responsive design**: Optimizovano za desktop i mobilne uređaje
-- **Error handling**: Graceful degradation i user-friendly error messages
-- **Performance optimizations**: Lazy loading, code splitting, memoization
-- **Offline podrška**: PWA cache za pjesme i slike
-- **QR kodovi**: Dijeljenje pjesama/playlisti
-- **Push notifikacije**: Web push za komentare, lajkove, nove pjesme
+- Dynamic backgrounds; suspendovan/obrisan screen
+- i18n (BS/EN/DE); QR kodovi; web push (opciono)
 
 ### Noviteti 2025 (frontend)
 
-- **Offline režim**: PWA cache za pjesme, slike, osnovne podatke
-- **Napredna pretraga**: Fuzzy, autocomplete, multi-field
-- **Notifikacije**: Web push integracija
-- **QR kodovi**: Generisanje i skeniranje
-- **AI preporuke**: Prikaz na home stranici i detaljima pjesme/albumu
-- **Napredna statistika**: Grafovi, embed objekti, top liste
-- **Admin panel**: Upravljanje korisnicima, prijavama, suspendovanjem, statistikama
-- **Dark/light tema**: Automatsko prepoznavanje iz OS-a, ručno biranje
-- **Jedinstvena historija slušanja**: UI za prikaz, brisanje, filtriranje
+- PWA offline; fuzzy/autocomplete search; AI preporuke
 
 ---
 
@@ -481,84 +499,80 @@ frontend/
 
 ### Tehnologije mobilne aplikacije
 
-- **React Native** sa Expo SDK
-- **TypeScript** za type safety
-- **Expo Audio** za native audio playback
-- **Expo Image** za optimizovane slike
-- **React Navigation** za navigaciju
-- **Async Storage** za lokalno čuvanje
-- **React Native Slider** za kontrole
-- **Axios** za HTTP zahteve
-- **React Native Vector Icons** za ikone
-- **React Query** za server state
+- React Native (Expo), TypeScript, expo-av, expo-image, React Navigation, Async Storage, React Query
 
 ### Struktura direktorijuma (mobilna)
 
 ```plaintext
 mobilnaAPP/
-│
-├── app/
-├── components/
-├── screens/
-├── context/
-├── config/
-├── types/
+├── app/          (router, ekrani)
+├── komponente/   (UI i player)
+├── hooks/        (mreža, cleanup, push)
+├── context/      (AudioContext)
+├── config/       (queryClient, api)
+├── locales/      (prevodi)
 ├── .env
-├── app.config.js
-├── package.json
-└── ...
+└── app.config.js
 ```
+
+### Konvencije i standardi (mobilna)
+
+- `EXPO_PUBLIC_` prefiks za varijable okruženja
+- Centralizovan QueryClient; i18n u `locales/`
+- `useScreenCleanup` za sprječavanje curenja listenera
+- Secure storage (preporuka) za osjetljive tokene; retry/backoff mrežnih poziva
+
+### Konfiguracija i build (mobilna)
+
+- Dev: `npx expo start`
+- EAS build: preview/production profili; OTA updates (opciono)
+- FCM: `google-services.json`; `hooks/usePushNotifications.ts`
+- Deep linkovi: scheme `decibel://` (npr. `decibel://pjesma/123`)
 
 ### React Native komponente
 
-- **AudioPlayer**: Three-row layout, native audio, progress/volume slider, repeat, shuffle, mini-player, background play
-- **Header**: Responsive, profilna, search bar, logout
-- **Home**: Horizontal lists, pull-to-refresh, skeleton loader, error handling
-- **Biblioteka**: Filteri (pratim, pjesme, albumi, playliste), lazy loading, paginacija, offline prikaz
-- **Omiljeno**: Lajkovane pjesme/albumi/plejliste, dodavanje/uklanjanje, dodaj u playlistu
-- **Detalji**: Pjesma, album, playlista, izvođač – embed objekti, komentari, statistika
-- **Offline**: Lista preuzetih pjesama, brisanje, puštanje bez interneta
+- AudioPlayer (expo-av; progress/volume slider, repeat/shuffle, background play)
+- Header, Sidebar/Tabs, Home, Biblioteka, Omiljeno, Detalji (pjesma/album/playlista/izvođač)
 
 ### Audio player (mobilna)
 
-- **Native audio playback** sa Expo Audio
-- **Streaming support** za Firebase URLs
-- **Progress seeking** sa real-time update
-- **Volume control** sa slider
-- **Playback speed** sa buttons
-- **Repeat/shuffle modes**
-- **Minimized state** sa floating button
-- **Error recovery** sa retry logikom
-- **Offline play**: Preuzete pjesme dostupne bez interneta
+- `expo-av` + `onPlaybackStatusUpdate`; background mode
+- Cleanup na unmount + `useScreenCleanup`
+- Range/seek; pauza na poziv/slušalice; media notification (Android)
+
+### Offline režim (mobilna)
+
+- Fajlovi: `expo-file-system` u `FileSystem.documentDirectory`
+- Limit keša: preporuka 1GB; LRU brisanje najstarijih fajlova
+- Feature flag: `EXPO_PUBLIC_FEATURE_OFFLINE`
+- Primjer preuzimanja:
+```ts
+import * as FileSystem from 'expo-file-system'
+await FileSystem.downloadAsync(remoteUrl, FileSystem.documentDirectory + 'audio/123.mp3')
+```
+
+### Push, background i deep linkovi
+
+- FCM token → backend; slanje po useru ili topicu
+- Background fetch (opciono) za sinhronizaciju omiljenih/historije
+- Deep linkovi: otvaranje ekrana prema scheme i parametru
+
+### Dozvole
+
+- Android: POST_NOTIFICATIONS (13+), INTERNET; (Expo automatski rukuje skladištem)
+- iOS: Notifications, Background audio
 
 ### Testiranje mobilne aplikacije
 
-- **Expo Go** za development
-- **Physical devices** za real-world testing
-- **Audio playback** testing sa različitim formatima
-- **Network conditions** testing (slow/fast/offline)
-- **Battery usage** optimization testing
+- Expo Go i fizički uređaji; razni audio formati i mrežni uslovi (offline/slow)
 
 ### Distribucija APK
 
-- **Expo Go** za development
-- **TestFlight** za iOS beta testing
-- **APK sharing** za Android testing
-- **EAS Build** za produkciju
-- **Over-the-air updates** sa Expo Updates
+- EAS build (Android), TestFlight (iOS), OTA updates (opciono)
 
 ### Noviteti 2025 (mobilna)
 
-- **Offline režim**: Preuzimanje pjesama, lokalno čuvanje, offline play
-- **Napredna pretraga**: Real-time, fuzzy, multi-field
-- **Push notifikacije**: Integracija sa FCM
-- **QR kodovi**: Skeniranje i dijeljenje
-- **AI preporuke**: Prikaz na home i detaljima
-- **Dark/light tema**: Automatsko prepoznavanje i ručno biranje
-- **Jedinstvena historija slušanja**: UI za prikaz, brisanje, filtriranje
-- **Napredna statistika**: Grafovi, top liste, embed objekti
-- **Admin panel**: Osnovne admin funkcije za mobilnu (suspendovanje, prijave, statistika)
-- **Automatska sinhronizacija**: Kada se korisnik ponovo poveže na internet
+- Offline preuzimanje/brisanje; real-time pretraga; FCM; QR skeniranje; AI preporuke
 
 ---
 
@@ -566,89 +580,197 @@ mobilnaAPP/
 
 ### CORS i sigurnost
 
-- **CORS configuration** za frontend i mobilnu
-- **Environment variables** za sve sensitive podatke
-- **API key management** za Firebase
-- **Rate limiting** za API endpoints
-- **Input validation** na frontendu i backendu
-- **SQL injection** prevention sa SQLAlchemy
-- **JWT autentikacija** (eksperimentalno)
+- CORS iz .env; HTTPS u produkciji
+- Rate limiting; input validacija; SQL injection prevencija (SQLAlchemy); JWT (opciono)
 
 ### Okruženja i konfiguracija
 
-- **Backend (.env)**: DB, Firebase, API keys
-- **Frontend (.env)**: API URL, feature toggles
-- **Mobilna (.env)**: API URL, feature toggles
+- Backend (.env primjer)
+  - `DATABASE_URL_ASYNC`, `DATABASE_URL_SYNC`
+  - `FIREBASE_BUCKET_NAME`
+  - `ALLOWED_ORIGINS`
+  - `MAX_UPLOAD_MB_AUDIO`, `MAX_UPLOAD_MB_IMAGE`
+  - `RATE_LIMIT_PER_MINUTE`
+  - `SECURITY_HEADERS_ENABLED`
+- Frontend (Vite .env)
+  - `VITE_API_URL`
+  - `VITE_I18N_DEFAULT_LANG`
+- Mobilna (Expo .env)
+  - `EXPO_PUBLIC_API_URL`
+  - `EXPO_PUBLIC_FEATURE_OFFLINE`
+
+Preporuka: tajne čuvati kroz platformu (Vercel/Koyeb/EAS Secrets); ne komitovati u repozitorij.
 
 ### CI/CD
 
-- **GitHub Actions** za automatski build i testiranje
-- **Vercel** za frontend deployment
-- **Koyeb** za backend deployment
-- **Expo EAS** za mobilnu aplikaciju
-- **Automated testing** na svakom commit-u
+- Backend (Koyeb): lint/test → migrate → deploy; health check
+- Frontend (Vercel): build iz main, per-environment varijable
+- Mobilna (EAS): build profili, OTA updates
+
+Primjer GitHub Actions (sažeto):
+```yaml
+name: ci
+on: [push]
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install -r backend/requirements.txt
+      - run: pytest -q
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: cd frontend && npm ci && npm run build
+```
 
 ### Monitoring i logovanje
 
-- **FastAPI logging** za backend
-- **Console logging** za frontend/mobilnu
-- **Error tracking** sa Sentry (opciono)
-- **Performance monitoring** sa Web Vitals
-- **Usage analytics** sa Google Analytics
+- FastAPI logging + Sentry (opciono), Web Vitals, GA
+- Prometheus/Grafana (opciono)
 
 ### SEO i PWA
 
-- **React Helmet** za meta tags
-- **Sitemap generation** za SEO
-- **PWA manifest** za desktop install
-- **Service worker** za offline podršku
-- **Lighthouse** optimizacija
+- React Helmet, sitemap, manifest, service worker, Lighthouse
 
 ### Pravila i migracije baze
 
-- **Alembic migrations** za sve promjene
-- **Unique constraints** sa proper error handling
-- **Foreign key relationships** između svih modela
-- **Index optimization** za performanse
-- **Backup procedures** za podatke
+- Alembic za sve promjene; unique/FK; optimizacija indeksa; backup procedure
 
 ### Pravila za komentare, historiju i pretplate
 
-- **Komentari**: Vlasnikov komentar uvijek na vrhu, uređivanje samo vlasniku, brisanje vlasniku/adminu, real-time update
-- **Historija**: Jedinstven par korisnik+pjesma, najnovije prvo, automatsko brisanje duplikata, paginacija
-- **Pretplate**: Jedna aktivna pretplata po korisniku, automatska obnova, status tracking, evidencija obnova
+- Komentari: uređivanje vlasniku, brisanje vlasnik/admin; real-time update
+- Historija: unique korisnik+pjesma, najnovije prvo, paginacija
+- Pretplate: jedna aktivna, auto-obnova, evidencija obnova
 
 ### Automatizacija i AI
 
-- **AI preporuke**: Eksperimentalna integracija sa AI servisom za preporuku pjesama/albumima
-- **Automatski backup**: Cron job za backup baze i logova
-- **Automatsko testiranje**: CI/CD pipeline
-- **Automatsko čišćenje starih fajlova**: Offline storage, Firebase
+- AI preporuke (eksperimentalno); automatski backup; testiranje u CI; čišćenje starih fajlova
+
+### Politika verzionisanja i deprecijacije
+
+- SemVer za SDK; API prefiksi (/api/v1) po verziji; Deprecation header + sunset; dokumentovan migration path
+
+### Privatnost i zaštita podataka
+
+- Minimizacija podataka u logovima; nikad ne logovati lozinke/tokene
+- Šifrirani backupi; ograničen pristup; GDPR principi (ako primjenjivo)
+
+### Stil i konvencije
+
+- Python: black/isort; TypeScript: ESLint/Prettier
+- Commit poruke: Conventional Commits (feat/fix/chore/docs/refactor/test/build)
 
 ---
 
-## 7. Reference
+## 7. Appendix
 
-### Dokumentacija i resursi
+### Matrica okruženja
 
-- [FastAPI dokumentacija](https://fastapi.tiangolo.com/)
-- [SQLAlchemy dokumentacija](https://docs.sqlalchemy.org/)
-- [React dokumentacija](https://react.dev/)
-- [React Native dokumentacija](https://reactnative.dev/)
-- [Expo dokumentacija](https://docs.expo.dev/)
-- [TypeScript dokumentacija](https://www.typescriptlang.org/)
-- [Vite dokumentacija](https://vitejs.dev/)
-- [Firebase Storage](https://firebase.google.com/docs/storage)
-- [Vercel](https://vercel.com/)
-- [Koyeb](https://www.koyeb.com/)
-- [Expo Application Services](https://expo.dev/eas)
-- [Chart.js](https://www.chartjs.org/)
-- [React Hook Form](https://react-hook-form.com/)
-- [React Query](https://tanstack.com/query)
-- [Jest](https://jestjs.io/)
-- [React Testing Library](https://testing-library.com/)
-- [Cypress](https://www.cypress.io/)
+- Dev: lokalni DB/Docker, debug logging, seed podaci
+- Staging: kopija produkcije sa anonimizovanim podacima
+- Prod: skalabilno okruženje, backup i monitoring uključeni
+
+### Katalog grešaka
+
+- AUTH_INVALID_CREDENTIALS (401)
+- AUTH_INVALID_TOKEN (401)
+- RESOURCE_NOT_FOUND (404)
+- VALIDATION_ERROR (422)
+- CONFLICT (409)
+- RATE_LIMITED (429)
+- SERVER_ERROR (500)
+
+### Mapiranje API ruta
+
+- Korisnici: `/api/v1/korisnici` (register, login, me, update, suspend)
+- Pjesme: `/api/v1/pjesme` (CRUD, upload, search, recommend)
+- Albumi: `/api/v1/albumi` (CRUD)
+- Playliste: `/api/v1/playliste` (CRUD, redoslijed)
+- Komentari: `/api/v1/komentari` (CRUD)
+- Statistika: `/api/v1/statistika` (top-songs, top-artists, grafovi)
+- Historija: `/api/v1/historija` (list, add, delete)
+- Pretplate: `/api/v1/korisnik_pretplata`, `/api/v1/obnove_pretplate`
+- QR: `/api/v1/qr` (generate, validate)
+
+### Referenca .env varijabli (sažeto)
+
+- Backend:
+  - DATABASE_URL_ASYNC, DATABASE_URL_SYNC
+  - FIREBASE_BUCKET_NAME
+  - ALLOWED_ORIGINS (CSV)
+  - MAX_UPLOAD_MB_AUDIO, MAX_UPLOAD_MB_IMAGE
+  - RATE_LIMIT_PER_MINUTE, SECURITY_HEADERS_ENABLED
+- Frontend (Vite):
+  - VITE_API_URL
+  - VITE_I18N_DEFAULT_LANG (bs|en|de)
+- Mobilna (Expo):
+  - EXPO_PUBLIC_API_URL
+  - EXPO_PUBLIC_FEATURE_OFFLINE=true|false
+
+### Primjeri sigurnosnih zaglavlja
+
+Preporučena zaglavlja (za produkciju):
+```
+Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+Permissions-Policy: camera=(), geolocation=(), microphone=()
+Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; media-src 'self' https:; connect-src 'self' https://api.example.com; style-src 'self' 'unsafe-inline'; script-src 'self'
+```
 
 ---
+
+## 8. Troubleshooting
+
+- CORS greška: provjeriti ALLOWED_ORIGINS, protokol (https) i OPTIONS preflight
+- Upload odbijen: veličina/MIME; MAX_UPLOAD_MB_* i validatori
+- Offline ne radi (mobilna): dozvole, `expo-file-system`, očistiti keš
+- 500 na /api/*: backend logovi (traceId), konekcija na bazu, `alembic upgrade head`
+- Push ne stižu: FCM token/permission; reinstal + re-registracija
+- JWT 401: istekao token; refresh ili re-login; clock drift
+- Prazne liste: limit/offset/sort; indeksi u bazi
+- 206/seek ne radi: Range/Content-Range/Content-Length i Accept-Ranges
+- Player staje u background-u (mobilna): background audio permisije i cleanup hook-ovi
+- Deep link ne otvara ekran: scheme u `app.config.js` i format linka (npr. `decibel://pjesma/123`)
+- i18n ne učitava (mobilna): `locales/` i inicijalizacija u `i18n.ts`
+- PWA ne kešira: validacija service workera i cache strategije
+- Rate limited (429): smanjiti frekvenciju; provjeriti RATE_LIMIT_PER_MINUTE
+
+---
+
+## 9. Reference
+
+- FastAPI, SQLAlchemy, React, React Native, Expo, TypeScript, Vite, Firebase Storage
+- Vercel, Koyeb, EAS, Chart.js, React Hook Form, React Query, Jest, RTL, Cypress
+
+## 10. Changelog
+
+- 2025-08
+  - Dodan Brzi start (lokalni razvoj)
+  - Prošireni operativni endpointi (/openapi.json, /redoc)
+  - Dokumentovana Expo Router struktura (mobilna)
+  - Pojašnjen request-id/traceId obrazac u logovima
+  - Ažurirana sekcija okruženja sa konkretnim .env primjerima
+  - Dodani primjeri GitHub Actions CI, sigurnosna zaglavlja i proširen Troubleshooting
+
+## 11. FAQ
+
+- P: Koji je base URL API-ja u lokalnom okruženju?
+  - O: http://localhost:8000
+- P: Gdje mijenjam API URL za web?
+  - O: U `frontend/.env` kroz `VITE_API_URL`.
+- P: Kako osvježiti migracije?
+  - O: `alembic revision --autogenerate -m "opis" && alembic upgrade head`.
+- P: Kako omogućiti offline na mobilnoj?
+  - O: `EXPO_PUBLIC_FEATURE_OFFLINE=true` i koristiti ekran Offline; fajlovi se čuvaju u `FileSystem.documentDirectory`.
+- P: Kako uključiti sigurnosna zaglavlja?
+  - O: Postaviti `SECURITY_HEADERS_ENABLED=true` i konfigurirati proxy/server (Nginx/Cloudflare) prema preporukama iz Appendix-a.
 
 

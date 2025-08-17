@@ -320,7 +320,6 @@ const Search: React.FC = React.memo(() => {
       return (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#b91d95" />
-          <Text style={styles.loadingText}>{t('loading')}</Text>
         </View>
       );
     }

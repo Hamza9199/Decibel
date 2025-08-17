@@ -13,7 +13,7 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    paddingBottom: 140, // Increased padding for navigation bar + tabs
+    paddingBottom: 140, 
   },
   headerRow: {
     alignItems: 'center',

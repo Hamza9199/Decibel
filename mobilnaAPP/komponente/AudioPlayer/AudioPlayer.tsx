@@ -23,6 +23,7 @@ import { useAudio } from '@/context/AudioContext';
 import * as FileSystem from 'expo-file-system';
 import { queryClient } from '@/config/queryClient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface AudioPlayerProps {
   id?: number;
@@ -630,6 +631,69 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [pjesma, korisnik?.id, liked, likeMutation]);
 
+  const {
+    updateNowPlayingNotification,
+    dismissNowPlayingNotification,
+  } = usePushNotifications({
+    onPlayPause: () => { handlePlayPause(); },
+    onNext: () => { goNext(); },
+    onPrev: () => { goPrev(); },
+    onLike: () => { handleLike(); },
+  });
+
+  const goNext = useCallback(() => {
+    if (globalPlaylist.length > 0 && playlistIdx >= 0) {
+      const nextIdx = playlistIdx + 1;
+      if (nextIdx < globalPlaylist.length) {
+        audioCtx.setPlaylistIdx(nextIdx);
+      } else if (playlistRepeat) {
+        audioCtx.setPlaylistIdx(0);
+      }
+    }
+  }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
+
+  const goPrev = useCallback(async () => {
+    try {
+      if (sound) {
+        const status = await sound.getStatusAsync();
+        const cur = status.isLoaded ? (status.positionMillis || 0) / 1000 : 0;
+        if (cur > 5) {
+          await sound.setPositionAsync(0);
+          return;
+        }
+      }
+    } catch {}
+
+    if (globalPlaylist.length > 0 && playlistIdx >= 0) {
+      const prevIdx = playlistIdx - 1;
+      if (prevIdx >= 0) {
+        audioCtx.setPlaylistIdx(prevIdx);
+      } else if (playlistRepeat) {
+        audioCtx.setPlaylistIdx(globalPlaylist.length - 1);
+      }
+    }
+  }, [sound, globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
+
+  useEffect(() => {
+    if (!currentSong) return;
+    const info = {
+      id: currentSong.id,
+      title: currentSong.naziv || t('no_current_song'),
+      artist: currentOwner?.korisnicko_ime || t('unknown_user'),
+      artworkUrl: currentSong.putanjaSlika || undefined,
+      isPlaying: playing,
+    };
+    updateNowPlayingNotification(info);
+  }, [currentSong, currentOwner?.korisnicko_ime, playing, updateNowPlayingNotification, t]);
+
+  useEffect(() => {
+    return () => { dismissNowPlayingNotification(); };
+  }, [dismissNowPlayingNotification]);
+
+  const handleClosePress = useCallback(() => {
+    dismissNowPlayingNotification();
+    onClose?.();
+  }, [dismissNowPlayingNotification, onClose]);
 
   const ensureDirectoryExists = useCallback(async (filePath: string) => {
     const lastSlash = filePath.lastIndexOf('/');
@@ -814,7 +878,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
 
   if (minimized) {
     return (
-      <TouchableOpacity style={styles.miniPlayer} onPress={onExpand}>
+      <TouchableOpacity style={[styles.miniPlayer, { bottom: tabBarHeight + insets.bottom }]} onPress={onExpand}>
         <Image
           source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
           style={styles.miniPlayerImage}
@@ -834,7 +898,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
       activeOpacity={1} 
       onPress={handleOutsidePress}
     >
-      <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+      <TouchableOpacity style={styles.closeBtn} onPress={handleClosePress}>
         <MaterialIcons name="close" size={20} color="#ffe6ec" />
       </TouchableOpacity>
 
@@ -910,6 +974,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
             thumbStyle={styles.progressThumb}
             minimumTrackTintColor="#b91d95"
             maximumTrackTintColor="#444"
+           
           />
         </View>
       </View>
@@ -942,6 +1007,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
               thumbStyle={styles.volumeThumb}
               minimumTrackTintColor="#b91d95"
               maximumTrackTintColor="#444"
+            
             />
           </View>
         </View>

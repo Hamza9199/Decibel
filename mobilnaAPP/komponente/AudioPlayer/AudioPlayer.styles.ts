@@ -34,7 +34,6 @@ export const styles = StyleSheet.create({
     elevation: 3,
   },
   
-  // Top Row Layout - Updated
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -79,7 +78,6 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
     marginTop: 2,
   },
-  // Controls Row Layout
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -120,7 +118,6 @@ export const styles = StyleSheet.create({
     borderRadius: 6,
   },
 
-  // Bottom Row Layout
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -147,7 +144,6 @@ export const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
 
-  // Volume Controls
   volumeSliderContainer: {
     flex: 1,
     maxWidth: 80,
@@ -165,7 +161,6 @@ export const styles = StyleSheet.create({
     borderRadius: 5,
   },
 
-  // Speed Controls - Updated
   speedContainer: {
     position: 'relative',
     marginLeft: 8,
@@ -192,7 +187,6 @@ export const styles = StyleSheet.create({
     color: '#666',
   },
 
-  // Speed Dropdown - New compact design
   speedDropdown: {
     position: 'absolute',
     bottom: '100%',
@@ -246,10 +240,8 @@ export const styles = StyleSheet.create({
     elevation: 3,
   },
 
-  // Mini Player
   miniPlayer: {
     position: 'absolute',
-    bottom: 120,
     right: 16,
     backgroundColor: '#232323',
     borderRadius: 25,
@@ -328,7 +320,6 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  // Subscription Container
   subscriptionContainer: {
     position: 'absolute',
     left: 0,

@@ -200,8 +200,7 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+   
     backgroundColor: '#181818',
      height: '100%',
     width: '100%',

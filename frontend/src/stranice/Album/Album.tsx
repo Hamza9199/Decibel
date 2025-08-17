@@ -8,13 +8,13 @@ import { useParams } from "react-router-dom";
 import type { Album as AlbumType, Pjesma, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Album: React.FC = () => {
   const { albumId } = useParams<{ albumId: string }>();
-  const qc = useQueryClient();
   const { t } = useTranslation();
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);

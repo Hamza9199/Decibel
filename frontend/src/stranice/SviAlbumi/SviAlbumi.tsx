@@ -7,14 +7,14 @@ import axios from "axios";
 import { Album, Pjesma } from "../../types";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const SviAlbumi: React.FC = () => {
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const korisnikID = useMemo(() => {
     try {

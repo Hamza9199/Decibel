@@ -8,7 +8,8 @@ import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -19,7 +20,6 @@ const UrediPlaylistu: React.FC = () => {
   const [removing, setRemoving] = useState<number | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const korisnikID = useMemo(() => {
     try {

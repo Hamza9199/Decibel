@@ -6,7 +6,8 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Korisnik, PrijavaIzvodjaca } from "../../types";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -17,7 +18,6 @@ const SviKorisnici: React.FC = () => {
   const [suspendModal, setSuspendModal] = useState<{ korisnik: Korisnik; poruka: string; vrijemeDo: string } | null>(null);
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const usersQ = useQuery<Korisnik[]>({
     queryKey: ["korisnici"],
@@ -107,7 +107,7 @@ const SviKorisnici: React.FC = () => {
     if (!suspendModal) return;
     qc.setQueryData<Korisnik[]>(["korisnici"], (old) => (old || []).map((k) => (k.id === suspendModal.korisnik.id ? { ...k, statusKorisnika: "aktivan" } : k)));
     setSuspendModal(null);
-  }, [suspendModal, qc]);
+  }, [suspendModal]);
 
   const filtriraniKorisnici = useMemo(
     () => (korisnici || []).filter((k) => k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())),

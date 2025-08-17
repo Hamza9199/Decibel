@@ -108,36 +108,19 @@
     min-width: 0;
     margin: 0 0 0 60px !important;
     width: 1px !important;
-    max-width: 55vw;
+    max-width: 80%;
     display: flex;
     margin-top: 10px;
   }
   .profileImg {
     width: 26px;
     height: 26px;
-    margin-right: 8px;
     margin-left: 8px;
     order: 2;
     align-self: center;
     margin-top: 7px;
   }
-  .logoutBtn {
-    font-size: 0.8rem !important;
-    padding: 4px 10px !important;
-    margin-right: 8px !important;
-    margin-left: 0 !important;
-    margin-top: 7px !important;
-    border-radius: 6px !important;
-    order: 3;
-    height: 28px;
-    align-self: center;
-    gap: 4px;
-      margin-bottom: 7px;
-
-  }
   
-  .logoutIcon {
-    width: 14px;
-    height: 14px;
-  }
+  
+ 
 }

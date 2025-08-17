@@ -8,7 +8,8 @@ import { useParams, Link } from "react-router-dom";
 import { Pjesma, Album, Playlista, Korisnik, KorisnikPjesma, KorisnikAlbum, KorisnikPlaylista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 interface KorisnikPjesmaWithData extends KorisnikPjesma {
   pjesma?: Pjesma;
@@ -32,7 +33,6 @@ const Omiljeno: React.FC = () => {
   const tip = (tipRaw ?? window.location.pathname.split("/").pop() ?? "").toLowerCase(); 
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null); // pjesmaID za modal
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const korisnikID = useMemo(() => {
     try {

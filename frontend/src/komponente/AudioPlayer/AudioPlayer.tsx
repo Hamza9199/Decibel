@@ -4,7 +4,8 @@ import axios from "axios";
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from "../../types";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient } from '../../config/queryClient';
 
 type Props = {
   id?: number;
@@ -61,7 +62,6 @@ const AudioPlayer: React.FC<Props> = ({
   const location = useLocation();
   const isMobile = useMemo(() => window.innerWidth <= 480, []);
 
-  const queryClient = useQueryClient();
 
   const slusacID = useMemo(() => {
     try {

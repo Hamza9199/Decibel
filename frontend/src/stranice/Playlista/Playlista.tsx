@@ -8,7 +8,8 @@ import { useParams } from "react-router-dom";
 import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -21,7 +22,6 @@ const Playlista: React.FC = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null);
   const [likePlaylist, setLikePlaylist] = useState(false);
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const korisnikID = useMemo(() => {
     try {

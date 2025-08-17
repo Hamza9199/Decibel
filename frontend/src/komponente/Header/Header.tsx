@@ -79,7 +79,7 @@ const Header: React.FC = () => {
               alt="Profil"
             />
           </Link>
-          {isLoggedIn && (
+          {isLoggedIn && !isMobile && (
             <button className={styles.logoutBtn} onClick={handleLogout}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -15,6 +15,18 @@ type SearchResult = {
   playliste: Playlista[];
 };
 
+const withTimeout = <T,>(p: Promise<T>, ms = 10000) =>
+  new Promise<T>((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("timeout")), ms);
+    p.then((v) => {
+      clearTimeout(id);
+      resolve(v);
+    }).catch((e) => {
+      clearTimeout(id);
+      reject(e);
+    });
+  });
+
 const Search: React.FC = () => {
   const [query, setQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -31,35 +43,45 @@ const Search: React.FC = () => {
 
   const normalizedQuery = useMemo(() => query.trim().toLowerCase(), [query]);
 
+  const [debouncedQuery, setDebouncedQuery] = useState(normalizedQuery);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(normalizedQuery), 200);
+    return () => clearTimeout(id);
+  }, [normalizedQuery]);
+
   const { data, isFetching } = useQuery<SearchResult>({
-    queryKey: ["search", normalizedQuery],
-    enabled: normalizedQuery.length > 0,
-    queryFn: async () => {
-      const [korisniciRes, pjesmeRes, albumiRes, playlisteRes] = await Promise.all([
-        axios.get(`${API_BASE}/korisnici/`),
-        axios.get(`${API_BASE}/pjesme/`),
-        axios.get(`${API_BASE}/albumi/`),
-        axios.get(`${API_BASE}/playliste/`),
-      ]);
+    queryKey: ["search", debouncedQuery],
+    enabled: debouncedQuery.length >= 2,
+    queryFn: async ({ signal }) => {
+      const reqConfig = { signal, timeout: 10000 } as const;
+      const [korisniciRes, pjesmeRes, albumiRes, playlisteRes] = await withTimeout(
+        Promise.all([
+          axios.get(`${API_BASE}/korisnici/`, reqConfig),
+          axios.get(`${API_BASE}/pjesme/`, reqConfig),
+          axios.get(`${API_BASE}/albumi/`, reqConfig),
+          axios.get(`${API_BASE}/playliste/`, reqConfig),
+        ]),
+        10000
+      );
       const izvodjaci: Korisnik[] = (korisniciRes.data || []).filter((k: Korisnik) =>
         k.rola === "izvodac" && (
-          k.korisnicko_ime?.toLowerCase().includes(normalizedQuery) ||
-          k.ime?.toLowerCase().includes(normalizedQuery) ||
-          k.prezime?.toLowerCase().includes(normalizedQuery)
+          k.korisnicko_ime?.toLowerCase().includes(debouncedQuery) ||
+          k.ime?.toLowerCase().includes(debouncedQuery) ||
+          k.prezime?.toLowerCase().includes(debouncedQuery)
         )
       );
       const pjesme: Pjesma[] = (pjesmeRes.data || []).filter((p: Pjesma) =>
-        p.naziv?.toLowerCase().includes(normalizedQuery)
+        p.naziv?.toLowerCase().includes(debouncedQuery)
       );
       const albumi: Album[] = (albumiRes.data || []).filter((a: Album) =>
-        a.naziv?.toLowerCase().includes(normalizedQuery)
+        a.naziv?.toLowerCase().includes(debouncedQuery)
       );
       const playliste: Playlista[] = (playlisteRes.data || []).filter((pl: Playlista) =>
-        pl.naziv?.toLowerCase().includes(normalizedQuery)
+        pl.naziv?.toLowerCase().includes(debouncedQuery)
       );
       return { izvodjaci, pjesme, albumi, playliste };
     },
-    staleTime: 30_000,
+    staleTime: 30000,
     refetchOnWindowFocus: false,
     retry: 1,
   });
@@ -96,8 +118,12 @@ const Search: React.FC = () => {
   }, [isMobile, showDropdown]);
 
   const placeholder = useMemo(() => `${t("search_artists")}, ${t("songs")}...`, [t]);
-  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setQuery(e.target.value), []);
-  const onFocus = useCallback(() => query && setShowDropdown(true), [query]);
+  const onChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setQuery(val);
+    if (val.trim().length > 0) setShowDropdown(true);
+  }, []);
+  const onFocus = useCallback(() => normalizedQuery && setShowDropdown(true), [normalizedQuery]);
 
   return (
     <div className={styles.searchWrap}>
@@ -118,7 +144,7 @@ const Search: React.FC = () => {
           <line x1="16" y1="16" x2="21" y2="21" stroke="#b91d95" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </span>
-      {showDropdown && (normalizedQuery || isFetching) && (
+      {showDropdown && (debouncedQuery || isFetching) && (
         <div className={styles.dropdown} ref={dropdownRef}>
           {isFetching ? (
             <div className={styles.loading}>{t("loading")}</div>

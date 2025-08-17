@@ -8,13 +8,13 @@ import { Pjesma, HistorijaSlusanja, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Historija: React.FC = () => {
   const { t } = useTranslation();
-  const qc = useQueryClient();
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null);
 
   const korisnikID = useMemo(() => {

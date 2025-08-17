@@ -6,7 +6,8 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -24,7 +25,6 @@ const UrediProfil: React.FC = () => {
   const [slikaSuccess, setSlikaSuccess] = useState<string | null>(null);
   const [slikaError, setSlikaError] = useState<string | null>(null);
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const korisnikID = useMemo(() => {
     try {

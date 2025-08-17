@@ -8,7 +8,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import type { Pjesma as PjesmaType, Korisnik, Komentar } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient as qc } from '../../config/queryClient';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -27,7 +28,6 @@ const Pjesma: React.FC = () => {
   const { pjesmaId } = useParams<{ pjesmaId: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const qc = useQueryClient();
 
   const [noviKomentar, setNoviKomentar] = useState("");
   const [editKomentarId, setEditKomentarId] = useState<number | null>(null);

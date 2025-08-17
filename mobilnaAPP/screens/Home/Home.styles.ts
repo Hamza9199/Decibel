@@ -13,13 +13,15 @@ export const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingTop: 20, // Add some padding after the header
+    paddingTop: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#181818',
+    height: '100%',
+    width: '100%',
   },
   loadingText: {
     color: '#fff',
@@ -28,7 +30,7 @@ export const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingTop: 20, // Reduced since custom header is now at top
+    paddingTop: 20, 
   },
   headerTitle: {
     fontSize: 28,

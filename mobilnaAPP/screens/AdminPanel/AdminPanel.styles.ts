@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#181818',
-    marginBottom: 50, // Adjusted for status bar height
+    marginBottom: 50, 
   },
   scrollContainer: {
     flexGrow: 1,

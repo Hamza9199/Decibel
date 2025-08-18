@@ -68,7 +68,7 @@ const Search: React.FC = () => {
 
   useEffect(() => {
     if (!cssReady) { setCssDelayDone(false); return; }
-    const t = setTimeout(() => setCssDelayDone(true), 1000);
+    const t = setTimeout(() => setCssDelayDone(true), 200);
     return () => clearTimeout(t);
   }, [cssReady]);
 

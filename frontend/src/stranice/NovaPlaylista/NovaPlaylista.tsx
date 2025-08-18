@@ -53,7 +53,7 @@ const NovaPlaylista: React.FC = () => {
   useEffect(() => {
     if (cssReady) {
       setPostDataDelayDone(false);
-      const t = setTimeout(() => setPostDataDelayDone(true), 500);
+      const t = setTimeout(() => setPostDataDelayDone(true), 200);
       return () => clearTimeout(t);
     }
     setPostDataDelayDone(false);

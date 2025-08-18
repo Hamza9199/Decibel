@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
-import styles from "./NovaPjesma.module.css";
+// import styles from "./NovaPjesma.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
@@ -9,6 +9,8 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { Album, Korisnik } from "../../types";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
+
+type Styles = Record<string, string>;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -26,6 +28,7 @@ const NovaPjesma: React.FC = () => {
   const [albumID, setAlbumID] = useState<number | "">("");
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState("");
+  const [styles, setStyles] = useState<Styles>({});
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -140,6 +143,25 @@ const NovaPjesma: React.FC = () => {
 
   const loading = useMemo(() => albumiQ.isLoading || sviIzvodjaciQ.isLoading || createSongMut.isPending, [albumiQ.isLoading, sviIzvodjaciQ.isLoading, createSongMut.isPending]);
 
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./NovaPjesmaWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./NovaPjesma.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   return (
     <>
       <Header />
@@ -170,34 +192,52 @@ const NovaPjesma: React.FC = () => {
               <option value="rap">{t("genre_rap") || "Rap"}</option>
             </select>
             <label className={styles.label}>{t("album_optional") || "Album (opcionalno)"}</label>
-            <select className={styles.input} value={albumID} onChange={(e) => setAlbumID(e.target.value ? Number(e.target.value) : "")}> 
+            <select className={styles.input} value={albumID} onChange={(e) => setAlbumID(e.target.value ? Number(e.target.value) : "")}>
               <option value="">{t("no_album") || "Bez albuma"}</option>
               {(albumiQ.data || []).map((a) => (
-                <option key={a.id} value={a.id}>{a.naziv}</option>
+                <option key={a.id} value={a.id}>
+                  {a.naziv}
+                </option>
               ))}
             </select>
-            <label className={styles.label}>{t("audio_file") || "Audio fajl"}:
+            <label className={styles.label}>
+              {t("audio_file") || "Audio fajl"}:
               <input type="file" accept="audio/*" className={styles.fileInput} onChange={(e) => setAudio(e.target.files?.[0] || null)} required />
             </label>
-            <label className={styles.label}>{t("image") || "Slika"}:
+            <label className={styles.label}>
+              {t("image") || "Slika"}:
               <input type="file" accept="image/*" className={styles.fileInput} onChange={(e) => setSlika(e.target.files?.[0] || null)} />
             </label>
-            <label className={styles.label}>GIF:
+            <label className={styles.label}>
+              GIF:
               <input type="file" accept="image/gif" className={styles.fileInput} onChange={(e) => setGif(e.target.files?.[0] || null)} />
             </label>
             {error && <div className={styles.error}>{error}</div>}
             {success && <div className={styles.success}>{success}</div>}
-            <button className={styles.button} type="submit">{t("add_song") || "Dodaj pjesmu"}</button>
+            <button className={styles.button} type="submit">
+              {t("add_song") || "Dodaj pjesmu"}
+            </button>
           </form>
 
           <div className={styles.artistsSection}>
             <h4 className={styles.artistsTitle}>{t("song_artists") || "Izvođači na pjesmi"}</h4>
-            <input type="text" placeholder={t("search_artists") || "Pretraži izvođače..."} value={search} onChange={(e) => setSearch(e.target.value)} className={styles.artistSearch} />
+            <input
+              type="text"
+              placeholder={t("search_artists") || "Pretraži izvođače..."}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles.artistSearch}
+            />
             <div className={styles.selectedArtists}>
               {izabraniIzvodjaci.map((k) => (
                 <span key={k.id} className={styles.artistTag}>
                   {k.korisnicko_ime}
-                  <button className={styles.removeArtistBtn} onClick={() => handleRemoveIzvodjac(k.id)} title={k.id === korisnik?.id ? t("remove_self_artist") || "Ukloni sebe kao izvođača" : t("remove_artist") || "Ukloni izvođača"} type="button">
+                  <button
+                    className={styles.removeArtistBtn}
+                    onClick={() => handleRemoveIzvodjac(k.id)}
+                    title={k.id === korisnik?.id ? t("remove_self_artist") || "Ukloni sebe kao izvođača" : t("remove_artist") || "Ukloni izvođača"}
+                    type="button"
+                  >
                     ×
                   </button>
                 </span>

@@ -234,5 +234,9 @@
   "no_results": "Nema rezultata za pretragu.",
   "name": "Ime",
   "surname": "Prezime",
-  "select_expiry": "Odaberite datum"
+  "select_expiry": "Odaberite datum",
+  "email": "E-mail",
+  "password": "Lozinka",
+  "confirm_password": "Potvrdite lozinku",
+  "login_here": "Prijavite se ovdje"
 }

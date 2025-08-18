@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
-import styles from "./UrediPjesmu.module.css";
+// import styles from "./UrediPjesmu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from "../../types";
@@ -11,9 +11,31 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
 
+type Styles = Record<string, string>;
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const UrediPjesmu: React.FC = () => {
+  const [styles, setStyles] = useState<Styles>({});
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./UrediPjesmuWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./UrediPjesmu.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const { pjesmaId } = useParams<{ pjesmaId: string }>();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);

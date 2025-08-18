@@ -1,0 +1,131 @@
+.pjesmaBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: #f6f7fb;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 50px 24px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.title {
+  color: #111;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.noItems {
+  color: #555;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+.table th, .table td {
+  padding: 12px 8px;
+  text-align: center;
+  color: #111;
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.table th {
+  background: #b91d95;
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.08rem;
+}
+
+.table tr:last-child td { border-bottom: none; }
+
+.table img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
+
+.table button {
+  background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+.table button:hover { background: #e754a2; transform: scale(1.08); }
+
+.table td:nth-child(3), .table td:nth-child(4) { text-align: center; }
+
+@media (max-width: 900px) {
+  .pjesmaBg { padding-top: 60px; padding-bottom: 40px; }
+  .container { max-width: 95vw; margin: 0 auto; padding: 20px 16px 40px 16px; border-radius: 12px; }
+  .title { font-size: 1.6rem; margin-bottom: 20px; }
+  .table th, .table td { padding: 8px 6px; font-size: 0.9rem; }
+  .table th { font-size: 0.95rem; }
+  .table img { width: 40px; height: 40px; }
+  .table button { width: 32px; height: 32px; }
+}
+
+@media (max-width: 600px) {
+  .container { max-width: 98vw; padding: 16px 12px 30px 12px; }
+  .title { font-size: 1.4rem; margin-bottom: 16px; }
+  .table th, .table td { padding: 6px 4px; font-size: 0.8rem; }
+  .table th { font-size: 0.85rem; }
+  .table img { width: 32px; height: 32px; }
+  .table button { width: 28px; height: 28px; }
+}
+
+@media (max-width: 480px) {
+  .pjesmaBg { padding-top: 55px; padding-bottom: 100px; min-height: 100vh; }
+  .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); background: #ffffff; }
+  .title { font-size: 1.75rem; margin-bottom: 28px; letter-spacing: 1px; font-weight: 800; }
+  .noItems { font-size: 1rem; margin-top: 40px; font-style: italic; }
+  .table { display: block; border-radius: 0; background: transparent; overflow: visible; margin-top: 0; box-shadow: none; }
+  .table thead { display: none; }
+  .table tbody { display: block; }
+  .table tr { display: flex; align-items: flex-start; background: #fff; border-radius: 12px; padding: 16px; padding-right: 50px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.08); white-space: normal; position: relative; }
+  .table td { display: block; border: none; padding: 0; text-align: left; white-space: normal; font-size: 0.875rem; color: #111; }
+  .table td:first-child { display: none; }
+  .table td:nth-child(2) { flex-shrink: 0; margin-right: 12px; }
+  .table td:nth-child(3) { position: absolute; left: 78px; top: 16px; color: #111; font-size: 1rem; font-weight: 700; margin-bottom: 4px; flex: 1; }
+  .table td:nth-child(4) { position: absolute; left: 78px; top: 40px; color: #555; font-size: 0.875rem; margin-top: -4px; flex: 1; }
+  .table td:nth-child(5) { position: absolute !important; top: 16px; right: 8px; margin: 0 !important; display: flex; flex-direction: row; align-items: center; }
+  .table img { width: 50px; height: 50px; border-radius: 8px; }
+  .table button { width: 40px; height: 40px; margin-right: 0; margin-bottom: 4px; border-radius: 20px; }
+  .table td:nth-child(5) .table button:last-child { margin-bottom: 0; }
+  .table button svg { width: 20px; height: 20px; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 8px 4px 16px 4px; }
+  .title { font-size: 1.1rem; }
+  .table td { font-size: 0.7rem; }
+  .table td:before { font-size: 0.65rem; }
+  .table img { width: 20px; height: 20px; }
+  .table button { width: 20px; height: 20px; }
+  .table button svg { width: 12px; height: 12px; }
+}

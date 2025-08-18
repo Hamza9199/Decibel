@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useState, memo, useEffect } from "react";
-import styles from "./Album.module.css";
+// import styles from "./Album.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
@@ -11,6 +11,8 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
 
+type Styles = Record<string, string>;
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Album: React.FC = () => {
@@ -19,6 +21,26 @@ const Album: React.FC = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
   const [likeCount, setLikeCount] = useState<number>(0);
+  const [styles, setStyles] = useState<Styles>({});
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./AlbumWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Album.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const korisnikID = useMemo(() => {
     try {
@@ -35,7 +57,9 @@ const Album: React.FC = () => {
     queryFn: async () => {
       const r = await axios.get(`${API_BASE}/albumi/${albumId}`);
       return r.data as AlbumType;
-    }
+    },
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   useEffect(() => {
@@ -46,10 +70,17 @@ const Album: React.FC = () => {
     queryKey: ["albumSongs", albumId],
     enabled: Boolean(albumId),
     queryFn: async () => {
-      const r = await axios.get(`${API_BASE}/pjesme/`);
-      const all: Pjesma[] = r.data || [];
-      return all.filter((p) => String(p.albumID) === String(albumId));
+      try {
+        const r1 = await axios.get(`${API_BASE}/pjesme/album/${albumId}`);
+        return (r1.data || []) as Pjesma[];
+      } catch {
+        const r = await axios.get(`${API_BASE}/pjesme/`);
+        const all: Pjesma[] = r.data || [];
+        return all.filter((p) => String(p.albumID) === String(albumId));
+      }
     },
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const playlistsQ = useQuery<Playlista[]>({
@@ -57,6 +88,8 @@ const Album: React.FC = () => {
     enabled: Boolean(korisnikID),
     queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
     initialData: [],
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   const likedAlbumQ = useQuery<boolean>({
@@ -67,6 +100,8 @@ const Album: React.FC = () => {
       const veze = (r.data || []) as { korisnikID: string; albumID: number }[];
       return !!veze.find((v) => v.korisnikID === korisnikID && String(v.albumID) === String(albumId));
     },
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   const likedSongsMapQ = useQuery<Record<number, boolean>>({
@@ -80,6 +115,8 @@ const Album: React.FC = () => {
       return map;
     },
     initialData: {},
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   const liked = likedAlbumQ.data || false;
@@ -180,10 +217,8 @@ const Album: React.FC = () => {
   }, [likeSongMut]);
 
   const loading = useMemo(() => {
-    const u = albumQ.isLoading || pjesmeQ.isLoading;
-    const v = korisnikID ? (playlistsQ.isLoading || likedAlbumQ.isLoading || likedSongsMapQ.isLoading) : false;
-    return u || v;
-  }, [albumQ.isLoading, pjesmeQ.isLoading, playlistsQ.isLoading, likedAlbumQ.isLoading, likedSongsMapQ.isLoading, korisnikID]);
+    return albumQ.isLoading || pjesmeQ.isLoading;
+  }, [albumQ.isLoading, pjesmeQ.isLoading]);
 
   if (loading) return <Loading />;
   if (!albumQ.data)

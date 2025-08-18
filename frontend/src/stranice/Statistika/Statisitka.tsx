@@ -1,5 +1,5 @@
-import React, { useMemo, memo } from "react";
-import styles from "./Statistika.module.css";
+import React, { useMemo, memo, useState, useEffect } from "react";
+// import styles from "./Statistika.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
@@ -19,12 +19,34 @@ import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 
+type Styles = Record<string, string>;
+
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement);
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Statistika: React.FC = () => {
   const { t } = useTranslation();
+
+  const [styles, setStyles] = useState<Styles>({});
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./StatistikaWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Statistika.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const pjesmeQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme"],
@@ -152,10 +174,7 @@ const Statistika: React.FC = () => {
                         },
                       ],
                     }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { display: false } },
-                    }}
+                    options={{ responsive: true, plugins: { legend: { display: false } } }}
                   />
                 </div>
                 <div className={styles.chartCard}>
@@ -171,10 +190,7 @@ const Statistika: React.FC = () => {
                         },
                       ],
                     }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { display: false } },
-                    }}
+                    options={{ responsive: true, plugins: { legend: { display: false } } }}
                   />
                 </div>
                 <div className={styles.chartCard}>
@@ -190,10 +206,7 @@ const Statistika: React.FC = () => {
                         },
                       ],
                     }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { display: false } },
-                    }}
+                    options={{ responsive: true, plugins: { legend: { display: false } } }}
                   />
                 </div>
                 <div className={styles.chartCard}>
@@ -209,10 +222,7 @@ const Statistika: React.FC = () => {
                         },
                       ],
                     }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { display: false } },
-                    }}
+                    options={{ responsive: true, plugins: { legend: { display: false } } }}
                   />
                 </div>
                 <div className={styles.chartCard}>
@@ -238,10 +248,7 @@ const Statistika: React.FC = () => {
                         },
                       ],
                     }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { position: "bottom" } },
-                    }}
+                    options={{ responsive: true, plugins: { legend: { position: "bottom" } } }}
                   />
                 </div>
                 <div className={styles.chartCard}>
@@ -257,10 +264,7 @@ const Statistika: React.FC = () => {
                         },
                       ],
                     }}
-                    options={{
-                      responsive: true,
-                      plugins: { legend: { display: false } },
-                    }}
+                    options={{ responsive: true, plugins: { legend: { display: false } } }}
                   />
                 </div>
               </div>

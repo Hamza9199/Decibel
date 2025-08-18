@@ -1,0 +1,176 @@
+.pretplataBg {
+  min-height: 100vh;
+  padding-top: 100px;
+  padding-bottom: 60px;
+  background: #f6f7fb;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+}
+
+.container {
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 32px 24px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.title {
+  color: #111;
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.infoBox {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 22px 18px;
+  margin-bottom: 18px;
+  color: #111;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.status, .naziv, .cijena, .istice {
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+}
+
+.opis {
+  color: #555;
+  font-size: 0.98rem;
+  margin-bottom: 10px;
+}
+
+.success {
+  color: #1f7a43;
+  background: #e8f6ee;
+  border: 1px solid #c5e8d4;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.noSub { text-align: center; }
+
+.warning {
+  color: #222;
+  background: #fde7ef;
+  border: 1px solid #f5c1d7;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 1.05rem;
+}
+
+.ponudeGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.ponudaCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 18px 14px;
+  color: #111;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  text-align: center;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.ponudaNaziv { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; color: #111; }
+.ponudaOpis { color: #555; font-size: 0.98rem; margin-bottom: 8px; }
+.ponudaCijena { color: #b91d95; font-size: 1.08rem; font-weight: 700; margin-bottom: 10px; }
+
+.kupovinaBox {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 32px 24px 24px 24px;
+  max-width: 420px;
+  margin: 0 auto 32px auto;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  color: #111;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.kupovinaDetalji { margin-bottom: 18px; font-size: 1.08rem; color: #333; }
+
+.karticaForm { display: flex; flex-direction: column; gap: 12px; }
+.karticaForm label { color: #333; font-size: 1.08rem; font-weight: 700; margin-bottom: 2px; }
+.karticaForm input { background: #ffffff; color: #111; border: 1px solid #b91d95; border-radius: 8px; padding: 10px 12px; font-size: 1.08rem; margin-bottom: 8px; outline: none; box-shadow: 0 2px 8px rgba(185,29,149,0.12); }
+
+.kupiBtn { width: 100%; background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.08rem; font-weight: 800; cursor: pointer; margin-top: 8px; transition: background 0.18s; }
+.kupiBtn:hover { background: #e754a2; }
+
+.error { color: #a1224f; background: #fde7ef; border: 1px solid #f5c1d7; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
+
+@media (max-width: 600px) {
+  .pretplataBg { padding-top: 60px; padding-bottom: 40px; }
+  .container { max-width: 90vw; margin: 0 auto; padding: 20px 16px 20px 16px; border-radius: 12px; }
+  .title { font-size: 1.5rem; margin-bottom: 20px; }
+  .infoBox { padding: 16px 12px; margin-bottom: 12px; }
+  .status, .naziv, .cijena, .istice { font-size: 1rem; margin-bottom: 6px; }
+  .opis { font-size: 0.9rem; margin-bottom: 8px; }
+  .warning { padding: 8px 12px; margin-bottom: 12px; font-size: 0.95rem; }
+  .ponudeGrid { gap: 12px; }
+  .ponudaCard { padding: 14px 10px; }
+  .ponudaNaziv { font-size: 1.05rem; }
+  .ponudaOpis { font-size: 0.9rem; }
+  .ponudaCijena { font-size: 1rem; }
+  .kupovinaBox { padding: 24px 16px 16px 16px; max-width: 380px; }
+  .kupovinaDetalji { font-size: 1rem; margin-bottom: 12px; }
+  .karticaForm label { font-size: 1rem; }
+  .karticaForm input { font-size: 1rem; padding: 8px 10px; margin-bottom: 6px; }
+  .kupiBtn { font-size: 1rem; padding: 10px 0; }
+}
+
+@media (max-width: 480px) {
+  .pretplataBg { padding-top: 55px; padding-bottom: 30px; min-height: 100vh; }
+  .container { max-width: 95vw; margin: 0 auto; padding: 16px 12px 16px 12px; border-radius: 8px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: #ffffff; }
+  .title { font-size: 1.3rem; margin-bottom: 16px; letter-spacing: 0.5px; }
+  .infoBox { padding: 12px 8px; margin-bottom: 10px; border-radius: 6px; }
+  .status, .naziv, .cijena, .istice { font-size: 0.9rem; margin-bottom: 4px; }
+  .opis { font-size: 0.8rem; margin-bottom: 6px; }
+  .success { font-size: 0.85rem; padding: 6px 8px; margin-bottom: 8px; }
+  .warning { padding: 8px 10px; margin-bottom: 10px; font-size: 0.9rem; }
+  .ponudeGrid { gap: 10px; margin-top: 8px; }
+  .ponudaCard { padding: 12px 8px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.06); background: #fff; }
+  .ponudaNaziv { font-size: 1rem; margin-bottom: 4px; }
+  .ponudaOpis { font-size: 0.8rem; margin-bottom: 6px; }
+  .ponudaCijena { font-size: 0.9rem; margin-bottom: 8px; }
+  .kupovinaBox { padding: 16px 10px 12px 10px; max-width: 320px; margin: 0 auto 20px auto; border-radius: 6px; }
+  .kupovinaDetalji { font-size: 0.9rem; margin-bottom: 10px; }
+  .karticaForm { gap: 8px; }
+  .karticaForm label { font-size: 0.85rem; margin-bottom: 1px; }
+  .karticaForm input { font-size: 0.85rem; padding: 8px 10px; margin-bottom: 4px; border-radius: 6px; }
+  .karticaForm input:focus { border: 1.5px solid #e754a2; }
+  .kupiBtn { font-size: 0.9rem; padding: 10px 0; margin-top: 6px; border-radius: 6px; }
+  .error { font-size: 0.8rem; padding: 6px 8px; margin-bottom: 6px; }
+}
+
+@media (max-width: 375px) {
+  .container { max-width: 98vw; padding: 12px 8px 12px 8px; }
+  .title { font-size: 1.2rem; }
+  .infoBox { padding: 10px 6px; }
+  .status, .naziv, .cijena, .istice { font-size: 0.85rem; }
+  .opis { font-size: 0.75rem; }
+  .ponudaNaziv { font-size: 0.95rem; }
+  .ponudaOpis { font-size: 0.75rem; }
+  .ponudaCijena { font-size: 0.85rem; }
+  .kupovinaBox { max-width: 280px; padding: 12px 6px 8px 6px; }
+  .kupovinaDetalji { font-size: 0.85rem; }
+  .karticaForm label { font-size: 0.8rem; }
+  .karticaForm input { font-size: 0.8rem; padding: 6px 8px; }
+  .kupiBtn { font-size: 0.85rem; padding: 8px 0; }
+}

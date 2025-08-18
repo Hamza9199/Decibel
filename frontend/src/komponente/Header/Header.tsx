@@ -1,17 +1,55 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
-import styles from "./Header.module.css";
+import React, { useEffect, useState, useMemo, useCallback,memo } from "react";
+// import styles from "./Header.module.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { Korisnik } from "../../types";
 import { useTranslation } from "react-i18next";
 import Search from "../Search/Search";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import "../../assets/logo.css";
+import Loading from "../Loading/Loading";
+
+type Styles = Record<string, string>;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Header: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
   const { t } = useTranslation();
+  const [styles, setStyles] = useState<Styles>({});
+  const [cssReady, setCssReady] = useState(false);
+  const [cssDelayDone, setCssDelayDone] = useState(false);
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./HeaderWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Header.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+      setCssReady(true);
+    };
+    setCssReady(false);
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") {
+        setCssReady(false);
+        setCssDelayDone(false);
+        loadThemeStyles(e.newValue || undefined);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (!cssReady) { setCssDelayDone(false); return; }
+    const t = setTimeout(() => setCssDelayDone(true), 1000);
+    return () => clearTimeout(t);
+  }, [cssReady]);
 
   const storedUser = useMemo(() => localStorage.getItem("korisnik"), []);
   const user = useMemo(() => {
@@ -53,12 +91,14 @@ const Header: React.FC = () => {
 
   const handleLogout = useCallback(() => logoutMutation.mutate(), [logoutMutation]);
 
+  if (!cssReady || !cssDelayDone) return <Loading />;
+
   return (
     <header className={styles.header}>
       {!isMobile && (
         <>
           <Link to="/">
-            <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
+            <img src="/logo.gif" alt="Decibel logo" className="logoImg" />
           </Link>
           <Link to="/">
             <div className={styles.logo}>Decibel</div>
@@ -75,7 +115,7 @@ const Header: React.FC = () => {
           <Link to="/profile/edit">
             <img
               src={korisnik?.putanjaProfilneSlike}
-              className={styles.profileImg}
+              className="profileImg"
               alt="Profil"
             />
           </Link>
@@ -103,7 +143,7 @@ const Header: React.FC = () => {
           <Link to="/profile/edit">
             <img
               src={korisnik?.putanjaProfilneSlike}
-              className={styles.profileImg}
+              className="profileImg"
               alt="Profil"
             />
           </Link>

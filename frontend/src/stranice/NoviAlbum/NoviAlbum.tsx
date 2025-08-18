@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useCallback, memo } from "react";
-import styles from "./NoviAlbum.module.css";
+import React, { useState, useMemo, useCallback, memo, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
@@ -12,7 +11,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
+type Styles = Record<string, string>;
+
 const NoviAlbum: React.FC = () => {
+  const [styles, setStyles] = useState<Styles>({});
   const [naziv, setNaziv] = useState("");
   const [opis, setOpis] = useState("");
   const [fileSlika, setFileSlika] = useState<File | null>(null);
@@ -95,6 +97,25 @@ const NoviAlbum: React.FC = () => {
     },
     [korisnikID, naziv, opis, fileSlika, fileGif, odabranePjesme, svePjesme, createAlbumMut]
   );
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./NoviAlbumWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./NoviAlbum.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const loading = createAlbumMut.isPending;
 

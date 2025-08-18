@@ -1,0 +1,124 @@
+.header {
+  width: 100%;
+  background: #ffffff;
+  color: #111;
+  padding: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.logoImg {
+  height: 38px;
+  margin-right: 14px;
+  margin-left: 18px;
+  border-radius: 40%;
+}
+
+.logo {
+  font-size: 1.7rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  margin-left: 0;
+  margin-right: 50px;
+  color: #111;
+}
+
+.welcomeMessage{
+  margin-right:17px;
+  text-align: right;
+  flex-grow: 1;
+  font-size: 20px;
+  color: #b91d95;
+  font-weight: 600;
+}
+
+.profileImg{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 25px;
+  object-fit: cover;
+}
+
+.searchWrap {
+  flex: 1;
+  margin: 0 20px;
+  max-width: 500px;
+}
+
+.logoutBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+  margin-left: auto;
+  margin-right: 24px;
+  margin-bottom: 4px;
+}
+
+.logoutBtn:hover {
+  background: #e754a2;
+  transform: translateY(-1px);
+}
+
+.logoutIcon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 4px 0 10px 0;
+    min-height: 55px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    justify-content: flex-start;
+    align-items: center;
+    position: fixed;
+    width: 100vw;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    gap: 0;
+    background: #ffffff;
+  }
+  .logoImg,
+  .logo {
+    display: none !important;
+  }
+  .welcomeMessage {
+    display: none !important;
+  }
+  .searchWrap {
+    flex: 1 1 0;
+    min-width: 0;
+    margin: 0 0 0 60px !important;
+    width: 1px !important;
+    max-width: 80%;
+    display: flex;
+    margin-top: 10px;
+  }
+  .profileImg {
+    width: 26px;
+    height: 26px;
+    margin-left: 8px;
+    order: 2;
+    align-self: center;
+    margin-top: 7px;
+  }
+}

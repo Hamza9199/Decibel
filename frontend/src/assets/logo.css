@@ -1,0 +1,52 @@
+.footerLogo {
+  height: 38px;
+  margin-left: 202px;
+  margin-right: 10px;
+  border-radius: 40%;
+  background: #fff;
+  object-fit: contain;
+  box-shadow: 0 2px 8px #b91d9533;
+}
+
+.logoImg {
+  height: 38px;
+  margin-right: 14px;
+  margin-left: 18px;
+  border-radius: 40%;
+}
+
+.profileImg{
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 25px;
+  object-fit: cover;
+
+}
+
+
+@media (max-width: 480px) {
+.footerLogo {
+    height: 22px !important;
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 8px;
+    box-shadow: none;
+  }
+
+
+  .logoImg,
+  .logo {
+    display: none !important;
+  }
+
+  .profileImg {
+    width: 26px;
+    height: 26px;
+    margin-left: 8px;
+    order: 2;
+    align-self: center;
+    margin-top: 7px;
+  }
+
+}

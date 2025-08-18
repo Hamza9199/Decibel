@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-import styles from "./Search.module.css";
+// import styles from "./Search.module.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Album, Korisnik, Pjesma, Playlista } from "../../types";
 import { useQuery } from "@tanstack/react-query";
+import Loading from "../Loading/Loading";
+
+type Styles = Record<string, string>;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -34,6 +37,40 @@ const Search: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+  const [styles, setStyles] = useState<Styles>({});
+  const [cssReady, setCssReady] = useState(false);
+  const [cssDelayDone, setCssDelayDone] = useState(false);
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./SearchWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Search.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+      setCssReady(true);
+    };
+    setCssReady(false);
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") {
+        setCssReady(false);
+        setCssDelayDone(false);
+        loadThemeStyles(e.newValue || undefined);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (!cssReady) { setCssDelayDone(false); return; }
+    const t = setTimeout(() => setCssDelayDone(true), 1000);
+    return () => clearTimeout(t);
+  }, [cssReady]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 480);
@@ -124,6 +161,8 @@ const Search: React.FC = () => {
     if (val.trim().length > 0) setShowDropdown(true);
   }, []);
   const onFocus = useCallback(() => normalizedQuery && setShowDropdown(true), [normalizedQuery]);
+
+  if (!cssReady || !cssDelayDone) return <Loading />;
 
   return (
     <div className={styles.searchWrap}>

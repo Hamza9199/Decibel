@@ -1,0 +1,200 @@
+.historijaBg {
+  min-height: 100vh;
+  padding-top: 80px;
+  padding-bottom: 60px;
+  background: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: start;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 50px 24px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.songImage {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 12px;
+}
+
+.title {
+  color: #111;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.noSongs {
+  color: #666;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.pjesmeTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 8px;
+  border: 1px solid #eee;
+}
+
+.pjesmeTable th, .pjesmeTable td {
+  padding: 12px 8px;
+  text-align: center;
+  color: #111;
+  border-bottom: 1px solid #eee;
+}
+
+.pjesmeTable th {
+  background: #b91d95;
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.08rem;
+}
+
+.pjesmeTable tr:last-child td {
+  border-bottom: none;
+}
+
+.songPlayBtn, .likeBtn, .addBtn {
+  background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+.songPlayBtn:hover, .likeBtn:hover, .addBtn:hover {
+  background: #e754a2;
+  transform: scale(1.08);
+}
+.likeBtn.liked {
+  background: #e754a2;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.modal {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 32px 24px 24px 24px;
+  min-width: 320px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.playlistList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 18px 0;
+}
+
+.playlistBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 1.08rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 8px;
+  width: 100%;
+  transition: background 0.18s;
+}
+.playlistBtn:hover {
+  background: #e754a2;
+}
+
+.closeModalBtn {
+  background: #ffffff;
+  color: #111;
+  border: 1px solid #b91d95;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 4px;
+  width: 100%;
+  transition: background 0.18s, color 0.18s;
+}
+.closeModalBtn:hover {
+  background: #b91d95;
+  color: #fff;
+}
+
+.songHeader { display: flex; align-items: flex-start; margin-bottom: 12px; }
+.songInfo { flex: 1; justify-content: flex-start; }
+.songDate { color: #333; font-size: 12px; font-weight: 500; margin-top: 2px; }
+
+@media (max-width: 480px) {
+  .historijaBg { padding-top: 55px; padding-bottom: 100px; min-height: 100vh; }
+  .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); background: #ffffff; }
+  .title { font-size: 1.75rem; margin-bottom: 28px; letter-spacing: 1px; font-weight: 700; color: #111; }
+  .noSongs { font-size: 1rem; margin-top: 40px; font-style: italic; color: #666; }
+
+  .pjesmeTable { display: block; border-radius: 0; background: transparent; overflow: visible; margin-top: 0; }
+  .pjesmeTable thead { display: none; }
+  .pjesmeTable tbody { display: block; }
+  .pjesmeTable tr { display: block; background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #eee; white-space: normal; position: relative; }
+  .pjesmeTable td { display: block; border: none; padding: 0; text-align: left; white-space: normal; font-size: 0.875rem; color: #111; }
+  .pjesmeTable td:first-child { display: none; }
+  .pjesmeTable td:nth-child(2) { margin-bottom: 0; }
+  .pjesmeTable td:nth-child(3) { flex: 1; margin-left: 62px; margin-top: -62px; margin-bottom: 2px; }
+  .pjesmeTable td:nth-child(4) { flex: 1; margin-left: 62px; margin-top: -4px; margin-bottom: 8px; }
+  .pjesmeTable td:nth-child(3), .pjesmeTable td:nth-child(4) { display: flex; align-items: center; }
+  .songImage { width: 50px; height: 50px; margin-right: 12px; border-radius: 8px; }
+  .songPlayBtn, .likeBtn, .addBtn { width: 40px; height: 40px; margin-right: 8px; margin-bottom: 4px; border-radius: 20px; }
+  .songPlayBtn svg, .likeBtn svg, .addBtn svg { width: 20px; height: 20px; }
+  .modal { min-width: 300px; max-width: 90vw; padding: 24px; border-radius: 12px; }
+  .playlistBtn { font-size: 1rem; padding: 12px 0; margin-bottom: 8px; font-weight: 600; }
+  .closeModalBtn { font-size: 1rem; padding: 12px 0; margin-top: 16px; }
+  .pjesmeTable tr { position: relative; padding-right: 60px; }
+  .pjesmeTable td:nth-child(5) { position: absolute !important; top: 16px; right: 8px; margin: 0 !important; display: flex; flex-direction: row; align-items: center; gap: 8px; }
+  .pjesmeTable td:nth-child(5) .songPlayBtn,
+  .pjesmeTable td:nth-child(5) .likeBtn,
+  .pjesmeTable td:nth-child(5) .addBtn { margin-right: 0; margin-bottom: 4px; }
+  .pjesmeTable td:nth-child(5) .addBtn { margin-bottom: 0; }
+}
+
+@media (max-width: 375px) {
+  .container { padding: 8px 4px 16px 4px; }
+  .title { font-size: 1.1rem; }
+  .pjesmeTable td { font-size: 0.7rem; }
+  .pjesmeTable td:before { font-size: 0.65rem; }
+  .songImage { width: 20px; height: 20px; }
+  .songPlayBtn, .likeBtn, .addBtn { width: 20px; height: 20px; }
+  .songPlayBtn svg, .likeBtn svg, .addBtn svg { width: 12px; height: 12px; }
+  .modal { min-width: 260px; padding: 20px 12px 12px 12px; }
+  .playlistBtn { font-size: 0.85rem; }
+  .closeModalBtn { font-size: 0.85rem; }
+}

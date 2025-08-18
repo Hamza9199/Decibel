@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, memo } from "react";
-import styles from "./NovaPretplata.module.css";
+import React, { useState, useMemo, useCallback, memo, useEffect } from "react";
+// import styles from "./NovaPretplata.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../komponente/Header/Header";
@@ -10,9 +10,12 @@ import type { Pretplata } from "../../types";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+type Styles = Record<string, string>;
 
 const NovaPretplata: React.FC = () => {
+  const [styles, setStyles] = useState<Styles>({});
+  const [cssReady, setCssReady] = useState(false);
+  const [postDataDelayDone, setPostDataDelayDone] = useState(false);
   const { pretplataId } = useParams<{ pretplataId: string }>();
   const { t } = useTranslation();
 
@@ -37,11 +40,45 @@ const NovaPretplata: React.FC = () => {
     }
   }, []);
 
+  const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+
   const pretplataQ = useQuery<Pretplata | null>({
     queryKey: ["pretplata", pretplataId],
     enabled: Boolean(pretplataId),
     queryFn: async () => axios.get(`${API_BASE}/pretplate/${pretplataId}`).then((r) => r.data as Pretplata),
   });
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./NovaPretplataWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./NovaPretplata.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    const boot = async () => {
+      await loadThemeStyles();
+      setCssReady(true);
+    };
+    boot();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (cssReady) {
+      setPostDataDelayDone(false);
+      const t = setTimeout(() => setPostDataDelayDone(true), 500);
+      return () => clearTimeout(t);
+    }
+    setPostDataDelayDone(false);
+  }, [cssReady]);
 
   const detectCardType = (number: string): string => {
     const cleaned = number.replace(/\D/g, "");
@@ -129,7 +166,7 @@ const NovaPretplata: React.FC = () => {
     [purchaseMut, validateCard]
   );
 
-  if (pretplataQ.isLoading) return <Loading />;
+  if (pretplataQ.isLoading || !cssReady || !postDataDelayDone) return <Loading />;
   if (!pretplataQ.data)
     return (
       <>

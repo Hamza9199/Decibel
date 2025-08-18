@@ -1,16 +1,53 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
-import styles from "./Sidebar.module.css";
+import React, { useEffect, useState, useMemo, useCallback,memo } from "react";
+// import styles from "./Sidebar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 import { Korisnik } from "../../types";
+import "../../assets/logo.css";
+import Loading from "../Loading/Loading";
 
 type Role = "korisnik" | "izvodac" | "admin";
+type Styles = Record<string, string>;
 
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [styles, setStyles] = useState<Styles>({});
+  const [cssReady, setCssReady] = useState(false);
+  const [cssDelayDone, setCssDelayDone] = useState(false);
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./SidebarWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Sidebar.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+      setCssReady(true);
+    };
+    setCssReady(false);
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") {
+        setCssReady(false);
+        setCssDelayDone(false);
+        loadThemeStyles(e.newValue || undefined);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (!cssReady) { setCssDelayDone(false); return; }
+    const t = setTimeout(() => setCssDelayDone(true), 1000);
+    return () => clearTimeout(t);
+  }, [cssReady]);
 
   const role = useMemo<Role>(() => {
     const userStr = localStorage.getItem("korisnik");
@@ -106,6 +143,8 @@ const Sidebar: React.FC = () => {
     setSidebarOpen(false);
   }, []);
 
+  if (!cssReady || !cssDelayDone) return <Loading />;
+
   return (
     <>
       {isMobile && (
@@ -121,7 +160,7 @@ const Sidebar: React.FC = () => {
         {!isMobile && (
           <div className={styles.logoWrap}>
             <Link to="/" onClick={handleCloseSidebar}>
-              <img src="/logo.gif" alt="Decibel logo" className={styles.logoImg} />
+              <img src="/logo.gif" alt="Decibel logo" className="logoImg" />
             </Link>
             <Link to="/" onClick={handleCloseSidebar}>
               <span className={styles.logoText}>Decibel</span>
@@ -384,23 +423,17 @@ const Sidebar: React.FC = () => {
               </button>
             </>
           )}
-        </nav>
-        {isMobile && isLoggedIn && (
-          <div className={styles.logoutWrapMobile}>
-            <button className={styles.logoutBtnMobile} onClick={handleLogout}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-              </svg>
+          {isMobile && isLoggedIn && (
+            <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); handleLogout(); if (isMobile) handleCloseSidebar(); }}>
+              <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#ffe6ec">
+                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                </svg>
+              </span>
               {t("logout")}
             </button>
-          </div>
-        )}
+          )}
+        </nav>
       </aside>
       {isMobile && sidebarOpen && <div className={styles.sidebarOverlay} onClick={handleCloseSidebar} />}
     </>

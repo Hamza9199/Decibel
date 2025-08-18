@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
-import styles from "./Postavke.module.css";
+import React, { useState, useEffect, useCallback, memo } from "react";
+// import styles from "./Postavke.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
+import Loading from "../../komponente/Loading/Loading";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import "../../i18n";
+
+type Styles = Record<string, string>;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -16,14 +19,48 @@ const Postavke: React.FC = () => {
   const { t, i18n } = useTranslation();
   const [jezik, setJezik] = useState(i18n.language || "bs");
   const [tema, setTema] = useState(localStorage.getItem("decibel_tema") || "dark");
+  const [styles, setStyles] = useState<Styles>({});
+  const [cssReady, setCssReady] = useState(false);
+  const [postDataDelayDone, setPostDataDelayDone] = useState(false);
 
-  const korisnikID = useMemo(() => {
-    try {
-      const user = JSON.parse(localStorage.getItem("korisnik") || "");
-      return user?.id || "";
-    } catch {
-      return "";
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./PostavkeWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Postavke.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    const boot = async () => {
+      await loadThemeStyles();
+      setCssReady(true);
+    };
+    boot();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    if (cssReady) {
+      setPostDataDelayDone(false);
+      const t = setTimeout(() => setPostDataDelayDone(true), 500);
+      return () => clearTimeout(t);
     }
+    setPostDataDelayDone(false);
+  }, [cssReady]);
+
+  const handleChangeTema = useCallback((newTema: string) => {
+    setTema(newTema);
+    localStorage.setItem("decibel_tema", newTema);
+
+    window.location.reload();
+
   }, []);
 
   useEffect(() => {
@@ -53,6 +90,7 @@ const Postavke: React.FC = () => {
   }, []);
 
   const handleSend = useCallback(async () => {
+    const korisnikID = localStorage.getItem("korisnik") ? JSON.parse(localStorage.getItem("korisnik") as string).id : "";
     if (!poruka.trim() || !korisnikID) {
       alert("Morate unijeti poruku i biti prijavljeni.");
       return;
@@ -64,9 +102,10 @@ const Postavke: React.FC = () => {
       alert("Greška pri slanju prijave.");
     }
     handleCloseModal();
-  }, [poruka, korisnikID, handleCloseModal]);
+  }, [poruka, handleCloseModal]);
 
   const handleBrisanje = useCallback(async () => {
+    const korisnikID = localStorage.getItem("korisnik") ? JSON.parse(localStorage.getItem("korisnik") as string).id : "";
     if (!korisnikID) {
       alert("Morate biti prijavljeni.");
       return;
@@ -83,7 +122,7 @@ const Postavke: React.FC = () => {
       alert("Greška pri deaktivaciji naloga.");
     }
     handleCloseModal();
-  }, [korisnikID, handleCloseModal]);
+  }, [handleCloseModal]);
 
   const handleJezikChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = e.target.value;
@@ -91,6 +130,8 @@ const Postavke: React.FC = () => {
     i18n.changeLanguage(lang);
     localStorage.setItem("decibel_lang", lang);
   }, [i18n]);
+
+  if (!cssReady || !postDataDelayDone) return <Loading />;
 
   return (
     <>
@@ -102,7 +143,7 @@ const Postavke: React.FC = () => {
           <div className={styles.form}>
             <div className={styles.label}>
               <span>{t("appearance")}:</span>
-              <select className={styles.input} value={tema} onChange={e => setTema(e.target.value)}>
+              <select className={styles.input} value={tema} onChange={e => handleChangeTema(e.target.value)}>
                 <option value="dark">{t("dark_mode")}</option>
                 <option value="light">{t("white_mode")}</option>
               </select>

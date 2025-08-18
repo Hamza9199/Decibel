@@ -1,0 +1,447 @@
+.novaPjesmaBg {
+  min-height: 100vh;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  background: #f6f7fb;
+  margin-top: 80px;
+}
+
+.novaPjesmaForm {
+  background: #ffffff;
+  border-radius: 22px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  padding: 48px 38px 38px 38px;
+  min-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 820px;
+  width: 100%;
+  gap: 0;
+  border: 1.5px solid #b91d95;
+}
+
+.title {
+  color: #111;
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 32px;
+  letter-spacing: 2px;
+  text-shadow: none;
+  text-align: center;
+}
+
+.input, .fileInput, textarea, select {
+  width: 100%;
+  padding: 13px 18px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  border: 1.5px solid #b91d95;
+  background: #ffffff;
+  color: #111;
+  font-size: 1.08rem;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  font-family: inherit;
+  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.12);
+}
+
+.input:focus, .fileInput:focus, textarea:focus, select:focus {
+  border: 2px solid #e754a2;
+  box-shadow: 0 4px 16px rgba(231, 84, 162, 0.18);
+}
+
+textarea {
+  min-height: 70px;
+  resize: vertical;
+}
+
+.button {
+  width: 70%;
+  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  transition: background 0.2s, transform 0.13s;
+  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.18);
+  letter-spacing: 1px;
+}
+
+.button:hover {
+  background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
+  transform: scale(1.03);
+}
+
+.label {
+  color: #333;
+  font-size: 1.04rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  letter-spacing: 0.5px;
+}
+
+.fileInput {
+  background: #fafafa;
+  color: #111;
+  border: none;
+  margin-top: 6px;
+  margin-bottom: 18px;
+  padding: 8px 0;
+  font-size: 1rem;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+.fileInput::-webkit-file-upload-button {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 7px 18px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: background 0.18s;
+}
+.fileInput::-webkit-file-upload-button:hover {
+  background: #e754a2;
+}
+
+.error {
+  color: #a1224f;
+  background: #fde7ef;
+  border-radius: 7px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 1.02rem;
+  width: 100%;
+  text-align: center;
+  border: 1px solid #f5c1d7;
+}
+
+.success {
+  color: #1f7a43;
+  background: #e8f6ee;
+  border-radius: 7px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  font-size: 1.02rem;
+  width: 100%;
+  text-align: center;
+  border: 1px solid #c5e8d4;
+}
+
+/* Form container layout */
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
+  width: 100%;
+  max-width: 1200px;
+}
+
+/* Artists section styling */
+.artistsSection {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px 18px;
+  min-width: 260px;
+  max-height: 480px;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.artistsTitle {
+  color: #111;
+  margin-bottom: 14px;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.artistSearch {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #b91d95;
+  padding: 8px 10px;
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+  background: #ffffff;
+  color: #111;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.artistSearch:focus {
+  border: 1.5px solid #e754a2;
+  box-shadow: 0 2px 12px rgba(231, 84, 162, 0.15);
+}
+
+.selectedArtists {
+  margin-bottom: 10px;
+}
+
+.artistTag {
+  display: inline-flex;
+  align-items: center;
+  background: #b91d95;
+  color: #fff;
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.98rem;
+}
+
+.removeArtistBtn {
+  margin-left: 6px;
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: transform 0.1s;
+}
+
+.removeArtistBtn:hover {
+  transform: scale(1.2);
+}
+
+.artistNote {
+  color: #555;
+  font-size: 0.93rem;
+  margin-top: 4px;
+}
+
+.availableArtists {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.artistItem {
+  margin-bottom: 8px;
+}
+
+.addArtistBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.18s;
+}
+
+.addArtistBtn:hover {
+  background: #e754a2;
+}
+
+@media (max-width: 600px) {
+  .novaPjesmaForm {
+    padding: 18px 6vw 18px 6vw;
+    min-width: 0;
+    max-width: 98vw;
+    border-radius: 10px;
+  }
+  .title {
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+  }
+  .input, .fileInput, textarea, select {
+    font-size: 0.98rem;
+    padding: 10px 8px;
+  }
+  .button {
+    font-size: 1rem;
+    padding: 10px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .novaPjesmaBg {
+    margin-top: 55px;
+    padding: 15px 0;
+    min-height: 100vh;
+    background: #fafbfe;
+  }
+  
+  .formContainer {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 0 10px;
+    width: 80%;
+  }
+  
+  .novaPjesmaForm {
+    padding: 20px 12px 20px 12px;
+    border-radius: 8px;
+    gap: 0;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+    border: 1px solid #b91d95;
+  }
+  
+  .artistsSection {
+    min-width: 90vw;
+    max-width: 90vw;
+    max-height: none;
+    padding: 16px 12px;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  }
+  
+  .artistsTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .artistSearch {
+    font-size: 0.9rem;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+  }
+  
+  .artistTag {
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    border-radius: 6px;
+  }
+  
+  .removeArtistBtn {
+    font-size: 1rem;
+    margin-left: 4px;
+  }
+  
+  .artistNote {
+    font-size: 0.8rem;
+    margin-top: 6px;
+  }
+  
+  .addArtistBtn {
+    font-size: 0.9rem;
+    padding: 6px 0;
+    border-radius: 6px;
+  }
+  
+  .artistItem {
+    margin-bottom: 6px;
+  }
+  
+  .title {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+  
+  .label {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    letter-spacing: 0.2px;
+  }
+  
+  .input, .fileInput, textarea, select {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: 1px solid #b91d95;
+    box-shadow: 0 1px 6px rgba(185, 29, 149, 0.12);
+  }
+  
+  .input:focus, .fileInput:focus, textarea:focus, select:focus {
+    border: 1.5px solid #e754a2;
+    box-shadow: 0 2px 12px rgba(231, 84, 162, 0.15);
+  }
+  
+  textarea {
+    min-height: 60px;
+  }
+  
+  .fileInput {
+    padding: 6px 0;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+  }
+  
+  .fileInput::-webkit-file-upload-button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+  
+  .button {
+    width: 100%;
+    padding: 10px 0;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    margin-top: 8px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 6px rgba(185, 29, 149, 0.12);
+  }
+  
+  .error, .success {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+  }
+}
+
+@media (max-width: 375px) {
+  .novaPjesmaForm {
+    min-width: 98vw;
+    max-width: 98vw;
+    padding: 16px 8px 16px 8px;
+  }
+  
+  .title {
+    font-size: 1.1rem;
+  }
+  
+  .label {
+    font-size: 0.8rem;
+  }
+  
+  .input, .fileInput, textarea, select {
+    font-size: 0.8rem;
+    padding: 8px 10px;
+  }
+  
+  .button {
+    font-size: 0.9rem;
+    padding: 8px 0;
+  }
+  
+  .fileInput::-webkit-file-upload-button {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+}

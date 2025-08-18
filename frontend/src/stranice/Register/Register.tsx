@@ -1,14 +1,36 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
-import styles from "./Register.module.css";
+// import styles from "./Register.module.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
 
+type Styles = Record<string, string>;
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Register: React.FC = () => {
+  const [styles, setStyles] = useState<Styles>({});
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./RegisterWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Register.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    loadThemeStyles();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const [ime, setIme] = useState("");
   const [prezime, setPrezime] = useState("");
   const [korisnicko_ime, setKorisnickoIme] = useState("");

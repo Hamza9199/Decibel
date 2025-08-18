@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState, useCallback, memo } from "react";
-import styles from "./Home.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import axios from "axios";
@@ -10,13 +9,41 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
+type Styles = Record<string, string>;
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [activeSong, setActiveSong] = useState<Pjesma | null>(null);
+  const [styles, setStyles] = useState<Styles>({});
+  const [cssReady, setCssReady] = useState(false);
+  const [postDataDelayDone, setPostDataDelayDone] = useState(false);
   const repeatAll = false;
+
+  useEffect(() => {
+    const loadThemeStyles = async (theme?: string) => {
+      const current = theme || localStorage.getItem("decibel_tema") || "dark";
+      if (current === "light") {
+        const mod = await import("./HomeWhite.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      } else {
+        const mod = await import("./Home.module.css");
+        setStyles(mod.default || (mod as unknown as Styles));
+      }
+    };
+    const boot = async () => {
+      await loadThemeStyles();
+      setCssReady(true);
+    };
+    boot();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const pjesmeQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme"],
@@ -39,9 +66,24 @@ const Home: React.FC = () => {
     staleTime: 30_000,
   });
 
-  const loading = useMemo(
+  const queriesLoading = useMemo(
     () => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || korisniciQ.isLoading,
     [pjesmeQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading, korisniciQ.isLoading]
+  );
+  const dataReady = useMemo(() => !queriesLoading, [queriesLoading]);
+
+  useEffect(() => {
+    if (cssReady && dataReady) {
+      setPostDataDelayDone(false);
+      const t = setTimeout(() => setPostDataDelayDone(true), 500);
+      return () => clearTimeout(t);
+    }
+    setPostDataDelayDone(false);
+  }, [cssReady, dataReady]);
+
+  const showLoading = useMemo(
+    () => queriesLoading || !cssReady || !postDataDelayDone,
+    [queriesLoading, cssReady, postDataDelayDone]
   );
 
   const sample = <T,>(arr: readonly T[] | undefined, n: number): T[] => {
@@ -139,7 +181,14 @@ const Home: React.FC = () => {
     [playPlaylistSongsMut]
   );
 
-  if (loading) return <Loading />;
+  const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+    <section style={{ marginBottom: 48 }}>
+      <h2 className={styles.sectionTitle}>{title}</h2>
+      {children}
+    </section>
+  );
+
+  if (showLoading) return <Loading />;
 
   return (
     <>
@@ -256,13 +305,6 @@ const Home: React.FC = () => {
     </>
   );
 };
-
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section style={{ marginBottom: 48 }}>
-    <h2 className={styles.sectionTitle}>{title}</h2>
-    {children}
-  </section>
-);
 
 export default memo(Home);
 

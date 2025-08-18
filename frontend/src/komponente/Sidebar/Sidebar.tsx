@@ -3,8 +3,10 @@ import styles from "./Sidebar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
+import { Korisnik } from "../../types";
 
 type Role = "korisnik" | "izvodac" | "admin";
+
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate();
@@ -24,15 +26,30 @@ const Sidebar: React.FC = () => {
     return r;
   }, []);
 
-  const storedUser = useMemo(() => localStorage.getItem("korisnik"), []);
-  const user = useMemo(() => {
+  const getUser = useCallback<() => Korisnik | null>(() => {
     try {
-      return storedUser ? JSON.parse(storedUser) : null;
+      const s = localStorage.getItem("korisnik");
+      return s ? (JSON.parse(s) as Korisnik) : null;
     } catch {
       return null;
     }
-  }, [storedUser]);
-  const isLoggedIn = useMemo(() => Boolean(user), [user]);
+  }, []);
+  const [user, setUser] = useState<Korisnik | null>(() => getUser());
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "korisnik") setUser(getUser());
+    };
+    const handleFocus: EventListener = () => setUser(getUser());
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("visibilitychange", handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("visibilitychange", handleFocus);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [getUser]);
+  const isLoggedIn = !!user;
 
   const [showProfileMenu, setShowProfileMenu] = React.useState(false);
   const [showPlaylistMenu, setShowPlaylistMenu] = React.useState(false);
@@ -40,24 +57,20 @@ const Sidebar: React.FC = () => {
   const [showAlbumsMenu, setShowAlbumsMenu] = React.useState(false);
   const [showFavoritesMenu, setShowFavoritesMenu] = React.useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);
+  const getIsMobile = () => window.matchMedia('(max-width: 768px)').matches;
+  const [isMobile, setIsMobile] = useState(getIsMobile());
 
   useEffect(() => {
-    const tema = localStorage.getItem("decibel_tema") || "dark";
-    document.body.setAttribute("data-theme", tema);
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "decibel_tema" && e.newValue) {
-        document.body.setAttribute("data-theme", e.newValue);
-      }
+    const mq = window.matchMedia('(max-width: 768px)');
+    const onChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    const onResize = () => setIsMobile(mq.matches);
+    setIsMobile(mq.matches);
+    mq.addEventListener('change', onChange);
+    window.addEventListener('resize', onResize);
+    return () => {
+      mq.removeEventListener('change', onChange);
+      window.removeEventListener('resize', onResize);
     };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 480);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   useEffect(() => {

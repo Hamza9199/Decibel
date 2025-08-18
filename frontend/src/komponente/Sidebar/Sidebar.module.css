@@ -9,7 +9,7 @@
   display: flex;
   flex-direction: column;
   z-index: 1200;
-  overflow-y: auto; /* Dodaj scroll */
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #b91d95 #232323;
 }
@@ -42,7 +42,7 @@
   flex-direction: column;
   gap: 8px;
   padding: 0 18px;
-  align-items: flex-start; /* Dodaj ovo za levo poravnanje svih dugmadi */
+  align-items: flex-start; 
 }
 
 .navBtn {
@@ -56,9 +56,9 @@
   cursor: pointer;
   transition: background 0.13s, color 0.13s;
   font-weight: 500;
-  width: 100%; /* Dodaj ovo da dugme bude celom širinom menija */
-  justify-content: flex-start; /* Za flex konteks */
-  display: flex; /* Dodaj za bolju kontrolu poravnanja */
+  width: 100%;
+  justify-content: flex-start; 
+  display: flex;
   align-items: center;
 }
 
@@ -81,7 +81,6 @@
   display: block;
 }
 
-/* Novi stilovi za sub-meni */
 .profileMenu {
   position: relative;
   width: 100%;
@@ -121,7 +120,6 @@
   color: #e754a2;
 }
 
-/* Prilagodi scroll bar za Webkit browsere */
 .sidebar::-webkit-scrollbar {
   width: 8px;
   background: #232323;
@@ -219,7 +217,6 @@
   .sidebar.open {
     transform: translateX(0);
   }
-  /* Webkit scrollbar za mobilni sidebar - uvijek aktivan */
   .sidebar::-webkit-scrollbar {
     width: 6px;
     background: #232323;
@@ -240,7 +237,6 @@
   .sidebar::-webkit-scrollbar-corner {
     background: #232323;
   }
-  /* Forsiraj scrollbar da bude uvijek prisutan */
   .sidebar::-webkit-scrollbar:vertical {
     width: 6px;
   }
@@ -276,7 +272,7 @@
     padding: 0 10px;
     gap: 6px;
     padding-top: 20px;
-    padding-bottom: 70px; /* Dodato za razmak na dnu mobilnog menija */
+    padding-bottom: 70px; 
   }
   .navBtn {
     font-size: 1rem;
@@ -339,7 +335,6 @@
     background: #e754a2;
   }
 
-  /* Overlay for sidebar */
   .sidebarOverlay {
     display: none;
   }

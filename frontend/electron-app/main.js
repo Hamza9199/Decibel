@@ -5,13 +5,15 @@ const express = require('express');
 let win;
 let tray;
 
+const gotTheLock = app.requestSingleInstanceLock();
+
 const server = express();
 server.use(express.static(path.join(__dirname, 'dist')));
 const PORT = 3000;
 server.listen(PORT, () => console.log(`Serving on http://localhost:${PORT}`));
 
 function createWindow() {
-  if (win) return; 
+  if (win) return;
 
   win = new BrowserWindow({
     width: 1024,
@@ -34,16 +36,28 @@ function createTray() {
   tray = new Tray(path.join(__dirname, 'assets', 'icon.ico'));
   const contextMenu = Menu.buildFromTemplate([
     { label: 'Open', click: () => { if (win) win.show(); else createWindow(); } },
-    { label: 'Exit', click: () => {  win.removeAllListeners('close');  app.quit()} }
+    { label: 'Exit', click: () => { win.removeAllListeners('close'); app.quit(); } }
   ]);
   tray.setToolTip('Decibel');
   tray.setContextMenu(contextMenu);
 }
 
-app.whenReady().then(() => {
-  createWindow();
-  createTray();
-});
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.show();
+      win.focus();
+    }
+  });
+
+  app.whenReady().then(() => {
+    createWindow();
+    createTray();
+  });
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

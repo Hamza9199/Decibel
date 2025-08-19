@@ -3,7 +3,7 @@ const path = require('path');
 const express = require('express');
 
 const server = express();
-server.use(express.static(path.join(__dirname, '../dist')));
+server.use(express.static(path.join(__dirname, 'dist')));
 const PORT = 3000;
 server.listen(PORT, () => console.log(`Serving on http://localhost:${PORT}`));
 

@@ -24,7 +24,13 @@
     "win": {
       "target": "nsis",
       "icon": "assets/icon.ico"
-    }
+    },
+    "files": [
+      "main.js",
+      "package.json",
+      "assets/**/*",
+      "dist/**/*"
+    ]
   },
   "dependencies": {
     "express": "^5.1.0"

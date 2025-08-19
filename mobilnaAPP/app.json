@@ -30,7 +30,12 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/icon.png",
+      "name": "Decibel",
+      "shortName": "Decibel",
+      "description": "Decibel is a mobile application for audio enthusiasts.",
+      "themeColor": "#333333",
+      "backgroundColor": "#ffffff"
     },
     "plugins": [
       "expo-router",

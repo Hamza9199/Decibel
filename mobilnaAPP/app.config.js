@@ -29,7 +29,7 @@ export default {
       }
     },
     web: {
-      favicon: "./assets/images/favicon.png"
+      favicon: "./assets/images/icon.png"
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,

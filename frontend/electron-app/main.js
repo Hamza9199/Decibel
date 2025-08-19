@@ -14,9 +14,10 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true
     },
-    icon: path.join(__dirname, 'assets', 'icon.ico') 
+    icon: path.join(__dirname, 'assets', 'icon.ico') ,
+    autoHideMenuBar: true 
   });
-
+  win.setMenu(null);
   win.loadURL(`http://localhost:${PORT}`);
 }
 

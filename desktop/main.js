@@ -59,6 +59,7 @@ function createTray() {
     { label: 'Decibel', icon: trayIcon, enabled: false },
     { type: 'separator' },
     { label: 'Open', click: () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } else createWindow(); } },
+    { label: 'Minimize', click: () => { if (win) { try { win.minimize(); } catch {} } } },
     { label: 'Always on top', type: 'checkbox', checked: !!(win && win.isAlwaysOnTop && win.isAlwaysOnTop()), click: (menuItem) => { if (win) win.setAlwaysOnTop(menuItem.checked); } },
     { label: 'Start at login', type: 'checkbox', checked: autoLaunch, click: (menuItem) => {
       const enable = !!menuItem.checked;

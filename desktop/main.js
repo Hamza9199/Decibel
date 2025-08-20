@@ -3,6 +3,12 @@ const path = require('path');
 const express = require('express');
 const fs = require('fs');
 
+try {
+  app.setAppUserModelId('com.decibel.desktop');
+  app.setName('Decibel');
+  app.setPath('userData', path.join(app.getPath('appData'), 'Decibel'));
+} catch {}
+
 let win;
 let tray;
 

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-labelledby="title" role="img">
+  <title id="title">Decibel Icon</title>
+  <defs>
+    <style>
+      .note { fill: #f8c9cf; }
+    </style>
+  </defs>
+
+  <!-- Large beamed note (top-left) -->
+  <g class="note">
+    <!-- Beam -->
+    <rect x="160" y="112" width="176" height="28" rx="6"/>
+    <!-- Left stem -->
+    <rect x="184" y="140" width="28" height="180" rx="6"/>
+    <!-- Right stem -->
+    <rect x="308" y="140" width="28" height="180" rx="6"/>
+    <!-- Heads -->
+    <rect x="124" y="320" width="68" height="68" rx="10"/>
+    <rect x="252" y="320" width="68" height="68" rx="10"/>
+  </g>
+
+  <!-- Mid note (bottom-middle) -->
+  <g class="note">
+    <rect x="332" y="228" width="26" height="172" rx="6"/>
+    <rect x="292" y="380" width="58" height="58" rx="10"/>
+  </g>
+
+  <!-- Small note (bottom-right) -->
+  <g class="note">
+    <rect x="428" y="256" width="24" height="156" rx="6"/>
+    <rect x="388" y="360" width="50" height="50" rx="10"/>
+  </g>
+</svg>

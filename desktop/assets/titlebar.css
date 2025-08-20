@@ -1,0 +1,44 @@
+:root { --tb-height: 36px; --tb-offset: var(--tb-height); }
+html, body { margin: 0 !important; }
+html { scroll-padding-top: var(--tb-offset) !important; }
+body { padding-top: var(--tb-offset) !important; }
+html.tb-use-spacer body { padding-top: 0 !important; }
+
+#titlebar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--tb-height);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 8px;
+  background: linear-gradient(90deg, #DC97C6 0%, #000000 100%);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  -webkit-app-region: drag;
+  z-index: 2147483647;
+}
+#titlebar .tb-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#titlebar .tb-icon { width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; -webkit-app-region: no-drag; }
+#titlebar .tb-icon img, #titlebar .tb-icon svg { width: 16px; height: 16px; display: block; }
+#titlebar .tb-title { font-size: 12.5px; font-weight: 600; opacity: 0.95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#titlebar .tb-right { display: flex; align-items: center; gap: 4px; -webkit-app-region: no-drag; }
+#titlebar .tb-btn { width: 46px; height: var(--tb-height); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; color: #ffffff; opacity: 0.9; transition: background-color 120ms ease, opacity 120ms ease; -webkit-app-region: no-drag; }
+#titlebar .tb-btn:hover { background-color: rgba(255,255,255,0.08); opacity: 1; }
+#titlebar .tb-btn.close:hover { background-color: #e81123; }
+#titlebar .tb-btn svg { width: 12px; height: 12px; display: block; }
+#titlebar .tb-btn svg path { stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); }
+::-webkit-scrollbar-thumb { background: #DC97C6; border-radius: 8px; border: 2px solid rgba(0,0,0,0.15); }
+::-webkit-scrollbar-thumb:hover { background: #c274a8; }
+
+#titlebar-spacer, .tb-spacer {
+  height: var(--tb-offset);
+  pointer-events: none;
+  user-select: none;
+  flex: 0 0 auto;
+}
+
+.tb-push { top: var(--tb-offset) !important; }

@@ -29,7 +29,8 @@
       "main.js",
       "package.json",
       "assets/**/*",
-      "dist/**/*"
+      "dist/**/*",
+      "preload.js"
     ]
   },
   "dependencies": {

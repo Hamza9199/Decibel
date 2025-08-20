@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electron');
 const path = require('path');
 const express = require('express');
 const fs = require('fs');
@@ -21,27 +21,56 @@ const gotTheLock = app.requestSingleInstanceLock();
 
 const server = express();
 server.use(express.static(path.join(__dirname, 'dist')));
+server.use('/assets', express.static(path.join(__dirname, 'assets')));
 const PORT = 3000;
 server.listen(PORT, () => console.log(`Serving on http://localhost:${PORT}`));
+
+function attachWinEvents(w) {
+  try {
+    w.setMenu(null);
+    w.on('close', (event) => {
+      event.preventDefault();
+      try { w.hide(); } catch {}
+    });
+    w.on('maximize', () => { try { w.webContents.send('window-state', { isMaximized: true }); } catch {} });
+    w.on('unmaximize', () => { try { w.webContents.send('window-state', { isMaximized: false }); } catch {} });
+  } catch {}
+}
 
 function createWindow() {
   if (win) return;
 
-  win = new BrowserWindow({
-    width: 1024,
-    height: 768,
-    webPreferences: { contextIsolation: true },
-    icon: path.join(__dirname, 'assets', 'icon.ico'),
-    autoHideMenuBar: true
+  const commonPrefs = { contextIsolation: true, preload: path.join(__dirname, 'preload.js'), webSecurity: false };
+  const commonOpts = { width: 1024, height: 768, icon: path.join(__dirname, 'assets', 'icon.ico'), autoHideMenuBar: true };
+
+  let resolved = false;
+  let timer;
+
+  const makeFrameless = () => {
+    win = new BrowserWindow({ ...commonOpts, webPreferences: commonPrefs, frame: false, show: false, ...(isMac ? { titleBarStyle: 'hiddenInset' } : {}) });
+    attachWinEvents(win);
+    win.loadURL(`http://localhost:${PORT}`);
+  };
+
+  const makeFramed = () => {
+    if (win) { try { win.destroy(); } catch {} }
+    win = new BrowserWindow({ ...commonOpts, webPreferences: commonPrefs, frame: true, show: true });
+    attachWinEvents(win);
+    win.loadURL(`http://localhost:${PORT}`);
+  };
+
+  ipcMain.once('preload-ready', () => {
+    resolved = true;
+    try { clearTimeout(timer); } catch {}
+    try { if (win) win.show(); } catch {}
   });
 
-  win.setMenu(null);
-  win.loadURL(`http://localhost:${PORT}`);
+  makeFrameless();
 
-  win.on('close', (event) => {
-    event.preventDefault();
-    win.hide();
-  });
+  timer = setTimeout(() => {
+    if (resolved) return;
+    makeFramed();
+  }, 2500);
 }
 
 function createTray() {
@@ -130,6 +159,41 @@ if (!gotTheLock) {
     createTray();
   });
 }
+
+ipcMain.on('window-controls', (_evt, action) => {
+  if (!win) return;
+  try {
+    switch (action) {
+      case 'minimize': win.minimize(); break;
+      case 'maximize': win.maximize(); break;
+      case 'restore':
+        if (win.isMaximized()) { win.unmaximize(); }
+        else { win.restore(); }
+        break;
+      case 'toggle': win.isMaximized() ? win.unmaximize() : win.maximize(); break;
+      case 'close': win.close(); break; 
+      default: break;
+    }
+  } catch {}
+});
+
+ipcMain.handle('get-app-icon', async () => {
+  try {
+    const size = 16;
+    const candidates = ['icon.png', 'icon.ico', 'icon.jpg', 'icon.jpeg'];
+    for (const name of candidates) {
+      try {
+        const p = path.join(__dirname, 'assets', name);
+        let img = nativeImage.createFromPath(p);
+        if (!img || (img.isEmpty && img.isEmpty())) continue;
+        if (img.resize) img = img.resize({ width: size, height: size });
+        const dataUrl = img.toDataURL ? img.toDataURL() : null;
+        if (dataUrl) return dataUrl;
+      } catch {}
+    }
+  } catch {}
+  return null;
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

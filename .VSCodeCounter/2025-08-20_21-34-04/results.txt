@@ -1,0 +1,513 @@
+Date : 2025-08-20 21:34:04
+Directory : c:\Users\User\Desktop\priv\Diplomski\Decibel
+Total : 360 files,  75742 codes, 303 comments, 6168 blanks, all 82213 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| JSON               |         16 |     25,036 |          4 |         24 |     25,064 |
+| TypeScript JSX     |         99 |     22,447 |         55 |      2,435 |     24,937 |
+| PostCSS            |         64 |     15,404 |         45 |      2,272 |     17,721 |
+| TypeScript         |         79 |      7,231 |          9 |        263 |      7,503 |
+| Python             |         70 |      3,493 |        149 |        740 |      4,382 |
+| MS SQL             |         14 |        716 |         33 |        125 |        874 |
+| Markdown           |          4 |        681 |          0 |        208 |        889 |
+| JavaScript         |          6 |        432 |          1 |         69 |        502 |
+| pip requirements   |          1 |        125 |          0 |          0 |        125 |
+| Ini                |          1 |        116 |          0 |         26 |        142 |
+| XML                |          3 |         26 |          7 |          3 |         36 |
+| JSON with Comments |          2 |         22 |          0 |          2 |         24 |
+| HTML               |          1 |         13 |          0 |          1 |         14 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                             | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                |        360 |     75,742 |        303 |      6,168 |     82,213 |
+| . (Files)                                                                                                        |          1 |          6 |          0 |          4 |         10 |
+| backend                                                                                                          |         72 |      3,734 |        149 |        766 |      4,649 |
+| backend (Files)                                                                                                  |          3 |        367 |          0 |         56 |        423 |
+| backend\alembic                                                                                                  |          3 |         64 |         57 |         34 |        155 |
+| backend\alembic (Files)                                                                                          |          1 |         42 |         29 |         18 |         89 |
+| backend\alembic\versions                                                                                         |          2 |         22 |         28 |         16 |         66 |
+| backend\kontroleri                                                                                               |         19 |        752 |         11 |        140 |        903 |
+| backend\modeli                                                                                                   |         24 |        640 |          3 |        162 |        805 |
+| backend\rute                                                                                                     |         19 |      1,497 |          9 |        285 |      1,791 |
+| backend\servisi                                                                                                  |          4 |        414 |         69 |         89 |        572 |
+| baza                                                                                                             |         14 |        716 |         33 |        125 |        874 |
+| desktop                                                                                                          |          6 |      6,091 |          8 |         68 |      6,167 |
+| desktop (Files)                                                                                                  |          4 |      6,028 |          0 |         60 |      6,088 |
+| desktop\assets                                                                                                   |          2 |         63 |          8 |          8 |         79 |
+| dokumentacija                                                                                                    |          1 |        604 |          0 |        173 |        777 |
+| frontend                                                                                                         |        132 |     28,761 |         86 |      3,025 |     31,872 |
+| frontend (Files)                                                                                                 |         10 |      3,627 |          5 |         25 |      3,657 |
+| frontend\public                                                                                                  |          1 |          1 |          0 |          0 |          1 |
+| frontend\src                                                                                                     |        121 |     25,133 |         81 |      3,000 |     28,214 |
+| frontend\src (Files)                                                                                             |          6 |        600 |          2 |         59 |        661 |
+| frontend\src\assets                                                                                              |          2 |         44 |          0 |          9 |         53 |
+| frontend\src\config                                                                                              |          1 |         15 |          0 |          2 |         17 |
+| frontend\src\komponente                                                                                          |         16 |      4,131 |         11 |        281 |      4,423 |
+| frontend\src\komponente\AudioPlayer                                                                              |          2 |      1,737 |          7 |        107 |      1,851 |
+| frontend\src\komponente\Footer                                                                                   |          3 |        308 |          0 |         22 |        330 |
+| frontend\src\komponente\Header                                                                                   |          3 |        383 |          1 |         41 |        425 |
+| frontend\src\komponente\Loading                                                                                  |          2 |         92 |          1 |         11 |        104 |
+| frontend\src\komponente\Search                                                                                   |          3 |        521 |          1 |         41 |        563 |
+| frontend\src\komponente\Sidebar                                                                                  |          3 |      1,090 |          1 |         59 |      1,150 |
+| frontend\src\locales                                                                                             |          3 |        716 |          0 |          4 |        720 |
+| frontend\src\locales\bs                                                                                          |          1 |        242 |          0 |          1 |        243 |
+| frontend\src\locales\de                                                                                          |          1 |        237 |          0 |          1 |        238 |
+| frontend\src\locales\en                                                                                          |          1 |        237 |          0 |          2 |        239 |
+| frontend\src\stranice                                                                                            |         75 |     19,392 |         68 |      2,621 |     22,081 |
+| frontend\src\stranice\AdminPanel                                                                                 |          3 |      1,146 |          3 |        158 |      1,307 |
+| frontend\src\stranice\Album                                                                                      |          3 |      1,277 |          3 |        174 |      1,454 |
+| frontend\src\stranice\Historija                                                                                  |          3 |        748 |          3 |         89 |        840 |
+| frontend\src\stranice\Home                                                                                       |          3 |      1,044 |          0 |        112 |      1,156 |
+| frontend\src\stranice\Izvodjac                                                                                   |          3 |        822 |          1 |        120 |        943 |
+| frontend\src\stranice\Login                                                                                      |          3 |        465 |          1 |         70 |        536 |
+| frontend\src\stranice\NovaPjesma                                                                                 |          3 |      1,029 |          5 |        126 |      1,160 |
+| frontend\src\stranice\NovaPlaylista                                                                              |          3 |        618 |          1 |         94 |        713 |
+| frontend\src\stranice\NovaPretplata                                                                              |          3 |        952 |          7 |        137 |      1,096 |
+| frontend\src\stranice\NoviAlbum                                                                                  |          3 |        634 |          4 |         91 |        729 |
+| frontend\src\stranice\Omiljeno                                                                                   |          3 |        947 |          2 |         96 |      1,045 |
+| frontend\src\stranice\Pjesma                                                                                     |          3 |      1,174 |          1 |        151 |      1,326 |
+| frontend\src\stranice\Playlista                                                                                  |          3 |      1,135 |          4 |        171 |      1,310 |
+| frontend\src\stranice\Postavke                                                                                   |          3 |        510 |          1 |         66 |        577 |
+| frontend\src\stranice\Pretplata                                                                                  |          3 |        683 |          1 |        111 |        795 |
+| frontend\src\stranice\Register                                                                                   |          3 |        401 |          1 |         56 |        458 |
+| frontend\src\stranice\Statistika                                                                                 |          3 |        635 |          1 |         73 |        709 |
+| frontend\src\stranice\SvePjesme                                                                                  |          3 |        676 |          1 |         97 |        774 |
+| frontend\src\stranice\SvePlayliste                                                                               |          3 |        523 |          1 |         77 |        601 |
+| frontend\src\stranice\SviAlbumi                                                                                  |          3 |        606 |          1 |         84 |        691 |
+| frontend\src\stranice\SviKorisnici                                                                               |          3 |        989 |         10 |        121 |      1,120 |
+| frontend\src\stranice\UrediAlbum                                                                                 |          3 |        616 |          5 |         92 |        713 |
+| frontend\src\stranice\UrediPjesmu                                                                                |          3 |        650 |          5 |         88 |        743 |
+| frontend\src\stranice\UrediPlaylistu                                                                             |          3 |        576 |          5 |         90 |        671 |
+| frontend\src\stranice\UrediProfil                                                                                |          3 |        536 |          1 |         77 |        614 |
+| frontend\src\types                                                                                               |         18 |        235 |          0 |         24 |        259 |
+| mobilnaAPP                                                                                                       |        134 |     35,830 |         27 |      2,007 |     37,864 |
+| mobilnaAPP (Files)                                                                                               |          9 |     14,198 |          1 |         40 |     14,239 |
+| mobilnaAPP\app                                                                                                   |         32 |        617 |          1 |        114 |        732 |
+| mobilnaAPP\app (Files)                                                                                           |         19 |        465 |          1 |         79 |        545 |
+| mobilnaAPP\app\(tabs)                                                                                            |          4 |         92 |          0 |         17 |        109 |
+| mobilnaAPP\app\album                                                                                             |          1 |          7 |          0 |          2 |          9 |
+| mobilnaAPP\app\izvodjac                                                                                          |          1 |          7 |          0 |          2 |          9 |
+| mobilnaAPP\app\nova-pretplata                                                                                    |          1 |          7 |          0 |          2 |          9 |
+| mobilnaAPP\app\omiljeno                                                                                          |          1 |         10 |          0 |          2 |         12 |
+| mobilnaAPP\app\pjesma                                                                                            |          1 |          7 |          0 |          2 |          9 |
+| mobilnaAPP\app\playlista                                                                                         |          1 |          7 |          0 |          2 |          9 |
+| mobilnaAPP\app\uredi-album                                                                                       |          1 |          5 |          0 |          2 |          7 |
+| mobilnaAPP\app\uredi-pjesmu                                                                                      |          1 |          5 |          0 |          2 |          7 |
+| mobilnaAPP\app\uredi-playlistu                                                                                   |          1 |          5 |          0 |          2 |          7 |
+| mobilnaAPP\config                                                                                                |          2 |         54 |          0 |         12 |         66 |
+| mobilnaAPP\context                                                                                               |          1 |        137 |          0 |         19 |        156 |
+| mobilnaAPP\hooks                                                                                                 |          3 |        416 |          1 |         57 |        474 |
+| mobilnaAPP\komponente                                                                                            |         10 |      2,570 |          7 |        257 |      2,834 |
+| mobilnaAPP\komponente\AudioPlayer                                                                                |          2 |      1,336 |          5 |        149 |      1,490 |
+| mobilnaAPP\komponente\Back                                                                                       |          2 |        226 |          0 |         32 |        258 |
+| mobilnaAPP\komponente\Header                                                                                     |          2 |        243 |          0 |         19 |        262 |
+| mobilnaAPP\komponente\Sidebar                                                                                    |          2 |        645 |          2 |         46 |        693 |
+| mobilnaAPP\komponente\Tabs                                                                                       |          2 |        120 |          0 |         11 |        131 |
+| mobilnaAPP\locales                                                                                               |          3 |      1,075 |          0 |          6 |      1,081 |
+| mobilnaAPP\locales\bs                                                                                            |          1 |        373 |          0 |          1 |        374 |
+| mobilnaAPP\locales\de                                                                                            |          1 |        349 |          0 |          3 |        352 |
+| mobilnaAPP\locales\en                                                                                            |          1 |        353 |          0 |          2 |        355 |
+| mobilnaAPP\screens                                                                                               |         56 |     16,528 |         17 |      1,478 |     18,023 |
+| mobilnaAPP\screens\AdminPanel                                                                                    |          2 |        696 |          1 |         56 |        753 |
+| mobilnaAPP\screens\Album                                                                                         |          2 |        706 |          1 |         56 |        763 |
+| mobilnaAPP\screens\Biblioteka                                                                                    |          2 |        986 |          2 |         84 |      1,072 |
+| mobilnaAPP\screens\Historija                                                                                     |          2 |        525 |          1 |         46 |        572 |
+| mobilnaAPP\screens\Home                                                                                          |          2 |        512 |          0 |         50 |        562 |
+| mobilnaAPP\screens\Izvodjac                                                                                      |          2 |        597 |          1 |         68 |        666 |
+| mobilnaAPP\screens\Login                                                                                         |          2 |        340 |          1 |         33 |        374 |
+| mobilnaAPP\screens\NovaPjesma                                                                                    |          2 |        569 |          0 |         52 |        621 |
+| mobilnaAPP\screens\NovaPlaylista                                                                                 |          2 |        496 |          0 |         46 |        542 |
+| mobilnaAPP\screens\NovaPretplata                                                                                 |          2 |        519 |          2 |         55 |        576 |
+| mobilnaAPP\screens\NoviAlbum                                                                                     |          2 |        614 |          0 |         56 |        670 |
+| mobilnaAPP\screens\Offline                                                                                       |          2 |        261 |          0 |         18 |        279 |
+| mobilnaAPP\screens\Omiljeno                                                                                      |          2 |        635 |          1 |         61 |        697 |
+| mobilnaAPP\screens\Pjesma                                                                                        |          2 |        939 |          0 |         75 |      1,014 |
+| mobilnaAPP\screens\Playlista                                                                                     |          2 |        784 |          0 |         66 |        850 |
+| mobilnaAPP\screens\Postavke                                                                                      |          2 |        469 |          2 |         42 |        513 |
+| mobilnaAPP\screens\Pretplata                                                                                     |          2 |        481 |          0 |         34 |        515 |
+| mobilnaAPP\screens\Register                                                                                      |          2 |        420 |          0 |         35 |        455 |
+| mobilnaAPP\screens\Search                                                                                        |          2 |        557 |          1 |         54 |        612 |
+| mobilnaAPP\screens\Statistika                                                                                    |          2 |        687 |          1 |         46 |        734 |
+| mobilnaAPP\screens\SvePjesme                                                                                     |          2 |        402 |          0 |         37 |        439 |
+| mobilnaAPP\screens\SvePlayliste                                                                                  |          2 |        401 |          0 |         42 |        443 |
+| mobilnaAPP\screens\SviAlbumi                                                                                     |          2 |        402 |          0 |         38 |        440 |
+| mobilnaAPP\screens\SviKorisnici                                                                                  |          2 |        778 |          1 |         68 |        847 |
+| mobilnaAPP\screens\UrediAlbum                                                                                    |          2 |        689 |          0 |         62 |        751 |
+| mobilnaAPP\screens\UrediPjesmu                                                                                   |          2 |        796 |          1 |         79 |        876 |
+| mobilnaAPP\screens\UrediPlaylistu                                                                                |          2 |        659 |          1 |         57 |        717 |
+| mobilnaAPP\screens\UrediProfil                                                                                   |          2 |        608 |          0 |         62 |        670 |
+| mobilnaAPP\types                                                                                                 |         18 |        235 |          0 |         24 |        259 |
++------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                                                         | language           | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\README.md                                                           | Markdown           |          6 |          0 |          4 |         10 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\alembic.ini                                                 | Ini                |        116 |          0 |         26 |        142 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\alembic\env.py                                              | Python             |         42 |         29 |         18 |         89 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\alembic\versions\53b76fa31c7f_dodao_novi_model.py           | Python             |         11 |         14 |          8 |         33 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\alembic\versions\b69eb2ed7951_dodao_novi_model.py           | Python             |         11 |         14 |          8 |         33 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\AlbumKontroler.py                                | Python             |         49 |          1 |          9 |         59 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\HistorijaSlusanjaKontroler.py                    | Python             |         41 |          4 |          9 |         54 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\IzvodjacPjesmaKontroler.py                       | Python             |         30 |          1 |          6 |         37 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\KomentarKontroler.py                             | Python             |         31 |          0 |          9 |         40 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\KorisnikAlbumKontroler.py                        | Python             |         44 |          0 |          7 |         51 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\KorisnikKontroler.py                             | Python             |         77 |          0 |         11 |         88 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\KorisnikPjesmaKontroler.py                       | Python             |         44 |          2 |          8 |         54 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\KorisnikPlaylistaKontroler.py                    | Python             |         44 |          1 |          9 |         54 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\KorisnikPretplataKontroler.py                    | Python             |         68 |          1 |          6 |         75 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\ObnovaPretplateKontroler.py                      | Python             |         24 |          0 |          6 |         30 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\PjesmaKontroler.py                               | Python             |         40 |          0 |          7 |         47 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\PjesmaPlaylistaKontroler.py                      | Python             |         26 |          0 |          6 |         32 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\PlaylistaKontroler.py                            | Python             |         44 |          1 |          9 |         54 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\PratilacKorisnikKontroler.py                     | Python             |         55 |          0 |         12 |         67 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\PretplataKontroler.py                            | Python             |         32 |          0 |          7 |         39 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\PrijavaIzvodjacaKontroler.py                     | Python             |         32 |          0 |          5 |         37 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\StatistikaReprodukcijeKontroler.py               | Python             |         29 |          0 |          6 |         35 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\SuspendovanKorisnikKontroler.py                  | Python             |         42 |          0 |          7 |         49 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\kontroleri\__init__.py                                      | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\main.py                                                     | Python             |        126 |          0 |         30 |        156 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\Album.py                                             | Python             |         42 |          0 |          9 |         51 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\HistorijaSlusanja.py                                 | Python             |         41 |          1 |          9 |         51 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\IzvodjacPjesma.py                                    | Python             |         27 |          0 |          7 |         34 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\Komentar.py                                          | Python             |         31 |          0 |          9 |         40 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KontekstPustanja.py                                  | Python             |          9 |          0 |          2 |         11 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\Korisnik.py                                          | Python             |         45 |          0 |          7 |         52 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KorisnikAlbum.py                                     | Python             |         28 |          0 |          8 |         36 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KorisnikPjesma.py                                    | Python             |         28 |          0 |          8 |         36 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KorisnikPlaylista.py                                 | Python             |         28 |          0 |          8 |         36 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KorisnikPretplata.py                                 | Python             |         39 |          0 |         10 |         49 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KorisnikRole.py                                      | Python             |          5 |          0 |          6 |         11 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\KorisnikStatus.py                                    | Python             |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\ObnovaPretplate.py                                   | Python             |         25 |          0 |          8 |         33 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\Pjesma.py                                            | Python             |         61 |          1 |          7 |         69 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\PjesmaPlaylista.py                                   | Python             |         28 |          0 |          7 |         35 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\PjesmaZanr.py                                        | Python             |         11 |          0 |          7 |         18 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\Playlista.py                                         | Python             |         38 |          0 |          9 |         47 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\PratilacKorisnik.py                                  | Python             |         23 |          1 |          7 |         31 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\Pretplata.py                                         | Python             |         25 |          0 |          7 |         32 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\PretplataStatus.py                                   | Python             |          6 |          0 |          2 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\PrijavaIzvodjaca.py                                  | Python             |         21 |          0 |          5 |         26 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\StatistikaReprodukcije.py                            | Python             |         28 |          0 |          8 |         36 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\SuspendovanKorisnik.py                               | Python             |         23 |          0 |          8 |         31 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\modeli\__init__.py                                          | Python             |         23 |          0 |          2 |         25 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\requirements.txt                                            | pip requirements   |        125 |          0 |          0 |        125 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\AlbumRuta.py                                           | Python             |        144 |          0 |         24 |        168 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\HistorijaSlusanjaRuta.py                               | Python             |         89 |          1 |         17 |        107 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\IzvodjacPjesmaRuta.py                                  | Python             |         46 |          0 |         12 |         58 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\KomentarRuta.py                                        | Python             |         57 |          0 |         13 |         70 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\KorisnikAlbumRuta.py                                   | Python             |         76 |          0 |         15 |         91 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\KorisnikPjesmaRuta.py                                  | Python             |         76 |          0 |         13 |         89 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\KorisnikPlaylistaRuta.py                               | Python             |         76 |          0 |         16 |         92 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\KorisnikPretplataRuta.py                               | Python             |         63 |          0 |         12 |         75 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\KorisnikRuta.py                                        | Python             |        102 |          1 |         18 |        121 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\ObnovaPretplateRuta.py                                 | Python             |         46 |          0 |         12 |         58 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\PjesmaPlaylistaRuta.py                                 | Python             |        115 |          6 |         19 |        140 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\PjesmaRuta.py                                          | Python             |        191 |          0 |         26 |        217 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\PlaylistaRuta.py                                       | Python             |        139 |          0 |         22 |        161 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\PratilacKorisnikRuta.py                                | Python             |         53 |          0 |         16 |         69 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\PretplataRuta.py                                       | Python             |         53 |          0 |         13 |         66 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\PrijavaIzvodjacaRuta.py                                | Python             |         46 |          0 |         10 |         56 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\StatistikaReprodukcijeRuta.py                          | Python             |         66 |          1 |         12 |         79 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\SuspendovanKorisnikRuta.py                             | Python             |         59 |          0 |         14 |         73 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\rute\__init__.py                                            | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\servisi\Baza.py                                             | Python             |         22 |          0 |          7 |         29 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\servisi\FirebaseStorage.py                                  | Python             |         48 |         22 |          6 |         76 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\servisi\PlaylistaRedoslijed.py                              | Python             |        344 |         47 |         75 |        466 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\backend\servisi\__init__.py                                         | Python             |          0 |          0 |          1 |          1 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\dodaj_pjesmu_na_kraj_liste.sql                                 | MS SQL             |         18 |          0 |          5 |         23 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\get_redoslijed_pjesama.sql                                     | MS SQL             |         49 |          5 |         11 |         65 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\obrisi_pjesmu.sql                                              | MS SQL             |         48 |          0 |         11 |         59 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\postoji_pjesma_u_playlisti.sql                                 | MS SQL             |          6 |          0 |          1 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\prebroj_pjesme.sql                                             | MS SQL             |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\premjesti_na_pocetak.sql                                       | MS SQL             |         76 |          6 |         22 |        104 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\premjesti_pokazivac_na_prethodnu_pjesmu.sql                    | MS SQL             |          6 |          0 |          2 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\premjesti_pokazivac_na_sljedecu_pjesmu.sql                     | MS SQL             |          6 |          0 |          2 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\promjeni_redoslijed.sql                                        | MS SQL             |        184 |         14 |         30 |        228 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\pronadji_prvu_pjesmu.sql                                       | MS SQL             |          7 |          0 |          1 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\pronadji_zadnju_pjesmu.sql                                     | MS SQL             |          7 |          0 |          1 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\skripta.sql                                                    | MS SQL             |        191 |          0 |         19 |        210 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\stari_shift.sql                                                | MS SQL             |         92 |          8 |         17 |        117 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\baza\statistika.sql                                                 | MS SQL             |         19 |          0 |          1 |         20 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\desktop\assets\icon.svg                                             | XML                |         24 |          7 |          3 |         34 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\desktop\assets\titlebar.css                                         | PostCSS            |         39 |          1 |          5 |         45 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\desktop\main.js                                                     | JavaScript         |        179 |          0 |         28 |        207 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\desktop\package-lock.json                                           | JSON               |      5,634 |          0 |          1 |      5,635 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\desktop\package.json                                                | JSON               |         45 |          0 |          1 |         46 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\desktop\preload.js                                                  | JavaScript         |        170 |          0 |         30 |        200 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\dokumentacija\Dokumentacija.md                                      | Markdown           |        604 |          0 |        173 |        777 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\README.md                                                  | Markdown           |         40 |          0 |         11 |         51 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\eslint.config.js                                           | JavaScript         |         27 |          0 |          2 |         29 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\index.html                                                 | HTML               |         13 |          0 |          1 |         14 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\package-lock.json                                          | JSON               |      3,449 |          0 |          1 |      3,450 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\package.json                                               | JSON               |         36 |          0 |          1 |         37 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\public\vite.svg                                            | XML                |          1 |          0 |          0 |          1 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\App.css                                                | PostCSS            |         51 |          0 |          9 |         60 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\App.tsx                                                | TypeScript JSX     |        422 |          1 |         29 |        452 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\assets\logo.css                                        | PostCSS            |         43 |          0 |          9 |         52 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\assets\react.svg                                       | XML                |          1 |          0 |          0 |          1 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\config\queryClient.ts                                  | TypeScript         |         15 |          0 |          2 |         17 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\i18n.ts                                                | TypeScript         |         22 |          0 |          5 |         27 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\index.css                                              | PostCSS            |         92 |          0 |         10 |        102 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\AudioPlayer\AudioPlayer.module.css          | PostCSS            |        484 |          0 |         33 |        517 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\AudioPlayer\AudioPlayer.tsx                 | TypeScript JSX     |      1,253 |          7 |         74 |      1,334 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Footer\Footer.module.css                    | PostCSS            |        116 |          0 |          7 |        123 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Footer\Footer.tsx                           | TypeScript JSX     |         75 |          0 |          9 |         84 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Footer\FooterWhite.module.css               | PostCSS            |        117 |          0 |          6 |        123 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Header\Header.module.css                    | PostCSS            |        113 |          0 |         14 |        127 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Header\Header.tsx                           | TypeScript JSX     |        155 |          1 |         18 |        174 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Header\HeaderWhite.module.css               | PostCSS            |        115 |          0 |          9 |        124 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Loading\Loading.module.css                  | PostCSS            |         60 |          0 |          6 |         66 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Loading\Loading.tsx                         | TypeScript JSX     |         32 |          1 |          5 |         38 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Search\Search.module.css                    | PostCSS            |        144 |          0 |         12 |        156 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Search\Search.tsx                           | TypeScript JSX     |        231 |          1 |         18 |        250 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Search\SearchWhite.module.css               | PostCSS            |        146 |          0 |         11 |        157 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Sidebar\Sidebar.module.css                  | PostCSS            |        334 |          0 |         19 |        353 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Sidebar\Sidebar.tsx                         | TypeScript JSX     |        422 |          1 |         22 |        445 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\komponente\Sidebar\SidebarWhite.module.css             | PostCSS            |        334 |          0 |         18 |        352 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\locales\bs\translation.json                            | JSON               |        242 |          0 |          1 |        243 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\locales\de\translation.json                            | JSON               |        237 |          0 |          1 |        238 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\locales\en\translation.json                            | JSON               |        237 |          0 |          2 |        239 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\main.tsx                                               | TypeScript JSX     |         13 |          0 |          5 |         18 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\AdminPanel\AdminPanel.module.css              | PostCSS            |        368 |          2 |         66 |        436 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\AdminPanel\AdminPanel.tsx                     | TypeScript JSX     |        401 |          1 |         27 |        429 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\AdminPanel\AdminPanelWhite.module.css         | PostCSS            |        377 |          0 |         65 |        442 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Album\Album.module.css                        | PostCSS            |        620 |          2 |        112 |        734 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Album\Album.tsx                               | TypeScript JSX     |        331 |          1 |         30 |        362 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Album\AlbumWhite.module.css                   | PostCSS            |        326 |          0 |         32 |        358 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Historija\Historija.module.css                | PostCSS            |        326 |          2 |         52 |        380 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Historija\Historija.tsx                       | TypeScript JSX     |        240 |          1 |         19 |        260 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Historija\HistorijaWhite.module.css           | PostCSS            |        182 |          0 |         18 |        200 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Home\Home.module.css                          | PostCSS            |        378 |          0 |         45 |        423 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Home\Home.tsx                                 | TypeScript JSX     |        287 |          0 |         24 |        311 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Home\HomeWhite.module.css                     | PostCSS            |        379 |          0 |         43 |        422 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Izvodjac\Izvodjac.module.css                  | PostCSS            |        412 |          0 |         74 |        486 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Izvodjac\Izvodjac.tsx                         | TypeScript JSX     |        298 |          1 |         24 |        323 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Izvodjac\IzvodjacWhite.module.css             | PostCSS            |        112 |          0 |         22 |        134 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Login\Login.module.css                        | PostCSS            |        174 |          0 |         30 |        204 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Login\Login.tsx                               | TypeScript JSX     |        114 |          1 |         11 |        126 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Login\LoginWhite.module.css                   | PostCSS            |        177 |          0 |         29 |        206 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPjesma\NovaPjesma.module.css              | PostCSS            |        392 |          2 |         54 |        448 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPjesma\NovaPjesma.tsx                     | TypeScript JSX     |        245 |          1 |         19 |        265 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPjesma\NovaPjesmaWhite.module.css         | PostCSS            |        392 |          2 |         53 |        447 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPlaylista\NovaPlaylista.module.css        | PostCSS            |        225 |          0 |         39 |        264 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPlaylista\NovaPlaylista.tsx               | TypeScript JSX     |        163 |          1 |         17 |        181 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPlaylista\NovaPlaylistaWhite.module.css   | PostCSS            |        230 |          0 |         38 |        268 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPretplata\NovaPretplata.module.css        | PostCSS            |        488 |          3 |         90 |        581 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPretplata\NovaPretplata.tsx               | TypeScript JSX     |        302 |          1 |         27 |        330 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NovaPretplata\NovaPretplataWhite.module.css   | PostCSS            |        162 |          3 |         20 |        185 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NoviAlbum\NoviAlbum.module.css                | PostCSS            |        320 |          2 |         56 |        378 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NoviAlbum\NoviAlbum.tsx                       | TypeScript JSX     |        161 |          0 |         15 |        176 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\NoviAlbum\NoviAlbumWhite.module.css           | PostCSS            |        153 |          2 |         20 |        175 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Omiljeno\Omiljeno.module.css                  | PostCSS            |        279 |          1 |         51 |        331 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Omiljeno\Omiljeno.tsx                         | TypeScript JSX     |        551 |          1 |         31 |        583 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Omiljeno\OmiljenoWhite.module.css             | PostCSS            |        117 |          0 |         14 |        131 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Pjesma\Pjesma.module.css                      | PostCSS            |        553 |          0 |        100 |        653 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Pjesma\Pjesma.tsx                             | TypeScript JSX     |        471 |          1 |         32 |        504 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Pjesma\PjesmaWhite.module.css                 | PostCSS            |        150 |          0 |         19 |        169 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Playlista\Playlista.module.css                | PostCSS            |        616 |          2 |        114 |        732 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Playlista\Playlista.tsx                       | TypeScript JSX     |        332 |          1 |         37 |        370 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Playlista\PlaylistaWhite.module.css           | PostCSS            |        187 |          1 |         20 |        208 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Postavke\Postavke.module.css                  | PostCSS            |        189 |          0 |         33 |        222 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Postavke\Postavke.tsx                         | TypeScript JSX     |        202 |          1 |         19 |        222 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Postavke\PostavkeWhite.module.css             | PostCSS            |        119 |          0 |         14 |        133 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Pretplata\Pretplata.module.css                | PostCSS            |        369 |          0 |         73 |        442 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Pretplata\Pretplata.tsx                       | TypeScript JSX     |        157 |          1 |         19 |        177 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Pretplata\PretplataWhite.module.css           | PostCSS            |        157 |          0 |         19 |        176 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Register\Register.module.css                  | PostCSS            |        182 |          0 |         31 |        213 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Register\Register.tsx                         | TypeScript JSX     |        107 |          1 |         12 |        120 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Register\RegisterWhite.module.css             | PostCSS            |        112 |          0 |         13 |        125 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Statistika\Statisitka.tsx                     | TypeScript JSX     |        285 |          1 |         15 |        301 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Statistika\Statistika.module.css              | PostCSS            |        250 |          0 |         47 |        297 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\Statistika\StatistikaWhite.module.css         | PostCSS            |        100 |          0 |         11 |        111 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SvePjesme\SvePjesme.module.css                | PostCSS            |        398 |          0 |         65 |        463 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SvePjesme\SvePjesme.tsx                       | TypeScript JSX     |        165 |          1 |         15 |        181 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SvePjesme\SvePjesmeWhite.module.css           | PostCSS            |        113 |          0 |         17 |        130 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SvePlayliste\SvePlayliste.module.css          | PostCSS            |        331 |          0 |         51 |        382 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SvePlayliste\SvePlayliste.tsx                 | TypeScript JSX     |        126 |          1 |         13 |        140 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SvePlayliste\SvePlaylisteWhite.module.css     | PostCSS            |         66 |          0 |         13 |         79 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SviAlbumi\SviAlbumi.module.css                | PostCSS            |        360 |          0 |         54 |        414 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SviAlbumi\SviAlbumi.tsx                       | TypeScript JSX     |        123 |          1 |         14 |        138 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SviAlbumi\SviAlbumiWhite.module.css           | PostCSS            |        123 |          0 |         16 |        139 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SviKorisnici\SviKorisnici.module.css          | PostCSS            |        550 |          4 |         87 |        641 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SviKorisnici\SviKorisnici.tsx                 | TypeScript JSX     |        297 |          2 |         16 |        315 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\SviKorisnici\SviKorisniciWhite.module.css     | PostCSS            |        142 |          4 |         18 |        164 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediAlbum\UrediAlbum.module.css              | PostCSS            |        310 |          2 |         51 |        363 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediAlbum\UrediAlbum.tsx                     | TypeScript JSX     |        208 |          1 |         21 |        230 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediAlbum\UrediAlbumWhite.module.css         | PostCSS            |         98 |          2 |         20 |        120 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediPjesmu\UrediPjesmu.module.css            | PostCSS            |        324 |          2 |         44 |        370 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediPjesmu\UrediPjesmu.tsx                   | TypeScript JSX     |        237 |          1 |         24 |        262 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediPjesmu\UrediPjesmuWhite.module.css       | PostCSS            |         89 |          2 |         20 |        111 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediPlaylistu\UrediPlaylistu.module.css      | PostCSS            |        306 |          2 |         51 |        359 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediPlaylistu\UrediPlaylistu.tsx             | TypeScript JSX     |        182 |          1 |         19 |        202 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediPlaylistu\UrediPlaylistuWhite.module.css | PostCSS            |         88 |          2 |         20 |        110 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediProfil\UrediProfil.module.css            | PostCSS            |        251 |          0 |         46 |        297 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediProfil\UrediProfil.tsx                   | TypeScript JSX     |        191 |          1 |         17 |        209 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\stranice\UrediProfil\UrediProfilWhite.module.css       | PostCSS            |         94 |          0 |         14 |        108 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\album.types.ts                                   | TypeScript         |         19 |          0 |          2 |         21 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\audiostate.types.ts                              | TypeScript         |          9 |          0 |          0 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\historijaslusanja.types.ts                       | TypeScript         |         29 |          0 |          2 |         31 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\index.ts                                         | TypeScript         |         17 |          0 |          1 |         18 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\izvodjacpjesmaveza.types.ts                      | TypeScript         |          5 |          0 |          0 |          5 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\komentar.types.ts                                | TypeScript         |          8 |          0 |          1 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\korisnik.types.ts                                | TypeScript         |         12 |          0 |          1 |         13 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\korisnikalbum.types.ts                           | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\korisnikpjesma.types.ts                          | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\korisnikplaylista.types.ts                       | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\korisnikpretplata.types.ts                       | TypeScript         |          9 |          0 |          1 |         10 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\pjesma.types.ts                                  | TypeScript         |         27 |          0 |          1 |         28 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\playlista.types.ts                               | TypeScript         |         18 |          0 |          1 |         19 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\pretplata.types.ts                               | TypeScript         |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\prijavaizvodjaca.types.ts                        | TypeScript         |          6 |          0 |          3 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\statistika.types.ts                              | TypeScript         |         23 |          0 |          2 |         25 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\statistikareprodukcije.types.ts                  | TypeScript         |         24 |          0 |          4 |         28 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\types\vezapjesmaplaylista.types.ts                     | TypeScript         |          7 |          0 |          0 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\src\vite-env.d.ts                                          | TypeScript         |          0 |          1 |          1 |          2 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\tsconfig.app.json                                          | JSON               |         22 |          2 |          3 |         27 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\tsconfig.json                                              | JSON with Comments |          7 |          0 |          1 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\tsconfig.node.json                                         | JSON               |         20 |          2 |          3 |         25 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\vercel.json                                                | JSON               |          8 |          0 |          0 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\frontend\vite.config.ts                                             | TypeScript         |          5 |          1 |          2 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\README.md                                                | Markdown           |         31 |          0 |         20 |         51 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app.config.js                                            | JavaScript         |         41 |          0 |          3 |         44 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app.json                                                 | JSON               |         64 |          0 |          2 |         66 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\(tabs)\_layout.tsx                                   | TypeScript JSX     |         73 |          0 |          9 |         82 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\(tabs)\index.tsx                                     | TypeScript JSX     |          5 |          0 |          3 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\(tabs)\library.tsx                                   | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\(tabs)\search.tsx                                    | TypeScript JSX     |          7 |          0 |          3 |         10 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\_layout.tsx                                          | TypeScript JSX     |        356 |          1 |         41 |        398 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\add-song.tsx                                         | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\admin-panel.tsx                                      | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\album\[albumId].tsx                                  | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\edit-profile.tsx                                     | TypeScript JSX     |          7 |          0 |          3 |         10 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\history.tsx                                          | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\index.tsx                                            | TypeScript JSX     |          4 |          0 |          2 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\izvodjac\[izvodjacId].tsx                            | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\login.tsx                                            | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\nova-pjesma.tsx                                      | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\nova-playlista.tsx                                   | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\nova-pretplata\[pretplataId].tsx                     | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\novi-album.tsx                                       | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\offline.tsx                                          | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\omiljeno\[tip].tsx                                   | TypeScript JSX     |         10 |          0 |          2 |         12 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\pjesma\[pjesmaId].tsx                                | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\playlista\[playlistaId].tsx                          | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\pretplata.tsx                                        | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\register.tsx                                         | TypeScript JSX     |          5 |          0 |          3 |          8 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\settings.tsx                                         | TypeScript JSX     |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\statistika.tsx                                       | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\sve-playliste.tsx                                    | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\svepjesme.tsx                                        | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\svi-albumi.tsx                                       | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\svi-korisnici.tsx                                    | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\uredi-album\[albumId].tsx                            | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\uredi-pjesmu\[pjesmaId].tsx                          | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\app\uredi-playlistu\[playlistaId].tsx                    | TypeScript JSX     |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\config\api.ts                                            | TypeScript         |         33 |          0 |          8 |         41 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\config\queryClient.ts                                    | TypeScript         |         21 |          0 |          4 |         25 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\context\AudioContext.tsx                                 | TypeScript JSX     |        137 |          0 |         19 |        156 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\eslint.config.js                                         | JavaScript         |          8 |          1 |          2 |         11 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\hooks\handleBackPress.ts                                 | TypeScript         |        173 |          0 |         22 |        195 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\hooks\usePushNotifications.ts                            | TypeScript         |        199 |          1 |         27 |        227 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\hooks\useScreenCleanup.ts                                | TypeScript         |         44 |          0 |          8 |         52 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\i18n.ts                                                  | TypeScript         |         65 |          0 |          6 |         71 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\AudioPlayer\AudioPlayer.styles.ts             | TypeScript         |        348 |          1 |         12 |        361 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\AudioPlayer\AudioPlayer.tsx                   | TypeScript JSX     |        988 |          4 |        137 |      1,129 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Back\Back.styles.ts                           | TypeScript         |         45 |          0 |          2 |         47 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Back\Back.tsx                                 | TypeScript JSX     |        181 |          0 |         30 |        211 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Header\Header.styles.ts                       | TypeScript         |        115 |          0 |          2 |        117 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Header\Header.tsx                             | TypeScript JSX     |        128 |          0 |         17 |        145 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Sidebar\Sidebar.styles.ts                     | TypeScript         |        128 |          0 |          3 |        131 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Sidebar\Sidebar.tsx                           | TypeScript JSX     |        517 |          2 |         43 |        562 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Tabs\Tabs.styles.ts                           | TypeScript         |         30 |          0 |          2 |         32 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\komponente\Tabs\Tabs.tsx                                 | TypeScript JSX     |         90 |          0 |          9 |         99 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\locales\bs\translation.json                              | JSON               |        373 |          0 |          1 |        374 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\locales\de\translation.json                              | JSON               |        349 |          0 |          3 |        352 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\locales\en\translation.json                              | JSON               |        353 |          0 |          2 |        355 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\metro.config.js                                          | JavaScript         |          7 |          0 |          4 |         11 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\package-lock.json                                        | JSON               |     13,883 |          0 |          1 |     13,884 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\package.json                                             | JSON               |         84 |          0 |          1 |         85 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\AdminPanel\AdminPanel.styles.ts                  | TypeScript         |        216 |          1 |          3 |        220 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\AdminPanel\AdminPanel.tsx                        | TypeScript JSX     |        480 |          0 |         53 |        533 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Album\Album.styles.ts                            | TypeScript         |        273 |          0 |          4 |        277 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Album\Album.tsx                                  | TypeScript JSX     |        433 |          1 |         52 |        486 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Biblioteka\Biblioteka.styles.ts                  | TypeScript         |        208 |          2 |          4 |        214 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Biblioteka\Biblioteka.tsx                        | TypeScript JSX     |        778 |          0 |         80 |        858 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Historija\Historija.styles.ts                    | TypeScript         |        188 |          0 |          4 |        192 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Historija\Historija.tsx                          | TypeScript JSX     |        337 |          1 |         42 |        380 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Home\Home.styles.ts                              | TypeScript         |        117 |          0 |          4 |        121 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Home\Home.tsx                                    | TypeScript JSX     |        395 |          0 |         46 |        441 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Izvodjac\Izvodjac.styles.ts                      | TypeScript         |        168 |          0 |          4 |        172 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Izvodjac\Izvodjac.tsx                            | TypeScript JSX     |        429 |          1 |         64 |        494 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Login\Login.styles.ts                            | TypeScript         |        132 |          1 |          4 |        137 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Login\Login.tsx                                  | TypeScript JSX     |        208 |          0 |         29 |        237 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NovaPjesma\NovaPjesma.styles.ts                  | TypeScript         |        191 |          0 |          4 |        195 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NovaPjesma\NovaPjesma.tsx                        | TypeScript JSX     |        378 |          0 |         48 |        426 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NovaPlaylista\NovaPlaylista.styles.ts            | TypeScript         |        191 |          0 |          3 |        194 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NovaPlaylista\NovaPlaylista.tsx                  | TypeScript JSX     |        305 |          0 |         43 |        348 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NovaPretplata\NovaPretplata.styles.ts            | TypeScript         |        179 |          0 |          4 |        183 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NovaPretplata\NovaPretplata.tsx                  | TypeScript JSX     |        340 |          2 |         51 |        393 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NoviAlbum\NoviAlbum.styles.ts                    | TypeScript         |        228 |          0 |          4 |        232 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\NoviAlbum\NoviAlbum.tsx                          | TypeScript JSX     |        386 |          0 |         52 |        438 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Offline\Offline.styles.ts                        | TypeScript         |        118 |          0 |          3 |        121 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Offline\Offline.tsx                              | TypeScript JSX     |        143 |          0 |         15 |        158 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Omiljeno\Omiljeno.styles.ts                      | TypeScript         |        146 |          0 |          3 |        149 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Omiljeno\Omiljeno.tsx                            | TypeScript JSX     |        489 |          1 |         58 |        548 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Pjesma\Pjesma.styles.ts                          | TypeScript         |        382 |          0 |          4 |        386 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Pjesma\Pjesma.tsx                                | TypeScript JSX     |        557 |          0 |         71 |        628 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Playlista\Playlista.styles.ts                    | TypeScript         |        288 |          0 |          3 |        291 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Playlista\Playlista.tsx                          | TypeScript JSX     |        496 |          0 |         63 |        559 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Postavke\Postavke.styles.ts                      | TypeScript         |        160 |          1 |          5 |        166 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Postavke\Postavke.tsx                            | TypeScript JSX     |        309 |          1 |         37 |        347 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Pretplata\Pretplata.styles.ts                    | TypeScript         |        213 |          0 |          4 |        217 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Pretplata\Pretplata.tsx                          | TypeScript JSX     |        268 |          0 |         30 |        298 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Register\Register.styles.ts                      | TypeScript         |        147 |          0 |          4 |        151 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Register\Register.tsx                            | TypeScript JSX     |        273 |          0 |         31 |        304 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Search\Search.styles.ts                          | TypeScript         |        182 |          0 |          3 |        185 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Search\Search.tsx                                | TypeScript JSX     |        375 |          1 |         51 |        427 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Statistika\Statistika.styles.ts                  | TypeScript         |        237 |          0 |          4 |        241 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\Statistika\Statistika.tsx                        | TypeScript JSX     |        450 |          1 |         42 |        493 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SvePjesme\SvePjesme.styles.ts                    | TypeScript         |        157 |          0 |          3 |        160 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SvePjesme\SvePjesme.tsx                          | TypeScript JSX     |        245 |          0 |         34 |        279 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SvePlayliste\SvePlayliste.styles.ts              | TypeScript         |        148 |          0 |          4 |        152 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SvePlayliste\SvePlayliste.tsx                    | TypeScript JSX     |        253 |          0 |         38 |        291 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SviAlbumi\SviAlbumi.styles.ts                    | TypeScript         |        148 |          0 |          4 |        152 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SviAlbumi\SviAlbumi.tsx                          | TypeScript JSX     |        254 |          0 |         34 |        288 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SviKorisnici\SviKorisnici.styles.ts              | TypeScript         |        252 |          0 |          5 |        257 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\SviKorisnici\SviKorisnici.tsx                    | TypeScript JSX     |        526 |          1 |         63 |        590 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediAlbum\UrediAlbum.styles.ts                  | TypeScript         |        210 |          0 |          4 |        214 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediAlbum\UrediAlbum.tsx                        | TypeScript JSX     |        479 |          0 |         58 |        537 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediPjesmu\UrediPjesmu.styles.ts                | TypeScript         |        245 |          0 |          4 |        249 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediPjesmu\UrediPjesmu.tsx                      | TypeScript JSX     |        551 |          1 |         75 |        627 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediPlaylistu\UrediPlaylistu.styles.ts          | TypeScript         |        216 |          0 |          5 |        221 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediPlaylistu\UrediPlaylistu.tsx                | TypeScript JSX     |        443 |          1 |         52 |        496 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediProfil\UrediProfil.styles.ts                | TypeScript         |        178 |          0 |          5 |        183 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\screens\UrediProfil\UrediProfil.tsx                      | TypeScript JSX     |        430 |          0 |         57 |        487 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\tsconfig.json                                            | JSON with Comments |         15 |          0 |          1 |         16 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\album.types.ts                                     | TypeScript         |         19 |          0 |          2 |         21 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\audiostate.types.ts                                | TypeScript         |          9 |          0 |          0 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\historijaslusanja.types.ts                         | TypeScript         |         29 |          0 |          2 |         31 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\index.ts                                           | TypeScript         |         17 |          0 |          1 |         18 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\izvodjacpjesmaveza.types.ts                        | TypeScript         |          5 |          0 |          0 |          5 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\komentar.types.ts                                  | TypeScript         |          8 |          0 |          1 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\korisnik.types.ts                                  | TypeScript         |         12 |          0 |          1 |         13 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\korisnikalbum.types.ts                             | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\korisnikpjesma.types.ts                            | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\korisnikplaylista.types.ts                         | TypeScript         |          5 |          0 |          1 |          6 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\korisnikpretplata.types.ts                         | TypeScript         |          9 |          0 |          1 |         10 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\pjesma.types.ts                                    | TypeScript         |         27 |          0 |          1 |         28 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\playlista.types.ts                                 | TypeScript         |         18 |          0 |          1 |         19 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\pretplata.types.ts                                 | TypeScript         |          7 |          0 |          2 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\prijavaizvodjaca.types.ts                          | TypeScript         |          6 |          0 |          3 |          9 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\statistika.types.ts                                | TypeScript         |         23 |          0 |          2 |         25 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\statistikareprodukcije.types.ts                    | TypeScript         |         24 |          0 |          4 |         28 |
+| c:\Users\User\Desktop\priv\Diplomski\Decibel\mobilnaAPP\types\vezapjesmaplaylista.types.ts                       | TypeScript         |          7 |          0 |          0 |          7 |
+| Total                                                                                                            |                    |     75,742 |        303 |      6,168 |     82,213 |
++------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

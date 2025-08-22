@@ -167,6 +167,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
+  draggingSong: { opacity: 0.7, borderColor: '#b91d95' },
   songHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -216,6 +217,7 @@ export const styles = StyleSheet.create({
   actionButtonRemove: {
     backgroundColor: '#e754a2',
   },
+  actionButtonDisabled: { opacity: 0.4 },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(24, 24, 24, 0.85)',

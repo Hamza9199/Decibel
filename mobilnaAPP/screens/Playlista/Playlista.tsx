@@ -10,6 +10,7 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +34,7 @@ const Playlista: React.FC = React.memo(() => {
   const [refreshing, setRefreshing] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/playlista/[playlistaId]', currentRoute: '/playlista/[playlistaId]' });
 
@@ -227,6 +229,24 @@ const Playlista: React.FC = React.memo(() => {
     }
   });
 
+  const reorderSongMutation = useMutation({
+    mutationFn: async ({ pjesmaId, prevId }: { pjesmaId: number; prevId: number | null }) => {
+      if (!playlistaId) throw new Error('No playlist ID');
+      await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, {
+        playlistaID: Number(playlistaId),
+        pjesmaID: pjesmaId,
+        nova_pozicija_iza_pjesmeID: prevId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['playlistSongs', playlistaId] });
+    },
+    onError: (error) => {
+      console.error('Error reordering song:', error);
+      Alert.alert(t('error'), t('error_reordering_song') || 'Error reordering song');
+    }
+  });
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.all([
@@ -303,68 +323,54 @@ const Playlista: React.FC = React.memo(() => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   }, []);
 
-  const renderSongItem = useCallback(({ item, index }: { item: Pjesma; index: number }) => {
+  const onDragEnd = useCallback(({ data, from, to }: { data: Pjesma[]; from: number; to: number }) => {
+    setLocalSongs(data);
+    if (from === to) return;
+    const moved = data[to];
+    let prevId: number | null = null;
+    if (to !== 0) prevId = data[to - 1].id;
+    reorderSongMutation.mutate({ pjesmaId: moved.id, prevId });
+  }, [reorderSongMutation]);
+
+  const renderDraggableItem = useCallback((params: RenderItemParams<Pjesma> & { getIndex?: () => number | undefined }) => {
+    const { item, drag, isActive } = params;
+    const index = (params as any).index ?? (typeof params.getIndex === 'function' ? params.getIndex() ?? 0 : localSongs.findIndex(s => s.id === item.id));
     const likeMap = likedSongsQuery.data || {};
     const isOwner = playlistQuery.data?.korisnikID === korisnikID;
-    
     return (
-      <View style={styles.songItem}>
+      <TouchableOpacity
+        style={[styles.songItem, isActive && styles.draggingSong]}
+        activeOpacity={0.9}
+        onLongPress={isOwner ? drag : undefined}
+        delayLongPress={120}
+      >
         <View style={styles.songHeader}>
           <Text style={styles.songNumber}>{index + 1}</Text>
           <View style={styles.songInfo}>
-            <Text style={styles.songTitle} numberOfLines={1}>
-              {item.naziv}
-            </Text>
-            <Text style={styles.songArtist} numberOfLines={1}>
-              {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-            </Text>
+            <Text style={styles.songTitle} numberOfLines={1}>{item.naziv}</Text>
+            <Text style={styles.songArtist} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
           </View>
-          <Text style={styles.songDuration}>
-            {formatDuration(item.trajanjeSekunde)}
-          </Text>
+          <Text style={styles.songDuration}>{formatDuration(item.trajanjeSekunde)}</Text>
         </View>
-        
         <View style={styles.songActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handlePlaySong(item)}
-          >
+          <TouchableOpacity style={styles.actionButton} onPress={() => handlePlaySong(item)}>
             <MaterialIcons name="play-arrow" size={20} color="#fff" />
           </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={[
-              styles.actionButton,
-              likeMap[item.id] && styles.actionButtonLiked
-            ]}
-            onPress={() => handleLikeSong(item.id)}
-          >
-            <MaterialIcons 
-              name={likeMap[item.id] ? 'favorite' : 'favorite-border'} 
-              size={18} 
-              color="#fff" 
-            />
+          <TouchableOpacity style={[styles.actionButton, likeMap[item.id] && styles.actionButtonLiked]} onPress={() => handleLikeSong(item.id)}>
+            <MaterialIcons name={likeMap[item.id] ? 'favorite' : 'favorite-border'} size={18} color="#fff" />
           </TouchableOpacity>
-          
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => setShowPlaylistModal(item.id)}
-          >
+            <TouchableOpacity style={styles.actionButton} onPress={() => setShowPlaylistModal(item.id)}>
             <MaterialIcons name="playlist-add" size={20} color="#fff" />
           </TouchableOpacity>
-          
-          {isOwner && (
-            <TouchableOpacity
-              style={[styles.actionButton, styles.actionButtonRemove]}
-              onPress={() => handleRemoveSong(item.id)}
-            >
+          {playlistQuery.data?.korisnikID === korisnikID && (
+            <TouchableOpacity style={[styles.actionButton, styles.actionButtonRemove]} onPress={() => handleRemoveSong(item.id)}>
               <MaterialIcons name="delete" size={18} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </TouchableOpacity>
     );
-  }, [likedSongsQuery.data, playlistQuery.data, korisnikID, handlePlaySong, handleLikeSong, handleRemoveSong, formatDuration, t]);
+  }, [likedSongsQuery.data, playlistQuery.data, korisnikID, handlePlaySong, handleLikeSong, handleRemoveSong, formatDuration, t, localSongs]);
 
   const playlistMeta = useMemo(() => {
     const pjesme = songsQuery.data || [];
@@ -392,7 +398,6 @@ const Playlista: React.FC = React.memo(() => {
 
   const loading = playlistQuery.isLoading || songsQuery.isLoading || likedSongsQuery.isLoading || playlistsQuery.isLoading || playlistLikeQuery.isLoading;
   const playlista = playlistQuery.data;
-  const pjesme = songsQuery.data || [];
   const likePlaylist = playlistLikeQuery.data || false;
   const likeCount = playlista?.brojLajkova || 0;
 
@@ -410,7 +415,7 @@ const Playlista: React.FC = React.memo(() => {
         />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="playlista/[playlistaId" />
+        <Tabs currentRoute="playlista/[playlistaId]" />
       </View>
     );
   }
@@ -498,18 +503,19 @@ const Playlista: React.FC = React.memo(() => {
           <Text style={styles.sectionTitle}>
             {t('songs_in_playlist') || 'Songs in Playlist'}
           </Text>
-          
-          {pjesme.length === 0 ? (
+          {localSongs.length === 0 ? (
             <Text style={styles.noSongs}>
               {t('no_songs_in_playlist') || 'No songs in this playlist'}
             </Text>
           ) : (
-            <FlatList
-              data={pjesme}
-              renderItem={renderSongItem}
-              keyExtractor={(item) => item.id.toString()}
+            <DraggableFlatList
+              data={localSongs}
+              keyExtractor={(item: Pjesma) => item.id.toString()}
+              renderItem={renderDraggableItem}
+              onDragEnd={onDragEnd}
+              containerStyle={{ flexGrow: 0 }}
+              activationDistance={12}
               scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
             />
           )}
         </View>
@@ -526,10 +532,10 @@ const Playlista: React.FC = React.memo(() => {
             <Text style={styles.modalTitle}>
               {t('add_to_playlist') || 'Add to Playlist'}
             </Text>
-            <FlatList
-              data={filteredPlaylists}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
+            <FlatList<PlaylistaType>
+              data={filteredPlaylists as PlaylistaType[]}
+              keyExtractor={(item: PlaylistaType) => item.id.toString()}
+              renderItem={({ item }: { item: PlaylistaType }) => (
                 <TouchableOpacity
                   style={styles.playlistItem}
                   onPress={() => showPlaylistModal && handleAddToPlaylist(showPlaylistModal, item.id)}

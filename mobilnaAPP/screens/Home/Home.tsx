@@ -16,21 +16,38 @@ import { Album, Korisnik, Pjesma, Playlista } from '@/types';
 import Header from '@/komponente/Header/Header';
 import { useAudio } from '@/context/AudioContext';
 import { API_BASE } from '@/config/api';
-import { styles } from './Home.styles';
+import { styles as darkStyles } from './Home.styles';
+import { styles as lightStyles } from './HomeWhite.styles';
 import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const Home: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
-  
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
+
   const { playAudio, playPlaylist } = useAudio();
 
-     useScreenCleanup();
-   
+  useScreenCleanup();
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000); 
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const getRandomItems = useCallback(<T,>(arr: T[], count: number): T[] => {
     const shuffled = [...arr].sort(() => Math.random() - 0.5);
@@ -186,21 +203,20 @@ const Home: React.FC = React.memo(() => {
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
     if (!item.odobreno) return null;
-
     return (
       <TouchableOpacity
-        style={[styles.card, activeSongId === item.id && styles.activeCard]}
+        style={[activeStyles.card, activeSongId === item.id && activeStyles.activeCard]}
         onPress={() => handleNavigateToSong(item.id)}
       >
-        <View style={styles.cardImageWrap}>
+        <View style={activeStyles.cardImageWrap}>
           <Image
             source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
-            style={styles.cardImage}
+            style={activeStyles.cardImage}
             cachePolicy="memory-disk"
           />
           {item.putanjaAudio && (
             <TouchableOpacity
-              style={styles.playButton}
+              style={activeStyles.playButton}
               onPress={(e) => {
                 e.stopPropagation();
                 handlePlaySong(item);
@@ -210,114 +226,79 @@ const Home: React.FC = React.memo(() => {
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.naziv}
-        </Text>
+        <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.naziv}</Text>
         <TouchableOpacity
-          onPress={() => {
-            if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
-          }}
+          onPress={() => { if (item.korisnikID) handleNavigateToArtist(item.korisnikID); }}
           disabled={!item.korisnikID}
         >
-          <Text style={styles.cardDesc} numberOfLines={1}>
-            {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-          </Text>
+          <Text style={activeStyles.cardDesc} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
         </TouchableOpacity>
       </TouchableOpacity>
     );
-  }, [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t]);
+  }, [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t, activeStyles]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => handleNavigateToAlbum(item.id)}
-    >
-      <View style={styles.cardImageWrap}>
+    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToAlbum(item.id)}>
+      <View style={activeStyles.cardImageWrap}>
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
-          style={styles.cardImage}
+          style={activeStyles.cardImage}
           cachePolicy="memory-disk"
         />
-        <TouchableOpacity 
-          style={styles.playButton} 
-          onPress={(e) => {
-            e.stopPropagation();
-            handlePlayAlbum(item);
-          }}
+        <TouchableOpacity
+          style={activeStyles.playButton}
+          onPress={(e) => { e.stopPropagation(); handlePlayAlbum(item); }}
         >
           <MaterialIcons name="play-arrow" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>
-        {item.naziv}
-      </Text>
+      <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.naziv}</Text>
       <TouchableOpacity
-        onPress={() => {
-          if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
-        }}
+        onPress={() => { if (item.korisnikID) handleNavigateToArtist(item.korisnikID); }}
         disabled={!item.korisnikID}
       >
-        <Text style={styles.cardDesc} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-        </Text>
+        <Text style={activeStyles.cardDesc} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  ), [handleNavigateToAlbum, handlePlayAlbum, handleNavigateToArtist, t]);
+  ), [handleNavigateToAlbum, handlePlayAlbum, handleNavigateToArtist, t, activeStyles]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={() => handleNavigateToPlaylist(item.id)}
-    >
-      <View style={styles.cardImageWrap}>
+    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToPlaylist(item.id)}>
+      <View style={activeStyles.cardImageWrap}>
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
-          style={styles.cardImage}
+          style={activeStyles.cardImage}
           cachePolicy="memory-disk"
         />
-        <TouchableOpacity 
-          style={styles.playButton} 
-          onPress={(e) => {
-            e.stopPropagation();
-            handlePlayPlaylist(item);
-          }}
+        <TouchableOpacity
+          style={activeStyles.playButton}
+          onPress={(e) => { e.stopPropagation(); handlePlayPlaylist(item); }}
         >
           <MaterialIcons name="play-arrow" size={24} color="#fff" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>
-        {item.naziv}
-      </Text>
+      <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.naziv}</Text>
       <TouchableOpacity
-        onPress={() => {
-          if (item.korisnikID) handleNavigateToArtist(item.korisnikID);
-        }}
+        onPress={() => { if (item.korisnikID) handleNavigateToArtist(item.korisnikID); }}
         disabled={!item.korisnikID}
       >
-        <Text style={styles.cardDesc} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_user')}
-        </Text>
+        <Text style={activeStyles.cardDesc} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_user')}</Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  ), [handleNavigateToPlaylist, handlePlayPlaylist, handleNavigateToArtist, t]);
+  ), [handleNavigateToPlaylist, handlePlayPlaylist, handleNavigateToArtist, t, activeStyles]);
 
   const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
-    <TouchableOpacity 
-      style={styles.card}
-      onPress={() => handleNavigateToArtist(item.id)}
-    >
-      <View style={styles.cardImageWrap2}>
+    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToArtist(item.id)}>
+      <View style={activeStyles.cardImageWrap2}>
         <Image
           source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/150' }}
-          style={styles.cardImage}
+          style={activeStyles.cardImage}
           cachePolicy="memory-disk"
         />
       </View>
-      <Text style={styles.cardTitle} numberOfLines={1}>
-        {item.korisnicko_ime}
-      </Text>
+      <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.korisnicko_ime}</Text>
     </TouchableOpacity>
-  ), [handleNavigateToArtist]);
+  ), [handleNavigateToArtist, activeStyles]);
 
   const refreshControl = useMemo(() => (
     <RefreshControl
@@ -332,47 +313,47 @@ const Home: React.FC = React.memo(() => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Header source="home" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Header source="home" />
-        <Text style={styles.loadingText}>{t('connection_error')}</Text>
+        <Text style={activeStyles.loadingText}>{t('connection_error')}</Text>
         <TouchableOpacity onPress={onRefresh} style={{ marginTop: 10 }}>
-          <Text style={styles.cardDesc}>{t('retry')}</Text>
+          <Text style={activeStyles.cardDesc}>{t('retry')}</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Header source="home" />
       
       <ScrollView
-        style={styles.scrollContainer}
+        style={activeStyles.scrollContainer}
         refreshControl={refreshControl}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>{t('welcome_to_decibel')}</Text>
+        <View style={activeStyles.content}>
+          <View style={activeStyles.header}>
+            <Text style={activeStyles.headerTitle}>{t('welcome_to_decibel')}</Text>
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('songs')}</Text>
+          <View style={activeStyles.section}>
+            <Text style={activeStyles.sectionTitle}>{t('songs')}</Text>
             <FlatList
               data={(songsQuery.data as Pjesma[]) || []}
               renderItem={renderSongItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={activeStyles.horizontalList}
               initialNumToRender={5} 
               maxToRenderPerBatch={5} 
               windowSize={5} 
@@ -380,15 +361,15 @@ const Home: React.FC = React.memo(() => {
             />
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('albums')}</Text>
+          <View style={activeStyles.section}>
+            <Text style={activeStyles.sectionTitle}>{t('albums')}</Text>
             <FlatList
               data={albumsQuery.data as Album[] || []}
               renderItem={renderAlbumItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={activeStyles.horizontalList}
               initialNumToRender={5} 
               maxToRenderPerBatch={5} 
               windowSize={5} 
@@ -396,15 +377,15 @@ const Home: React.FC = React.memo(() => {
             />
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('playlists')}</Text>
+          <View style={activeStyles.section}>
+            <Text style={activeStyles.sectionTitle}>{t('playlists')}</Text>
             <FlatList
               data={playlistsQuery.data as Playlista[] || []}
               renderItem={renderPlaylistItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={activeStyles.horizontalList}
               initialNumToRender={5} 
               maxToRenderPerBatch={5} 
               windowSize={5} 
@@ -412,15 +393,15 @@ const Home: React.FC = React.memo(() => {
             />
           </View>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('artists')}</Text>
+          <View style={activeStyles.section}>
+            <Text style={activeStyles.sectionTitle}>{t('artists')}</Text>
             <FlatList
               data={artistsQuery.data as Korisnik[] || []}
               renderItem={renderArtistItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
+              contentContainerStyle={activeStyles.horizontalList}
               initialNumToRender={5} 
               maxToRenderPerBatch={5} 
               windowSize={5} 

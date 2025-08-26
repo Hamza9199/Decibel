@@ -55,7 +55,11 @@
           "backgroundColor": "#333333",
           "borderTopColor": "#333333"
         }
+      ],
+      [
+        "expo-audio"
       ]
+
      
     ],
     "experiments": {

@@ -23,7 +23,6 @@ import { useAudio } from '@/context/AudioContext';
 import * as FileSystem from 'expo-file-system';
 import { queryClient } from '@/config/queryClient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 interface AudioPlayerProps {
   id?: number;
@@ -631,16 +630,9 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [pjesma, korisnik?.id, liked, likeMutation]);
 
-  const {
-    updateNowPlayingNotification,
-    dismissNowPlayingNotification,
-  } = usePushNotifications({
-    onPlayPause: () => { handlePlayPause(); },
-    onNext: () => { goNext(); },
-    onPrev: () => { goPrev(); },
-    onLike: () => { handleLike(); },
-  });
+  
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const goNext = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
       const nextIdx = playlistIdx + 1;
@@ -652,6 +644,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const goPrev = useCallback(async () => {
     try {
       if (sound) {
@@ -674,26 +667,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = React.memo(({
     }
   }, [sound, globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
 
-  useEffect(() => {
-    if (!currentSong) return;
-    const info = {
-      id: currentSong.id,
-      title: currentSong.naziv || t('no_current_song'),
-      artist: currentOwner?.korisnicko_ime || t('unknown_user'),
-      artworkUrl: currentSong.putanjaSlika || undefined,
-      isPlaying: playing,
-    };
-    updateNowPlayingNotification(info);
-  }, [currentSong, currentOwner?.korisnicko_ime, playing, updateNowPlayingNotification, t]);
-
-  useEffect(() => {
-    return () => { dismissNowPlayingNotification(); };
-  }, [dismissNowPlayingNotification]);
 
   const handleClosePress = useCallback(() => {
-    dismissNowPlayingNotification();
     onClose?.();
-  }, [dismissNowPlayingNotification, onClose]);
+  }, [onClose]);
 
   const ensureDirectoryExists = useCallback(async (filePath: string) => {
     const lastSlash = filePath.lastIndexOf('/');

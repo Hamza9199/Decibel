@@ -21,6 +21,11 @@ type Props = {
   onExpand?: () => void;
 };
 
+type MediaSessionWithPositionState = MediaSession & {
+  setPositionState?: (state: { duration?: number; playbackRate?: number; position?: number }) => void;
+};
+
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const AudioPlayer: React.FC<Props> = ({
@@ -626,6 +631,69 @@ const AudioPlayer: React.FC<Props> = ({
       return () => clearTimeout(timer);
     }
   }, [pretplataValid, showNoSubMsg]);
+
+
+    useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+  }, [playing]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    if (currentSong) {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: currentSong.naziv || '',
+        artist: currentOwner?.korisnicko_ime || '',
+        album: '',
+        artwork: [
+          {
+            src: currentSong.putanjaSlika || currentSong.putanjaGif || '/logo.gif',
+            sizes: '512x512',
+            type: 'image/png'
+          }
+        ]
+      });
+    }
+  }, [currentSong, currentOwner]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    const ms = navigator.mediaSession;
+    try { ms.setActionHandler('play', () => setPlaying(true)); } catch {
+      console.log('The play action is not supported.');
+    }
+    try { ms.setActionHandler('pause', () => setPlaying(false)); } catch {
+      console.log('The pause action is not supported.');
+    }
+    try { ms.setActionHandler('stop', () => { setPlaying(false); if (audioRef.current){ audioRef.current.pause(); audioRef.current.currentTime = 0; }}); } catch {
+      console.log('The stop action is not supported.');
+    }
+    try { ms.setActionHandler('previoustrack', () => { if (globalPlaylist.length>0){ if (playlistIdx>0) setPlaylistIdx(i=>i-1); else if (playlistRepeat && globalPlaylist.length>0) setPlaylistIdx(globalPlaylist.length-1); }}); } catch {
+      console.log('The previoustrack action is not supported.');
+    }
+    try { ms.setActionHandler('nexttrack', () => { if (globalPlaylist.length>0){ if (playlistIdx+1<globalPlaylist.length) setPlaylistIdx(i=>i+1); else if (playlistRepeat) setPlaylistIdx(0); }}); } catch {
+      console.log('The nexttrack action is not supported.');
+    }
+    try { ms.setActionHandler('seekbackward', () => { if (audioRef.current){ audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10); }}); } catch {
+      console.log('The seekbackward action is not supported.');
+    }
+    try { ms.setActionHandler('seekforward', () => { if (audioRef.current){ const d = audioRef.current.duration || 0; audioRef.current.currentTime = Math.min(d, audioRef.current.currentTime + 10); }}); } catch {
+      console.log('The seekforward action is not supported.');
+    }
+    try { ms.setActionHandler('seekto', (details: MediaSessionActionDetails) => { if (audioRef.current && details.seekTime != null){ audioRef.current.currentTime = details.seekTime; }}); } catch {
+      console.log('The seekto action is not supported.');
+    }
+  }, [globalPlaylist.length, playlistIdx, playlistRepeat]);
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    if ((navigator.mediaSession as MediaSessionWithPositionState).setPositionState && isFinite(duration)) {
+      try { navigator.mediaSession.setPositionState({ duration: duration || 0, playbackRate, position: progress }); } catch {
+      console.log('Failed to set position state.');
+      }
+    }
+  }, [progress, duration, playbackRate]);
+
 
   if (pretplataValid === false) {
     if (showNoSubMsg) {

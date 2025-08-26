@@ -12,6 +12,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import axios from 'axios';
 import { API_BASE } from '@/config/api';
+import AudioPlayerNew from '@/komponente/AudioPlayer/AudioPlayerNew';
 
 interface SidebarContextType {
   showSidebar: () => void;
@@ -310,7 +311,6 @@ export default function RootLayout() {
             <StatusBar style="dark" />
             <View style={{ flex: 1, position: 'relative' }}>
               {blocked ? (
-                // Only overlay when blocked
                 <View style={{
                   position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
                   backgroundColor: 'rgba(24,24,24,0.97)',

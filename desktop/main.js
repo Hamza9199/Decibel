@@ -204,7 +204,7 @@ ipcMain.handle('get-app-icon', async () => {
 
 const RPC = require('discord-rpc');
 const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID; 
-
+RPC.ActivityType = { Playing: 0, Streaming: 1, Listening: 2, Watching: 3, Custom: 4, Competing: 5 };
 console.log('[Discord RPC] Client ID:', DISCORD_CLIENT_ID);
 
 const rpc = new RPC.Client({ transport: 'ipc' });
@@ -218,7 +218,6 @@ function setDiscordPresence({ state = 'Decibel', details = 'Sluša Decibel', lar
   console.log('[Discord RPC] setActivity', { state, details, largeImageKey, largeImageText, smallImageKey, smallImageText, startTimestamp, endTimestamp, type });
   rpc.setActivity({
     state,
-    type: 2, 
     details,
     largeImageKey,
     largeImageText,
@@ -227,6 +226,13 @@ function setDiscordPresence({ state = 'Decibel', details = 'Sluša Decibel', lar
     startTimestamp,
     endTimestamp,
     instance: false,
+    type: (typeof type === 'number')
+      ? (type === 0 ? RPC.ActivityType.Playing
+        : type === 1 ? RPC.ActivityType.Streaming
+        : type === 2 ? RPC.ActivityType.Listening
+        : type === 3 ? RPC.ActivityType.Watching
+        : RPC.ActivityType.Custom)
+      : RPC.ActivityType.Listening
   }).catch((err) => {
     console.error('[Discord RPC] setActivity error:', err);
   });

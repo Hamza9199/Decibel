@@ -2,6 +2,7 @@ const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electr
 const path = require('path');
 const express = require('express');
 const fs = require('fs');
+require('dotenv').config();
 
 try {
   app.setAppUserModelId('com.decibel.desktop');
@@ -199,6 +200,38 @@ ipcMain.handle('get-app-icon', async () => {
     }
   } catch {}
   return null;
+});
+
+const RPC = require('discord-rpc');
+const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID; 
+
+const rpc = new RPC.Client({ transport: 'ipc' });
+
+let rpcReady = false;
+
+function setDiscordPresence({ state = 'Sluša Decibel', details = 'Pokrenuta aplikacija', largeImageKey = 'icon', largeImageText = 'Decibel', smallImageKey = undefined, smallImageText = undefined, startTimestamp = undefined } = {}) {
+  if (!rpcReady) return;
+  rpc.setActivity({
+    state,
+    details,
+    largeImageKey,
+    largeImageText,
+    smallImageKey,
+    smallImageText,
+    startTimestamp,
+    instance: false,
+  }).catch(() => {});
+}
+
+rpc.on('ready', () => {
+  rpcReady = true;
+  setDiscordPresence();
+});
+
+rpc.login({ clientId: DISCORD_CLIENT_ID }).catch(() => {});
+
+ipcMain.handle('update-discord-presence', async (_evt, presence) => {
+  setDiscordPresence(presence);
 });
 
 app.on('window-all-closed', () => {

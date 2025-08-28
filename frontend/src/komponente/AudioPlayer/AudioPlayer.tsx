@@ -695,6 +695,42 @@ const AudioPlayer: React.FC<Props> = ({
   }, [progress, duration, playbackRate]);
 
 
+  useEffect(() => {
+  if (!currentSong || !currentSong.naziv || !currentOwner?.korisnicko_ime) return;
+  type ElectronWindow = Window & {
+    electron?: { ipcRenderer?: { invoke?: (...args: unknown[]) => unknown } };
+    ipcRenderer?: { invoke?: (...args: unknown[]) => unknown };
+  };
+  const electronWindow = window as ElectronWindow;
+  const ipc = electronWindow.electron?.ipcRenderer || electronWindow.ipcRenderer;
+  if (!ipc || typeof ipc.invoke !== 'function') return;
+  const startTimestamp = Math.floor(Date.now() / 1000);
+  let largeImageKey = 'icon';
+  let largeImageText = 'Decibel';
+  if (currentSong.putanjaSlika) {
+    const base = currentSong.putanjaSlika.split('/').pop()?.split('.')[0];
+    if (base) {
+      largeImageKey = base;
+      largeImageText = currentSong.naziv;
+    }
+  } else if (currentSong.putanjaGif) {
+    const base = currentSong.putanjaGif.split('/').pop()?.split('.')[0];
+    if (base) {
+      largeImageKey = base;
+      largeImageText = currentSong.naziv;
+    }
+  }
+  ipc.invoke('update-discord-presence', {
+    details: currentSong.naziv,
+    state: currentOwner.korisnicko_ime,
+    largeImageKey,
+    largeImageText,
+    startTimestamp,
+  });
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif]);
+
+
   if (pretplataValid === false) {
     if (showNoSubMsg) {
       return (
@@ -1400,3 +1436,4 @@ function formatTime(sec: number) {
 }
 
 export default memo(AudioPlayer);
+

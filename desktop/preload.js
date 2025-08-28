@@ -14,6 +14,12 @@ contextBridge.exposeInMainWorld('windowControls', {
   pushBelowToolbar: () => { try { return __tb_api.pushBelowToolbar(); } catch { return false; } },
 });
 
+contextBridge.exposeInMainWorld('electron', {
+  ipcRenderer: {
+    invoke: (...args) => ipcRenderer.invoke(...args),
+  }
+});
+
 function setupTitlebar() {
   try {
     if (document.getElementById('titlebar')) return;

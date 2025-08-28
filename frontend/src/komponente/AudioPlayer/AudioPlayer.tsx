@@ -125,39 +125,36 @@ const AudioPlayer: React.FC<Props> = ({
     if (playlistsQuery.isError) setPlaylists([]);
   }, [playlistsQuery.data, playlistsQuery.isError]);
 
-  const pjesmaQuery = useQuery({
-    queryKey: ["pjesmaBySrc", src],
-    queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/pjesme/`);
-      const list = (res.data as Pjesma[]) || [];
-      return list.find((p: Pjesma) => p.putanjaAudio === src);
-    },
-    enabled: !!src,
-  });
+
+
   useEffect(() => {
-    if (pjesmaQuery.data !== undefined) {
-      setPjesma(pjesmaQuery.data);
-      if (!pjesmaQuery.data) setLiked(false);
-    }
-    if (pjesmaQuery.isError) {
+    if (!currentSong?.id) {
       setPjesma(undefined);
       setLiked(false);
+      setCurrentOwner(undefined);
+      return;
     }
-  }, [pjesmaQuery.data, pjesmaQuery.isError]);
-
-  const likedQuery = useQuery({
-    queryKey: ["korisnik_pjesma_liked", korisnik?.id, pjesma?.id],
-    queryFn: async () => {
-      const r = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const veze = r.data as { korisnikID: string; pjesmaID: number }[];
-      return !!veze.find((v) => v.korisnikID === korisnik?.id && v.pjesmaID === pjesma?.id);
-    },
-    enabled: !!korisnik?.id && !!pjesma?.id,
-  });
-  useEffect(() => {
-    if (likedQuery.data !== undefined) setLiked(!!likedQuery.data);
-    if (likedQuery.isError) setLiked(false);
-  }, [likedQuery.data, likedQuery.isError]);
+    axios.get(`${API_BASE}/pjesme/${currentSong.id}`)
+      .then(res => setPjesma(res.data as Pjesma))
+      .catch(() => setPjesma(undefined));
+    if (currentSong.korisnikID) {
+      axios.get(`${API_BASE}/korisnici/${currentSong.korisnikID}`)
+        .then(res => setCurrentOwner(res.data as Korisnik))
+        .catch(() => setCurrentOwner(undefined));
+    } else {
+      setCurrentOwner(undefined);
+    }
+    if (korisnik?.id) {
+      axios.get(`${API_BASE}/korisnik_pjesma/`)
+        .then(r => {
+          const veze = r.data as { korisnikID: string; pjesmaID: number }[];
+          setLiked(!!veze.find(v => v.korisnikID === korisnik.id && v.pjesmaID === currentSong.id));
+        })
+        .catch(() => setLiked(false));
+    } else {
+      setLiked(false);
+    }
+  }, [currentSong?.id, currentSong?.korisnikID, korisnik?.id]);
 
   const likeMutation = useMutation({
     mutationFn: async () => {
@@ -265,19 +262,6 @@ const AudioPlayer: React.FC<Props> = ({
       setShowPlaylistModal(false);
     },
   });
-
-  const ownerQuery = useQuery({
-    queryKey: ["owner", currentSong?.korisnikID],
-    queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/korisnici/${currentSong?.korisnikID}`);
-      return res.data as Korisnik;
-    },
-    enabled: !!currentSong?.korisnikID,
-  });
-  useEffect(() => {
-    if (ownerQuery.data) setCurrentOwner(ownerQuery.data);
-    if (ownerQuery.isError) setCurrentOwner(undefined);
-  }, [ownerQuery.data, ownerQuery.isError]);
 
   useEffect(() => {
     let isMounted = true;
@@ -696,39 +680,52 @@ const AudioPlayer: React.FC<Props> = ({
 
 
   useEffect(() => {
-  if (!currentSong || !currentSong.naziv || !currentOwner?.korisnicko_ime) return;
-  type ElectronWindow = Window & {
-    electron?: { ipcRenderer?: { invoke?: (...args: unknown[]) => unknown } };
-    ipcRenderer?: { invoke?: (...args: unknown[]) => unknown };
-  };
-  const electronWindow = window as ElectronWindow;
-  const ipc = electronWindow.electron?.ipcRenderer || electronWindow.ipcRenderer;
-  if (!ipc || typeof ipc.invoke !== 'function') return;
-  const startTimestamp = Math.floor(Date.now() / 1000);
-  let largeImageKey = 'icon';
-  let largeImageText = 'Decibel';
-  if (currentSong.putanjaSlika) {
-    const base = currentSong.putanjaSlika.split('/').pop()?.split('.')[0];
-    if (base) {
-      largeImageKey = base;
-      largeImageText = currentSong.naziv;
+    if (!currentSong || !currentSong.naziv || !currentOwner?.korisnicko_ime) return;
+    type ElectronWindow = Window & {
+      electron?: { ipcRenderer?: { invoke?: (...args: unknown[]) => unknown } };
+      ipcRenderer?: { invoke?: (...args: unknown[]) => unknown };
+    };
+    const electronWindow = window as ElectronWindow;
+    const ipc = electronWindow.electron?.ipcRenderer || electronWindow.ipcRenderer;
+    if (!ipc || typeof ipc.invoke !== 'function') return;
+    if (playing) {
+      const startTimestamp = Math.floor(Date.now() / 1000);
+      let largeImageKey = 'icon';
+      const largeImageText = currentSong.naziv;
+      if (currentSong.putanjaSlika) {
+        const base = currentSong.putanjaSlika.split('/').pop()?.split('.')[0];
+        if (base) {
+          largeImageKey = base;
+        }
+      } else if (currentSong.putanjaGif) {
+        const base = currentSong.putanjaGif.split('/').pop()?.split('.')[0];
+        if (base) {
+          largeImageKey = base;
+        }
+      }
+      if (!largeImageKey || largeImageKey === '' || largeImageKey === undefined) {
+        largeImageKey = 'icon';
+      }
+      let endTimestamp = undefined;
+      if (currentSong.trajanjeSekunde && !isNaN(currentSong.trajanjeSekunde)) {
+        endTimestamp = startTimestamp + currentSong.trajanjeSekunde;
+      } else if (duration && isFinite(duration)) {
+        endTimestamp = startTimestamp + Math.floor(duration);
+      }
+      ipc.invoke('update-discord-presence', {
+        details: `${currentSong.naziv}`,
+        state: `${currentOwner.korisnicko_ime}`,
+        largeImageKey: "icon",
+        largeImageText,
+        startTimestamp,
+        endTimestamp,
+        type: 2,
+      });
+    } else {
+      ipc.invoke('update-discord-presence', { details: 'Malo mu fali da poludi', state: 'Pregled Početne', largeImageKey: 'icon', largeImageText: 'Decibel' });
     }
-  } else if (currentSong.putanjaGif) {
-    const base = currentSong.putanjaGif.split('/').pop()?.split('.')[0];
-    if (base) {
-      largeImageKey = base;
-      largeImageText = currentSong.naziv;
-    }
-  }
-  ipc.invoke('update-discord-presence', {
-    details: currentSong.naziv,
-    state: currentOwner.korisnicko_ime,
-    largeImageKey,
-    largeImageText,
-    startTimestamp,
-  });
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing]);
 
 
   if (pretplataValid === false) {

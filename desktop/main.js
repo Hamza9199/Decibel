@@ -205,35 +205,57 @@ ipcMain.handle('get-app-icon', async () => {
 const RPC = require('discord-rpc');
 const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID; 
 
+console.log('[Discord RPC] Client ID:', DISCORD_CLIENT_ID);
+
 const rpc = new RPC.Client({ transport: 'ipc' });
 
 let rpcReady = false;
-
-function setDiscordPresence({ state = 'Sluša Decibel', details = 'Pokrenuta aplikacija', largeImageKey = 'icon', largeImageText = 'Decibel', smallImageKey = undefined, smallImageText = undefined, startTimestamp = undefined } = {}) {
-  if (!rpcReady) return;
+function setDiscordPresence({ state = 'Decibel', details = 'Sluša Decibel', largeImageKey = 'icon', largeImageText = 'Decibel', smallImageKey = undefined, smallImageText = undefined, startTimestamp = undefined, endTimestamp = undefined, type = 2 } = {}) {
+  if (!rpcReady) {
+    console.log('[Discord RPC] Not ready, skipping setActivity');
+    return;
+  }
+  console.log('[Discord RPC] setActivity', { state, details, largeImageKey, largeImageText, smallImageKey, smallImageText, startTimestamp, endTimestamp, type });
   rpc.setActivity({
     state,
+    type: 2, 
     details,
     largeImageKey,
     largeImageText,
     smallImageKey,
     smallImageText,
     startTimestamp,
+    endTimestamp,
     instance: false,
-  }).catch(() => {});
+  }).catch((err) => {
+    console.error('[Discord RPC] setActivity error:', err);
+  });
 }
 
 rpc.on('ready', () => {
   rpcReady = true;
+  console.log('[Discord RPC] Ready!');
   setDiscordPresence();
 });
 
-rpc.login({ clientId: DISCORD_CLIENT_ID }).catch(() => {});
+rpc.on('error', (err) => {
+  console.error('[Discord RPC] Error:', err);
+});
+
+rpc.login({ clientId: DISCORD_CLIENT_ID }).then(() => {
+  console.log('[Discord RPC] Login success');
+}).catch((err) => {
+  console.error('[Discord RPC] Login failed:', err);
+});
 
 ipcMain.handle('update-discord-presence', async (_evt, presence) => {
+  console.log('[Discord RPC] update-discord-presence', presence);
   setDiscordPresence(presence);
 });
 
 app.on('window-all-closed', () => {
+  if (rpcReady) {
+    try { rpc.clearActivity(); } catch {}
+  }
   if (process.platform !== 'darwin') app.quit();
 });

@@ -37,7 +37,7 @@
       "assets/**/*",
       "dist/**/*",
       "preload.js",
-      ".evn"
+      ".env"
     ]
   },
   "dependencies": {

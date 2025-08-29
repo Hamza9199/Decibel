@@ -16,7 +16,7 @@ class MyClient(discord.Client):
 
     async def setup_hook(self):
         GUILD_ID = 899379078086426675 
-        @self.tree.command(name="active", description="Get the Discord Active Developer Badge info", guild=discord.Object(id=GUILD_ID))
+        @self.tree.command(name="active", description="Smijeh za poludit")
         async def active_command(interaction: discord.Interaction):
             funny_messages = [
                 "Ovaj bot je toliko aktivan da ni kava ne može da ga stigne! ☕",

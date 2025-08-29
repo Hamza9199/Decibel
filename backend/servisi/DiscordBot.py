@@ -31,7 +31,7 @@ class MyClient(discord.Client):
             except Exception as e:
                 await interaction.response.send_message("Greška pri dohvaćanju badge linka.", ephemeral=True)
 
-        await self.tree.sync()
+        # await self.tree.sync()  # Zakomentarisano zbog Discord API limita (Entry Point komanda). Komanda će raditi globalno ako je već registrovana.
 
 def start_discord_bot():
     """Pokreće Discord bota (koristi se za integraciju s backendom)"""

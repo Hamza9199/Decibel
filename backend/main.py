@@ -1,7 +1,7 @@
 import os
 from typing import List
 from uuid import UUID, uuid4
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, HTTPException
 from sqlalchemy import create_engine, MetaData, select
 from sqlalchemy.orm import sessionmaker, declarative_base
 from databases import Database
@@ -11,6 +11,8 @@ import threading
 import requests
 import datetime
 import time
+from pydantic import BaseModel
+from dotenv import load_dotenv
 
 from modeli.Korisnik import Korisnik
 from modeli.KorisnikRole import KorisnikRole as Role
@@ -43,6 +45,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+load_dotenv()
+
+DISCORD_BOT_TOKEN = os.getenv("TOKEN")
 
 
 @app.on_event("startup")
@@ -125,6 +131,45 @@ async def shutdown():
 @app.get("/")
 async def root():
     return {"message": "Server radi!"}
+
+class TokenCheckRequest(BaseModel):
+    token: str
+
+@app.post("/discord/check_token")
+async def discord_check_token(data: TokenCheckRequest):
+    """Provjeri validnost Discord bot tokena"""
+    import httpx
+    headers = {"Authorization": f"Bot {data.token}"}
+    async with httpx.AsyncClient() as client:
+        r = await client.get("https://discord.com/api/v10/users/@me", headers=headers)
+        return {"valid": r.status_code == 200}
+
+class CommandRequest(BaseModel):
+    token: str
+    guild_id: str
+    command: str
+
+@app.post("/discord/send_command")
+async def discord_send_command(data: CommandRequest):
+    return {"status": "ok", "message": f"Command '{data.command}' sent to guild {data.guild_id}"}
+
+@app.get("/discord/bot_invite")
+async def discord_bot_invite():
+    """Vrati invite link za Discord bota iz .env"""
+    import httpx
+    if not DISCORD_BOT_TOKEN:
+        raise HTTPException(status_code=500, detail="Bot token nije definisan u .env")
+    headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
+    async with httpx.AsyncClient() as client:
+        r = await client.get("https://discord.com/api/v10/users/@me", headers=headers)
+        if r.status_code != 200:
+            raise HTTPException(status_code=500, detail="Ne mogu dohvatiti bot user info. Provjeri token.")
+        user = r.json()
+        bot_id = user.get("id")
+        if not bot_id:
+            raise HTTPException(status_code=500, detail="Nije pronađen bot ID.")
+        invite_url = f"https://discord.com/api/oauth2/authorize?client_id={bot_id}&scope=bot%20applications.commands"
+        return {"bot_id": bot_id, "invite_url": invite_url}
 
 app.include_router(korisnik_router)
 app.include_router(pjesma_router)

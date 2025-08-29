@@ -14,6 +14,7 @@ class MyClient(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
+        GUILD_ID = 899379078086426675 
         @self.tree.command(name="active", description="Get the Discord Active Developer Badge info")
         async def active_command(interaction: discord.Interaction):
             try:
@@ -31,7 +32,7 @@ class MyClient(discord.Client):
             except Exception as e:
                 await interaction.response.send_message("Greška pri dohvaćanju badge linka.", ephemeral=True)
 
-            await self.tree.sync()  # Zakomentarisano zbog Discord API limita (Entry Point komanda). Komanda će raditi globalno ako je već registrovana.
+        await self.tree.sync(guild=discord.Object(id=GUILD_ID)) 
 
 def start_discord_bot():
     """Pokreće Discord bota (koristi se za integraciju s backendom)"""

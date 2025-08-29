@@ -15,7 +15,7 @@ class MyClient(discord.Client):
 
     async def setup_hook(self):
         GUILD_ID = 899379078086426675 
-        @self.tree.command(name="active", description="Get the Discord Active Developer Badge info")
+        @self.tree.command(name="active", description="Get the Discord Active Developer Badge info", guild=discord.Object(id=GUILD_ID))
         async def active_command(interaction: discord.Interaction):
             try:
                 r = requests.get(f"{BACKEND_URL}/discord/bot_invite")
@@ -36,9 +36,5 @@ class MyClient(discord.Client):
 
 def start_discord_bot():
     """Pokreće Discord bota (koristi se za integraciju s backendom)"""
-    client = MyClient()
-    client.run(TOKEN)
-
-if __name__ == "__main__":
     client = MyClient()
     client.run(TOKEN)

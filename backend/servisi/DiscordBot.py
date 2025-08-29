@@ -44,3 +44,4 @@ def start_discord_bot():
     """Pokreće Discord bota (koristi se za integraciju s backendom)"""
     client = MyClient()
     client.run(TOKEN)
+

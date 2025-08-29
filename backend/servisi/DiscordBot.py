@@ -75,8 +75,18 @@ class MyClient(discord.Client):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
                 audio_url = info['url']
-            source = await discord.FFmpegOpusAudio.from_probe(audio_url)
+            source = discord.FFmpegPCMAudio(audio_url)
             voice_client.play(source)
+
+        async def dis_command(interaction: discord.Interaction):
+            voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            if voice_client:
+                if voice_client.is_playing():
+                    voice_client.stop()
+                await voice_client.disconnect()
+                await interaction.response.send_message("Disconnected from voice channel!", ephemeral=False)
+            else:
+                await interaction.response.send_message("I'm not in a voice channel!", ephemeral=True)
 
         for guild_id in GUILD_IDS:
             self.tree.command(
@@ -89,6 +99,11 @@ class MyClient(discord.Client):
                 description="Play a YouTube video in your voice channel",
                 guild=discord.Object(id=guild_id)
             )(app_commands.describe(video_id="YouTube video ID")(play_command))
+            self.tree.command(
+                name="dis",
+                description="Disconnect the bot from the voice channel",
+                guild=discord.Object(id=guild_id)
+            )(dis_command)
 
         for guild_id in GUILD_IDS:
             await self.tree.sync(guild=discord.Object(id=guild_id)) 

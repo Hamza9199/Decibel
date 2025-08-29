@@ -33,6 +33,11 @@ class MyClient(discord.Client):
 
         await self.tree.sync()
 
+def start_discord_bot():
+    """Pokreće Discord bota (koristi se za integraciju s backendom)"""
+    client = MyClient()
+    client.run(TOKEN)
+
 if __name__ == "__main__":
     client = MyClient()
     client.run(TOKEN)

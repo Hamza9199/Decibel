@@ -35,13 +35,13 @@ from rute.PlaylistaRuta import router as playlista_router
 from rute.PratilacKorisnikRuta import router as pratilac_korisnik_router
 from rute.PrijavaIzvodjacaRuta import router as prijava_izvodjaca_router
 from rute.SuspendovanKorisnikRuta import router as suspendovan_korisnik_router
-from servisi.DiscordBot import start_discord_bot
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 from modeli.SuspendovanKorisnik import SuspendovanKorisnikORM
 from modeli.Korisnik import KorisnikORM
 from modeli.KorisnikStatus import KorisnikStatusEnum
+from servisi.DiscordBot import start_discord_bot
 
 app = FastAPI()
 
@@ -55,8 +55,6 @@ app.add_middleware(
 
 load_dotenv()
 DISCORD_BOT_TOKEN = os.getenv("TOKEN")
-
-threading.Thread(target=start_discord_bot, daemon=True).start()
 
 
 @app.on_event("startup")
@@ -143,6 +141,7 @@ async def startup():
             time.sleep(60 * 30 * 1)
 
     threading.Thread(target=auto_cleanup, daemon=True).start()
+    threading.Thread(target=start_discord_bot, daemon=True).start()
 
    
 @app.on_event("shutdown")

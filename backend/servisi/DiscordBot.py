@@ -71,13 +71,15 @@ class MyClient(discord.Client):
                 'default_search': 'auto',
                 'extract_flat': 'in_playlist',
                 'outtmpl': 'song.%(ext)s',
-                'cookiefile': '../cookies.txt',
             }
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=False)
-                audio_url = info['url']
-            source = discord.FFmpegPCMAudio(audio_url)
-            voice_client.play(source)
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=False)
+                    audio_url = info['url']
+                source = discord.FFmpegPCMAudio(audio_url)
+                voice_client.play(source)
+            except Exception as e:
+                await interaction.followup.send(f"Cannot play this video. It may be protected or require login.\nError: {str(e)}", ephemeral=True)
 
         async def dis_command(interaction: discord.Interaction):
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)

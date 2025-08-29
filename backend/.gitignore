@@ -54,3 +54,4 @@ coverage.xml
 *.env
 *.local
 .vercel
+cookies.txt

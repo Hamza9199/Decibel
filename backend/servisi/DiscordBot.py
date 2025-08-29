@@ -71,6 +71,7 @@ class MyClient(discord.Client):
                 'default_search': 'auto',
                 'extract_flat': 'in_playlist',
                 'outtmpl': 'song.%(ext)s',
+                'cookiefile': '../cookies.txt',
             }
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)

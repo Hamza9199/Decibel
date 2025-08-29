@@ -49,7 +49,7 @@ class MyClient(discord.Client):
             msg = random.choice(funny_messages)
             await interaction.response.send_message(msg, ephemeral=False)
 
-        async def play_command(interaction: discord.Interaction, video_id: str):
+        async def play_command(interaction: discord.Interaction):
             if not interaction.user.voice or not interaction.user.voice.channel:
                 await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
                 return
@@ -61,25 +61,10 @@ class MyClient(discord.Client):
                 voice_client = await channel.connect()
             elif voice_client.channel != channel:
                 await voice_client.move_to(channel)
-            url = f"https://www.youtube.com/watch?v={video_id}"
+            url = "https://firebasestorage.googleapis.com/v0/b/trailerflix-25df2.appspot.com/o/pjesme%2Faudio%2FBella%20Ciao%20-%20ORIGINALE.mp3?alt=media&token=a91ab43b-1595-4c61-86ad-4ecb26244d42"
             await interaction.response.send_message(f"Playing: {url}", ephemeral=False)
-            import yt_dlp
-            ydl_opts = {
-                'format': 'bestaudio/best',
-                'quiet': True,
-                'no_warnings': True,
-                'default_search': 'auto',
-                'extract_flat': 'in_playlist',
-                'outtmpl': 'song.%(ext)s',
-            }
-            try:
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=False)
-                    audio_url = info['url']
-                source = discord.FFmpegPCMAudio(audio_url)
-                voice_client.play(source)
-            except Exception as e:
-                await interaction.followup.send(f"Cannot play this video. It may be protected or require login.\nError: {str(e)}", ephemeral=True)
+            source = discord.FFmpegPCMAudio(url)
+            voice_client.play(source)
 
         async def dis_command(interaction: discord.Interaction):
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
@@ -94,14 +79,14 @@ class MyClient(discord.Client):
         for guild_id in GUILD_IDS:
             self.tree.command(
                 name="active",
-                description="Smijeh za poludit",
+                description="I am funny!",
                 guild=discord.Object(id=guild_id)
             )(active_command)
             self.tree.command(
                 name="play",
-                description="Play a YouTube video in your voice channel",
+                description="BELLA CIAO!",
                 guild=discord.Object(id=guild_id)
-            )(app_commands.describe(video_id="YouTube video ID")(play_command))
+            )(play_command)
             self.tree.command(
                 name="dis",
                 description="Disconnect the bot from the voice channel",

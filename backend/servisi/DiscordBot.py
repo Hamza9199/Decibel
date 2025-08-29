@@ -49,7 +49,17 @@ class MyClient(discord.Client):
             msg = random.choice(funny_messages)
             await interaction.response.send_message(msg, ephemeral=False)
 
-        async def play_command(interaction: discord.Interaction):
+        async def search_pjesme_autocomplete(interaction: discord.Interaction, current: str):
+            import aiohttp
+            BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}") as resp:
+                    if resp.status == 200:
+                        pjesme = await resp.json()
+                        return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
+            return []
+
+        async def play_command(interaction: discord.Interaction, naziv: str):
             if not interaction.user.voice or not interaction.user.voice.channel:
                 await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
                 return
@@ -61,10 +71,20 @@ class MyClient(discord.Client):
                 voice_client = await channel.connect()
             elif voice_client.channel != channel:
                 await voice_client.move_to(channel)
-            url = "https://firebasestorage.googleapis.com/v0/b/trailerflix-25df2.appspot.com/o/pjesme%2Faudio%2FBella%20Ciao%20-%20ORIGINALE.mp3?alt=media&token=a91ab43b-1595-4c61-86ad-4ecb26244d42"
-            await interaction.response.send_message(f"Playing: {url}", ephemeral=False)
-            source = discord.FFmpegPCMAudio(url)
-            voice_client.play(source)
+            import aiohttp
+            BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={naziv}") as resp:
+                    if resp.status == 200:
+                        pjesme = await resp.json()
+                        pjesma = next((p for p in pjesme if p['naziv'].lower() == naziv.lower()), None)
+                        if pjesma and pjesma.get('putanjaAudio'):
+                            url = pjesma['putanjaAudio']
+                            await interaction.response.send_message(f"Playing: {pjesma['naziv']}", ephemeral=False)
+                            source = discord.FFmpegPCMAudio(url)
+                            voice_client.play(source)
+                            return
+            await interaction.response.send_message("Pjesma nije pronađena ili nema audio!", ephemeral=True)
 
         async def dis_command(interaction: discord.Interaction):
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
@@ -82,11 +102,12 @@ class MyClient(discord.Client):
                 description="I am funny!",
                 guild=discord.Object(id=guild_id)
             )(active_command)
-            self.tree.command(
+            play_cmd = self.tree.command(
                 name="play",
-                description="BELLA CIAO!",
+                description="Pusti pjesmu po imenu!",
                 guild=discord.Object(id=guild_id)
-            )(play_command)
+            )(app_commands.describe(naziv="Ime pjesme")(play_command))
+            play_cmd.autocomplete('naziv')(search_pjesme_autocomplete)
             self.tree.command(
                 name="dis",
                 description="Disconnect the bot from the voice channel",

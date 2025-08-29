@@ -50,6 +50,14 @@ async def get_pjesma(pjesma_id: int, session: AsyncSession = Depends(get_session
         raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
     return pjesma
 
+
+@router.get("/pjesma/search", response_model=List[Pjesma])
+async def search_pjesme(q: str, session: AsyncSession = Depends(get_session)):
+    pjesme = await get_all_pjesme(session)
+    q_lower = q.lower()
+    filtered = [p for p in pjesme if q_lower in p.naziv.lower()]
+    return filtered
+
 @router.post("/", response_model=Pjesma)
 async def nova_pjesma(
     korisnikID: str = Form(...),
@@ -214,3 +222,5 @@ async def obrisi_pjesmu(pjesma_id: int, session: AsyncSession = Depends(get_sess
     if not db_pjesma:
         raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
     return db_pjesma
+
+

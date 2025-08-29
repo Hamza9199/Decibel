@@ -49,12 +49,46 @@ class MyClient(discord.Client):
             msg = random.choice(funny_messages)
             await interaction.response.send_message(msg, ephemeral=False)
 
+        async def play_command(interaction: discord.Interaction, video_id: str):
+            if not interaction.user.voice or not interaction.user.voice.channel:
+                await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
+                return
+            channel = interaction.user.voice.channel
+            voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            if voice_client and voice_client.is_playing():
+                voice_client.stop()
+            if not voice_client or not voice_client.is_connected():
+                voice_client = await channel.connect()
+            elif voice_client.channel != channel:
+                await voice_client.move_to(channel)
+            url = f"https://www.youtube.com/watch?v={video_id}"
+            await interaction.response.send_message(f"Playing: {url}", ephemeral=False)
+            import yt_dlp
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'quiet': True,
+                'no_warnings': True,
+                'default_search': 'auto',
+                'extract_flat': 'in_playlist',
+                'outtmpl': 'song.%(ext)s',
+            }
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                audio_url = info['url']
+            source = await discord.FFmpegOpusAudio.from_probe(audio_url)
+            voice_client.play(source)
+
         for guild_id in GUILD_IDS:
             self.tree.command(
                 name="active",
                 description="Smijeh za poludit",
                 guild=discord.Object(id=guild_id)
             )(active_command)
+            self.tree.command(
+                name="play",
+                description="Play a YouTube video in your voice channel",
+                guild=discord.Object(id=guild_id)
+            )(app_commands.describe(video_id="YouTube video ID")(play_command))
 
         for guild_id in GUILD_IDS:
             await self.tree.sync(guild=discord.Object(id=guild_id)) 

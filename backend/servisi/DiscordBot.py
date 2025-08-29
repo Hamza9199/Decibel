@@ -2,6 +2,7 @@ import os
 import discord
 from discord import app_commands, Embed
 import requests
+import random
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,20 +18,17 @@ class MyClient(discord.Client):
         GUILD_ID = 899379078086426675 
         @self.tree.command(name="active", description="Get the Discord Active Developer Badge info", guild=discord.Object(id=GUILD_ID))
         async def active_command(interaction: discord.Interaction):
-            try:
-                r = requests.get(f"{BACKEND_URL}/discord/bot_invite")
-                invite_url = "https://discord.com/developers/active-developer"
-                if r.status_code == 200:
-                    invite_url = r.json().get("invite_url", invite_url)
-                embed = Embed(
-                    title="Active Developer Badge",
-                    description=f"Klikni [ovdje]({invite_url}) da claim-aš badge!\nMožeš claimati na: https://discord.com/developers/active-developer",
-                    color=0x34DB98
-                )
-                embed.set_footer(text="Decibel Discord Bot")
-                await interaction.response.send_message(embed=embed, ephemeral=True)
-            except Exception as e:
-                await interaction.response.send_message("Greška pri dohvaćanju badge linka.", ephemeral=True)
+            funny_messages = [
+                "Ovaj bot je toliko aktivan da ni kava ne može da ga stigne! ☕",
+                "/active: Aktiviran kao Windows bez licence!",
+                "Ako ovo vidiš, bot je budan. Za sada... 😴",
+                "Bot je aktivan! (Bar se tako pravi)",
+                "Aktivniji od prosječnog studenta pred ispit!",
+                "/active: Bot je tu, ali gdje je tvoja motivacija?",
+                "Bot je online! Sad čekamo da i server bude..."
+            ]
+            msg = random.choice(funny_messages)
+            await interaction.response.send_message(msg, ephemeral=False)
 
         await self.tree.sync(guild=discord.Object(id=GUILD_ID)) 
 

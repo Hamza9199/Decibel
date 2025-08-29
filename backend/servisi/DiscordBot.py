@@ -104,7 +104,7 @@ class MyClient(discord.Client):
             )(active_command)
             play_cmd = self.tree.command(
                 name="play",
-                description="Pusti pjesmu po imenu!",
+                description="Play some songs broski!",
                 guild=discord.Object(id=guild_id)
             )(app_commands.describe(naziv="Ime pjesme")(play_command))
             play_cmd.autocomplete('naziv')(search_pjesme_autocomplete)

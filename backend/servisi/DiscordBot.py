@@ -60,7 +60,7 @@ class MyClient(discord.Client):
                         return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
             return []
 
-        async def play_next(guild_id, voice_client):
+        async def play_next(guild_id, voice_client, interaction=None):
             queue = self.song_queues.get(guild_id, [])
             if queue:
                 naziv, url = queue[0]
@@ -74,11 +74,23 @@ class MyClient(discord.Client):
                         voice_client.play(source, after=lambda e: self.loop.call_soon_threadsafe(after_playing, e))
                 source = discord.FFmpegPCMAudio(url)
                 voice_client.play(source, after=lambda e: self.loop.call_soon_threadsafe(after_playing, e))
+                # Optionally send now playing info if interaction is provided
+                if interaction:
+                    try:
+                        if not interaction.response.is_done():
+                            await interaction.response.send_message(f"Playing: {naziv}", ephemeral=False)
+                        else:
+                            await interaction.followup.send(f"Playing: {naziv}", ephemeral=False)
+                    except Exception:
+                        pass
 
         async def play_command(interaction: discord.Interaction, naziv: str):
             guild_id = interaction.guild.id
             if not interaction.user.voice or not interaction.user.voice.channel:
-                await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
+                try:
+                    await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
+                except Exception:
+                    pass
                 return
             channel = interaction.user.voice.channel
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
@@ -98,24 +110,41 @@ class MyClient(discord.Client):
                             url = pjesma['putanjaAudio']
                             queue = self.song_queues.setdefault(guild_id, [])
                             if len(queue) >= 10:
-                                await interaction.response.send_message("Queue is full (max 10 songs)!", ephemeral=True)
+                                try:
+                                    await interaction.response.send_message("Queue is full (max 10 songs)!", ephemeral=True)
+                                except Exception:
+                                    pass
                                 return
                             queue.append((pjesma['naziv'], url))
                             if not voice_client.is_playing():
-                                await interaction.response.send_message(f"Playing: {pjesma['naziv']}", ephemeral=False)
-                                await play_next(guild_id, voice_client)
+                                await play_next(guild_id, voice_client, interaction)
                             else:
-                                await interaction.response.send_message(f"Added to queue: {pjesma['naziv']}", ephemeral=False)
+                                try:
+                                    await interaction.response.send_message(f"Added to queue: {pjesma['naziv']}", ephemeral=False)
+                                except Exception:
+                                    pass
                             return
-            await interaction.response.send_message("Song not found!", ephemeral=True)
+            try:
+                await interaction.response.send_message("Song not found!", ephemeral=True)
+            except Exception:
+                pass
 
         async def skip_command(interaction: discord.Interaction):
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
-            if voice_client and voice_client.is_playing():
-                voice_client.stop()
-                await interaction.response.send_message("Skipped!", ephemeral=False)
-            else:
-                await interaction.response.send_message("There is no song to skip!", ephemeral=True)
+            try:
+                if voice_client and voice_client.is_playing():
+                    voice_client.stop()
+                    if not interaction.response.is_done():
+                        await interaction.response.send_message("Skipped!", ephemeral=False)
+                    else:
+                        await interaction.followup.send("Skipped!", ephemeral=False)
+                else:
+                    if not interaction.response.is_done():
+                        await interaction.response.send_message("There is no song to skip!", ephemeral=True)
+                    else:
+                        await interaction.followup.send("There is no song to skip!", ephemeral=True)
+            except Exception:
+                pass
 
         async def pause_command(interaction: discord.Interaction):
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)

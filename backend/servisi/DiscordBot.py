@@ -138,6 +138,7 @@ class MyClient(discord.Client):
                 if voice_client.is_playing():
                     voice_client.stop()
                 await voice_client.disconnect()
+                self.song_queues[interaction.guild.id] = []  
                 await interaction.response.send_message("Disconnected from voice channel!", ephemeral=False)
             else:
                 await interaction.response.send_message("I'm not in a voice channel!", ephemeral=True)

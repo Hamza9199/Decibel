@@ -66,6 +66,7 @@ const AudioPlayer: React.FC<Props> = ({
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const location = useLocation();
   const isMobile = useMemo(() => window.innerWidth <= 480, []);
+  const storedUser = useMemo(() => localStorage.getItem("korisnik"), []);
 
 
   const slusacID = useMemo(() => {
@@ -691,7 +692,6 @@ const AudioPlayer: React.FC<Props> = ({
     if (playing) {
       const startTimestamp = Math.floor(Date.now() / 1000);
       let largeImageKey = 'icon';
-      const largeImageText = currentSong.naziv;
       if (currentSong.putanjaSlika) {
         const base = currentSong.putanjaSlika.split('/').pop()?.split('.')[0];
         if (base) {
@@ -716,13 +716,19 @@ const AudioPlayer: React.FC<Props> = ({
         details: `${currentSong.naziv}`,
         state: `${currentOwner.korisnicko_ime}`,
         largeImageKey: "icon",
-        largeImageText,
+        largeImageText: "",
         startTimestamp,
         endTimestamp,
         type: 2,
       });
     } else {
-      ipc.invoke('update-discord-presence', { details: 'Malo mu fali da poludi', state: 'Pregled Početne', largeImageKey: 'icon', largeImageText: 'Decibel' });
+      let korisnickoIme = "";
+      try {
+        korisnickoIme = storedUser ? JSON.parse(storedUser)?.korisnicko_ime || "" : "";
+      } catch {
+        korisnickoIme = "";
+      }
+      ipc.invoke('update-discord-presence', { details: 'Pregled Početne', state: korisnickoIme, largeImageKey: 'icon', largeImageText: '' });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing]);

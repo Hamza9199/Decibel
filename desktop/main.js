@@ -202,66 +202,75 @@ ipcMain.handle('get-app-icon', async () => {
   return null;
 });
 
-const RPC = require('discord-rpc');
-const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID; 
-RPC.ActivityType = { Playing: 0, Streaming: 1, Listening: 2, Watching: 3, Custom: 4, Competing: 5 };
-console.log('[Discord RPC] Client ID:', DISCORD_CLIENT_ID);
+const { Client, ActivityType } = require("@xhayper/discord-rpc");
+const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID;
 
-const rpc = new RPC.Client({ transport: 'ipc' });
+console.log("[Discord RPC] Client ID:", DISCORD_CLIENT_ID);
+
+const rpc = new Client({ clientId: DISCORD_CLIENT_ID });
 
 let rpcReady = false;
-function setDiscordPresence({ state = 'Decibel', details = 'Sluša Decibel', largeImageKey = 'icon', largeImageText = 'Decibel', smallImageKey = undefined, smallImageText = undefined, startTimestamp = undefined, endTimestamp = undefined, type = 2 } = {}) {
+
+async function setDiscordPresence({
+  state = "Decibel",
+  details = "Pregled Početne",
+  largeImageKey = "icon",
+  largeImageText = "",
+  smallImageKey = undefined,
+  smallImageText = undefined,
+  startTimestamp = Date.now(),
+  endTimestamp = undefined,
+  type = 2
+} = {}) {
   if (!rpcReady) {
-    console.log('[Discord RPC] Not ready, skipping setActivity');
+    console.log("[Discord RPC] Not ready, skipping setActivity");
     return;
   }
-  console.log('[Discord RPC] setActivity', { state, details, largeImageKey, largeImageText, smallImageKey, smallImageText, startTimestamp, endTimestamp, type });
-  rpc.setActivity({
+
+  console.log("[Discord RPC] setActivity", {
     state,
     details,
-    largeImageKey,
-    largeImageText,
-    smallImageKey,
-    smallImageText,
-    startTimestamp,
-    endTimestamp,
-    instance: false,
-    type: (typeof type === 'number')
-      ? (type === 0 ? RPC.ActivityType.Playing
-        : type === 1 ? RPC.ActivityType.Streaming
-        : type === 2 ? RPC.ActivityType.Listening
-        : type === 3 ? RPC.ActivityType.Watching
-        : RPC.ActivityType.Custom)
-      : RPC.ActivityType.Listening
-  }).catch((err) => {
-    console.error('[Discord RPC] setActivity error:', err);
+    type
   });
+
+  try {
+    await rpc.user?.setActivity({
+      state,
+      details,
+      largeImageKey,
+      largeImageText,
+      smallImageKey,
+      smallImageText,
+      startTimestamp,
+      endTimestamp,
+      type
+    });
+  } catch (err) {
+    console.error("[Discord RPC] setActivity error:", err);
+  }
 }
 
-rpc.on('ready', () => {
+rpc.on("ready", () => {
   rpcReady = true;
-  console.log('[Discord RPC] Ready!');
+  console.log("[Discord RPC] Ready!");
   setDiscordPresence();
 });
 
-rpc.on('error', (err) => {
-  console.error('[Discord RPC] Error:', err);
-});
-
-rpc.login({ clientId: DISCORD_CLIENT_ID }).then(() => {
-  console.log('[Discord RPC] Login success');
+rpc.login().then(() => {
+  console.log("[Discord RPC] Login success");
 }).catch((err) => {
-  console.error('[Discord RPC] Login failed:', err);
+  console.error("[Discord RPC] Login failed:", err);
 });
 
-ipcMain.handle('update-discord-presence', async (_evt, presence) => {
-  console.log('[Discord RPC] update-discord-presence', presence);
+ipcMain.handle("update-discord-presence", async (_evt, presence) => {
+  console.log("[Discord RPC] update-discord-presence", presence);
   setDiscordPresence(presence);
 });
 
-app.on('window-all-closed', () => {
+app.on("window-all-closed", () => {
   if (rpcReady) {
-    try { rpc.clearActivity(); } catch {}
+    try { rpc.user?.clearActivity(); } catch {}
   }
-  if (process.platform !== 'darwin') app.quit();
+  if (process.platform !== "darwin") app.quit();
 });
+

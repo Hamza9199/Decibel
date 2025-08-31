@@ -82,10 +82,11 @@ class MyClient(discord.Client):
                 return
             channel = interaction.user.voice.channel
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
-            if not voice_client or not voice_client.is_connected():
+            if voice_client:
+                if voice_client.channel != channel:
+                    await voice_client.move_to(channel)
+            else:
                 voice_client = await channel.connect()
-            elif voice_client.channel != channel:
-                await voice_client.move_to(channel)
             import aiohttp
             BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
             async with aiohttp.ClientSession() as session:

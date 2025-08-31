@@ -100,7 +100,7 @@ class MyClient(discord.Client):
                                 await interaction.response.send_message("Queue is full (max 10 songs)!", ephemeral=True)
                                 return
                             queue.append((pjesma['naziv'], url))
-                            if len(queue) == 1 and (not voice_client.is_playing()):
+                            if not voice_client.is_playing():
                                 await interaction.response.send_message(f"Playing: {pjesma['naziv']}", ephemeral=False)
                                 await play_next(guild_id, voice_client)
                             else:

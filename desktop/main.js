@@ -203,7 +203,7 @@ ipcMain.handle('get-app-icon', async () => {
 });
 
 const { Client, ActivityType } = require("@xhayper/discord-rpc");
-const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID || "1334549106588389436";
+const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID;
 
 console.log("[Discord RPC] Client ID:", DISCORD_CLIENT_ID);
 

@@ -13,6 +13,7 @@ class MyClient(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.default())
         self.tree = app_commands.CommandTree(self)
+        self.song_queues = {}  
 
     async def setup_hook(self):
         GUILD_IDS = [899379078086426675, 373131243224694785]  
@@ -42,9 +43,9 @@ class MyClient(discord.Client):
                 "I tried to be normal once. Worst two minutes ever.",
                 "I'm not arguing, I'm just explaining why I'm right.",
                 "I have a joke on concurrency, but it might never finish.",
-                "I’m not short, I’m just concentrated awesome.",
-                "I’m not late, I’m just running in debug mode.",
-                "I’m not ignoring you, I’m just buffering..."
+                "I'm not short, I'm just concentrated awesome.",
+                "I'm not late, I'm just running in debug mode.",
+                "I'm not ignoring you, I'm just buffering..."
             ]
             msg = random.choice(funny_messages)
             await interaction.response.send_message(msg, ephemeral=False)
@@ -59,14 +60,28 @@ class MyClient(discord.Client):
                         return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
             return []
 
+        async def play_next(guild_id, voice_client):
+            queue = self.song_queues.get(guild_id, [])
+            if queue:
+                naziv, url = queue[0]
+                def after_playing(error=None):
+                    if error:
+                        print(f"Error playing: {error}")
+                    queue.pop(0)
+                    if queue:
+                        next_naziv, next_url = queue[0]
+                        source = discord.FFmpegPCMAudio(next_url)
+                        voice_client.play(source, after=lambda e: self.loop.call_soon_threadsafe(after_playing, e))
+                source = discord.FFmpegPCMAudio(url)
+                voice_client.play(source, after=lambda e: self.loop.call_soon_threadsafe(after_playing, e))
+
         async def play_command(interaction: discord.Interaction, naziv: str):
+            guild_id = interaction.guild.id
             if not interaction.user.voice or not interaction.user.voice.channel:
                 await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
                 return
             channel = interaction.user.voice.channel
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
-            if voice_client and voice_client.is_playing():
-                voice_client.stop()
             if not voice_client or not voice_client.is_connected():
                 voice_client = await channel.connect()
             elif voice_client.channel != channel:
@@ -80,11 +95,42 @@ class MyClient(discord.Client):
                         pjesma = next((p for p in pjesme if p['naziv'].lower() == naziv.lower()), None)
                         if pjesma and pjesma.get('putanjaAudio'):
                             url = pjesma['putanjaAudio']
-                            await interaction.response.send_message(f"Playing: {pjesma['naziv']}", ephemeral=False)
-                            source = discord.FFmpegPCMAudio(url)
-                            voice_client.play(source)
+                            queue = self.song_queues.setdefault(guild_id, [])
+                            if len(queue) >= 10:
+                                await interaction.response.send_message("Queue is full (max 10 songs)!", ephemeral=True)
+                                return
+                            queue.append((pjesma['naziv'], url))
+                            if len(queue) == 1 and (not voice_client.is_playing()):
+                                await interaction.response.send_message(f"Playing: {pjesma['naziv']}", ephemeral=False)
+                                await play_next(guild_id, voice_client)
+                            else:
+                                await interaction.response.send_message(f"Added to queue: {pjesma['naziv']}", ephemeral=False)
                             return
-            await interaction.response.send_message("Pjesma nije pronađena ili nema audio!", ephemeral=True)
+            await interaction.response.send_message("Song not found!", ephemeral=True)
+
+        async def skip_command(interaction: discord.Interaction):
+            voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            if voice_client and voice_client.is_playing():
+                voice_client.stop()
+                await interaction.response.send_message("Skipped!", ephemeral=False)
+            else:
+                await interaction.response.send_message("There is no song to skip!", ephemeral=True)
+
+        async def pause_command(interaction: discord.Interaction):
+            voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            if voice_client and voice_client.is_playing():
+                voice_client.pause()
+                await interaction.response.send_message("Paused!", ephemeral=False)
+            else:
+                await interaction.response.send_message("There is no song to pause!", ephemeral=True)
+
+        async def unpause_command(interaction: discord.Interaction):
+            voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            if voice_client and voice_client.is_paused():
+                voice_client.resume()
+                await interaction.response.send_message("Unpaused!", ephemeral=False)
+            else:
+                await interaction.response.send_message("There is no paused song!", ephemeral=True)
 
         async def dis_command(interaction: discord.Interaction):
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
@@ -108,6 +154,21 @@ class MyClient(discord.Client):
                 guild=discord.Object(id=guild_id)
             )(app_commands.describe(naziv="Ime pjesme")(play_command))
             play_cmd.autocomplete('naziv')(search_pjesme_autocomplete)
+            self.tree.command(
+                name="skip",
+                description="Skip current song!",
+                guild=discord.Object(id=guild_id)
+            )(skip_command)
+            self.tree.command(
+                name="pause",
+                description="Pause current song!",
+                guild=discord.Object(id=guild_id)
+            )(pause_command)
+            self.tree.command(
+                name="unpause",
+                description="Unpause current song!",
+                guild=discord.Object(id=guild_id)
+            )(unpause_command)
             self.tree.command(
                 name="dis",
                 description="Disconnect the bot from the voice channel",

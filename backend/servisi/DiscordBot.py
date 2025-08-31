@@ -18,6 +18,16 @@ class MyClient(discord.Client):
     async def setup_hook(self):
         GUILD_IDS = [899379078086426675, 373131243224694785]  
         
+        async def keep_alive_task():
+            await self.wait_until_ready()
+            while not self.is_closed():
+                try:
+                    await self.application_info()
+                except Exception:
+                    pass
+                await discord.utils.sleep_until(discord.utils.utcnow() + discord.utils.timedelta(hours=1))
+        self.loop.create_task(keep_alive_task())
+
         async def active_command(interaction: discord.Interaction):
             funny_messages = [
                 "This bot is so active, even coffee can't keep up! ☕",

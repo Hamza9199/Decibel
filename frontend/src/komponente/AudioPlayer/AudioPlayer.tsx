@@ -720,6 +720,7 @@ const AudioPlayer: React.FC<Props> = ({
         startTimestamp,
         endTimestamp,
         type: 2,
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }]
       });
     } else {
       let korisnickoIme = "";
@@ -728,7 +729,7 @@ const AudioPlayer: React.FC<Props> = ({
       } catch {
         korisnickoIme = "";
       }
-      ipc.invoke('update-discord-presence', { details: 'Pregled Početne', state: korisnickoIme, largeImageKey: 'icon', largeImageText: '' });
+      ipc.invoke('update-discord-presence', { details: 'Scrolling Main Page', state: korisnickoIme, largeImageKey: 'icon', largeImageText: '', type: 2, buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/` }] });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing]);

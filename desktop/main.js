@@ -203,7 +203,7 @@ ipcMain.handle('get-app-icon', async () => {
 });
 
 const { Client, ActivityType } = require("@xhayper/discord-rpc");
-const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID;
+const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID || "1334549106588389436";
 
 console.log("[Discord RPC] Client ID:", DISCORD_CLIENT_ID);
 
@@ -212,15 +212,16 @@ const rpc = new Client({ clientId: DISCORD_CLIENT_ID });
 let rpcReady = false;
 
 async function setDiscordPresence({
-  state = "Decibel",
-  details = "Pregled Početne",
+  state = "Decibel 🎵",
+  details = "Scrolling Main Page",
   largeImageKey = "icon",
   largeImageText = "",
   smallImageKey = undefined,
   smallImageText = undefined,
   startTimestamp = Date.now(),
   endTimestamp = undefined,
-  type = 2
+  type = 2,
+  buttons = [{ label: "Listen on Decibel", url: "https://deccibel.vercel.app/" }]
 } = {}) {
   if (!rpcReady) {
     console.log("[Discord RPC] Not ready, skipping setActivity");
@@ -230,7 +231,8 @@ async function setDiscordPresence({
   console.log("[Discord RPC] setActivity", {
     state,
     details,
-    type
+    type,
+    buttons
   });
 
   try {
@@ -243,7 +245,8 @@ async function setDiscordPresence({
       smallImageText,
       startTimestamp,
       endTimestamp,
-      type
+      type,
+      buttons
     });
   } catch (err) {
     console.error("[Discord RPC] setActivity error:", err);

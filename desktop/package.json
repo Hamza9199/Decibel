@@ -37,7 +37,10 @@
       "assets/**/*",
       "dist/**/*",
       "preload.js",
-      ".env",
+      ".env"
+    ],
+    "extraResources": [
+       ".env"
     ]
   },
   "dependencies": {

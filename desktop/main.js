@@ -2,8 +2,9 @@ const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain } = require('electr
 const path = require('path');
 const express = require('express');
 const fs = require('fs');
-require('dotenv').config();
-
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+const envPath = path.join(process.resourcesPath, '.env');
+require('dotenv').config({ path: envPath });
 try {
   app.setAppUserModelId('com.decibel.desktop');
   app.setName('Decibel');

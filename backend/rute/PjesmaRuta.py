@@ -55,7 +55,7 @@ async def get_pjesma(pjesma_id: int, session: AsyncSession = Depends(get_session
 async def search_pjesme(q: str, session: AsyncSession = Depends(get_session)):
     pjesme = await get_all_pjesme(session)
     q_lower = q.lower()
-    filtered = [p for p in pjesme if q_lower in p.naziv.lower()]
+    filtered = [p for p in pjesme if q_lower in p.naziv.lower() and p.javno and p.odobreno]
     return filtered
 
 @router.post("/", response_model=Pjesma)

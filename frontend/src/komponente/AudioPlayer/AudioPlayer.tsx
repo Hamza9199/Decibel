@@ -66,7 +66,6 @@ const AudioPlayer: React.FC<Props> = ({
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const location = useLocation();
   const isMobile = useMemo(() => window.innerWidth <= 480, []);
-  const storedUser = useMemo(() => localStorage.getItem("korisnik"), []);
 
 
   const slusacID = useMemo(() => {
@@ -689,50 +688,60 @@ const AudioPlayer: React.FC<Props> = ({
     const electronWindow = window as ElectronWindow;
     const ipc = electronWindow.electron?.ipcRenderer || electronWindow.ipcRenderer;
     if (!ipc || typeof ipc.invoke !== 'function') return;
+
+    const now = Math.floor(Date.now() / 1000);
+    const songProgress = Math.floor(progress);
+    const songDuration = Math.floor(duration || currentSong.trajanjeSekunde || 0);
+    const startTimestamp = now - songProgress;
+    const endTimestamp = songDuration ? startTimestamp + songDuration : undefined;
+
+    let largeImageKey = 'icon';
+    if (currentSong.putanjaSlika) {
+      const base = currentSong.putanjaSlika.split('/').pop()?.split('.')[0];
+      if (base) {
+        largeImageKey = base;
+      }
+    } else if (currentSong.putanjaGif) {
+      const base = currentSong.putanjaGif.split('/').pop()?.split('.')[0];
+      if (base) {
+        largeImageKey = base;
+      }
+    }
+    if (!largeImageKey || largeImageKey === '' || largeImageKey === undefined) {
+      largeImageKey = 'icon';
+    }
+
     if (playing) {
-      const startTimestamp = Math.floor(Date.now() / 1000);
-      let largeImageKey = 'icon';
-      if (currentSong.putanjaSlika) {
-        const base = currentSong.putanjaSlika.split('/').pop()?.split('.')[0];
-        if (base) {
-          largeImageKey = base;
-        }
-      } else if (currentSong.putanjaGif) {
-        const base = currentSong.putanjaGif.split('/').pop()?.split('.')[0];
-        if (base) {
-          largeImageKey = base;
-        }
-      }
-      if (!largeImageKey || largeImageKey === '' || largeImageKey === undefined) {
-        largeImageKey = 'icon';
-      }
-      let endTimestamp = undefined;
-      if (currentSong.trajanjeSekunde && !isNaN(currentSong.trajanjeSekunde)) {
-        endTimestamp = startTimestamp + currentSong.trajanjeSekunde;
-      } else if (duration && isFinite(duration)) {
-        endTimestamp = startTimestamp + Math.floor(duration);
-      }
       ipc.invoke('update-discord-presence', {
         details: `${currentSong.naziv}`,
         state: `${currentOwner.korisnicko_ime}`,
-        largeImageKey: "icon",
+        largeImageKey: largeImageKey,
         largeImageText: "",
         startTimestamp,
         endTimestamp,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.vercel.app/izvodjac/${currentOwner.korisnicko_ime}` }]
       });
-    } else {
-      let korisnickoIme = "";
-      try {
-        korisnickoIme = storedUser ? JSON.parse(storedUser)?.korisnicko_ime || "" : "";
-      } catch {
-        korisnickoIme = "";
+    } else {      
+      let pausedProgress = songDuration;
+      if (progress >= songDuration - 0.5 && songDuration > 0) {
+        pausedProgress = songDuration;
+      } else {
+        pausedProgress = songProgress;
       }
-      ipc.invoke('update-discord-presence', { details: 'Scrolling Main Page', state: korisnickoIme, largeImageKey: 'icon', largeImageText: '', type: 2, buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/` }] });
+      ipc.invoke('update-discord-presence', {
+        details: `${currentSong.naziv}`,
+        state: `${currentOwner.korisnicko_ime}`,
+        largeImageKey: largeImageKey,
+        largeImageText: "",
+        startTimestamp: now - pausedProgress,
+        endTimestamp: songDuration ? now - pausedProgress + songDuration : undefined,
+        type: 2,
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.vercel.app/izvodjac/${currentOwner.korisnicko_ime}` }]
+      });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing]);
+  }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
 
 
   if (pretplataValid === false) {

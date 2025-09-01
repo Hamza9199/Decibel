@@ -222,7 +222,7 @@ async function setDiscordPresence({
   startTimestamp = Date.now(),
   endTimestamp = undefined,
   type = 2,
-  buttons = [{ label: "Listen on Decibel", url: "https://deccibel.vercel.app/" }]
+  buttons = [{ label: "Listen on Decibel", url: "https://deccibel.vercel.app" }, { label: "Check this out", url: "https://deccibel.vercel.app" }]
 } = {}) {
   if (!rpcReady) {
     console.log("[Discord RPC] Not ready, skipping setActivity");

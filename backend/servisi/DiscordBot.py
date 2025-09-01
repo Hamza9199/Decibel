@@ -4,6 +4,7 @@ from discord import app_commands, Embed
 import requests
 import random
 from dotenv import load_dotenv
+import datetime
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -13,7 +14,6 @@ class MyClient(discord.Client):
     def __init__(self):
         super().__init__(intents=discord.Intents.default())
         self.tree = app_commands.CommandTree(self)
-        # Queue removed
 
     async def setup_hook(self):
         GUILD_IDS = [899379078086426675, 373131243224694785]  
@@ -25,7 +25,7 @@ class MyClient(discord.Client):
                     await self.application_info()
                 except Exception:
                     pass
-                await discord.utils.sleep_until(discord.utils.utcnow() + discord.utils.timedelta(hours=1))
+                await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(hours=1))
         self.loop.create_task(keep_alive_task())
 
         async def active_command(interaction: discord.Interaction):

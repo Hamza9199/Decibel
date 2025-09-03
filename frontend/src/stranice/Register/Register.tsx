@@ -36,6 +36,7 @@ const Register: React.FC = () => {
   const [korisnicko_ime, setKorisnickoIme] = useState("");
   const [email, setEmail] = useState("");
   const [lozinka, setLozinka] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -102,7 +103,41 @@ const Register: React.FC = () => {
           <input type="text" placeholder={t("surname")} className={styles.input} value={prezime} onChange={(e) => setPrezime(e.target.value)} required />
           <input type="text" placeholder={t("username")} className={styles.input} value={korisnicko_ime} onChange={(e) => setKorisnickoIme(e.target.value)} required />
           <input type="email" placeholder={t("email")} className={styles.input} value={email} onChange={(e) => setEmail(e.target.value)} required />
-          <input type="password" placeholder={t("password")} className={styles.input} value={lozinka} onChange={(e) => setLozinka(e.target.value)} required />
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder={t("password")}
+              className={styles.input}
+              value={lozinka}
+              onChange={(e) => setLozinka(e.target.value)}
+              required
+              style={{ paddingRight: 38 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: 0,
+                height: "100%",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#b91d95",
+                display: "flex",
+                alignItems: "center"
+              }}
+              tabIndex={-1}
+              aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
+            >
+              {showPassword ? (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#b91d95" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#b91d95" strokeWidth="2"/></svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#b91d95" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#b91d95" strokeWidth="2"/><line x1="4" y1="18" x2="18" y2="4" stroke="#b91d95" strokeWidth="2"/></svg>
+              )}
+            </button>
+          </div>
           {error && <div className={styles.error}>{error}</div>}
           {success && <div className={styles.success}>{success}</div>}
           <button className={styles.button} type="submit">{t("register")}</button>

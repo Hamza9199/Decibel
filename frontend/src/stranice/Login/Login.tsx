@@ -13,6 +13,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [lozinka, setLozinka] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -98,14 +99,41 @@ const Login: React.FC = () => {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <input
-            type="password"
-            placeholder={t("password")}
-            className={styles.input}
-            value={lozinka}
-            onChange={(e) => setLozinka(e.target.value)}
-            required
-          />
+          <div style={{ position: "relative", width: "100%" }}>
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder={t("password")}
+              className={styles.input}
+              value={lozinka}
+              onChange={(e) => setLozinka(e.target.value)}
+              required
+              style={{ paddingRight: 38 }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: 0,
+                height: "100%",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: "#b91d95",
+                display: "flex",
+                alignItems: "center"
+              }}
+              tabIndex={-1}
+              aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
+            >
+              {showPassword ? (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#b91d95" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#b91d95" strokeWidth="2"/></svg>
+              ) : (
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#b91d95" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#b91d95" strokeWidth="2"/><line x1="4" y1="18" x2="18" y2="4" stroke="#b91d95" strokeWidth="2"/></svg>
+              )}
+            </button>
+          </div>
           {error && <div className={styles.error}>{error}</div>}
           <button className={styles.button} type="submit">
             {t("login")}

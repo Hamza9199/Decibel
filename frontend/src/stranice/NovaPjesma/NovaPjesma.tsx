@@ -29,6 +29,9 @@ const NovaPjesma: React.FC = () => {
   const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
   const [search, setSearch] = useState("");
   const [styles, setStyles] = useState<Styles>({});
+  const [javno, setJavno] = useState(false);
+  const [jezikPjesme, setJezikPjesme] = useState("");
+  const [eksplicitniSadrzaj, setEksplicitniSadrzaj] = useState(false);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -61,10 +64,13 @@ const NovaPjesma: React.FC = () => {
 
   useEffect(() => {
     if (!korisnikId) return;
+    // Dodaj sebe samo ako je lista prazna (prvi load)
     setIzabraniIzvodjaci((prev) => {
-      if (prev.find((k) => String(k.id) === String(korisnikId))) return prev;
-      const userObj = (sviIzvodjaciQ.data || []).find((k) => String(k.id) === String(korisnikId)) || (korisnik as Korisnik);
-      return [userObj as Korisnik, ...prev];
+      if (prev.length === 0) {
+        const userObj = (sviIzvodjaciQ.data || []).find((k) => String(k.id) === String(korisnikId)) || (korisnik as Korisnik);
+        return [userObj as Korisnik];
+      }
+      return prev;
     });
   }, [korisnikId, sviIzvodjaciQ.data, korisnik]);
 
@@ -81,6 +87,9 @@ const NovaPjesma: React.FC = () => {
       gif: File | null;
       autorId: string;
       izvodjaci: Korisnik[];
+      javno: boolean;
+      jezikPjesme: string;
+      eksplicitniSadrzaj: boolean;
     }) => {
       const formData = new FormData();
       formData.append("korisnikID", vars.autorId as string);
@@ -93,6 +102,9 @@ const NovaPjesma: React.FC = () => {
       if (vars.audio) formData.append("file_audio", vars.audio);
       if (vars.slika) formData.append("file_slika", vars.slika);
       if (vars.gif) formData.append("file_gif", vars.gif);
+      formData.append("javno", String(vars.javno));
+      formData.append("jezikPjesme", vars.jezikPjesme);
+      formData.append("eksplicitniSadrzaj", String(vars.eksplicitniSadrzaj));
       const res = await axios.post<{ id: number }>(`${API_BASE}/pjesme/`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       const pjesmaId = res.data.id;
       const uniqueIzvodjaci = vars.izvodjaci.filter((izv, idx, arr) => arr.findIndex((x) => x.id === izv.id) === idx);
@@ -130,9 +142,9 @@ const NovaPjesma: React.FC = () => {
       setError(null);
       setSuccess(null);
       if (!korisnikId) return;
-      createSongMut.mutate({ naziv, opis, datumObjave, trajanjeSekunde, zanr, albumID, audio, slika, gif, autorId: korisnikId, izvodjaci: izabraniIzvodjaci });
+      createSongMut.mutate({ naziv, opis, datumObjave, trajanjeSekunde, zanr, albumID, audio, slika, gif, autorId: korisnikId, izvodjaci: izabraniIzvodjaci, javno, jezikPjesme, eksplicitniSadrzaj });
     },
-    [korisnikId, createSongMut, naziv, opis, datumObjave, trajanjeSekunde, zanr, albumID, audio, slika, gif, izabraniIzvodjaci]
+    [korisnikId, createSongMut, naziv, opis, datumObjave, trajanjeSekunde, zanr, albumID, audio, slika, gif, izabraniIzvodjaci, javno, jezikPjesme, eksplicitniSadrzaj]
   );
 
   const availableArtists = useMemo(() => {
@@ -211,6 +223,14 @@ const NovaPjesma: React.FC = () => {
             <label className={styles.label}>
               GIF:
               <input type="file" accept="image/gif" className={styles.fileInput} onChange={(e) => setGif(e.target.files?.[0] || null)} />
+            </label>
+            <label className={styles.label}>{t("public") || "Javno"}
+              <input type="checkbox" checked={javno} onChange={e => setJavno(e.target.checked)} style={{ marginLeft: 8 }} />
+            </label>
+            <label className={styles.label}>{t("song_language") || "Jezik pjesme"}</label>
+            <input type="text" className={styles.input} value={jezikPjesme} onChange={e => setJezikPjesme(e.target.value)} />
+            <label className={styles.label}>{t("explicit_content") || "Eksplicitni sadržaj"}
+              <input type="checkbox" checked={eksplicitniSadrzaj} onChange={e => setEksplicitniSadrzaj(e.target.checked)} style={{ marginLeft: 8 }} />
             </label>
             {error && <div className={styles.error}>{error}</div>}
             {success && <div className={styles.success}>{success}</div>}

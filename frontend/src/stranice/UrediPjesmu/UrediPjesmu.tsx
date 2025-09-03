@@ -85,8 +85,8 @@ const UrediPjesmu: React.FC = () => {
   const [naziv, setNaziv] = useState("");
   const [opis, setOpis] = useState("");
   const [zanr, setZanr] = useState("");
+  const [javno, setJavno] = useState(false);
   const [jezikPjesme, setJezikPjesme] = useState("");
-  const [licenca, setLicenca] = useState("");
   const [eksplicitniSadrzaj, setEksplicitniSadrzaj] = useState(false);
   const [fileSlika, setFileSlika] = useState<File | null>(null);
   const [fileGif, setFileGif] = useState<File | null>(null);
@@ -98,8 +98,8 @@ const UrediPjesmu: React.FC = () => {
       setOpis(pjesmaQ.data.opis || "");
       setZanr(pjesmaQ.data.zanr || "");
       setJezikPjesme(pjesmaQ.data.jezikPjesme || "");
-      setLicenca(pjesmaQ.data.licenca || "");
       setEksplicitniSadrzaj(!!pjesmaQ.data.eksplicitniSadrzaj);
+      setJavno(!!pjesmaQ.data.javno);
       setAlbumID(pjesmaQ.data.albumID || "");
     }
   }, [pjesmaQ.data]);
@@ -131,12 +131,10 @@ const UrediPjesmu: React.FC = () => {
       formData.append("korisnikID", korisnikID);
       formData.append("naziv", naziv);
       formData.append("opis", opis);
-      formData.append("datumObjave", pjesma.datumObjave || "");
       formData.append("trajanjeSekunde", String(pjesma.trajanjeSekunde));
-      formData.append("javno", String(pjesma.javno || false));
+      formData.append("javno", String(javno));
       formData.append("odobreno", String(pjesma.odobreno || false));
       formData.append("jezikPjesme", jezikPjesme);
-      formData.append("licenca", licenca);
       formData.append("eksplicitniSadrzaj", String(eksplicitniSadrzaj));
       formData.append("zanr", zanr);
       if (albumID) formData.append("albumID", String(albumID));
@@ -196,13 +194,13 @@ const UrediPjesmu: React.FC = () => {
             <textarea className={styles.input} value={opis} onChange={(e) => setOpis(e.target.value)} rows={3} />
             <label className={styles.label}>{t("genre") || "Žanr"}</label>
             <input className={styles.input} value={zanr} onChange={(e) => setZanr(e.target.value)} required />
+            <label className={styles.label}>{t("public") || "Javno"}
+              <input type="checkbox" checked={javno} onChange={e => setJavno(e.target.checked)} style={{ marginLeft: 8 }} />
+            </label>
             <label className={styles.label}>{t("song_language") || "Jezik pjesme"}</label>
-            <input className={styles.input} value={jezikPjesme} onChange={(e) => setJezikPjesme(e.target.value)} />
-            <label className={styles.label}>{t("license") || "Licenca"}</label>
-            <input className={styles.input} value={licenca} onChange={(e) => setLicenca(e.target.value)} />
-            <label className={styles.label}>
-              {t("explicit_content") || "Eksplicitni sadržaj"}
-              <input type="checkbox" checked={eksplicitniSadrzaj} onChange={(e) => setEksplicitniSadrzaj(e.target.checked)} style={{ marginLeft: 8 }} />
+            <input type="text" className={styles.input} value={jezikPjesme} onChange={e => setJezikPjesme(e.target.value)} />
+            <label className={styles.label}>{t("explicit_content") || "Eksplicitni sadržaj"}
+              <input type="checkbox" checked={eksplicitniSadrzaj} onChange={e => setEksplicitniSadrzaj(e.target.checked)} style={{ marginLeft: 8 }} />
             </label>
             <label className={styles.label}>{t("album_optional") || "Album (opcionalno)"}</label>
             <select className={styles.input} value={albumID} onChange={(e) => setAlbumID(e.target.value ? Number(e.target.value) : "")}>

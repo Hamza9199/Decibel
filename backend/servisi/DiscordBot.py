@@ -132,26 +132,26 @@ class MyClient(discord.Client):
                                 def __init__(self, timeout=None):
                                     super().__init__(timeout=timeout)
                                     self.paused = False
-                                @discord.ui.button(label="⏸️", style=discord.ButtonStyle.secondary, custom_id="pause_btn")
+                                @discord.ui.button(label="\u23F8", style=discord.ButtonStyle.secondary, custom_id="pause_btn")
                                 async def pause_btn(self, button: Button, interaction2: discord.Interaction):
                                     voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
                                     if voice_client and voice_client.is_playing():
                                         voice_client.pause()
                                         self.paused = True
-                                        button.label = "▶️"
+                                        button.label = "\u25B6"
                                         await interaction2.response.edit_message(view=self)
                                     elif voice_client and voice_client.is_paused():
                                         voice_client.resume()
                                         self.paused = False
                                         button.label = "⏸️"
                                         await interaction2.response.edit_message(view=self)
-                                @discord.ui.button(label="⏭️", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
+                                @discord.ui.button(label="\u23ED", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
                                 async def skip_btn(self, button: Button, interaction2: discord.Interaction):
                                     voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
                                     if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
                                         voice_client.stop()
                                     await interaction2.response.edit_message(view=self)
-                                @discord.ui.button(label="⏹️", style=discord.ButtonStyle.danger, custom_id="stop_btn")
+                                @discord.ui.button(label="\u23F9", style=discord.ButtonStyle.danger, custom_id="stop_btn")
                                 async def stop_btn(self, button: Button, interaction2: discord.Interaction):
                                     voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
                                     if voice_client:

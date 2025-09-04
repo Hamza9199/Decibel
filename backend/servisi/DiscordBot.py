@@ -5,6 +5,7 @@ import requests
 import random
 from dotenv import load_dotenv
 import datetime
+from discord.ui import View, Button
 
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -87,6 +88,7 @@ class MyClient(discord.Client):
             else:
                 voice_client = await channel.connect()
             import aiohttp
+            import asyncio
             BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={naziv}") as resp:
@@ -96,20 +98,81 @@ class MyClient(discord.Client):
                         if pjesma and pjesma.get('putanjaAudio'):
                             url = pjesma['putanjaAudio']
                             trajanje = pjesma.get('trajanjeSekunde', 0)
-                            trajanje_str = f"{trajanje//60:02}:{trajanje%60:02}" if trajanje else "?"
-                            embed = Embed(
-                                title=f"{pjesma['naziv']} — *{pjesma.get('zanr','')}*",
-                                description=f"Requested by <@{interaction.user.id}>\n\n00:00  `{chr(9608)*1}{chr(9472)*18}`  {trajanje_str}",
-                                color=0xb91d95
-                            )
-                            if pjesma.get('putanjaSlika'):
-                                embed.set_thumbnail(url=pjesma['putanjaSlika'])
-                            elif pjesma.get('putanjaGif'):
-                                embed.set_thumbnail(url=pjesma['putanjaGif'])
-                            embed.set_footer(text="Decibel Player Bot")
+                            izvodjac_ime = None
+                            korisnik_id = pjesma.get('korisnikID')
+                            if korisnik_id:
+                                async with session.get(f"{BACKEND_URL}/api/korisnici/{korisnik_id}") as korisnik_resp:
+                                    if korisnik_resp.status == 200:
+                                        korisnik = await korisnik_resp.json()
+                                        izvodjac_ime = korisnik.get('korisnicko_ime')
+                            if not izvodjac_ime:
+                                izvodjac_ime = "Nepoznati izvođač"
+                            def make_embed(current_sec):
+                                bar_length = 19
+                                if trajanje > 0:
+                                    progress = min(max(int((current_sec / trajanje) * bar_length), 0), bar_length)
+                                else:
+                                    progress = 0
+                                bar = f"`{chr(9608)*progress}{chr(9472)*(bar_length-progress)}`"
+                                t1 = f"{int(current_sec//60):02}:{int(current_sec%60):02}"
+                                t2 = f"{int(trajanje//60):02}:{int(trajanje%60):02}" if trajanje else "?"
+                                desc = f"Requested by <@{interaction.user.id}>\n\n{t1}  {bar}  {t2}"
+                                embed = Embed(
+                                    title=f"{pjesma['naziv']} — *{izvodjac_ime}*",
+                                    description=desc,
+                                    color=0xb91d95
+                                )
+                                if pjesma.get('putanjaSlika'):
+                                    embed.set_thumbnail(url=pjesma['putanjaSlika'])
+                                elif pjesma.get('putanjaGif'):
+                                    embed.set_thumbnail(url=pjesma['putanjaGif'])
+                                embed.set_footer(text="Decibel")
+                                return embed
+                            class PlayerView(View):
+                                def __init__(self, timeout=None):
+                                    super().__init__(timeout=timeout)
+                                    self.paused = False
+                                @discord.ui.button(label="⏸️", style=discord.ButtonStyle.secondary, custom_id="pause_btn")
+                                async def pause_btn(self, button: Button, interaction2: discord.Interaction):
+                                    voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
+                                    if voice_client and voice_client.is_playing():
+                                        voice_client.pause()
+                                        self.paused = True
+                                        button.label = "▶️"
+                                        await interaction2.response.edit_message(view=self)
+                                    elif voice_client and voice_client.is_paused():
+                                        voice_client.resume()
+                                        self.paused = False
+                                        button.label = "⏸️"
+                                        await interaction2.response.edit_message(view=self)
+                                @discord.ui.button(label="⏭️", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
+                                async def skip_btn(self, button: Button, interaction2: discord.Interaction):
+                                    voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
+                                    if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
+                                        voice_client.stop()
+                                    await interaction2.response.edit_message(view=self)
+                                @discord.ui.button(label="⏹️", style=discord.ButtonStyle.danger, custom_id="stop_btn")
+                                async def stop_btn(self, button: Button, interaction2: discord.Interaction):
+                                    voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
+                                    if voice_client:
+                                        if voice_client.is_playing() or voice_client.is_paused():
+                                            voice_client.stop()
+                                        await voice_client.disconnect()
+                                    await interaction2.response.edit_message(view=self)
                             try:
                                 voice_client.play(discord.FFmpegPCMAudio(url))
-                                await interaction.response.send_message(embed=embed)
+                                start_time = datetime.datetime.utcnow()
+                                view = PlayerView(timeout=trajanje+30)
+                                msg = await interaction.response.send_message(embed=make_embed(0), view=view)
+                                if hasattr(msg, 'original_response'):
+                                    message = await msg.original_response()
+                                else:
+                                    message = await interaction.original_response()
+                                elapsed = 0
+                                while voice_client.is_playing() and elapsed < trajanje:
+                                    await asyncio.sleep(5)
+                                    elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
+                                    await message.edit(embed=make_embed(elapsed), view=view)
                             except Exception:
                                 await interaction.response.send_message("Error playing song!", ephemeral=True)
                             return

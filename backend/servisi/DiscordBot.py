@@ -129,31 +129,32 @@ class MyClient(discord.Client):
                                 embed.set_footer(text="Decibel")
                                 return embed
                             class PlayerView(View):
-                                def __init__(self, timeout=None):
+                                def __init__(self, client, timeout=None):
                                     super().__init__(timeout=timeout)
+                                    self.client = client
                                     self.paused = False
                                 @discord.ui.button(label="\u23F8", style=discord.ButtonStyle.secondary, custom_id="pause_btn")
                                 async def pause_btn(self, button: Button, interaction2: discord.Interaction):
-                                    voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
+                                    voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
                                     if voice_client and voice_client.is_playing():
                                         voice_client.pause()
                                         self.paused = True
-                                        button.label = "\u25B6"
+                                        button.label = "\u23F8"
                                         await interaction2.response.edit_message(view=self)
                                     elif voice_client and voice_client.is_paused():
                                         voice_client.resume()
                                         self.paused = False
-                                        button.label = "⏸️"
+                                        button.label = "\u25B6"
                                         await interaction2.response.edit_message(view=self)
                                 @discord.ui.button(label="\u23ED", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
                                 async def skip_btn(self, button: Button, interaction2: discord.Interaction):
-                                    voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
+                                    voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
                                     if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
                                         voice_client.stop()
                                     await interaction2.response.edit_message(view=self)
                                 @discord.ui.button(label="\u23F9", style=discord.ButtonStyle.danger, custom_id="stop_btn")
                                 async def stop_btn(self, button: Button, interaction2: discord.Interaction):
-                                    voice_client = discord.utils.get(self.voice_clients, guild=interaction2.guild)
+                                    voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
                                     if voice_client:
                                         if voice_client.is_playing() or voice_client.is_paused():
                                             voice_client.stop()
@@ -162,7 +163,7 @@ class MyClient(discord.Client):
                             try:
                                 voice_client.play(discord.FFmpegPCMAudio(url))
                                 start_time = datetime.datetime.utcnow()
-                                view = PlayerView(timeout=trajanje+30)
+                                view = PlayerView(self, timeout=trajanje+30)
                                 msg = await interaction.response.send_message(embed=make_embed(0), view=view)
                                 if hasattr(msg, 'original_response'):
                                     message = await msg.original_response()

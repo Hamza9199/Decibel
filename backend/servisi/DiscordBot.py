@@ -95,9 +95,21 @@ class MyClient(discord.Client):
                         pjesma = next((p for p in pjesme if p['naziv'].lower() == naziv.lower()), None)
                         if pjesma and pjesma.get('putanjaAudio'):
                             url = pjesma['putanjaAudio']
+                            trajanje = pjesma.get('trajanjeSekunde', 0)
+                            trajanje_str = f"{trajanje//60:02}:{trajanje%60:02}" if trajanje else "?"
+                            embed = Embed(
+                                title=f"{pjesma['naziv']} — *{pjesma.get('zanr','')}*",
+                                description=f"Requested by <@{interaction.user.id}>\n\n00:00  `{chr(9608)*1}{chr(9472)*18}`  {trajanje_str}",
+                                color=0xb91d95
+                            )
+                            if pjesma.get('putanjaSlika'):
+                                embed.set_thumbnail(url=pjesma['putanjaSlika'])
+                            elif pjesma.get('putanjaGif'):
+                                embed.set_thumbnail(url=pjesma['putanjaGif'])
+                            embed.set_footer(text="Decibel Player Bot")
                             try:
                                 voice_client.play(discord.FFmpegPCMAudio(url))
-                                await interaction.response.send_message(f"Playing: {pjesma['naziv']}", ephemeral=False)
+                                await interaction.response.send_message(embed=embed)
                             except Exception:
                                 await interaction.response.send_message("Error playing song!", ephemeral=True)
                             return

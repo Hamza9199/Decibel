@@ -701,12 +701,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (base) {
         largeImageKey = base;
       }
-    } else if (currentSong.putanjaGif) {
-      const base = currentSong.putanjaGif.split('/').pop()?.split('.')[0];
-      if (base) {
-        largeImageKey = base;
-      }
-    }
+    } 
     if (!largeImageKey || largeImageKey === '' || largeImageKey === undefined) {
       largeImageKey = 'icon';
     }

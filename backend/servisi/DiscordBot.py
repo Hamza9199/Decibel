@@ -21,12 +21,16 @@ class MyClient(discord.Client):
         
         async def keep_alive_task():
             await self.wait_until_ready()
+            import asyncio
             while not self.is_closed():
-                try:
-                    await self.application_info()
-                except Exception:
-                    pass
-                await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(hours=1))
+                for vc in list(self.voice_clients):
+                    channel = vc.channel
+                    members = channel.members if channel else []
+                    only_bot = len([m for m in members if not m.bot]) == 0
+                    idle = not vc.is_playing() and not vc.is_paused() and (datetime.datetime.utcnow() - getattr(vc, 'last_active', datetime.datetime.utcnow())).total_seconds() > 1800
+                    if only_bot or idle:
+                        await vc.disconnect()
+                await asyncio.sleep(300)
         self.loop.create_task(keep_alive_task())
 
         async def active_command(interaction: discord.Interaction):
@@ -176,6 +180,8 @@ class MyClient(discord.Client):
                                     await message.edit(embed=make_embed(elapsed), view=view)
                             except Exception:
                                 await interaction.response.send_message("Error playing song!", ephemeral=True)
+                            if voice_client:
+                                voice_client.last_active = datetime.datetime.utcnow()
                             return
             try:
                 await interaction.response.send_message("Song not found!", ephemeral=True)

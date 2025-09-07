@@ -33,7 +33,7 @@ Primjeri:
 
 6. Mobilna Aplikacija
 
-![Mobilna Aplikacija](dokumentacija/Slika6.png)
+![Mobilna Aplikacija](dokumentacija/Slika6.jpg)
 
 
 

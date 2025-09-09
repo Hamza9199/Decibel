@@ -23,14 +23,24 @@ class MyClient(discord.Client):
             await self.wait_until_ready()
             import asyncio
             while not self.is_closed():
-                for vc in list(self.voice_clients):
-                    channel = vc.channel
-                    members = channel.members if channel else []
-                    only_bot = len([m for m in members if not m.bot]) == 0
-                    idle = not vc.is_playing() and not vc.is_paused() and (datetime.datetime.utcnow() - getattr(vc, 'last_active', datetime.datetime.utcnow())).total_seconds() > 1800
-                    if only_bot or idle:
-                        await vc.disconnect()
-                await asyncio.sleep(300)
+                try:
+                    for vc in list(self.voice_clients):
+                        try:
+                            channel = vc.channel
+                            members = channel.members if channel else []
+                            only_bot = len([m for m in members if not m.bot]) == 0
+                            idle = not vc.is_playing() and not vc.is_paused() and (datetime.datetime.utcnow() - getattr(vc, 'last_active', datetime.datetime.utcnow())).total_seconds() > 1800
+                            if only_bot or idle:
+                                try:
+                                    await vc.disconnect()
+                                except Exception as e:
+                                    print(f"[DiscordBot] Greška pri disconnectu: {e}")
+                        except Exception as e:
+                            print(f"[DiscordBot] Greška u provjeri voice clienta: {e}")
+                    await asyncio.sleep(300)
+                except Exception as e:
+                    print(f"[DiscordBot] Greška u keep_alive_task petlji: {e}")
+                    await asyncio.sleep(10)
         self.loop.create_task(keep_alive_task())
 
         async def active_command(interaction: discord.Interaction):

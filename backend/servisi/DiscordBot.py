@@ -17,7 +17,7 @@ class MyClient(discord.Client):
         self.tree = app_commands.CommandTree(self)
 
     async def setup_hook(self):
-        GUILD_IDS = [899379078086426675, 373131243224694785]  
+        GUILD_IDS = [899379078086426675, 373131243224694785, 775693283007397899]  
         
         async def keep_alive_task():
             await self.wait_until_ready()

@@ -141,8 +141,10 @@ async def startup():
             time.sleep(60 * 30 * 1)
 
     threading.Thread(target=auto_cleanup, daemon=True).start()
-    threading.Thread(target=start_discord_bot, daemon=True).start()
-
+    if os.getenv("RUN_DISCORD_IN_PROCESS", "false").lower() == "true":
+        threading.Thread(target=start_discord_bot, daemon=True).start()
+    else:
+        print("[Discord Bot] Not starting bot inside FastAPI process. To enable set RUN_DISCORD_IN_PROCESS=true in the environment and restart.")
    
 @app.on_event("shutdown")
 async def shutdown():

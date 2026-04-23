@@ -95,29 +95,45 @@ class MyClient(discord.Client):
 
         async def search_pjesme_autocomplete(interaction: discord.Interaction, current: str):
             if not current or not current.strip() or len(current.strip()) < 2:
+                # require at least 2 chars to reduce frequent/autocancelled autocomplete calls
                 return []
             try:
                 import aiohttp
                 BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
-                timeout = aiohttp.ClientTimeout(total=3)
+                timeout = aiohttp.ClientTimeout(total=3)  # be fast to avoid interaction timeouts
                 async with aiohttp.ClientSession(timeout=timeout) as session:
                     async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}") as resp:
                         if resp.status == 200:
                             pjesme = await resp.json()
                             return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
             except Exception:
+                # don't propagate exceptions to discord internals (they will try to respond and may collide)
                 logging.exception("[DiscordBot] Autocomplete failed (suppressed)")
             return []
 
         async def play_command(interaction: discord.Interaction, naziv: str):
+            if os.getenv("DISABLE_VOICE", "false").lower() == "true":
+                try:
+                    await interaction.response.send_message(
+                        "🎵 Voice playback is disabled on this hosting environment (Render doesn't support UDP). "
+                        "Songs can only be played on local/self-hosted instances. "
+                        "Check the music on the web player instead!",
+                        ephemeral=True
+                    )
+                except Exception:
+                    pass
+                return
+
             if not interaction.user.voice or not interaction.user.voice.channel:
                 try:
                     await interaction.response.send_message("You must be in a voice channel to use this command!", ephemeral=True)
                 except Exception:
                     pass
                 return
+            
             channel = interaction.user.voice.channel
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            
             def is_vc_connected(vc):
                 if not vc:
                     return False
@@ -128,13 +144,8 @@ class MyClient(discord.Client):
                     return getattr(vc, "channel", None) is not None
                 except Exception:
                     return False
+            
             try:
-                if os.getenv("DISABLE_VOICE", "false").lower() == "true":
-                    try:
-                        await interaction.response.send_message("Voice playback is disabled in this hosting environment.", ephemeral=True)
-                    except Exception:
-                        pass
-                    return
                 try:
                     await interaction.response.defer()
                 except Exception:
@@ -148,153 +159,196 @@ class MyClient(discord.Client):
                 else:
                     try:
                         voice_client = await channel.connect(timeout=30, reconnect=True)
-                    except discord.errors.ConnectionClosed:
-                        logging.exception("[DiscordBot] Voice connection closed during handshake")
+                    except discord.errors.ConnectionClosed as cc:
+                        logging.error(f"[DiscordBot] Voice ConnectionClosed (code {cc.code}): {cc}")
                         try:
-                            await interaction.followup.send("Ne mogu se povezati na voice - hosting okruženje ne podržava voice (error 4017 / ConnectionClosed).", ephemeral=True)
+                            await interaction.followup.send(
+                                "❌ Cannot connect to voice channel. This is a hosting environment limitation (Render doesn't support UDP voice). "
+                                "Try on a self-hosted or local instance instead.",
+                                ephemeral=True
+                            )
                         except Exception:
                             pass
                         return
-                    except Exception:
+                    except discord.errors.ClientException as ce:
+                        logging.error(f"[DiscordBot] Voice ClientException: {ce}")
+                        try:
+                            await interaction.followup.send(
+                                "❌ Bot connection error. Try again in a moment.",
+                                ephemeral=True
+                            )
+                        except Exception:
+                            pass
+                        return
+                    except Exception as e:
                         logging.exception("[DiscordBot] Failed to connect to voice channel")
                         try:
-                            await interaction.followup.send("Ne mogu se povezati na voice kanal (handshake error). Pokušajte ponovo kasnije.", ephemeral=True)
+                            await interaction.followup.send(
+                                f"❌ Failed to connect to voice channel: {type(e).__name__}",
+                                ephemeral=True
+                            )
                         except Exception:
                             pass
                         return
-            except Exception:
-                logging.exception(f"[DiscordBot] Failed to connect to voice channel {getattr(channel,'id',None)}")
+            except Exception as e:
+                logging.exception(f"[DiscordBot] Unexpected error before voice connection")
                 try:
-                    await interaction.followup.send("Ne mogu se povezati na voice kanal (handshake error). Pokušajte ponovo kasnije.", ephemeral=True)
+                    await interaction.followup.send("❌ An unexpected error occurred.", ephemeral=True)
                 except Exception:
                     pass
                 return
+
             import aiohttp
             import asyncio
             BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={naziv}") as resp:
-                    if resp.status == 200:
-                        pjesme = await resp.json()
-                        pjesma = next((p for p in pjesme if p['naziv'].lower() == naziv.lower()), None)
-                        if pjesma and pjesma.get('putanjaAudio'):
-                            url = pjesma['putanjaAudio']
-                            trajanje = pjesma.get('trajanjeSekunde', 0)
-                            izvodjac_ime = None
-                            korisnik_id = pjesma.get('korisnikID')
-                            if korisnik_id:
-                                async with session.get(f"{BACKEND_URL}/api/korisnici/{korisnik_id}") as korisnik_resp:
-                                    if korisnik_resp.status == 200:
-                                        korisnik = await korisnik_resp.json()
-                                        izvodjac_ime = korisnik.get('korisnicko_ime')
-                            if not izvodjac_ime:
-                                izvodjac_ime = "Nepoznati izvođač"
-                            def make_embed(current_sec):
-                                bar_length = 19
-                                if trajanje > 0:
-                                    progress = min(max(int((current_sec / trajanje) * bar_length), 0), bar_length)
-                                else:
-                                    progress = 0
-                                bar = f"`{chr(9608)*progress}{chr(9472)*(bar_length-progress)}`"
-                                t1 = f"{int(current_sec//60):02}:{int(current_sec%60):02}"
-                                t2 = f"{int(trajanje//60):02}:{int(trajanje%60):02}" if trajanje else "?"
-                                desc = f"Requested by <@{interaction.user.id}>\n\n{t1}  {bar}  {t2}"
-                                embed = Embed(
-                                    title=f"{pjesma['naziv']} — *{izvodjac_ime}*",
-                                    description=desc,
-                                    color=0xb91d95
-                                )
-                                if pjesma.get('putanjaSlika'):
-                                    embed.set_thumbnail(url=pjesma['putanjaSlika'])
-                                elif pjesma.get('putanjaGif'):
-                                    embed.set_thumbnail(url=pjesma['putanjaGif'])
-                                embed.set_footer(text="Decibel")
-                                return embed
-                            class PlayerView(View):
-                                def __init__(self, client, timeout=None):
-                                    super().__init__(timeout=timeout)
-                                    self.client = client
-                                    self.paused = False
-                                @discord.ui.button(label="\u23F8", style=discord.ButtonStyle.secondary, custom_id="pause_btn")
-                                async def pause_btn(self, button: Button, interaction2: discord.Interaction):
-                                    voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
-                                    if voice_client and voice_client.is_playing():
-                                        voice_client.pause()
-                                        self.paused = True
-                                        button.label = "\u23F8"
-                                        await interaction2.response.edit_message(view=self)
-                                    elif voice_client and voice_client.is_paused():
-                                        voice_client.resume()
+            
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={naziv}") as resp:
+                        if resp.status == 200:
+                            pjesme = await resp.json()
+                            pjesma = next((p for p in pjesme if p['naziv'].lower() == naziv.lower()), None)
+                            if pjesma and pjesma.get('putanjaAudio'):
+                                url = pjesma['putanjaAudio']
+                                trajanje = pjesma.get('trajanjeSekunde', 0)
+                                izvodjac_ime = None
+                                korisnik_id = pjesma.get('korisnikID')
+                                
+                                if korisnik_id:
+                                    async with session.get(f"{BACKEND_URL}/api/korisnici/{korisnik_id}") as korisnik_resp:
+                                        if korisnik_resp.status == 200:
+                                            korisnik = await korisnik_resp.json()
+                                            izvodjac_ime = korisnik.get('korisnicko_ime')
+                                
+                                if not izvodjac_ime:
+                                    izvodjac_ime = "Nepoznati izvođač"
+                                
+                                def make_embed(current_sec):
+                                    bar_length = 19
+                                    if trajanje > 0:
+                                        progress = min(max(int((current_sec / trajanje) * bar_length), 0), bar_length)
+                                    else:
+                                        progress = 0
+                                    bar = f"`{chr(9608)*progress}{chr(9472)*(bar_length-progress)}`"
+                                    t1 = f"{int(current_sec//60):02}:{int(current_sec%60):02}"
+                                    t2 = f"{int(trajanje//60):02}:{int(trajanje%60):02}" if trajanje else "?"
+                                    desc = f"Requested by <@{interaction.user.id}>\n\n{t1}  {bar}  {t2}"
+                                    embed = Embed(
+                                        title=f"{pjesma['naziv']} — *{izvodjac_ime}*",
+                                        description=desc,
+                                        color=0xb91d95
+                                    )
+                                    if pjesma.get('putanjaSlika'):
+                                        embed.set_thumbnail(url=pjesma['putanjaSlika'])
+                                    elif pjesma.get('putanjaGif'):
+                                        embed.set_thumbnail(url=pjesma['putanjaGif'])
+                                    embed.set_footer(text="Decibel")
+                                    return embed
+                                
+                                class PlayerView(View):
+                                    def __init__(self, client, timeout=None):
+                                        super().__init__(timeout=timeout)
+                                        self.client = client
                                         self.paused = False
-                                        button.label = "\u25B6"
-                                        await interaction2.response.edit_message(view=self)
-                                @discord.ui.button(label="\u23ED", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
-                                async def skip_btn(self, button: Button, interaction2: discord.Interaction):
-                                    voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
-                                    if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
-                                        voice_client.stop()
-                                    await interaction2.response.edit_message(view=self)
-                                @discord.ui.button(label="\u23F9", style=discord.ButtonStyle.danger, custom_id="stop_btn")
-                                async def stop_btn(self, button: Button, interaction2: discord.Interaction):
-                                    voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
-                                    if voice_client:
-                                        if voice_client.is_playing() or voice_client.is_paused():
+                                    
+                                    @discord.ui.button(label="\u23F8", style=discord.ButtonStyle.secondary, custom_id="pause_btn")
+                                    async def pause_btn(self, button: Button, interaction2: discord.Interaction):
+                                        voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
+                                        if voice_client and voice_client.is_playing():
+                                            voice_client.pause()
+                                            self.paused = True
+                                            button.label = "\u25B6"
+                                            await interaction2.response.edit_message(view=self)
+                                        elif voice_client and voice_client.is_paused():
+                                            voice_client.resume()
+                                            self.paused = False
+                                            button.label = "\u23F8"
+                                            await interaction2.response.edit_message(view=self)
+                                    
+                                    @discord.ui.button(label="\u23ED", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
+                                    async def skip_btn(self, button: Button, interaction2: discord.Interaction):
+                                        voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
+                                        if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
                                             voice_client.stop()
-                                        await voice_client.disconnect()
-                                    await interaction2.response.edit_message(view=self)
-                            try:
-                                if not is_vc_connected(voice_client):
-                                    try:
-                                        voice_client = await channel.connect(timeout=15, reconnect=True)
-                                    except Exception:
-                                        logging.exception("[DiscordBot] Could not (re)connect before playback")
+                                        await interaction2.response.edit_message(view=self)
+                                    
+                                    @discord.ui.button(label="\u23F9", style=discord.ButtonStyle.danger, custom_id="stop_btn")
+                                    async def stop_btn(self, button: Button, interaction2: discord.Interaction):
+                                        voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
+                                        if voice_client:
+                                            if voice_client.is_playing() or voice_client.is_paused():
+                                                voice_client.stop()
+                                            await voice_client.disconnect()
+                                        await interaction2.response.edit_message(view=self)
+                                
+                                try:
+                                    if not is_vc_connected(voice_client):
                                         try:
-                                            await interaction.followup.send("Ne mogu započeti reprodukciju - problem s voice vezom.", ephemeral=True)
-                                        except Exception:
-                                            pass
-                                        return
-                                voice_client.play(discord.FFmpegPCMAudio(url))
-                                start_time = datetime.datetime.utcnow()
-                                view = PlayerView(self, timeout=trajanje+30)
-                                try:
-                                    msg = await interaction.followup.send(embed=make_embed(0), view=view)
-                                except Exception:
-                                    msg = None
-                                if hasattr(msg, 'original_response'):
-                                    message = await msg.original_response()
-                                else:
+                                            voice_client = await channel.connect(timeout=15, reconnect=True)
+                                        except Exception as e:
+                                            logging.exception("[DiscordBot] Could not reconnect before playback")
+                                            try:
+                                                await interaction.followup.send(
+                                                    f"❌ Cannot start playback - voice connection issue: {type(e).__name__}",
+                                                    ephemeral=True
+                                                )
+                                            except Exception:
+                                                pass
+                                            return
+                                    
+                                    voice_client.play(discord.FFmpegPCMAudio(url))
+                                    start_time = datetime.datetime.utcnow()
+                                    view = PlayerView(self, timeout=trajanje+30)
+                                    
                                     try:
-                                        message = await interaction.original_response()
+                                        msg = await interaction.followup.send(embed=make_embed(0), view=view)
                                     except Exception:
-                                        message = None
-                                elapsed = 0
-                                while voice_client.is_playing() and elapsed < trajanje:
-                                    await asyncio.sleep(5)
-                                    elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
-                                    if message:
+                                        msg = None
+                                    
+                                    if hasattr(msg, 'original_response'):
+                                        message = await msg.original_response()
+                                    else:
                                         try:
-                                            await message.edit(embed=make_embed(elapsed), view=view)
+                                            message = await interaction.original_response()
                                         except Exception:
-                                            pass
-                            except discord.errors.ClientException:
-                                logging.exception("[DiscordBot] ClientException during playback")
-                                try:
-                                    await interaction.followup.send("Ne mogu reproducirati pjesmu - bot nije povezan na voice.", ephemeral=True)
-                                except Exception:
-                                    pass
-                            except Exception:
-                                logging.exception("[DiscordBot] Error during playback")
-                                try:
-                                    await interaction.followup.send("Greška pri reprodukciji pjesme.", ephemeral=True)
-                                except Exception:
-                                    pass
-                            if voice_client:
-                                 voice_client.last_active = datetime.datetime.utcnow()
-                            return
-                                 
+                                            message = None
+                                    
+                                    elapsed = 0
+                                    while voice_client.is_playing() and elapsed < trajanje:
+                                        await asyncio.sleep(5)
+                                        elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
+                                        if message:
+                                            try:
+                                                await message.edit(embed=make_embed(elapsed), view=view)
+                                            except Exception:
+                                                pass
+                                
+                                except discord.errors.ClientException as ce:
+                                    logging.exception("[DiscordBot] ClientException during playback")
+                                    try:
+                                        await interaction.followup.send("❌ Bot is not connected to voice.", ephemeral=True)
+                                    except Exception:
+                                        pass
+                                except Exception as e:
+                                    logging.exception("[DiscordBot] Error during playback")
+                                    try:
+                                        await interaction.followup.send(f"❌ Playback error: {type(e).__name__}", ephemeral=True)
+                                    except Exception:
+                                        pass
+                                
+                                if voice_client:
+                                    voice_client.last_active = datetime.datetime.utcnow()
+                                return
+            except Exception as e:
+                logging.exception("[DiscordBot] Error in play_command")
+                try:
+                    await interaction.followup.send(f"❌ Error: {type(e).__name__}", ephemeral=True)
+                except Exception:
+                    pass
+                return
 
             try:
-                 await interaction.response.send_message("Song not found!", ephemeral=True)
+                await interaction.followup.send("🎵 Song not found!", ephemeral=True)
             except Exception:
                 pass
 

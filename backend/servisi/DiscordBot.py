@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 import datetime
 from discord.ui import View, Button
 import httpx
+import asyncio
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -94,21 +95,42 @@ class MyClient(discord.Client):
             await interaction.response.send_message(msg, ephemeral=False)
 
         async def search_pjesme_autocomplete(interaction: discord.Interaction, current: str):
-            if not current or not current.strip() or len(current.strip()) < 2:
-                # require at least 2 chars to reduce frequent/autocancelled autocomplete calls
-                return []
             try:
+                if interaction.response.is_done():
+                    return []
+                
                 import aiohttp
                 BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
-                timeout = aiohttp.ClientTimeout(total=3)  # be fast to avoid interaction timeouts
+                
+                if not current or not current.strip():
+                    try:
+                        timeout = aiohttp.ClientTimeout(total=2)
+                        async with aiohttp.ClientSession(timeout=timeout) as session:
+                            async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q=") as resp:
+                                if resp.status == 200:
+                                    pjesme = await resp.json()
+                                    import random
+                                    random_songs = random.sample(pjesme, min(10, len(pjesme)))
+                                    return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in random_songs[:10]]
+                    except asyncio.TimeoutError:
+                        logging.warning("[DiscordBot] Autocomplete random songs timeout")
+                    except Exception as e:
+                        logging.warning(f"[DiscordBot] Autocomplete random songs error: {e}")
+                    return []
+                
+                if len(current.strip()) < 2:
+                    return []
+                
+                timeout = aiohttp.ClientTimeout(total=2)
                 async with aiohttp.ClientSession(timeout=timeout) as session:
                     async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}") as resp:
                         if resp.status == 200:
                             pjesme = await resp.json()
-                            return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
-            except Exception:
-                # don't propagate exceptions to discord internals (they will try to respond and may collide)
-                logging.exception("[DiscordBot] Autocomplete failed (suppressed)")
+                            return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:10]]
+            except asyncio.TimeoutError:
+                logging.warning("[DiscordBot] Autocomplete timeout")
+            except Exception as e:
+                logging.warning(f"[DiscordBot] Autocomplete error: {e}")
             return []
 
         async def play_command(interaction: discord.Interaction, naziv: str):

@@ -94,13 +94,18 @@ class MyClient(discord.Client):
             await interaction.response.send_message(msg, ephemeral=False)
 
         async def search_pjesme_autocomplete(interaction: discord.Interaction, current: str):
-            import aiohttp
-            BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}") as resp:
-                    if resp.status == 200:
-                        pjesme = await resp.json()
-                        return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
+            if not current or not current.strip():
+                return []
+            try:
+                import aiohttp
+                BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}", timeout=10) as resp:
+                        if resp.status == 200:
+                            pjesme = await resp.json()
+                            return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
+            except Exception:
+                logging.exception("[DiscordBot] Autocomplete failed")
             return []
 
         async def play_command(interaction: discord.Interaction, naziv: str):
@@ -123,6 +128,12 @@ class MyClient(discord.Client):
                 except Exception:
                     return False
             try:
+                # Defer interaction before long-running tasks
+                try:
+                    await interaction.response.defer()
+                except Exception:
+                    logging.warning("[DiscordBot] Failed to defer interaction")
+
                 if voice_client and is_vc_connected(voice_client):
                     if voice_client.is_playing():
                         voice_client.stop()
@@ -133,7 +144,7 @@ class MyClient(discord.Client):
             except Exception:
                 logging.exception(f"[DiscordBot] Failed to connect to voice channel {getattr(channel,'id',None)}")
                 try:
-                    await interaction.response.send_message("Ne mogu se povezati na voice kanal (handshake error). Pokušajte ponovo kasnije.", ephemeral=True)
+                    await interaction.followup.send("Ne mogu se povezati na voice kanal (handshake error). Pokušajte ponovo kasnije.", ephemeral=True)
                 except Exception:
                     pass
                 return
@@ -217,33 +228,43 @@ class MyClient(discord.Client):
                                     except Exception:
                                         logging.exception("[DiscordBot] Could not (re)connect before playback")
                                         try:
-                                            await interaction.response.send_message("Ne mogu započeti reprodukciju - problem s voice vezom.", ephemeral=True)
+                                            await interaction.followup.send("Ne mogu započeti reprodukciju - problem s voice vezom.", ephemeral=True)
                                         except Exception:
                                             pass
                                         return
                                 voice_client.play(discord.FFmpegPCMAudio(url))
                                 start_time = datetime.datetime.utcnow()
                                 view = PlayerView(self, timeout=trajanje+30)
-                                msg = await interaction.response.send_message(embed=make_embed(0), view=view)
+                                try:
+                                    msg = await interaction.followup.send(embed=make_embed(0), view=view)
+                                except Exception:
+                                    msg = None
                                 if hasattr(msg, 'original_response'):
                                     message = await msg.original_response()
                                 else:
-                                    message = await interaction.original_response()
+                                    try:
+                                        message = await interaction.original_response()
+                                    except Exception:
+                                        message = None
                                 elapsed = 0
                                 while voice_client.is_playing() and elapsed < trajanje:
                                     await asyncio.sleep(5)
                                     elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
-                                    await message.edit(embed=make_embed(elapsed), view=view)
+                                    if message:
+                                        try:
+                                            await message.edit(embed=make_embed(elapsed), view=view)
+                                        except Exception:
+                                            pass
                             except discord.errors.ClientException:
                                 logging.exception("[DiscordBot] ClientException during playback")
                                 try:
-                                    await interaction.response.send_message("Ne mogu reproducirati pjesmu - bot nije povezan na voice.", ephemeral=True)
+                                    await interaction.followup.send("Ne mogu reproducirati pjesmu - bot nije povezan na voice.", ephemeral=True)
                                 except Exception:
                                     pass
                             except Exception:
                                 logging.exception("[DiscordBot] Error during playback")
                                 try:
-                                    await interaction.response.send_message("Greška pri reprodukciji pjesme.", ephemeral=True)
+                                    await interaction.followup.send("Greška pri reprodukciji pjesme.", ephemeral=True)
                                 except Exception:
                                     pass
                             if voice_client:

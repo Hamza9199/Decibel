@@ -1,4 +1,5 @@
 import os
+import logging
 import discord
 from discord import app_commands, Embed
 import requests
@@ -8,6 +9,7 @@ import datetime
 from discord.ui import View, Button
 import httpx
 
+logging.basicConfig(level=logging.INFO)
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
@@ -110,16 +112,26 @@ class MyClient(discord.Client):
                 return
             channel = interaction.user.voice.channel
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
+            def is_vc_connected(vc):
+                if not vc:
+                    return False
+                try:
+                    fn = getattr(vc, "is_connected", None)
+                    if callable(fn):
+                        return fn()
+                    return getattr(vc, "channel", None) is not None
+                except Exception:
+                    return False
             try:
-                if voice_client:
+                if voice_client and is_vc_connected(voice_client):
                     if voice_client.is_playing():
                         voice_client.stop()
                     if voice_client.channel != channel:
                         await voice_client.move_to(channel)
                 else:
                     voice_client = await channel.connect(timeout=30, reconnect=True)
-            except Exception as e:
-                print(f"[DiscordBot] Failed to connect to voice channel {getattr(channel,'id',None)}: {e}")
+            except Exception:
+                logging.exception(f"[DiscordBot] Failed to connect to voice channel {getattr(channel,'id',None)}")
                 try:
                     await interaction.response.send_message("Ne mogu se povezati na voice kanal (handshake error). Pokušajte ponovo kasnije.", ephemeral=True)
                 except Exception:
@@ -199,6 +211,16 @@ class MyClient(discord.Client):
                                         await voice_client.disconnect()
                                     await interaction2.response.edit_message(view=self)
                             try:
+                                if not is_vc_connected(voice_client):
+                                    try:
+                                        voice_client = await channel.connect(timeout=15, reconnect=True)
+                                    except Exception:
+                                        logging.exception("[DiscordBot] Could not (re)connect before playback")
+                                        try:
+                                            await interaction.response.send_message("Ne mogu započeti reprodukciju - problem s voice vezom.", ephemeral=True)
+                                        except Exception:
+                                            pass
+                                        return
                                 voice_client.play(discord.FFmpegPCMAudio(url))
                                 start_time = datetime.datetime.utcnow()
                                 view = PlayerView(self, timeout=trajanje+30)
@@ -212,15 +234,23 @@ class MyClient(discord.Client):
                                     await asyncio.sleep(5)
                                     elapsed = (datetime.datetime.utcnow() - start_time).total_seconds()
                                     await message.edit(embed=make_embed(elapsed), view=view)
+                            except discord.errors.ClientException:
+                                logging.exception("[DiscordBot] ClientException during playback")
+                                try:
+                                    await interaction.response.send_message("Ne mogu reproducirati pjesmu - bot nije povezan na voice.", ephemeral=True)
+                                except Exception:
+                                    pass
                             except Exception:
-                                print("[DiscordBot] Error during playback:", exc_info=True)
+                                logging.exception("[DiscordBot] Error during playback")
                                 try:
                                     await interaction.response.send_message("Greška pri reprodukciji pjesme.", ephemeral=True)
                                 except Exception:
                                     pass
                             if voice_client:
-                                voice_client.last_active = datetime.datetime.utcnow()
+                                 voice_client.last_active = datetime.datetime.utcnow()
                             return
+                                 
+
             try:
                 await interaction.response.send_message("Song not found!", ephemeral=True)
             except Exception:

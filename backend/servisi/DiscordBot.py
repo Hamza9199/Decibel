@@ -94,18 +94,21 @@ class MyClient(discord.Client):
             await interaction.response.send_message(msg, ephemeral=False)
 
         async def search_pjesme_autocomplete(interaction: discord.Interaction, current: str):
-            if not current or not current.strip():
+            if not current or not current.strip() or len(current.strip()) < 2:
+                # require at least 2 chars to reduce frequent/autocancelled autocomplete calls
                 return []
             try:
                 import aiohttp
                 BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}", timeout=10) as resp:
+                timeout = aiohttp.ClientTimeout(total=3)  # be fast to avoid interaction timeouts
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+                    async with session.get(f"{BACKEND_URL}/api/pjesme/pjesma/search?q={current}") as resp:
                         if resp.status == 200:
                             pjesme = await resp.json()
                             return [discord.app_commands.Choice(name=p['naziv'], value=p['naziv']) for p in pjesme[:20]]
             except Exception:
-                logging.exception("[DiscordBot] Autocomplete failed")
+                # don't propagate exceptions to discord internals (they will try to respond and may collide)
+                logging.exception("[DiscordBot] Autocomplete failed (suppressed)")
             return []
 
         async def play_command(interaction: discord.Interaction, naziv: str):
@@ -127,11 +130,19 @@ class MyClient(discord.Client):
                     return getattr(vc, "channel", None) is not None
                 except Exception:
                     return False
+            # If hosting environment cannot use UDP/voice (e.g. Render), allow disabling voice via env
+            if os.getenv("DISABLE_VOICE", "false").lower() == "true":
+                try:
+                    await interaction.response.send_message("Voice playback is disabled in this hosting environment.", ephemeral=True)
+                except Exception:
+                    pass
+                return
             try:
+                # Defer interaction before long-running tasks (safe to fail)
                 try:
                     await interaction.response.defer()
                 except Exception:
-                    logging.warning("[DiscordBot] Failed to defer interaction")
+                    logging.warning("[DiscordBot] Failed to defer interaction (ignoring)")
 
                 if voice_client and is_vc_connected(voice_client):
                     if voice_client.is_playing():
@@ -139,7 +150,22 @@ class MyClient(discord.Client):
                     if voice_client.channel != channel:
                         await voice_client.move_to(channel)
                 else:
-                    voice_client = await channel.connect(timeout=30, reconnect=True)
+                    try:
+                        voice_client = await channel.connect(timeout=30, reconnect=True)
+                    except discord.errors.ConnectionClosed as cc:
+                        logging.exception("[DiscordBot] Voice connection closed during handshake")
+                        try:
+                            await interaction.followup.send("Ne mogu se povezati na voice - hosting okruženje ne podržava voice (error 4017 / ConnectionClosed).", ephemeral=True)
+                        except Exception:
+                            pass
+                        return
+                    except Exception:
+                        logging.exception("[DiscordBot] Failed to connect to voice channel")
+                        try:
+                            await interaction.followup.send("Ne mogu se povezati na voice kanal (handshake error). Pokušajte ponovo kasnije.", ephemeral=True)
+                        except Exception:
+                            pass
+                        return
             except Exception:
                 logging.exception(f"[DiscordBot] Failed to connect to voice channel {getattr(channel,'id',None)}")
                 try:
@@ -268,11 +294,11 @@ class MyClient(discord.Client):
                                     pass
                             if voice_client:
                                  voice_client.last_active = datetime.datetime.utcnow()
-                            return
+                            return 
                                  
 
             try:
-                await interaction.response.send_message("Song not found!", ephemeral=True)
+                 await interaction.response.send_message("Song not found!", ephemeral=True)
             except Exception:
                 pass
 

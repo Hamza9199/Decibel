@@ -2,9 +2,11 @@
 
 ## Sadržaj
 
-0. [Šta je novo (2025-08)](#sta-je-novo-2025-08)
 1. [Uvod](#uvod)
    - [Brzi start (lokalni razvoj)](#brzi-start-lokalni-razvoj)
+1.1. [Glavni moduli — brz pregled](#glavni-moduli--brz-pregled)
+1.2. [Discord Bot](#discord-bot)
+1.3. [Desktop](#desktop)
 2. [Arhitektura](#arhitektura)
    - [API verzionisanje i deprecijacija](#api-verzionisanje-i-deprecijacija)
    - [Tok zahtjeva i observability](#tok-zahtjeva-i-observability)
@@ -78,25 +80,12 @@
 9. [Reference](#reference)
 10. [Changelog](#changelog)
 11. [FAQ](#faq)
+12. [Tehnički, fajl-po-fajl pregled](#12-tehnički-fajl-po-fajl-pregled-detaljno)
+13. [Fronted file level](#13-frontend--file-level-reference)
+14. [Mobilna aplikacija file level](#14-mobilna-aplikacija--file-level-reference-detaljno)
 
----
 
-## 0. Šta je novo (2025-08)
 
-- Standardizovan API envelope (data/meta/traceId) i dosljedni error format sa traceId za korelaciju.
-- Verzija API-ja /api/v1 ostaje default; uveden jasan plan deprecijacije (6–12 mjeseci) i changelog.
-- Paginacija, filtriranje i sortiranje usklađeni između web i mobilne aplikacije (isti parametri i ponašanje).
-- Proširena sigurnost: rate limiting preporuke (SlowAPI), sigurnosna zaglavlja, validacija upload-a (MIME/veličina) i hard‑limit za audio/slike.
-- Streaming i performanse: podrška za Range zaglavlja, ETag/Cache-Control, preporuka za CDN pred frontend.
-- Observability: strukturisano JSON logovanje sa request-id/traceId, /healthz i /readyz endpointi; preporuka za Prometheus/Grafana i Sentry.
-- CI/CD: gate-ovi (lint/test), automatske migracije prije deploy-a, matrica (backend Koyeb, frontend Vercel, mobilna EAS).
-- Mobilna: detaljniji offline režim (limit keša, LRU čišćenje, putanja fajlova), background audio, FCM push, cleanup hook-ovi.
-- I18n: konsolidovana struktura prevoda (BS/EN/DE) i uputstvo za dodavanje novih jezika.
-- Dodatne smjernice: pristupačnost (a11y), performanse (LCP/TTI budžeti), pravila za commit poruke (Conventional Commits), stil kodiranja.
-- Expo Router standardizovan na mobilnoj aplikaciji (dinamičke rute npr. app/pjesma/[pjesmaId].tsx, tabovi u app/(tabs)).
-- Novo: referentni primjeri sigurnosnih zaglavlja, primjer GitHub Actions CI za backend i frontend, i proširen Troubleshooting.
-
----
 
 ## 1. Uvod
 
@@ -121,6 +110,107 @@ Najvažnije mogućnosti:
 - Mobilna (Expo)
   - `cd mobilnaAPP && npm i && echo EXPO_PUBLIC_API_URL=http://localhost:8000 >> .env && npx expo start`
 - Preporuka: pokrenuti backend prije klijentskih aplikacija; provjeriti Swagger na http://localhost:8000/docs
+
+
+### Glavni moduli — brz pregled
+
+Ovaj odjeljak pruža odmah upotrebljiv, ne-teorijski sažetak gdje pronaći i kako pokrenuti glavne module projekta: Backend, Frontend, Mobilna aplikacija, Desktop i Discord Bot. 
+
+- Backend
+  - Putanja: `backend/`
+  - Svrha: REST API, poslovna logika, baza podataka, file upload, background poslovi.
+  - Pokretanje (lokalno):
+```powershell
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+  - Swagger: `http://localhost:8000/docs`
+
+- Frontend (web)
+  - Putanja: `frontend/`
+  - Svrha: korisničko sučelje za pregled i reprodukciju muzike, upravljanje korisnicima i admin funkcije.
+  - Pokretanje (lokalno):
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+- Mobilna aplikacija
+  - Putanja: `mobilnaAPP/`
+  - Svrha: Expo React Native aplikacija za korisnike (offline, background play, push).
+  - Pokretanje (lokalno):
+```powershell
+cd mobilnaAPP
+npm ci
+npx expo start
+```
+
+- Desktop
+  - Putanja: `desktop/`
+  - Svrha: Electron-based desktop client (zajednički API sa web/mobile).
+  - Pokretanje (lokalno): pregledajte `desktop/package.json` i `main.js` za start script.
+
+- Discord Bot
+  - Putanja: `discordBot/` i duplicirana integracija u `backend/servisi/DiscordBot.py`.
+  - Svrha: slash komande (play, pause, skip, active), integracija s backend-om za dohvat pjesama i metapodataka.
+  - Najvažnije: glasovna reprodukcija zahtijeva FFmpeg i host sa outbound UDP (VPS). Ako hostujete bot na PaaS koji blokira UDP, koristite `DISABLE_VOICE=true` ili hostajte bot zasebno.
+  - Pokretanje (lokalno / VPS):
+```powershell
+cd discordBot
+pip install -r requirements.txt
+python main.py
+```
+
+##### Discord Bot
+
+Lokacija koda:
+- `discordBot/DiscordBot.py` — glavna entry skripta za bot (slash komande, event handling)
+- `backend/servisi/DiscordBot.py` — varijanta/izvor integracije koja se može pokrenuti iz backend procesa (kontrolirano s `RUN_DISCORD_IN_PROCESS` env var).
+
+Glavne napomene:
+- Voice (play) funkcionalnost koristi `discord.FFmpegPCMAudio(url)` i zahtijeva:
+  - instaliran `ffmpeg` na hostu
+  - host/environment koji dozvoljava outbound UDP
+  - validan `TOKEN` i bot privilegije u Discord guild-u (CONNECT, SPEAK)
+- Ako hostujete backend na Render, Vercel ili sličnim PaaS-ovima koji blokiraju UDP, `/play` će prijaviti grešku pri konekciji. Rješenja:
+  1. Postavite `DISABLE_VOICE=true` u env u tim okruženjima (bot će i dalje raditi za slash komande koje ne koriste voice)
+  2. Hostajte Discord bota na VPS/VM (DigitalOcean, Hetzner, AWS EC2) koji dopušta UDP i instalirajte `ffmpeg`.
+  3. Za razvoj, možete pokrenuti `discordBot` lokalno i koristiti `BACKEND_URL` za komunikaciju s API-jem.
+
+Operativni koraci za VPS:
+```powershell
+# na Ubuntu/Debian (primjer)
+sudo apt update; sudo apt install -y ffmpeg python3-venv python3-pip
+python3 -m venv venv; .\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python main.py
+```
+
+Sigurnosno:
+- Nikad ne komitujte `TOKEN` u repozitorij. Koristite Secrets (Vercel/Koyeb/EAS Secrets ili systemd environment) ili `.env` u privatnom okruženju.
+
+##### Desktop
+
+Lokacija koda:
+- `desktop/main.js` — Electron main process
+- `desktop/preload.js` — preload za renderer
+- `desktop/package.json` — start/build skripte
+
+Svrha i ponašanje:
+- Desktop klijent koristi iste REST API-je kao web/mobile.
+- Ako želite omogućiti native integracije (npr. system media keys), provjerite code u `main.js` i implementirajte platform-specific handlers.
+
+Pokretanje:
+```powershell
+cd desktop
+npm ci
+npm run start
+```
+
+Napomena: Desktop app može zahtijevati dodatne build korake za proizvodnju (electron-builder / electron-forge) — provjerite `package.json`.
+
 
 ---
 
@@ -287,6 +377,7 @@ RATE_LIMIT_PER_MINUTE=120
 SECURITY_HEADERS_ENABLED=true
 ```
 5) Swagger: http://localhost:8000/docs
+
 
 ### Docker (backend)
 
@@ -772,5 +863,293 @@ Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; media-
   - O: `EXPO_PUBLIC_FEATURE_OFFLINE=true` i koristiti ekran Offline; fajlovi se čuvaju u `FileSystem.documentDirectory`.
 - P: Kako uključiti sigurnosna zaglavlja?
   - O: Postaviti `SECURITY_HEADERS_ENABLED=true` i konfigurirati proxy/server (Nginx/Cloudflare) prema preporukama iz Appendix-a.
+
+---
+
+## 12. Tehnički, fajl-po-fajl pregled (detaljno)
+
+### backend/main.py (ulazna tačka)
+
+- Učitava `.env` varijable, kreira async engine za SQLAlchemy, povezuje `databases.Database` objekt (u `servisi/Baza.py`) i starta background taskove:
+  - `check_and_update_suspended_users()` — periodički provjerava suspendovane korisnike i vraća im status ako je vrijeme isteklo.
+  - `keep_alive()` — šalje periodične HTTP GET zahtjeve na `KEEP_ALIVE_URL` (korisno za hosting platforme sa idlem).
+  - `auto_cleanup()` — briše privremene fajlove u `/tmp` (Python kod izvršava na Linux-like okruženjima; možete prilagoditi za Windows dev ako treba).
+- U `startup` eventu se takođe provjerava Discord token i opcionalno pokreće Discord bota u istom procesu ako je `RUN_DISCORD_IN_PROCESS=true`.
+
+Testiranje lokalno:
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Provjerite `http://localhost:8000/docs` za Swagger.
+
+### backend/servisi/Baza.py
+
+- Centralna inicijalizacija baze (SQLAlchemy `Base`, `database` objekat za `databases` lib, `create_tables()`/`delete_tables()` pomoćne funkcije). Ovdje održavate globalne DB helper funkcije i reuse pattern.
+
+Praćenje grešaka: Ako dobijete exception pri importu DB-a, provjerite `DATABASE_URL_ASYNC` i da li su svi dependency-ji instalirani (`aiomysql`, `PyMySQL`, `SQLAlchemy`).
+
+### backend/modeli/*
+
+Ovdje su ORM klase i odgovarajući Pydantic modeli. Ključne datoteke pregledane:
+
+- `Korisnik.py` — `KorisnikORM` (SQLAlchemy) i Pydantic modeli `KorisnikCreate`, `Korisnik`, `KorisnikLogin`. Sadrži polja: `id`, `ime`, `prezime`, `korisnicko_ime`, `email`, `lozinka`, `rola`, `bio`, `statusKorisnika`, `putanjaProfilneSlike`, `datumRegistracije`, `brojPratilaca`, `obrisan`.
+  - Napomena: lozinka se u modelu drži kao `String` — stvarno heširanje lozinke treba biti u kontroleru (iz `register_korisnik`) koristeći `passlib`.
+- `Pjesma.py` — `PjesmaORM` s poljima `id`, `korisnikID`, `albumID`, `naziv`, `opis`, `datumObjave`, `trajanjeSekunde`, `javno`, `odobreno`, `putanjaAudio`, `putanjaSlika`, `putanjaGif`, `brojReprodukcija`, `brojLajkova`, `jezikPjesme`, `licenca`, `eksplicitniSadrzaj`, `zanr`. Sadrži relationship prema `KorisnikORM` i `AlbumORM`.
+  - Pydantic modeli: `PjesmaBase`, `PjesmaCreate`, `Pjesma` (orm_mode=true).
+
+Savjet: uvijek koristite `orm_mode = True` u Pydantic modelima koji se vraćaju iz DB-a.
+
+### backend/kontroleri/*
+
+Kontroleri sadrže poslovnu logiku i transakcijske pozive prema DB-u. Kratak pregled:
+
+- `PjesmaKontroler.py` — funkcije: `get_all_pjesme`, `get_pjesma_by_id`, `create_pjesma`, `update_pjesma`, `delete_pjesma`.
+  - `create_pjesma` pravi `PjesmaORM` sa `pjesma.dict()` i radi commit + refresh.
+  - `get_all_pjesme` koristi `selectinload(PjesmaORM.korisnik)` da izbjegne N+1 problem.
+
+- `KorisnikKontroler.py` — sadrži `get_all_korisnici`, `register_korisnik`, `login_korisnik`, `get_korisnik_by_id`, `update_korisnik`, `delete_korisnik`. `register_korisnik` treba heširati lozinku i postaviti početne vrijednosti (datum registracije, status, rola).
+
+Savjet za transakcije: u async okruženju, koristite `async with AsyncSession()` pattern i rollback na izuzetke.
+
+### backend/rute/*
+
+Svaki router iz `rute/` mapira HTTP endpoint-e na kontrolere. Važni primjeri:
+
+- `PjesmaRuta.py`
+  - GET `/api/pjesme/` — vraća sve pjesme (koristi `get_all_pjesme`).
+  - GET `/api/pjesme/{pjesma_id}` — vraća pjesmu po id.
+  - GET `/api/pjesme/pjesma/search?q=` — koristi se od Discord bota za autocomplete; vraća pjesme koje su `javno` i `odobreno` i koje sadrže `q` u `naziv`.
+  - POST `/api/pjesme/` — multipart endpoint koji prihvata audio/slike/gif; privremeno sprema `UploadFile` u temp file, poziva `servisi.FirebaseStorage.upload_file()` i obriše temp fajl.
+
+- `KorisnikRuta.py`
+  - POST `/api/korisnici/register` — registruje korisnika (poziva `register_korisnik`).
+  - POST `/api/korisnici/login` — provjera kredencijala (poziva `login_korisnik`).
+  - PUT `/api/korisnici/slika/{korisnik_id}` — upload profila slike i update putanje u korisniku.
+
+Test primjeri (cURL) za pjesmu upload:
+```bash
+curl -X POST "http://localhost:8000/api/pjesme/" \
+  -F "korisnikID=<korisnik-id>" \
+  -F "naziv=Test" \
+  -F "datumObjave=2025-01-01" \
+  -F "trajanjeSekunde=120" \
+  -F "file_audio=@/path/to/song.mp3"
+```
+
+### backend/servisi/FirebaseStorage.py
+
+- Implementira `upload_file(local_path, remote_path)` koji koristi `firebase-admin` za upload u bucket i vraća javni/signed URL. Koristi `FIREBASE_BUCKET` env var.
+
+Napomena: za lokalni razvoj morate imati `google-services.json` ili servisni account key postavljen i konfiguriran.
+
+### discordBot / backend/servisi/DiscordBot.py
+
+Ovo je najvažniji fajl vezan uz `/play` komandu. Sadržaj i ponašanje:
+
+- Registruje slash komande u `setup_hook()` i koristi `app_commands.CommandTree`.
+- `play` komanda radi sljedeće:
+  - Ako `DISABLE_VOICE=true` vraća poruku da je glasovno onemogućeno (korisno za Render/hostinge koji blokiraju UDP).
+  - Provjerava je li korisnik u voice kanalu.
+  - Pokušava `channel.connect()` (ima timeout i reconnect=True). Ako se desi `ConnectionClosed` ili slična greška, bot obavještava korisnika da hosting environment ne podržava voice.
+  - Poziva backend `/api/pjesme/pjesma/search?q=` kako bi dobio `putanjaAudio` i metapodatke.
+  - Reprodukcija se vrši korištenjem `discord.FFmpegPCMAudio(url)`.
+  - Embed poruka se periodično ažurira (progress bar). Također implementiran `View` sa Button-ima (pause/skip/stop).
+
+Zašto `/play` često ne radi na Render/Vercel/Koyeb u ovom projektu:
+- Discord voice koristi UDP; većina serverless / managed PaaS servisa blokira ili ne podržavaju outbound UDP iz aplikacije (ili imaju ograničenu implementaciju). Ovo dovodi do `ConnectionClosed` ili nemogućnosti uspostave voice kanala.
+
+Preporučeni načini da `play` radi:
+1) Hostajte Discord bota na VPS/VM (DigitalOcean, Linode, Hetzner, AWS EC2, GCP) gdje outbound UDP i pristup internetu nisu ograničeni.
+   - OS: Ubuntu 22.04+ ili Debian
+   - Instalirajte `ffmpeg` (neophodno za `FFmpegPCMAudio`):
+```bash
+sudo apt update; sudo apt install -y ffmpeg python3-venv python3-pip
+python3 -m venv venv; source venv/bin/activate
+pip install -r requirements.txt
+python discordBot/main.py
+```
+2) Ako želite backend na Render-u, držite backend tamo, a Discord bota pokrenite zasebno na VPS koji omogućava UDP. Bot može komunicirati s backend API-jem (`BACKEND_URL`).
+3) Ako imate ograničene budžete i želite besplatan način za development, možete pokrenuti Discord bota lokalno na vašem računaru sa `DISABLE_VOICE=false` i testirati `/play` u lokalnom environmentu.
+
+Specifične konfiguracije i provjere:
+- `DISABLE_VOICE` env var postavite na `false` kada želite omogućiti voice.
+- Provjerite da `TOKEN` env var sadrži validan bot token (i da je bot pozvan u guild s potrebnim privilegijama: CONNECT, SPEAK, USE_APPLICATION_COMMANDS).
+- Provjerite da je `FFmpeg` instaliran na hostu i dostupan u PATH (pokušaj `ffmpeg -version`).
+
+Napomena o sigurnosti: Discord token NE smije biti u javnom repo-u; koristite platformski secret store.
+
+### frontend/src (pregled)
+
+- `src/api` — Axios instance sa `baseURL` iz `VITE_API_URL`.
+- `src/components` — UI komponente: pjesma kartice, player, playlist komponenta.
+- `src/hooks` — custom hooks za fetching, player state, i18n.
+
+Ključne prakse:
+- Player na webu koristi HTMLAudioElement ili custom audio engine koji traži `putanjaAudio` i podržava Range zaglavlja za seek.
+- Koristite lazy-loading i `React Query` cache za liste.
+
+Build/Run:
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Za produkciju:
+```bash
+npm run build
+serve -s dist
+```
+
+### mobilnaAPP (pregled)
+
+- `app/` koristi Expo Router; `komponente/` sadrže player controls i UI.
+- Koristi `expo-av` za reproduciranje audio fajlova i `expo-file-system` za keširanje.
+
+Test:
+```bash
+cd mobilnaAPP
+npm ci
+npx expo start
+```
+
+### desktop (pregled)
+
+- `main.js` i `preload.js` sugerišu Electron-based desktop client. Desktop client može koristiti iste API endpoint-e kao web/mobile.
+
+### baza/ SQL skripte
+
+- Sadrže utility SQL query-e za playlist redoslijed, statistike itd. Korisno prilikom debugovanja i migracija.
+
+### Deploy preporuke i checklist (kratko)
+
+1. Backend:
+   - Secrets u Secret Manager-u (Koyeb/Vercel/Heroku/GCP Secrets)
+   - `alembic upgrade head` prije pokretanja
+   - Health check endpoint za platformu
+
+2. Frontend:
+   - Vercel ili Netlify
+   - Postavite `VITE_API_URL` u env
+
+3. Discord bot:
+   - Hostovati na VPS/VM zbog UDP
+   - Instalirati `ffmpeg`
+   - Osigurati da bot ima privilegije u Discord guild-u: CONNECT, SPEAK, USE_APPLICATION_COMMANDS
+
+4. Mobilna:
+   - Expo/EAS build; setovati `EXPO_PUBLIC_API_URL`
+
+
+---
+
+## 13. Frontend — file-level reference 
+
+Ovaj odjeljak daje tehnički pregled ključnih fajlova u `frontend/src` i objašnjava odgovornosti, input/output i ponašanje važnijih komponenti i stranica.
+
+- `src/main.tsx`
+  - Inicijalizuje React aplikaciju, registruje `QueryClientProvider` (React Query) i učitava `App`.
+
+- `src/App.tsx`
+  - Glavni router i layout. Sadrži `RequireAuth` wrapper koji provjerava korisničku sesiju, suspendovane/obrisane statuse, i centralni `AudioPlayer` mounting.
+  - Registruje rute za sve glavne stranice: Home, Login, Register, Pjesma, Album, Playlista, AdminPanel, Statistika, itd.
+  - Global event bus: slušanje i emitovanje CustomEvent-ova (`globalAudioPlay`, `globalAudioPlaylist`, `activeSongBg`) koji sinkronizuju player i pozadinske efekte.
+
+- `src/api/*`
+  - Centralni Axios klijent(ka) koji koristi `VITE_API_BASE_URL`/`VITE_API_URL`. Sadrži interceptore za auth header injection i globalno mapiranje grešaka.
+  - Tipizirani wrapperi za pozive prema backend endpoint-ima (songs, users, playlists, stats).
+
+- `src/komponente/AudioPlayer/*`
+  - Implementacija web audio playera. Odgovornosti: play/pause/seek, UI (mini i expanded), progress bar, emitovanje `globalAudioPlay` event-a.
+  - Integracija sa backend-om za increment broja reprodukcija i prikaz metapodataka (putanjaSlika/putanjaGif).
+
+- `src/komponente/Header`, `Sidebar`, `Footer`
+  - Navigacija, search input, profile menu i prikaz stanja pretplate.
+
+- `src/stranice/Pjesma/Pjesma.tsx` (+ `Pjesma.module.css`, `PjesmaWhite.module.css`)
+  - Stranica za detalje pojedinačne pjesme: meta podatci, komentar sekcija, playback kontrola i embed informacije.
+  - Učitava pjesmu preko GET `/api/pjesme/{id}` i prikazuje povezana polja (naziv, izvođač, trajanje, putanjaSlika/Gif).
+
+- `src/stranice/Playlista/Playlista.tsx` (+ CSS)
+  - Stranica playliste: lista pjesama, uređivanje redoslijeda (drag/drop u UI), play/queue funkcionalnost.
+  - Pozivi: GET playlist, POST/PUT za promjenu redoslijeda i dodavanje/uklanjanje pjesama.
+
+- `src/stranice/SvePjesme/SvePjesme.tsx` (+ CSS)
+  - Lista svih pjesama sa pretragom (`/api/pjesme/pjesma/search?q=`) i paginacijom.
+  - Akcije: play, add-to-playlist, like, edit (role-based).
+
+- `src/stranice/SviKorisnici/SviKorisnici.tsx` (+ CSS)
+  - Admin lista korisnika: suspend, promjena role, deactivate/reactivate. Poziva korisničke endpoint-e (`/api/korisnici`).
+
+- `src/stranice/Postavke/Postavke.tsx` (+ CSS)
+  - Korisničke postavke, upload profilne slike (multipart POST), update preferences.
+  - U kodu koristi `import.meta.env.VITE_API_BASE_URL` za formiranje URL-ova pri uploadu.
+
+- `src/stranice/Pretplata/Pretplata.tsx`
+  - Prikaz opcija pretplate, checkout ili pokretanje procesa obnove pretplate.
+
+- `src/stranice/Statistika/Statisitka.tsx`
+  - Dashboards i grafovi (Chart.js). Prikaz top lista i vremenske serije; koristi backend statističke endpoint-e.
+
+- CSS modul pattern
+  - Svaka stranica koristi CSS Module (`.module.css` i `*White.module.css`) za tamni/svijetli theme variant. Ova konvencija olakšava teming i izoluje stilove per-component.
+
+Dodatne napomene:
+- Sve forme i upload endpointi koriste `multipart/form-data` (frontend šalje `FormData`).
+- Global authentication se čuva u `localStorage` (ključ `korisnik`) i `RequireAuth` provjerava korisnički status na svakoj ruti.
+
+---
+
+## 14. Mobilna aplikacija — file-level reference (detaljno)
+
+Ovaj odjeljak dokumentuje važnije fajlove iz `mobilnaAPP/` (screens, components, hooks, config, context, types).
+
+- `app/` (Expo Router)
+  - Struktura rute mapira se direktno na filesystem (npr. `app/pjesma/[pjesmaId].tsx` otvara `Pjesma` screen). Tab layout definisan u `app/(tabs)/_layout.tsx` i pojedinačne tab stranice (`index.tsx`, `library.tsx`, `search.tsx`).
+
+- Screens (u `screens/` folderu)
+  - `Home.tsx` — početni ekran: preporučene liste, top pjesme, promotivni sadržaj. Emituje event za global player kad korisnik pritisne play.
+  - `Biblioteka.tsx` — korisnička biblioteka (prateći izvođači, preuzete pjesme, playliste).
+  - `Pjesma.tsx` — detalji pjesme: komentari, kontekst reprodukcije, slične pjesme.
+  - `Playlista.tsx` — prikaz playliste, uređivanje, playback controls.
+  - `AdminPanel.tsx` — mobilni admin interfejs (songs/albums/playlists tabs) sa moderacijskim akcijama.
+  - `NovaPjesma.tsx`, `NoviAlbum.tsx`, `NovaPlaylista.tsx` — upload/creation workflow (file pickers + multipart upload).
+  - `Offline.tsx` — menadžer preuzetih fajlova i cleanup UI.
+
+- Components
+  - `AudioPlayer.tsx` / `AudioPlayerNew.tsx` — mobilni audio player (expo-av). Podržava rate options, background playback, resumes.
+  - `Header.tsx`, `Sidebar.tsx`, `Tabs.tsx` — navigacioni i layout komponenti za aplikaciju.
+
+- Hooks
+  - `useScreenCleanup.ts` — hook koji briše query cache keys i uklanja event listener-e prilikom unmount-a ekrana.
+  - `usePushNotifications.ts` — inicijalizacija FCM / Expo notifications i obrada token-a.
+  - `handleBackPress.ts` — pomoćna logika za Android back button i custom navigation history.
+
+- Context
+  - `AudioContext.tsx` — centralni kontekst koji dijeli trenutno stanje playera (current track, isPlaying, position) i expose metode (play, pause, seek, download).
+
+- Config
+  - `config/api.ts` — `API_BASE` faza za mobile app; uzima `EXPO_PUBLIC_API_BASE_URL` iz env i aplicira fallback.
+  - `config/queryClient.ts` — centralna inicijalizacija React Query clienta i default options (stale time, retry policy).
+
+- Types
+  - `types/` folder sadrži interfaces za `pjesma`, `playlista`, `korisnik`, `pretplata` i druge entitete; koriste se kroz screens i komponenti za snažnu tipizaciju.
+
+- Locales
+  - `locales/bs|en|de/translation.json` — koristi se i18next; stringovi su već prevedeni za UI.
+
+Specifične ponašanja i integracije:
+- Preuzimanje fajlova: `expo-file-system` + AsyncStorage za metapodatke; implementirana LRU logika (keš size limit konfigurabilan putem env ili konstantni u app config).
+- Background playback: `expo-av` config i aplikacijski setup u `app.json` / EAS build profile zahtijevaju ispravne permisije i capabilities za iOS/Android.
+
+CI / build:
+- Lokalno: `npx expo start` za development.
+- EAS: `eas build --platform android|ios` (koristiti preview/profile definisane u `eas.json`).
+
+---
+
 
 

@@ -53,7 +53,7 @@
   font-size: 1.05rem;
   font-weight: 500;
   display: flex;
-  gap: 22px;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
@@ -68,13 +68,13 @@
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 10px 24px;
-  font-size: 1.1rem;
+  padding: 12px 28px;
+  font-size: 1.15rem;
   font-weight: 600;
   cursor: pointer;
   margin-top: 8px;
   transition: background 0.18s;
-  max-width: 150px;
+  max-width: 200px;
 }
 .pratiBtn.pratim {
   background: #e754a2;
@@ -207,7 +207,7 @@
   
   .izvodjacMeta {
     font-size: 1rem;
-    gap: 16px;
+    gap: 6px;
   }
   
   .izvodjacBio {
@@ -269,7 +269,7 @@
   
   .izvodjacMeta {
     font-size: 0.9rem;
-    gap: 12px;
+    gap: 6px;
     flex-wrap: wrap;
     justify-content: center;
   }
@@ -343,7 +343,7 @@
   
   .izvodjacMeta {
     font-size: 0.8rem;
-    gap: 8px;
+    gap: 4px;
     margin-bottom: 6px;
   }
   

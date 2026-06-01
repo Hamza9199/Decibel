@@ -2,109 +2,547 @@
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
-  background: #f6f7fb;
+  background: rgba(246, 247, 251, 0.85);
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: center;
 }
 
-.editPlaylistForm {
-  max-width: 420px;
+.formContainer {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 32px;
   width: 100%;
-  margin: 0 auto;
-  padding: 32px 24px 32px 24px;
-  background: #ffffff;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+
+.editPlaylistForm {
+  background: rgba(255,255,255,0.97);
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.10);
+  padding: 40px 32px 32px 32px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  border: 1px solid rgba(0,0,0,0.06);
+  gap: 24px;
+  max-width: 600px;
+  flex: 1;
 }
 
-.title { color: #111; font-size: 1.6rem; font-weight: 800; margin-bottom: 8px; text-align: center; }
-
-.label { color: #333; font-size: 1.08rem; font-weight: 700; margin-bottom: 2px; }
-
-.input {
-  background: #ffffff;
+.title {
   color: #111;
-  border: 1px solid #b91d95;
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 1.08rem;
-  margin-bottom: 8px;
-  outline: none;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.12);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 1px;
+  text-align: center;
 }
 
-.button { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.08rem; font-weight: 800; cursor: pointer; margin-top: 8px; transition: background 0.18s; }
-.button:hover { background: #e754a2; }
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
 
-.error { color: #a1224f; background: #fde7ef; border: 1px solid #f5c1d7; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
-.success { color: #1f7a43; background: #e8f6ee; border: 1px solid #c5e8d4; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
+.label {
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
 
-.fileLabel { color: #333; font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.input, .textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 2px solid rgba(185, 29, 149, 0.25);
+  background: #fff;
+  color: #111;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
 
-/* Form container layout */
-.formContainer { display: flex; justify-content: center; align-items: flex-start; gap: 32px; width: 100%; max-width: 1200px; }
+.input:focus, .textarea:focus {
+  border: 2px solid #b91d95;
+  box-shadow: 0 0 12px rgba(185, 29, 149, 0.18);
+  background: #fff;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 200px;
+}
+
+.filesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.fileUploadBox {
+  position: relative;
+}
+
+.fileInputLabel {
+  cursor: pointer;
+  display: block;
+}
+
+.uploadArea {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 3px dashed rgba(185, 29, 149, 0.4);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(185, 29, 149, 0.06);
+  transition: all 0.3s ease;
+  gap: 8px;
+  color: #b91d95;
+  position: relative;
+}
+
+.fileInputLabel:hover .uploadArea {
+  border-color: #b91d95;
+  background: rgba(185, 29, 149, 0.10);
+  transform: scale(1.02);
+}
+
+.uploadArea svg {
+  color: #b91d95;
+}
+
+.uploadArea span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 53, 69, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.removePreviewBtn:hover {
+  background: #dc3545;
+  transform: scale(1.1);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.checkboxLabel input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #b91d95;
+}
+
+.error {
+  color: #a1224f;
+  background: rgba(253, 231, 239, 0.95);
+  border: 2px solid #dc3545;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.success {
+  color: #1f7a43;
+  background: rgba(186, 255, 201, 0.10);
+  border: 2px solid #28a745;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.button {
+  width: 100%;
+  background: linear-gradient(135deg, #b91d95 0%, #e754a2 100%);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(185, 29, 149, 0.22);
+  letter-spacing: 0.5px;
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(185, 29, 149, 0.28);
+  background: linear-gradient(135deg, #e754a2 0%, #b91d95 100%);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  width: 100%;
+  background: rgba(245, 245, 245, 0.9);
+  color: #333;
+  border: 2px solid #b91d95;
+  border-radius: 10px;
+  padding: 12px 0;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.cancelBtn:hover {
+  background: #b91d95;
+  color: #fff;
+  transform: translateY(-2px);
+}
 
 /* Songs section styling */
-.songsSection { background: #ffffff; border-radius: 14px; padding: 24px 18px; min-width: 260px; max-height: 480px; overflow-y: auto; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.06); }
+.songsSection {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px 18px;
+  min-width: 260px;
+  max-height: 480px;
+  overflow-y: auto;
+  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.10);
+  flex: 0 1 auto;
+}
 
-.songsTitle { color: #111; margin-bottom: 14px; font-weight: 800; font-size: 1.1rem; }
+.songsTitle {
+  color: #111;
+  margin-bottom: 14px;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
 
-.noSongsText { color: #555; font-size: 0.95rem; }
+.noSongsText {
+  color: #777;
+  font-size: 0.95rem;
+}
 
-.songsList { list-style: none; padding: 0; margin: 0; }
+.songsList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
 
-.songItem { margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.songItem {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
 
-.songInfo { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.songInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
 
-.songName { color: #111; font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.songName {
+  color: #111;
+  font-weight: 600;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-.songDuration { color: #777; font-size: 0.85rem; margin-top: 2px; }
+.songDuration {
+  color: #777;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}
 
-.removeBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-weight: 800; font-size: 0.85rem; cursor: pointer; transition: background 0.18s; flex-shrink: 0; }
-.removeBtn:hover { background: #e754a2; }
-.removeBtn:disabled { cursor: not-allowed; }
+.removeBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.18s;
+  flex-shrink: 0;
+}
+
+.removeBtn:hover {
+  background: #e754a2;
+}
+
+.removeBtn:disabled {
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .formContainer {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .songsSection {
+    min-width: 100%;
+    max-width: 600px;
+  }
+}
 
 @media (max-width: 600px) {
-  .editPlaylistBg { padding-top: 60px; padding-bottom: 40px; }
-  .editPlaylistForm { max-width: 90vw; margin: 0 auto; padding: 20px 16px 20px 16px; border-radius: 12px; gap: 12px; }
-  .title { font-size: 1.3rem; margin-bottom: 12px; }
-  .label { font-size: 0.95rem; margin-bottom: 4px; }
-  .input { padding: 8px 10px; font-size: 0.95rem; margin-bottom: 6px; }
-  .button { padding: 10px 0; font-size: 1rem; margin-top: 6px; }
-  .fileLabel { font-size: 0.9rem; margin-bottom: 6px; }
+  .editPlaylistBg {
+    padding-top: 60px;
+    padding-bottom: 40px;
+  }
+
+  .formContainer {
+    padding: 0 12px;
+  }
+
+  .editPlaylistForm {
+    padding: 28px 20px 24px 20px;
+    gap: 18px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+  }
+
+  .label {
+    font-size: 0.95rem;
+  }
+
+  .input, .textarea {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  .filesGrid {
+    gap: 12px;
+  }
+
+  .uploadArea {
+    aspect-ratio: 1;
+  }
+
+  .button {
+    padding: 12px 0;
+    font-size: 1rem;
+  }
+
+  .cancelBtn {
+    padding: 10px 0;
+    font-size: 0.95rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .editPlaylistBg { padding-top: 55px; padding-bottom: 30px; }
-  .formContainer { flex-direction: column; gap: 20px; align-items: center; padding: 0 10px; }
-  .editPlaylistForm { margin: 0 auto; padding: 16px 12px 16px 12px; border-radius: 8px; gap: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: #ffffff; }
-  .songsSection { padding: 16px 12px; border-radius: 8px; background: #ffffff; box-shadow: 0 2px 16px rgba(0,0,0,0.06); min-width: 80%; }
-  .songsTitle { font-size: 1rem; margin-bottom: 12px; }
-  .noSongsText { font-size: 0.85rem; }
-  .songItem { margin-bottom: 6px; gap: 8px; }
-  .songName { font-size: 0.85rem; }
-  .songDuration { font-size: 0.8rem; }
-  .removeBtn { font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; }
-  .title { font-size: 1.2rem; margin-bottom: 10px; letter-spacing: 0.5px; }
-  .label { font-size: 0.85rem; margin-bottom: 3px; }
-  .input { padding: 8px 10px; font-size: 0.85rem; margin-bottom: 5px; border-radius: 6px; width: 95%; }
-  .input:focus { border: 1.5px solid #e754a2; }
-  .button { padding: 10px 0; font-size: 0.9rem; margin-top: 5px; border-radius: 6px; }
-  .fileLabel { font-size: 0.8rem; margin-bottom: 5px; gap: 4px; }
-  .error, .success { font-size: 0.8rem; padding: 6px 8px; margin-bottom: 3px; }
+  .editPlaylistBg {
+    padding-top: 55px;
+    padding-bottom: 30px;
+  }
+
+  .formContainer {
+    padding: 0 8px;
+  }
+
+  .editPlaylistForm {
+    padding: 20px 16px 20px 16px;
+    gap: 16px;
+    border-radius: 14px;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.10);
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .label {
+    font-size: 0.9rem;
+  }
+
+  .input, .textarea {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .textarea {
+    min-height: 70px;
+  }
+
+  .filesGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .uploadArea {
+    aspect-ratio: auto;
+    height: 120px;
+  }
+
+  .removePreviewBtn {
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
+  }
+
+  .checkboxLabel {
+    font-size: 0.9rem;
+    gap: 10px;
+  }
+
+  .error, .success {
+    font-size: 0.85rem;
+    padding: 10px 12px;
+  }
+
+  .button {
+    padding: 12px 0;
+    font-size: 0.95rem;
+  }
+
+  .cancelBtn {
+    padding: 10px 0;
+    font-size: 0.9rem;
+  }
+
+  .songsSection {
+    min-width: 90%;
+    padding: 16px 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.08);
+  }
+
+  .songsTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .songItem {
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+
+  .songName {
+    font-size: 0.85rem;
+  }
+
+  .songDuration {
+    font-size: 0.8rem;
+  }
+
+  .removeBtn {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
 }
 
 @media (max-width: 375px) {
-  .editPlaylistForm { max-width: 98vw; padding: 12px 8px 12px 8px; }
-  .title { font-size: 1.1rem; }
-  .label { font-size: 0.8rem; }
-  .input { font-size: 0.8rem; padding: 6px 8px; }
-  .button { font-size: 0.85rem; padding: 8px 0; }
-  .fileLabel { font-size: 0.75rem; }
+  .editPlaylistForm {
+    padding: 16px 12px 16px 12px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .label {
+    font-size: 0.85rem;
+  }
+
+  .input, .textarea {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+  }
+
+  .textarea {
+    min-height: 60px;
+  }
+
+  .filesGrid {
+    gap: 10px;
+  }
+
+  .uploadArea {
+    height: 100px;
+    gap: 6px;
+  }
+
+  .uploadArea svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .checkboxLabel {
+    font-size: 0.8rem;
+  }
+
+  .button {
+    font-size: 0.9rem;
+    padding: 10px 0;
+  }
+
+  .cancelBtn {
+    font-size: 0.85rem;
+  }
+
+  .noSongsText {
+    font-size: 0.85rem;
+  }
 }
+

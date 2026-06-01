@@ -261,14 +261,7 @@ const Album: React.FC = () => {
             <div className={styles.albumInfo}>
               <h2 className={styles.albumNaziv}>{album.naziv}</h2>
               <div className={styles.albumOpis}>{album.opis}</div>
-              <div className={styles.albumMeta}>
-                <span>
-                  {t("number_of_songs") || "Broj pjesama"}: <b>{pjesme.length}</b>
-                </span>
-                <span>
-                  {t("number_of_likes") || "Lajkova"}: <b>{likeCount}</b>
-                </span>
-              </div>
+              
             </div>
           </div>
           <div className={styles.pjesmeSection}>

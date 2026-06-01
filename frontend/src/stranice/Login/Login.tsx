@@ -107,22 +107,26 @@ const Login: React.FC = () => {
               value={lozinka}
               onChange={(e) => setLozinka(e.target.value)}
               required
-              style={{ paddingRight: 38 }}
+              style={{ paddingRight: 42 }}
             />
             <button
               type="button"
               onClick={() => setShowPassword((v) => !v)}
               style={{
                 position: "absolute",
-                right: 10,
-                top: 0,
-                height: "100%",
+                right: 8,
+                top: "50%",
+                transform: "translateY(-50%)",
+                height: 24,
+                width: 24,
                 background: "none",
                 border: "none",
                 cursor: "pointer",
                 color: "#b91d95",
                 display: "flex",
-                alignItems: "center"
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 0
               }}
               tabIndex={-1}
               aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}

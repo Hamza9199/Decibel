@@ -20,6 +20,7 @@ const Izvodjac: React.FC = () => {
   const { t } = useTranslation();
   const repeatAll = false;
   const [styles, setStyles] = useState<Styles>({});
+  const [brojPratilaca, setBrojPratilaca] = useState<number>(0);
 
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
@@ -55,6 +56,12 @@ const Izvodjac: React.FC = () => {
     queryFn: async () =>
       axios.get(`${API_BASE}/korisnici/${izvodjacId}`).then((r) => r.data as Korisnik),
   });
+
+  useEffect(() => {
+    if (izvodjacQ.data?.brojPratilaca != null) {
+      setBrojPratilaca(izvodjacQ.data.brojPratilaca);
+    }
+  }, [izvodjacQ.data?.brojPratilaca]);
 
   const pjesmeAuthorQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme", "byAuthor", izvodjacId],
@@ -138,6 +145,9 @@ const Izvodjac: React.FC = () => {
       } else {
         await axios.post(`${API_BASE}/pratioci/`, { korisnikID: izvodjacId, pratilacID: mojID });
       }
+    },
+    onMutate: async () => {
+      setBrojPratilaca((prev) => prev + (pratimQ.data ? -1 : 1));
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pratim", izvodjacId, mojID] });
@@ -226,14 +236,13 @@ const Izvodjac: React.FC = () => {
             <div className={styles.izvodjacInfo}>
               <h2 className={styles.izvodjacNaziv}>{izvodjac.korisnicko_ime}</h2>
               <div className={styles.izvodjacMeta}>
-                <span>{t("name") || "Ime"}: <b>{izvodjac.ime}</b></span>
-                <span>{t("surname") || "Prezime"}: <b>{izvodjac.prezime}</b></span>
-                <span>{t("followers") || "Pratilaca"}: <b>{izvodjac.brojPratilaca}</b></span>
+                <span><b>{izvodjac.ime}</b></span>
+                <span><b>{izvodjac.prezime}</b></span>
               </div>
               <div className={styles.izvodjacBio}>{izvodjac.bio}</div>
               {mojID && mojID !== izvodjac.id && (
                 <button className={`${styles.pratiBtn} ${pratim ? styles.pratim : ""}`} onClick={handlePrati}>
-                  {pratim ? t("following") || "Pratim" : t("follow") || "Prati"}
+                  {pratim ? `${t("following") || "Pratim"} (${brojPratilaca})` : `${t("follow") || "Prati"} (${brojPratilaca})`}
                 </button>
               )}
             </div>

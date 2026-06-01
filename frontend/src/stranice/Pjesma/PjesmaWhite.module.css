@@ -27,14 +27,33 @@
   width: 210px;
   height: 210px;
   border-radius: 18px;
-  overflow: hidden;
-  background: #f0f0f4;
+  overflow: visible;
+  background: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .pjesmaSlika { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; }
+
+.playBtnDuration {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.playBtnContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.playBtnContent svg {
+  margin-bottom: -6px;
+}
 
 .playBtn {
   background: #b91d95;
@@ -50,6 +69,7 @@
   transition: background 0.15s, transform 0.1s;
   z-index: 2;
   padding: 0;
+  position: relative;
 }
 .playBtn:hover { background: #e754a2; transform: scale(1.08); }
 
@@ -82,7 +102,7 @@
 .backBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 18px; transition: background 0.18s; }
 .backBtn:hover { background: #e754a2; }
 
-.actionBtnsRow { position: absolute; bottom: 18px; left: 18px; right: 18px; display: flex; flex-direction: row; gap: 0; z-index: 3; justify-content: space-between; }
+.actionBtnsRow { position: absolute; bottom: 18px; left: 18px; right: 18px; display: flex; flex-direction: row; gap: 0; z-index: 10; justify-content: space-between; }
 
 .likeBtn { background: #b91d95; border: none; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
 .likeBtn.liked { background: #f6b6d8ff; }
@@ -103,11 +123,18 @@
 }
 
 @media (max-width: 600px) {
+  .trajanjeBadge {
+    top: 6px;
+    left: 6px;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+  }
   .container { max-width: 98vw; padding: 16px 12px 30px 12px; }
   .pjesmaMain { flex-direction: column; align-items: center; gap: 16px; text-align: center; }
   .pjesmaSlikaWrap { width: 140px; height: 140px; }
   .pjesmaNaziv { font-size: 1.4rem; }
   .pjesmaOpis { font-size: 0.9rem; }
+  .playBtnDuration { font-size: 0.75rem; }
   .pjesmaMeta { font-size: 0.85rem; gap: 12px; flex-wrap: wrap; justify-content: center; }
   .izvodjaciWrap { flex-direction: column; gap: 8px; align-items: center; }
   .izvodjacIme { font-size: 1rem; }
@@ -151,6 +178,9 @@
 }
 
 @media (max-width: 375px) {
+  .playBtnDuration {
+    font-size: 0.65rem;
+  }
   .container { padding: 8px 4px 16px 4px; }
   .pjesmaSlikaWrap { width: 100px; height: 100px; }
   .playBtn, .likeBtn { width: 28px; height: 28px; }

@@ -38,11 +38,11 @@
 
 .izvodjacNaziv { color: #111; font-size: 2.1rem; font-weight: 700; margin-bottom: 8px; }
 
-.izvodjacMeta { color: #333; font-size: 1.05rem; font-weight: 500; display: flex; gap: 22px; margin-bottom: 8px; }
+.izvodjacMeta { color: #333; font-size: 1.05rem; font-weight: 500; display: flex; gap: 8px; margin-bottom: 8px; }
 
 .izvodjacBio { color: #666; font-size: 1.08rem; margin-bottom: 8px; }
 
-.pratiBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1.1rem; font-weight: 600; cursor: pointer; margin-top: 8px; transition: background 0.18s; max-width: 150px; }
+.pratiBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 1.15rem; font-weight: 600; cursor: pointer; margin-top: 8px; transition: background 0.18s; max-width: 200px; }
 .pratiBtn.pratim { background: #e754a2; }
 
 .section { margin-top: 38px; }
@@ -72,7 +72,7 @@
   .izvodjacMain { gap: 24px; margin-bottom: 24px; }
   .izvodjacSlika { width: 120px; height: 120px; }
   .izvodjacNaziv { font-size: 1.8rem; }
-  .izvodjacMeta { font-size: 1rem; gap: 16px; }
+  .izvodjacMeta { font-size: 1rem; gap: 6px; }
   .izvodjacBio { font-size: 1rem; }
   .section { margin-top: 24px; }
   .sectionTitle { font-size: 1.2rem; margin-bottom: 12px; }
@@ -87,7 +87,7 @@
   .izvodjacMain { flex-direction: column; align-items: center; text-align: center; gap: 16px; }
   .izvodjacSlika { width: 100px; height: 100px; }
   .izvodjacNaziv { font-size: 1.6rem; }
-  .izvodjacMeta { font-size: 0.9rem; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .izvodjacMeta { font-size: 0.9rem; gap: 6px; flex-wrap: wrap; justify-content: center; }
   .izvodjacBio { font-size: 0.9rem; }
   .pratiBtn { font-size: 1rem; padding: 8px 20px; }
   .gridRow { gap: 12px; }
@@ -103,7 +103,7 @@
   .izvodjacMain { gap: 12px; margin-bottom: 16px; }
   .izvodjacSlika { width: 80px; height: 80px; }
   .izvodjacNaziv { font-size: 1.3rem; margin-bottom: 6px; letter-spacing: 0.5px; }
-  .izvodjacMeta { font-size: 0.8rem; gap: 8px; margin-bottom: 6px; color: #333; }
+  .izvodjacMeta { font-size: 0.8rem; gap: 4px; margin-bottom: 6px; color: #333; }
   .izvodjacBio { font-size: 0.8rem; margin-bottom: 6px; color: #666; }
   .pratiBtn { font-size: 0.9rem; padding: 8px 16px; border-radius: 6px; max-width: 120px; }
   .section { margin-top: 20px; }

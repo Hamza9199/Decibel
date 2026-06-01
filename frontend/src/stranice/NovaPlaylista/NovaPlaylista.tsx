@@ -18,6 +18,8 @@ const NovaPlaylista: React.FC = () => {
   const [opis, setOpis] = useState("");
   const [fileSlika, setFileSlika] = useState<File | null>(null);
   const [fileGif, setFileGif] = useState<File | null>(null);
+  const [previewSlika, setPreviewSlika] = useState<string>("");
+  const [previewGif, setPreviewGif] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [javno, setJavno] = useState(false);
@@ -61,7 +63,6 @@ const NovaPlaylista: React.FC = () => {
 
   const showLoading = useMemo(() => !cssReady || !postDataDelayDone, [cssReady, postDataDelayDone]);
 
-
   const korisnikID = useMemo(() => {
     try {
       const user = JSON.parse(localStorage.getItem("korisnik") || "");
@@ -86,6 +87,32 @@ const NovaPlaylista: React.FC = () => {
     },
   });
 
+  const handleFileChange = (file: File | null, isGif: boolean) => {
+    if (!file) {
+      if (isGif) {
+        setFileGif(null);
+        setPreviewGif("");
+      } else {
+        setFileSlika(null);
+        setPreviewSlika("");
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const preview = e.target?.result as string;
+      if (isGif) {
+        setFileGif(file);
+        setPreviewGif(preview);
+      } else {
+        setFileSlika(file);
+        setPreviewSlika(preview);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -105,72 +132,136 @@ const NovaPlaylista: React.FC = () => {
 
   const loading = createPlaylistMut.isPending;
 
-
-    if (showLoading) return <Loading />;
-
+  if (showLoading) return <Loading />;
 
   return (
     <>
       <Header />
       <Sidebar />
       <div className={styles.novaPlaylistaBg}>
-        <form className={styles.novaPlaylistaForm} onSubmit={handleSubmit}>
-          <h2 className={styles.title}>{t("new_playlist")}</h2>
-          <input
-            type="text"
-            placeholder={t("playlist_name")}
-            className={styles.input}
-            value={naziv}
-            onChange={(e) => setNaziv(e.target.value)}
-            required
-          />
-          <textarea
-            placeholder={t("description") + " (" + t("optional") + ")"}
-            className={styles.textarea}
-            value={opis}
-            onChange={(e) => setOpis(e.target.value)}
-            rows={3}
-          />
-          <div className={styles.fileInputs}>
-            <label className={styles.fileLabel}>
-              {t("image") + ":"}
+        <div className={styles.formContainer}>
+          <form className={styles.novaPlaylistaForm} onSubmit={handleSubmit}>
+            <h2 className={styles.title}>{t("new_playlist")}</h2>
+            
+            <div className={styles.formGroup}>
+              <label className={styles.label}>{t("playlist_name")}</label>
               <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setFileSlika(e.target.files?.[0] || null)}
+                type="text"
+                placeholder={t("playlist_name")}
+                className={styles.input}
+                value={naziv}
+                onChange={(e) => setNaziv(e.target.value)}
+                required
               />
-            </label>
-            <label className={styles.fileLabel}>
-              Gif:
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>{t("description")} ({t("optional")})</label>
+              <textarea
+                placeholder={t("description")}
+                className={styles.textarea}
+                value={opis}
+                onChange={(e) => setOpis(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            <div className={styles.filesGrid}>
+              <div className={styles.fileUploadBox}>
+                <label className={styles.fileInputLabel}>
+                  <div className={styles.uploadArea}>
+                    {previewSlika ? (
+                      <img src={previewSlika} alt="Preview" className={styles.previewImage} />
+                    ) : (
+                      <>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                          <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>{t("image")}</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e.target.files?.[0] || null, false)}
+                    style={{ display: "none" }}
+                  />
+                </label>
+                {previewSlika && (
+                  <button
+                    type="button"
+                    className={styles.removePreviewBtn}
+                    onClick={() => handleFileChange(null, false)}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              <div className={styles.fileUploadBox}>
+                <label className={styles.fileInputLabel}>
+                  <div className={styles.uploadArea}>
+                    {previewGif ? (
+                      <img src={previewGif} alt="Preview" className={styles.previewImage} />
+                    ) : (
+                      <>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                          <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                          <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <span>GIF</span>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/gif"
+                    onChange={(e) => handleFileChange(e.target.files?.[0] || null, true)}
+                    style={{ display: "none" }}
+                  />
+                </label>
+                {previewGif && (
+                  <button
+                    type="button"
+                    className={styles.removePreviewBtn}
+                    onClick={() => handleFileChange(null, true)}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <label className={styles.checkboxLabel}>
               <input
-                type="file"
-                accept="image/gif"
-                onChange={(e) => setFileGif(e.target.files?.[0] || null)}
+                type="checkbox"
+                checked={javno}
+                onChange={(e) => setJavno(e.target.checked)}
               />
+              <span>{t("public_playlist")}</span>
             </label>
-          </div>
-          <label className={styles.fileLabel} style={{ marginTop: 10, marginBottom: 10 }}>
-            <input
-              type="checkbox"
-              checked={javno}
-              onChange={(e) => setJavno(e.target.checked)}
-              style={{ marginRight: 8 }}
-            />
-            {t("public_playlist")}
-          </label>
-          {error && <div className={styles.error}>{error}</div>}
-          {success && <div className={styles.success}>{success}</div>}
-          <button className={styles.button} type="submit" disabled={loading}>
-            {loading ? <Loading /> : t("create_playlist")}
-          </button>
-          <button
-            type="button"
-            className={styles.cancelBtn}
-            onClick={() => navigate("/playlists")}
-          >
-            {t("cancel")}
-          </button>
-        </form>
+
+            {error && <div className={styles.error}>{error}</div>}
+            {success && <div className={styles.success}>{success}</div>}
+
+            <div className={styles.buttonGroup}>
+              <button className={styles.button} type="submit" disabled={loading}>
+                {loading ? t("creating") || "Kreiram..." : t("create_playlist")}
+              </button>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={() => navigate("/playlists")}
+              >
+                {t("cancel")}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
       <Footer />
     </>

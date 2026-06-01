@@ -280,11 +280,7 @@ const Playlista: React.FC = () => {
             <div className={styles.playlistaInfo}>
               <h2 className={styles.playlistaNaziv}>{playlista.naziv}</h2>
               <div className={styles.playlistaOpis}>{playlista.opis}</div>
-              <div className={styles.playlistaMeta}>
-                <span>{t("number_of_songs") || "Broj pjesama"}: <b>{pjesme.length}</b></span>
-                <span>{t("number_of_likes") || "Lajkova"}: <b>{likeCount}</b></span>
-                <span>{t("public_playlist") || "Javno"}: <b>{playlista.javno ? t("yes") || "Da" : t("no") || "Ne"}</b></span>
-              </div>
+              
             </div>
           </div>
           <div className={styles.pjesmeSection}>

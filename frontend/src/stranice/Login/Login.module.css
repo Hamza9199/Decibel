@@ -35,10 +35,16 @@
   font-size: 1rem;
   outline: none;
   transition: border 0.2s;
+  box-sizing: border-box;
 }
 
 .input:focus {
   border: 1.5px solid #e754a2;
+}
+
+.passwordWrapper {
+  position: relative;
+  width: 100%;
 }
 
 .button {

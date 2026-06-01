@@ -1,10 +1,17 @@
 .novaPlaylistaBg {
   min-height: 100vh;
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: center;
   background: rgba(24,24,24,0.7);
-  margin-top: 50px;
+  padding-top: 80px;
+  padding-bottom: 60px;
+}
+
+.formContainer {
+  width: 100%;
+  max-width: 600px;
+  padding: 0 20px;
 }
 
 .novaPlaylistaForm {
@@ -12,252 +19,393 @@
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
   padding: 40px 32px 32px 32px;
-  min-width: 320px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: 24px;
 }
 
 .title {
   color: #fff;
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
   letter-spacing: 1px;
+  text-align: center;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  color: #ffe6ec;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .input, .textarea {
   width: 100%;
   padding: 12px 16px;
-  margin-bottom: 18px;
-  border-radius: 8px;
-  border: 1px solid #b91d95;
+  border-radius: 10px;
+  border: 2px solid rgba(185, 29, 149, 0.3);
   background: #181818;
   color: #fff;
   font-size: 1rem;
   outline: none;
-  transition: border 0.2s;
+  transition: all 0.3s ease;
+  font-family: inherit;
 }
 
 .input:focus, .textarea:focus {
-  border: 1.5px solid #e754a2;
+  border: 2px solid #b91d95;
+  box-shadow: 0 0 12px rgba(185, 29, 149, 0.25);
+  background: #1a1a1a;
 }
 
 .textarea {
   resize: vertical;
-  min-height: 60px;
-  max-height: 180px;
+  min-height: 80px;
+  max-height: 200px;
 }
 
-.fileInputs {
-  display: flex;
-  gap: 18px;
-  margin-bottom: 18px;
+.filesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.fileUploadBox {
+  position: relative;
+}
+
+.fileInputLabel {
+  cursor: pointer;
+  display: block;
+}
+
+.uploadArea {
   width: 100%;
-  justify-content: space-between;
-}
-
-.fileLabel {
-  color: #ffe6ec;
-  font-size: 1rem;
-  font-weight: 500;
+  aspect-ratio: 1;
+  border: 3px dashed rgba(185, 29, 149, 0.4);
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  background: rgba(185, 29, 149, 0.05);
+  transition: all 0.3s ease;
+  gap: 8px;
+  color: #ffe6ec;
+  position: relative;
+}
+
+.fileInputLabel:hover .uploadArea {
+  border-color: #b91d95;
+  background: rgba(185, 29, 149, 0.1);
+  transform: scale(1.02);
+}
+
+.uploadArea svg {
+  color: #b91d95;
+}
+
+.uploadArea span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.removePreviewBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(220, 53, 69, 0.9);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.removePreviewBtn:hover {
+  background: #dc3545;
+  transform: scale(1.1);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffe6ec;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.checkboxLabel input {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #b91d95;
+}
+
+.error {
+  color: #ffb3c6;
+  background: rgba(255, 179, 198, 0.1);
+  border: 2px solid #dc3545;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.success {
+  color: #baffc9;
+  background: rgba(186, 255, 201, 0.1);
+  border: 2px solid #28a745;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
 }
 
 .button {
   width: 100%;
-  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  background: linear-gradient(135deg, #b91d95 0%, #e754a2 100%);
   color: #fff;
   border: none;
-  border-radius: 8px;
-  padding: 12px 0;
+  border-radius: 10px;
+  padding: 14px 0;
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  margin-bottom: 10px;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(185, 29, 149, 0.3);
+  letter-spacing: 0.5px;
 }
 
-.button:hover {
-  background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
+.button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(185, 29, 149, 0.4);
+  background: linear-gradient(135deg, #e754a2 0%, #b91d95 100%);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .cancelBtn {
   width: 100%;
-  background: #232323;
+  background: rgba(35, 35, 35, 0.8);
   color: #ffe6ec;
-  border: 1px solid #b91d95;
-  border-radius: 8px;
-  padding: 10px 0;
+  border: 2px solid #b91d95;
+  border-radius: 10px;
+  padding: 12px 0;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 4px;
-  transition: background 0.18s, color 0.18s;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
 }
 
 .cancelBtn:hover {
   background: #b91d95;
   color: #fff;
-}
-
-.error {
-  color: #ffb3c6;
-  background: #3a0d2e;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 0.98rem;
-}
-
-.success {
-  color: #baffc9;
-  background: #1e3a2e;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 0.98rem;
+  transform: translateY(-2px);
 }
 
 @media (max-width: 600px) {
   .novaPlaylistaBg {
-    padding: 20px 0;
+    padding-top: 60px;
+    padding-bottom: 40px;
   }
-  
+
+  .formContainer {
+    padding: 0 12px;
+  }
+
   .novaPlaylistaForm {
-    min-width: 90vw;
-    max-width: 90vw;
     padding: 28px 20px 24px 20px;
-    border-radius: 12px;
+    gap: 18px;
   }
-  
+
   .title {
     font-size: 1.5rem;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
   }
-  
+
+  .label {
+    font-size: 0.95rem;
+  }
+
   .input, .textarea {
     padding: 10px 12px;
     font-size: 0.95rem;
-    margin-bottom: 12px;
   }
-  
-  .fileInputs {
-    flex-direction: column;
+
+  .filesGrid {
     gap: 12px;
   }
-  
-  .fileLabel {
-    font-size: 0.9rem;
+
+  .uploadArea {
+    aspect-ratio: 1;
   }
-  
+
   .button {
-    padding: 10px 0;
+    padding: 12px 0;
     font-size: 1rem;
   }
-  
+
   .cancelBtn {
-    font-size: 0.9rem;
+    padding: 10px 0;
+    font-size: 0.95rem;
   }
 }
 
 @media (max-width: 480px) {
   .novaPlaylistaBg {
-    padding: 15px 0;
-    min-height: 100vh;
+    padding-top: 55px;
+    padding-bottom: 30px;
   }
-  
+
+  .formContainer {
+    padding: 0 8px;
+  }
+
   .novaPlaylistaForm {
     padding: 20px 16px 20px 16px;
-    border-radius: 8px;
+    gap: 16px;
+    border-radius: 14px;
     box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
-    background: rgba(24,24,24,0.85);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
   }
-  
+
   .title {
     font-size: 1.3rem;
-    margin-bottom: 18px;
-    letter-spacing: 0.5px;
   }
-  
+
+  .label {
+    font-size: 0.9rem;
+  }
+
   .input, .textarea {
     padding: 10px 12px;
     font-size: 0.9rem;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    width: 85%;
+    border-radius: 8px;
   }
-  
-  .input:focus, .textarea:focus {
-    border: 1.5px solid #e754a2;
-  }
-  
+
   .textarea {
-    min-height: 50px;
-    max-height: 120px;
+    min-height: 70px;
   }
-  
-  .fileInputs {
-    flex-direction: column;
+
+  .filesGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .uploadArea {
+    aspect-ratio: auto;
+    height: 120px;
+  }
+
+  .removePreviewBtn {
+    width: 24px;
+    height: 24px;
+    font-size: 1rem;
+  }
+
+  .checkboxLabel {
+    font-size: 0.9rem;
     gap: 10px;
-    margin-bottom: 12px;
   }
-  
-  .fileLabel {
-    font-size: 0.85rem;
-    gap: 2px;
-  }
-  
-  .button {
-    padding: 10px 0;
-    font-size: 0.95rem;
-    border-radius: 6px;
-    margin-bottom: 8px;
-  }
-  
-  .cancelBtn {
-    font-size: 0.85rem;
-    padding: 8px 0;
-    border-radius: 6px;
-  }
-  
+
   .error, .success {
     font-size: 0.85rem;
-    padding: 6px 10px;
-    margin-bottom: 8px;
+    padding: 10px 12px;
+  }
+
+  .button {
+    padding: 12px 0;
+    font-size: 0.95rem;
+  }
+
+  .cancelBtn {
+    padding: 10px 0;
+    font-size: 0.9rem;
   }
 }
 
 @media (max-width: 375px) {
   .novaPlaylistaForm {
-    min-width: 98vw;
-    max-width: 98vw;
     padding: 16px 12px 16px 12px;
   }
-  
+
   .title {
     font-size: 1.2rem;
   }
-  
+
+  .label {
+    font-size: 0.85rem;
+  }
+
   .input, .textarea {
     font-size: 0.85rem;
     padding: 8px 10px;
   }
-  
-  .fileLabel {
+
+  .textarea {
+    min-height: 60px;
+  }
+
+  .filesGrid {
+    gap: 10px;
+  }
+
+  .uploadArea {
+    height: 100px;
+    gap: 6px;
+  }
+
+  .uploadArea svg {
+    width: 28px;
+    height: 28px;
+  }
+
+  .checkboxLabel {
     font-size: 0.8rem;
   }
-  
+
   .button {
     font-size: 0.9rem;
-    padding: 8px 0;
+    padding: 10px 0;
   }
-  
+
   .cancelBtn {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
   }
 }

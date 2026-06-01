@@ -251,7 +251,7 @@ const Pjesma: React.FC = () => {
                   className={`${styles.playBtn} ${styles.likeBtn} ${liked ? styles.liked : ""}`}
                   onClick={() => likeMut.mutate()}
                   title={liked ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}
-                  style={{ right: 90, left: "auto", background: liked ? "#f6b6d8ff" : "#b91d95" }}
+                  style={{ right: 18, left: "auto", background: liked ? "#f6b6d8ff" : "#b91d95" }}
                 >
                   <svg width="40" height="40" viewBox="0 0 28 28" fill="#fff">
                     <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -260,9 +260,12 @@ const Pjesma: React.FC = () => {
                 </button>
                 {pjesma.putanjaAudio && (
                   <button className={styles.playBtn} onClick={() => handlePlay(pjesma)} title={t("play_song")}>
-                    <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
-                      <polygon points="12,8 36,22 12,36" />
-                    </svg>
+                    <div className={styles.playBtnContent}>
+                      <svg width="40" height="40" viewBox="0 0 44 44" fill="#fff">
+                        <polygon points="12,8 36,22 12,36" />
+                      </svg>
+                      <span className={styles.playBtnDuration}>{formatTrajanje(pjesma.trajanjeSekunde)}</span>
+                    </div>
                   </button>
                 )}
               </div>
@@ -270,17 +273,7 @@ const Pjesma: React.FC = () => {
             <div className={styles.pjesmaInfo}>
               <h2 className={styles.pjesmaNaziv}>{pjesma.naziv}</h2>
               <div className={styles.pjesmaOpis}>{pjesma.opis}</div>
-              <div className={styles.pjesmaMeta}>
-                <span>
-                  {t("duration_seconds") || "Trajanje"}: <b>{formatTrajanje(pjesma.trajanjeSekunde)}</b>
-                </span>
-                <span>
-                  {t("genre") || "Žanr"}: <b>{pjesma.zanr}</b>
-                </span>
-                <span>
-                  {t("number_of_likes") || "Lajkova"}: <b>{pjesma.brojLajkova}</b>
-                </span>
-              </div>
+
               <div className={styles.izvodjaciWrap}>
                 <span className={styles.izvodjaciLabel}>{t("publisher") || "Izdavač"}:</span>
                 {izdavacQ.data ? (

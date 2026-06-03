@@ -142,6 +142,16 @@ const Statistika: React.FC = () => {
       .map((p) => ({ pjesma: p, brojReprodukcija: p.brojReprodukcija || 0 }));
   }, [statistika, pjesme]);
 
+  useEffect(() => {
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
+
+  return () => {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+  };
+}, []);
+
   const loading =
     pjesmeQ.isLoading ||
     albumiQ.isLoading ||

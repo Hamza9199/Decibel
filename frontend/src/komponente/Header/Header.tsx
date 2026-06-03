@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback,memo } from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
 // import styles from "./Header.module.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -35,14 +35,28 @@ const Header: React.FC = () => {
     setCssReady(false);
     loadThemeStyles();
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "decibel_tema") {
+        if (e.key === "decibel_tema") {
+          setCssReady(false);
+          setCssDelayDone(false);
+          loadThemeStyles(e.newValue || undefined);
+        }
+      };
+
+      const onThemeChanged = (e: Event) => {
+        const theme = (e as CustomEvent<string>).detail;
+
         setCssReady(false);
         setCssDelayDone(false);
-        loadThemeStyles(e.newValue || undefined);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+        loadThemeStyles(theme);
+      };
+
+      window.addEventListener("storage", onStorage);
+      window.addEventListener("themeChanged", onThemeChanged);
+
+      return () => {
+        window.removeEventListener("storage", onStorage);
+        window.removeEventListener("themeChanged", onThemeChanged);
+      };
   }, []);
 
   useEffect(() => {

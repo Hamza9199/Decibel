@@ -1,6 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-let __tb_api = { reflow: () => {}, setOffset: () => {}, pushBelowToolbar: () => {} };
+let __tb_api = { reflow: () => { }, setOffset: () => { }, pushBelowToolbar: () => { } };
 
 contextBridge.exposeInMainWorld('windowControls', {
   minimize: () => ipcRenderer.send('window-controls', 'minimize'),
@@ -9,8 +9,8 @@ contextBridge.exposeInMainWorld('windowControls', {
   toggle: () => ipcRenderer.send('window-controls', 'toggle'),
   close: () => ipcRenderer.send('window-controls', 'close'),
   onWindowState: (cb) => ipcRenderer.on('window-state', (_evt, state) => cb(state)),
-  reflowToolbar: () => { try { __tb_api.reflow(); } catch {} },
-  setToolbarOffset: (px) => { try { __tb_api.setOffset(px); } catch {} },
+  reflowToolbar: () => { try { __tb_api.reflow(); } catch { } },
+  setToolbarOffset: (px) => { try { __tb_api.setOffset(px); } catch { } },
   pushBelowToolbar: () => { try { return __tb_api.pushBelowToolbar(); } catch { return false; } },
 });
 
@@ -32,7 +32,7 @@ function setupTitlebar() {
       link.rel = 'stylesheet';
       link.href = '/assets/titlebar.css';
       document.head.appendChild(link);
-    } catch {}
+    } catch { }
 
     const bar = document.createElement('div');
     bar.id = 'titlebar';
@@ -54,7 +54,7 @@ function setupTitlebar() {
         } else if (!spacerEl.parentNode) {
           document.body.insertBefore(spacerEl, document.body.firstChild);
         }
-      } catch {}
+      } catch { }
     };
 
     const left = document.createElement('div');
@@ -96,22 +96,22 @@ function setupTitlebar() {
 
     const minimizeBtn = btn('minimize', 'M 2 8 H 10');
     const maximizeBtn = btn('maximize', 'M 1.5 1.5 H 10.5 V 10.5 H 1.5 Z');
-    const restoreBtn  = btn('restore',  'M 3.5 3.5 H 9.5 V 7.5 H 3.5 Z M 6.5 4.5 H 10.5 V 10.5 H 6.5 Z');
-    const closeBtn    = btn('close',    'M 2 2 L 10 10 M 10 2 L 2 10');
+    const restoreBtn = btn('restore', 'M 3.5 3.5 H 9.5 V 7.5 H 3.5 Z M 6.5 4.5 H 10.5 V 10.5 H 6.5 Z');
+    const closeBtn = btn('close', 'M 2 2 L 10 10 M 10 2 L 2 10');
 
     restoreBtn.style.display = 'none';
 
-    minimizeBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'minimize'); } catch {} });
-    maximizeBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'maximize'); } catch {} });
-    restoreBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'restore'); } catch {} });
-    closeBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'close'); } catch {} });
+    minimizeBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'minimize'); } catch { } });
+    maximizeBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'maximize'); } catch { } });
+    restoreBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'restore'); } catch { } });
+    closeBtn.addEventListener('click', () => { try { ipcRenderer.send('window-controls', 'close'); } catch { } });
 
     ipcRenderer.on('window-state', (_evt, state) => {
       try {
         const maximized = !!(state && state.isMaximized);
         maximizeBtn.style.display = maximized ? 'none' : '';
         restoreBtn.style.display = maximized ? '' : 'none';
-      } catch {}
+      } catch { }
     });
 
     right.appendChild(minimizeBtn);
@@ -138,8 +138,24 @@ function setupTitlebar() {
               el.classList.add('tb-push');
             }
           }
-        } catch {}
+        } catch { }
       });
+    };
+
+    const preventScrollConflicts = () => {
+      try {
+        document.getElementById('titlebar')?.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }, { passive: false });
+        
+        document.body.addEventListener('wheel', (e) => {
+          if (e.target.closest('#titlebar')) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }, { passive: false });
+      } catch { }
     };
 
     const setBodyPadding = () => {
@@ -147,7 +163,7 @@ function setupTitlebar() {
         document.documentElement.style.setProperty('--tb-height', `${barHeight}px`);
         document.documentElement.style.setProperty('--tb-offset', `${barHeight}px`);
         adjustRoots();
-      } catch {}
+      } catch { }
     };
 
     const ensureOffsetStrategy = () => {
@@ -162,19 +178,19 @@ function setupTitlebar() {
             if (needSpacer) {
               placeSpacer();
             } else if (spacerEl.parentNode) {
-              try { spacerEl.remove(); } catch {}
+              try { spacerEl.remove(); } catch { }
             }
-          } catch {}
+          } catch { }
         });
-      } catch {}
+      } catch { }
     };
 
-    __tb_api.reflow = () => { try { setBodyPadding(); ensureOffsetStrategy(); adjustRoots(); } catch {} };
+    __tb_api.reflow = () => { try { setBodyPadding(); ensureOffsetStrategy(); adjustRoots(); } catch { } };
     __tb_api.setOffset = (px) => {
       try {
         const v = Math.max(0, Number(px) || 0);
         barHeight = v || height;
-      } catch {}
+      } catch { }
       __tb_api.reflow();
     };
     __tb_api.pushBelowToolbar = () => { try { document.documentElement.classList.add('tb-use-spacer'); placeSpacer(); return true; } catch { return false; } };
@@ -182,25 +198,57 @@ function setupTitlebar() {
     setBodyPadding();
     ensureOffsetStrategy();
 
-    const paddingObserver = new MutationObserver(() => { setBodyPadding(); ensureOffsetStrategy(); });
-    try { paddingObserver.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] }); } catch {}
+    let scrollTimeout;
+    const handleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        try { ensureOffsetStrategy(); } catch { }
+      }, 100);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const paddingObserver = new MutationObserver(() => { 
+      if (!document.body.classList.contains('scrolling')) {
+        setBodyPadding(); 
+        ensureOffsetStrategy();
+      }
+    });
+    try { paddingObserver.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] }); } catch { }
 
     const keepBar = () => {
       try {
         if (!document.body.contains(bar)) document.body.appendChild(bar);
         if (document.documentElement.classList.contains('tb-use-spacer')) placeSpacer();
-      } catch {}
+      } catch { }
     };
-    const barObserver = new MutationObserver(() => { keepBar(); adjustRoots(); });
-    try { barObserver.observe(document.body, { childList: true, subtree: true }); } catch {}
+    let barObserverRafId = null;
+    const barObserver = new MutationObserver(() => {
+      if (barObserverRafId) return;
+      barObserverRafId = requestAnimationFrame(() => {
+        barObserverRafId = null;
+        keepBar(); adjustRoots();
+      });
+    });
+    try { barObserver.observe(document.body, { childList: true }); } catch { }
 
     window.addEventListener('focus', () => setTimeout(() => { setBodyPadding(); keepBar(); adjustRoots(); ensureOffsetStrategy(); }, 0));
     window.addEventListener('resize', ensureOffsetStrategy);
-  } catch {}
+    
+    let isScrolling = false;
+    window.addEventListener('scroll', () => {
+      isScrolling = true;
+      document.body.classList.add('scrolling');
+      setTimeout(() => {
+        isScrolling = false;
+        document.body.classList.remove('scrolling');
+      }, 150);
+    }, { passive: true });
+  } catch { }
 }
 
 if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', () => { try { setupTitlebar(); __tb_api.reflow(); ipcRenderer.send('preload-ready'); } catch { try { ipcRenderer.send('preload-ready'); } catch {} } }, { once: true });
+  window.addEventListener('DOMContentLoaded', () => { try { setupTitlebar(); __tb_api.reflow(); ipcRenderer.send('preload-ready'); } catch { try { ipcRenderer.send('preload-ready'); } catch { } } }, { once: true });
 } else {
-  try { setupTitlebar(); __tb_api.reflow(); ipcRenderer.send('preload-ready'); } catch { try { ipcRenderer.send('preload-ready'); } catch {} }
+  try { setupTitlebar(); __tb_api.reflow(); ipcRenderer.send('preload-ready'); } catch { try { ipcRenderer.send('preload-ready'); } catch { } }
 }

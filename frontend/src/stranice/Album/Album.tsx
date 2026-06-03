@@ -22,16 +22,19 @@ const Album: React.FC = () => {
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [styles, setStyles] = useState<Styles>({});
-
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
-      const current = theme || localStorage.getItem("decibel_tema") || "dark";
-      if (current === "light") {
-        const mod = await import("./AlbumWhite.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
-      } else {
-        const mod = await import("./Album.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
+      try {
+        const current = theme || localStorage.getItem("decibel_tema") || "dark";
+        if (current === "light") {
+          const mod = await import("./AlbumWhite.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        } else {
+          const mod = await import("./Album.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        }
+      } catch (e) {
+        console.error("Failed to load Album theme styles:", e);
       }
     };
     loadThemeStyles();

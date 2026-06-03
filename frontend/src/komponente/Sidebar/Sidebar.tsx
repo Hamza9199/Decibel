@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback,memo } from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
 // import styles from "./Sidebar.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -193,7 +193,7 @@ const Sidebar: React.FC = () => {
                     <svg width="18" height="18" fill="#b91d95" viewBox="0 0 24 24">
                       <circle cx="12" cy="12" r="3" />
                       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 8 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 16 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 8c.36.36.58.86.6 1.39V9a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                  </svg>
+                    </svg>
                   </span>
                   {t("settings")}
                 </button>
@@ -311,7 +311,7 @@ const Sidebar: React.FC = () => {
               </div>
             )}
           </div>
-          
+
 
           {(role === "izvodac" || role === "admin") && (
             <>
@@ -437,7 +437,7 @@ const Sidebar: React.FC = () => {
       </aside>
       {isMobile && sidebarOpen && <div className={styles.sidebarOverlay} onClick={handleCloseSidebar} />}
     </>
-    
+
   );
 };
 

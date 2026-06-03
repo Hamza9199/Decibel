@@ -21,16 +21,19 @@ const Izvodjac: React.FC = () => {
   const repeatAll = false;
   const [styles, setStyles] = useState<Styles>({});
   const [brojPratilaca, setBrojPratilaca] = useState<number>(0);
-
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
-      const current = theme || localStorage.getItem("decibel_tema") || "dark";
-      if (current === "light") {
-        const mod = await import("./IzvodjacWhite.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
-      } else {
-        const mod = await import("./Izvodjac.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
+      try {
+        const current = theme || localStorage.getItem("decibel_tema") || "dark";
+        if (current === "light") {
+          const mod = await import("./IzvodjacWhite.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        } else {
+          const mod = await import("./Izvodjac.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        }
+      } catch (e) {
+        console.error("Failed to load Izvodjac theme styles:", e);
       }
     };
     loadThemeStyles();

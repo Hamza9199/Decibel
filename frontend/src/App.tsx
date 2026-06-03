@@ -265,7 +265,7 @@ const setBodyBackground = (imgUrl?: string) => {
     style.textContent = `
       body::before {
         background: url('${imgUrl}') center center / cover no-repeat fixed !important;
-        filter: blur(45px) brightness(0.4) saturate(1.3) !important;
+        filter: blur(18px) brightness(0.4) saturate(1.3) !important;
         opacity: 0.9 !important;
       }
       body::after {
@@ -289,7 +289,6 @@ const setBodyBackground = (imgUrl?: string) => {
     body.style.backgroundPosition = 'initial';
     body.style.backgroundRepeat = 'initial';
     
-    // Remove dynamic styles
     const existingStyle = document.getElementById('dynamic-bg-style');
     if (existingStyle) {
       existingStyle.remove();

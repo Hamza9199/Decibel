@@ -11,9 +11,9 @@
   margin: 0 auto;
   margin-left: 250px;
   padding: 32px 115px 50px 50px;
-background: rgb(255, 255, 255, 0.6);
+  background: rgb(255, 255, 255, 0.6);
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
 
 .title {
@@ -45,13 +45,16 @@ background: rgb(255, 255, 255, 0.6);
   scrollbar-width: thin;
   scrollbar-color: #b91d95 #eee;
 }
+
 .gridRow::-webkit-scrollbar {
   height: 8px;
 }
+
 .gridRow::-webkit-scrollbar-thumb {
   background: #b91d95;
   border-radius: 8px;
 }
+
 .gridRow::-webkit-scrollbar-track {
   background: #eee;
 }
@@ -76,13 +79,13 @@ background: rgb(255, 255, 255, 0.6);
   max-width: 210px;
   position: relative;
   transition: box-shadow 0.2s, transform 0.2s;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   min-height: 260px;
   cursor: pointer;
 }
 
 .card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   transform: translateY(-4px) scale(1.03);
 }
 
@@ -132,7 +135,7 @@ background: rgb(255, 255, 255, 0.6);
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.25);
+  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.25);
   transition: background 0.15s, transform 0.1s;
   z-index: 2;
   padding: 0;
@@ -168,7 +171,7 @@ background: rgb(255, 255, 255, 0.6);
 
 .activeCard {
   border: 2px solid #b91d95;
-  box-shadow: 0 4px 20px rgba(185,29,149,0.25);
+  box-shadow: 0 4px 20px rgba(185, 29, 149, 0.25);
   background: rgba(185, 29, 149, 0.06);
 }
 
@@ -187,9 +190,11 @@ background: rgb(255, 255, 255, 0.6);
     border-radius: 0;
     box-shadow: none;
   }
+
   .gridRow {
     gap: 16px;
   }
+
   .card {
     min-width: 160px;
     max-width: 160px;
@@ -202,23 +207,28 @@ background: rgb(255, 255, 255, 0.6);
     margin-left: 0;
     padding: 8px 8px 40px 8px;
   }
+
   .gridRow {
     gap: 12px;
   }
+
   .card {
     min-width: 140px;
     max-width: 140px;
     padding: 10px 6px 8px 6px;
   }
+
   .cardImageWrap,
   .cardImageWrap2 {
     width: 90px;
     height: 90px;
     margin-bottom: 8px;
   }
+
   .cardTitle {
     font-size: 0.9rem;
   }
+
   .cardDesc {
     font-size: 0.75rem;
   }
@@ -229,7 +239,7 @@ background: rgb(255, 255, 255, 0.6);
     padding-top: 60px;
     min-height: 100vh;
   }
-  
+
   .container {
     max-width: 95vw;
     margin-left: 0;
@@ -239,23 +249,21 @@ background: rgb(255, 255, 255, 0.6);
     box-shadow: none;
     min-height: 60vh;
     margin-bottom: -90px;
-    background: rgba(255,255,255,0.85);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(255, 255, 255, 0.97);
   }
-  
+
   .sectionTitle {
     font-size: 1.3rem;
     margin-bottom: 16px;
     margin-left: 0;
     border-left: 4px solid #b91d95;
     padding-left: 12px;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255, 255, 255, 0.9);
     padding-top: 8px;
     padding-bottom: 8px;
     border-radius: 6px;
   }
-  
+
   .gridRow {
     gap: 16px;
     padding-bottom: 8px;
@@ -266,39 +274,37 @@ background: rgb(255, 255, 255, 0.6);
     padding-left: 4px;
     padding-right: 4px;
   }
-  
+
   .card {
     min-width: 140px;
     max-width: 140px;
     padding: 16px 12px 14px 12px;
     border-radius: 12px;
     min-height: 180px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     margin: 0;
     flex-shrink: 0;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    background: #ffffff;
   }
-  
+
   .card:hover {
     transform: scale(1.02);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.16);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
   }
-  
+
   .cardImageWrap,
   .cardImageWrap2 {
     width: 100px;
     height: 100px;
     margin-bottom: 12px;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   }
-  
+
   .cardImage {
     border-radius: 10px;
   }
-  
+
   .playButton {
     width: 36px;
     height: 36px;
@@ -310,17 +316,17 @@ background: rgb(255, 255, 255, 0.6);
     padding: 0;
     box-shadow: 0 2px 8px rgba(185, 29, 149, 0.3);
   }
-  
+
   .playButton:hover {
     transform: scale(1.1);
     background: #e754a2;
   }
-  
+
   .playButton svg {
     width: 20px;
     height: 20px;
   }
-  
+
   .cardTitle {
     font-size: 0.9rem;
     margin-bottom: 4px;
@@ -337,7 +343,7 @@ background: rgb(255, 255, 255, 0.6);
     line-clamp: 2;
     font-weight: 600;
   }
-  
+
   .cardDesc {
     font-size: 0.75rem;
     margin-bottom: 0;
@@ -353,13 +359,13 @@ background: rgb(255, 255, 255, 0.6);
     line-clamp: 1;
     color: #666;
   }
-  
+
   .activeCard {
     border: 2px solid #b91d95;
-    box-shadow: 0 4px 16px rgba(185,29,149,0.25);
+    box-shadow: 0 4px 16px rgba(185, 29, 149, 0.25);
     background: rgba(185, 29, 149, 0.08);
   }
-  
+
   .loading {
     font-size: 1rem;
     margin-top: 30px;
@@ -370,51 +376,51 @@ background: rgb(255, 255, 255, 0.6);
   .container {
     padding: 8px 6px 30px 6px;
   }
-  
+
   .sectionTitle {
     font-size: 1.2rem;
     padding-left: 10px;
     padding-top: 6px;
     padding-bottom: 6px;
   }
-  
+
   .gridRow {
     gap: 12px;
     padding-left: 2px;
     padding-right: 2px;
   }
-  
+
   .card {
     min-width: 120px;
     max-width: 120px;
     min-height: 160px;
     padding: 14px 10px 12px 10px;
   }
-  
+
   .cardImageWrap,
   .cardImageWrap2 {
     width: 85px;
     height: 85px;
     margin-bottom: 10px;
   }
-  
+
   .playButton {
     width: 32px;
     height: 32px;
     bottom: 5px;
     right: 5px;
   }
-  
+
   .playButton svg {
     width: 18px;
     height: 18px;
   }
-  
+
   .cardTitle {
     font-size: 0.85rem;
     line-height: 1.2;
   }
-  
+
   .cardDesc {
     font-size: 0.7rem;
     min-height: 18px;

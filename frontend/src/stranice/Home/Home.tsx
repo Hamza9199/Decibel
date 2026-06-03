@@ -5,7 +5,7 @@ import axios from "axios";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -15,6 +15,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
+  const handleNavigate = useCallback((path: string) => {
+    setTimeout(() => navigate(path), 10);
+  }, [navigate]);
+
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [activeSong, setActiveSong] = useState<Pjesma | null>(null);
   const [styles, setStyles] = useState<Styles>({});
@@ -24,13 +30,17 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
-      const current = theme || localStorage.getItem("decibel_tema") || "dark";
-      if (current === "light") {
-        const mod = await import("./HomeWhite.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
-      } else {
-        const mod = await import("./Home.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
+      try {
+        const current = theme || localStorage.getItem("decibel_tema") || "dark";
+        if (current === "light") {
+          const mod = await import("./HomeWhite.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        } else {
+          const mod = await import("./Home.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        }
+      } catch (e) {
+        console.error("Failed to load theme styles for Home:", e);
       }
     };
     const boot = async () => {
@@ -175,7 +185,9 @@ const Home: React.FC = () => {
   });
 
   const handlePlayPlaylist = useCallback(
+
     (playlistId: number) => {
+      console.log("PLAY PLAYLIST", playlistId);
       playPlaylistSongsMut.mutate(playlistId);
     },
     [playPlaylistSongsMut]
@@ -214,12 +226,12 @@ const Home: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  <Link className="link" to={`/pjesma/${p.id}`}>
+                  <div className="link" onClick={() => handleNavigate(`/pjesma/${p.id}`)} style={{ cursor: "pointer" }}>
                     <div className={styles.cardTitle}>{p.naziv}</div>
-                  </Link>
-                  <Link className="link" to={`/izvodjac/${p.korisnik?.id}`}>
+                  </div>
+                  <div className="link" onClick={() => handleNavigate(`/izvodjac/${p.korisnik?.id}`)} style={{ cursor: "pointer" }}>
                     <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
-                  </Link>
+                  </div>
                 </div>
               ))}
             </div>
@@ -231,22 +243,42 @@ const Home: React.FC = () => {
                 <div key={a.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {a.putanjaSlika ? (
-                      <img src={a.putanjaSlika} alt={a.naziv} className={styles.cardImage} />
+                      <img
+                        src={a.putanjaSlika}
+                        alt={a.naziv}
+                        className={styles.cardImage}
+                      />
                     ) : (
-                      <div className={styles.cardImage} style={{ background: "#222" }} />
+                      <div
+                        className={styles.cardImage}
+                        style={{ background: "#222" }}
+                      />
                     )}
-                    <button className={styles.playButton} onClick={() => handlePlayAlbum(a.id)} title="Pusti album">
+
+                    <button
+                      className={styles.playButton}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePlayAlbum(a.id);
+                      }}
+                      title="Pusti album"
+                    >
                       <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
                         <polygon points="12,8 36,22 12,36" />
                       </svg>
                     </button>
                   </div>
-                  <Link className="link" to={`/album/${a.id}`}>
+
+                  <div className="link" onClick={() => handleNavigate(`/album/${a.id}`)} style={{ cursor: "pointer" }}>
                     <div className={styles.cardTitle}>{a.naziv}</div>
-                  </Link>
-                  <Link className="link" to={`/izvodjac/${a.korisnik?.id}`}>
-                    <div className={styles.cardDesc}>{a.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
-                  </Link>
+                  </div>
+
+                  <div className="link" onClick={() => handleNavigate(`/izvodjac/${a.korisnik?.id}`)} style={{ cursor: "pointer" }}>
+                    <div className={styles.cardDesc}>
+                      {a.korisnik?.korisnicko_ime || <span>&nbsp;</span>}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -258,22 +290,42 @@ const Home: React.FC = () => {
                 <div key={pl.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {pl.putanjaSlika ? (
-                      <img src={pl.putanjaSlika} alt={pl.naziv} className={styles.cardImage} />
+                      <img
+                        src={pl.putanjaSlika}
+                        alt={pl.naziv}
+                        className={styles.cardImage}
+                      />
                     ) : (
-                      <div className={styles.cardImage} style={{ background: "#222" }} />
+                      <div
+                        className={styles.cardImage}
+                        style={{ background: "#222" }}
+                      />
                     )}
-                    <button className={styles.playButton} onClick={() => handlePlayPlaylist(pl.id)} title="Pusti playlistu">
+
+                    <button
+                      className={styles.playButton}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handlePlayPlaylist(pl.id);
+                      }}
+                      title="Pusti playlistu"
+                    >
                       <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
                         <polygon points="12,8 36,22 12,36" />
                       </svg>
                     </button>
                   </div>
-                  <Link className="link" to={`/playlista/${pl.id}`}>
+
+                  <div className="link" onClick={() => handleNavigate(`/playlista/${pl.id}`)} style={{ cursor: "pointer" }}>
                     <div className={styles.cardTitle}>{pl.naziv}</div>
-                  </Link>
-                  <Link className="link" to={`/izvodjac/${pl.korisnik?.id}`}>
-                    <div className={styles.cardDesc}>{pl.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
-                  </Link>
+                  </div>
+
+                  <div className="link" onClick={() => handleNavigate(`/izvodjac/${pl.korisnik?.id}`)} style={{ cursor: "pointer" }}>
+                    <div className={styles.cardDesc}>
+                      {pl.korisnik?.korisnicko_ime || <span>&nbsp;</span>}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -282,19 +334,37 @@ const Home: React.FC = () => {
           <Section title={t("artists")}>
             <div className={styles.gridRow}>
               {korisnici
-                .filter((k) => k.rola === "izvodac" && k.statusKorisnika !== "suspendovan")
+                .filter(
+                  (k) =>
+                    k.rola === "izvodac" &&
+                    k.statusKorisnika !== "suspendovan"
+                )
                 .map((k) => (
                   <div key={k.id} className={styles.card}>
-                    <div className={styles.cardImageWrap2}>
+                    <div className={styles.cardImageWrap}>
                       {k.putanjaProfilneSlike ? (
-                        <img src={k.putanjaProfilneSlike} alt={k.korisnicko_ime} className={styles.cardImage} />
+                        <img
+                          src={k.putanjaProfilneSlike}
+                          alt={k.korisnicko_ime}
+                          className={styles.cardImage}
+                        />
                       ) : (
-                        <div className={styles.cardImage} style={{ background: "#222" }} />
+                        <div
+                          className={styles.cardImage}
+                          style={{ background: "#222" }}
+                        />
                       )}
                     </div>
-                    <Link className="link" to={`/izvodjac/${k.id}`}>
-                      <div className={styles.cardTitle}>{k.korisnicko_ime}</div>
-                    </Link>
+
+                    <div className="link" onClick={() => handleNavigate(`/izvodjac/${k.id}`)} style={{ cursor: "pointer" }}>
+                      <div className={styles.cardTitle}>
+                        {k.korisnicko_ime}
+                      </div>
+                    </div>
+
+                    <div className={styles.cardDesc}>
+                      Izvođač
+                    </div>
                   </div>
                 ))}
             </div>

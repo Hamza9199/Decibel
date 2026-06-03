@@ -9,7 +9,7 @@ try {
   app.setAppUserModelId('com.decibel.desktop');
   app.setName('Decibel');
   app.setPath('userData', path.join(app.getPath('appData'), 'Decibel'));
-} catch {}
+} catch { }
 
 let win;
 let tray;
@@ -29,6 +29,7 @@ const gotTheLock = app.requestSingleInstanceLock();
 
 const server = express();
 server.use(express.static(path.join(__dirname, 'dist')));
+
 server.use('/assets', express.static(path.join(__dirname, 'assets')));
 const PORT = 3000;
 server.listen(PORT, () => console.log(`Serving on http://localhost:${PORT}`));
@@ -38,11 +39,11 @@ function attachWinEvents(w) {
     w.setMenu(null);
     w.on('close', (event) => {
       event.preventDefault();
-      try { w.hide(); } catch {}
+      try { w.hide(); } catch { }
     });
-    w.on('maximize', () => { try { w.webContents.send('window-state', { isMaximized: true }); } catch {} });
-    w.on('unmaximize', () => { try { w.webContents.send('window-state', { isMaximized: false }); } catch {} });
-  } catch {}
+    w.on('maximize', () => { try { w.webContents.send('window-state', { isMaximized: true }); } catch { } });
+    w.on('unmaximize', () => { try { w.webContents.send('window-state', { isMaximized: false }); } catch { } });
+  } catch { }
 }
 
 function createWindow() {
@@ -61,7 +62,7 @@ function createWindow() {
   };
 
   const makeFramed = () => {
-    if (win) { try { win.destroy(); } catch {} }
+    if (win) { try { win.destroy(); } catch { } }
     win = new BrowserWindow({ ...commonOpts, webPreferences: commonPrefs, frame: true, show: true });
     attachWinEvents(win);
     win.loadURL(`http://localhost:${PORT}`);
@@ -69,8 +70,8 @@ function createWindow() {
 
   ipcMain.once('preload-ready', () => {
     resolved = true;
-    try { clearTimeout(timer); } catch {}
-    try { if (win) win.show(); } catch {}
+    try { clearTimeout(timer); } catch { }
+    try { if (win) win.show(); } catch { }
   });
 
   makeFrameless();
@@ -85,16 +86,16 @@ function createTray() {
   const iconPath = path.join(__dirname, 'assets', 'icon.ico');
   let trayIcon = nativeImage.createFromPath(iconPath);
   const size = isWindows ? 16 : (isMac ? 18 : 22);
-  try { trayIcon = trayIcon.resize({ width: size, height: size }); } catch {}
-  if (isMac) { try { trayIcon.setTemplateImage(true); } catch {} }
+  try { trayIcon = trayIcon.resize({ width: size, height: size }); } catch { }
+  if (isMac) { try { trayIcon.setTemplateImage(true); } catch { } }
 
   const loadMenuIcon = (name) => {
     const candidates = [
-      path.join(__dirname, 'assets',`${name}.png`),
+      path.join(__dirname, 'assets', `${name}.png`),
       path.join(__dirname, 'assets', `${name}.ico`),
       path.join(__dirname, 'assets', `${name}.svg`),
       path.join(__dirname, 'assets', `${name}.png`),
-      path.join(__dirname, 'assets',`${name}.ico`),
+      path.join(__dirname, 'assets', `${name}.ico`),
       path.join(__dirname, 'assets', `${name}.svg`)
     ];
     for (const p of candidates) {
@@ -103,11 +104,11 @@ function createTray() {
         let img = nativeImage.createFromPath(p);
         if (img && !img.isEmpty && img.isEmpty()) continue;
         img = img.resize({ width: size, height: size });
-        if (isMac) { try { img.setTemplateImage(true); } catch {} }
+        if (isMac) { try { img.setTemplateImage(true); } catch { } }
         return img;
-      } catch {}
+      } catch { }
     }
-    return trayIcon; 
+    return trayIcon;
   };
 
   tray = new Tray(trayIcon);
@@ -119,18 +120,22 @@ function createTray() {
     { label: 'Decibel', icon: trayIcon, enabled: false },
     { type: 'separator' },
     { label: 'Open', icon: loadMenuIcon('open'), click: () => { if (win) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } else createWindow(); } },
-    { label: 'Minimize', icon: loadMenuIcon('minimize'), click: () => { if (win) { try { win.hide(); } catch {} } } },
-    { label: 'Settings', icon: loadMenuIcon('settings'), submenu: [
-      { label: 'Always on top', type: 'checkbox', checked: !!(win && win.isAlwaysOnTop && win.isAlwaysOnTop()), click: (menuItem) => { if (win) win.setAlwaysOnTop(menuItem.checked); } },
-      { label: 'Start at login', type: 'checkbox', checked: autoLaunch, click: (menuItem) => {
-        const enable = !!menuItem.checked;
-        try {
-          const options = { openAtLogin: enable, openAsHidden: true };
-          if (isWindows) { options.path = process.execPath; options.args = []; }
-          app.setLoginItemSettings(options);
-        } catch {}
-      } },
-    ]},
+    { label: 'Minimize', icon: loadMenuIcon('minimize'), click: () => { if (win) { try { win.hide(); } catch { } } } },
+    {
+      label: 'Settings', icon: loadMenuIcon('settings'), submenu: [
+        { label: 'Always on top', type: 'checkbox', checked: !!(win && win.isAlwaysOnTop && win.isAlwaysOnTop()), click: (menuItem) => { if (win) win.setAlwaysOnTop(menuItem.checked); } },
+        {
+          label: 'Start at login', type: 'checkbox', checked: autoLaunch, click: (menuItem) => {
+            const enable = !!menuItem.checked;
+            try {
+              const options = { openAtLogin: enable, openAsHidden: true };
+              if (isWindows) { options.path = process.execPath; options.args = []; }
+              app.setLoginItemSettings(options);
+            } catch { }
+          }
+        },
+      ]
+    },
     { type: 'separator' },
     { label: 'Exit', icon: loadMenuIcon('exit'), click: () => { if (win) win.removeAllListeners('close'); app.quit(); } }
   ]);
@@ -179,10 +184,10 @@ ipcMain.on('window-controls', (_evt, action) => {
         else { win.restore(); }
         break;
       case 'toggle': win.isMaximized() ? win.unmaximize() : win.maximize(); break;
-      case 'close': win.close(); break; 
+      case 'close': win.close(); break;
       default: break;
     }
-  } catch {}
+  } catch { }
 });
 
 ipcMain.handle('get-app-icon', async () => {
@@ -197,14 +202,14 @@ ipcMain.handle('get-app-icon', async () => {
         if (img.resize) img = img.resize({ width: size, height: size });
         const dataUrl = img.toDataURL ? img.toDataURL() : null;
         if (dataUrl) return dataUrl;
-      } catch {}
+      } catch { }
     }
-  } catch {}
+  } catch { }
   return null;
 });
 
 const { Client, ActivityType } = require("@xhayper/discord-rpc");
-const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID ;
+const DISCORD_CLIENT_ID = process.env.DISCORD_APP_ID;
 
 console.log("[Discord RPC] Client ID:", DISCORD_CLIENT_ID);
 
@@ -222,7 +227,7 @@ async function setDiscordPresence({
   startTimestamp = Date.now(),
   endTimestamp = undefined,
   type = 2,
-  buttons = [{ label: "Listen on Decibel", url: "https://deccibel.vercel.app" }, { label: "Check this out", url: "https://deccibel.vercel.app" }]
+  buttons = [{ label: "Listen on Decibel", url: "https://deccibel.click" }, { label: "Check this out", url: "https://deccibel.click" }]
 } = {}) {
   if (!rpcReady) {
     console.log("[Discord RPC] Not ready, skipping setActivity");
@@ -273,7 +278,7 @@ ipcMain.handle("update-discord-presence", async (_evt, presence) => {
 
 app.on("window-all-closed", () => {
   if (rpcReady) {
-    try { rpc.user?.clearActivity(); } catch {}
+    try { rpc.user?.clearActivity(); } catch { }
   }
   if (process.platform !== "darwin") app.quit();
 });

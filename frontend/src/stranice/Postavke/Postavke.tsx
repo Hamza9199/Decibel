@@ -42,8 +42,17 @@ const Postavke: React.FC = () => {
     const onStorage = (e: StorageEvent) => {
       if (e.key === "decibel_tema") loadThemeStyles(e.newValue || undefined);
     };
+    const onThemeChanged = (e: Event) => {
+      const theme = (e as CustomEvent<string>).detail;
+      loadThemeStyles(theme);
+    };
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("themeChanged", onThemeChanged);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("themeChanged", onThemeChanged);
+    };
   }, []);
 
   useEffect(() => {
@@ -56,12 +65,16 @@ const Postavke: React.FC = () => {
   }, [cssReady]);
 
   const handleChangeTema = useCallback((newTema: string) => {
-    setTema(newTema);
-    localStorage.setItem("decibel_tema", newTema);
+      setTema(newTema);
+      localStorage.setItem("decibel_tema", newTema);
 
-    window.location.reload();
-
-  }, []);
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "decibel_tema",
+          newValue: newTema,
+        })
+      );
+    }, []);
 
   useEffect(() => {
     document.body.setAttribute("data-theme", tema);

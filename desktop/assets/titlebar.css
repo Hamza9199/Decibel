@@ -4,6 +4,8 @@ html { scroll-padding-top: var(--tb-offset) !important; }
 body { padding-top: var(--tb-offset) !important; }
 html.tb-use-spacer body { padding-top: 0 !important; }
 
+
+
 #titlebar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -28,7 +30,6 @@ html.tb-use-spacer body { padding-top: 0 !important; }
 #titlebar .tb-btn svg { width: 12px; height: 12px; display: block; }
 #titlebar .tb-btn svg path { stroke: currentColor; stroke-width: 1.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 
-/* Scrollbar styling */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: rgba(0,0,0,0.15); }
 ::-webkit-scrollbar-thumb { background: #DC97C6; border-radius: 8px; border: 2px solid rgba(0,0,0,0.15); }

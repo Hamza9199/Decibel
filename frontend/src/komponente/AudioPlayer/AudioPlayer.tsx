@@ -165,7 +165,7 @@ const AudioPlayer: React.FC<Props> = ({
           pjesmaID: pjesma.id,
           kreiranDatumVrijeme: new Date().toISOString(),
         })
-        .catch(() => {});
+        .catch(() => { });
     },
     onSuccess: () => {
       setLiked(true);
@@ -180,7 +180,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (!pjesma || !korisnik?.id) return;
       await axios
         .delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`)
-        .catch(() => {});
+        .catch(() => { });
     },
     onSuccess: () => {
       setLiked(false);
@@ -202,7 +202,7 @@ const AudioPlayer: React.FC<Props> = ({
     }) => {
       await axios
         .delete(`${API_BASE}/historija/obrisi/${userId}/${pjesmaId}`)
-        .catch(() => {});
+        .catch(() => { });
       await axios.post(`${API_BASE}/historija/`, {
         korisnikID: userId,
         pjesmaID: pjesmaId,
@@ -230,14 +230,14 @@ const AudioPlayer: React.FC<Props> = ({
           ukupnoTrajanje: payload.ukupnoTrajanje,
           zadnjePustanje: new Date().toISOString(),
         })
-        .catch(() => {});
+        .catch(() => { });
 
       await axios
         .put(`${API_BASE}/pjesme/${payload.pjesmaID}`, {
           ...pjesma,
           brojReprodukcija: (pjesma?.brojReprodukcija || 0) + 1,
         })
-        .catch(() => {});
+        .catch(() => { });
     },
   });
 
@@ -300,7 +300,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (audioRef.current.src !== src) {
         audioRef.current.src = src;
         audioRef.current.load();
-        audioRef.current.volume = 0.3; 
+        audioRef.current.volume = 0.3;
         setPlaying(true);
         setProgress(0);
         setLastSrc(src);
@@ -314,7 +314,7 @@ const AudioPlayer: React.FC<Props> = ({
   useEffect(() => {
     if (!audioRef.current) return;
     if (playing) {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
     } else {
       audioRef.current.pause();
     }
@@ -325,20 +325,20 @@ const AudioPlayer: React.FC<Props> = ({
     if (audioRef.current) {
       audioRef.current.playbackRate = playbackRate;
     }
-  }, [playbackRate,pretplataValid]);
+  }, [playbackRate, pretplataValid]);
 
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current) {
-      audioRef.current.volume = Number(volume); 
+      audioRef.current.volume = Number(volume);
       audioRef.current.muted = muted;
     }
-  }, [volume, muted, minimized,pretplataValid]);
+  }, [volume, muted, minimized, pretplataValid]);
 
   useEffect(() => {
     if (pretplataValid === false) return;
     if (audioRef.current && minimized && playing) {
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
       audioRef.current.currentTime = progress;
       audioRef.current.volume = volume;
       audioRef.current.muted = muted;
@@ -353,7 +353,7 @@ const AudioPlayer: React.FC<Props> = ({
       audioRef.current.volume = volume;
       audioRef.current.muted = muted;
       if (playing) {
-        audioRef.current.play().catch(() => {});
+        audioRef.current.play().catch(() => { });
       }
     }
     setWasMinimized(minimized ?? false);
@@ -377,11 +377,11 @@ const AudioPlayer: React.FC<Props> = ({
     if (audioRef.current && src && playing && audioRef.current.src !== src && globalPlaylist.length === 0) {
       audioRef.current.src = src;
       audioRef.current.load();
-      audioRef.current.play().catch(() => {});
+      audioRef.current.play().catch(() => { });
       setProgress(0);
       setLastSrc(src);
     }
-  }, [src, playing, globalPlaylist.length,pretplataValid]);
+  }, [src, playing, globalPlaylist.length, pretplataValid]);
 
   useEffect(() => {
     if (!src) {
@@ -576,7 +576,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (repeatOne) {
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(() => {});
+          audioRef.current.play().catch(() => { });
         }
         setPlaying(true);
         setProgress(0);
@@ -598,7 +598,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (repeatOne) {
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(() => {});
+          audioRef.current.play().catch(() => { });
         }
         setPlaying(true);
         setProgress(0);
@@ -617,7 +617,7 @@ const AudioPlayer: React.FC<Props> = ({
   }, [pretplataValid, showNoSubMsg]);
 
 
-    useEffect(() => {
+  useEffect(() => {
     if (!('mediaSession' in navigator)) return;
     navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
   }, [playing]);
@@ -649,22 +649,22 @@ const AudioPlayer: React.FC<Props> = ({
     try { ms.setActionHandler('pause', () => setPlaying(false)); } catch {
       console.log('The pause action is not supported.');
     }
-    try { ms.setActionHandler('stop', () => { setPlaying(false); if (audioRef.current){ audioRef.current.pause(); audioRef.current.currentTime = 0; }}); } catch {
+    try { ms.setActionHandler('stop', () => { setPlaying(false); if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; } }); } catch {
       console.log('The stop action is not supported.');
     }
-    try { ms.setActionHandler('previoustrack', () => { if (globalPlaylist.length>0){ if (playlistIdx>0) setPlaylistIdx(i=>i-1); else if (playlistRepeat && globalPlaylist.length>0) setPlaylistIdx(globalPlaylist.length-1); }}); } catch {
+    try { ms.setActionHandler('previoustrack', () => { if (globalPlaylist.length > 0) { if (playlistIdx > 0) setPlaylistIdx(i => i - 1); else if (playlistRepeat && globalPlaylist.length > 0) setPlaylistIdx(globalPlaylist.length - 1); } }); } catch {
       console.log('The previoustrack action is not supported.');
     }
-    try { ms.setActionHandler('nexttrack', () => { if (globalPlaylist.length>0){ if (playlistIdx+1<globalPlaylist.length) setPlaylistIdx(i=>i+1); else if (playlistRepeat) setPlaylistIdx(0); }}); } catch {
+    try { ms.setActionHandler('nexttrack', () => { if (globalPlaylist.length > 0) { if (playlistIdx + 1 < globalPlaylist.length) setPlaylistIdx(i => i + 1); else if (playlistRepeat) setPlaylistIdx(0); } }); } catch {
       console.log('The nexttrack action is not supported.');
     }
-    try { ms.setActionHandler('seekbackward', () => { if (audioRef.current){ audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10); }}); } catch {
+    try { ms.setActionHandler('seekbackward', () => { if (audioRef.current) { audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10); } }); } catch {
       console.log('The seekbackward action is not supported.');
     }
-    try { ms.setActionHandler('seekforward', () => { if (audioRef.current){ const d = audioRef.current.duration || 0; audioRef.current.currentTime = Math.min(d, audioRef.current.currentTime + 10); }}); } catch {
+    try { ms.setActionHandler('seekforward', () => { if (audioRef.current) { const d = audioRef.current.duration || 0; audioRef.current.currentTime = Math.min(d, audioRef.current.currentTime + 10); } }); } catch {
       console.log('The seekforward action is not supported.');
     }
-    try { ms.setActionHandler('seekto', (details: MediaSessionActionDetails) => { if (audioRef.current && details.seekTime != null){ audioRef.current.currentTime = details.seekTime; }}); } catch {
+    try { ms.setActionHandler('seekto', (details: MediaSessionActionDetails) => { if (audioRef.current && details.seekTime != null) { audioRef.current.currentTime = details.seekTime; } }); } catch {
       console.log('The seekto action is not supported.');
     }
   }, [globalPlaylist.length, playlistIdx, playlistRepeat]);
@@ -673,7 +673,7 @@ const AudioPlayer: React.FC<Props> = ({
     if (!('mediaSession' in navigator)) return;
     if ((navigator.mediaSession as MediaSessionWithPositionState).setPositionState && isFinite(duration)) {
       try { navigator.mediaSession.setPositionState({ duration: duration || 0, playbackRate, position: progress }); } catch {
-      console.log('Failed to set position state.');
+        console.log('Failed to set position state.');
       }
     }
   }, [progress, duration, playbackRate]);
@@ -701,7 +701,7 @@ const AudioPlayer: React.FC<Props> = ({
       if (base) {
         largeImageKey = base;
       }
-    } 
+    }
     if (!largeImageKey || largeImageKey === '' || largeImageKey === undefined) {
       largeImageKey = 'icon';
     }
@@ -717,7 +717,7 @@ const AudioPlayer: React.FC<Props> = ({
         type: 2,
         buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.vercel.app/izvodjac/${currentOwner.korisnicko_ime}` }]
       });
-    } else {      
+    } else {
       let pausedProgress = songDuration;
       if (progress >= songDuration - 0.5 && songDuration > 0) {
         pausedProgress = songDuration;
@@ -735,7 +735,7 @@ const AudioPlayer: React.FC<Props> = ({
         buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.vercel.app/izvodjac/${currentOwner.korisnicko_ime}` }]
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
 
 
@@ -795,7 +795,7 @@ const AudioPlayer: React.FC<Props> = ({
         </div>
       );
     }
-    
+
 
     return null;
   }
@@ -840,7 +840,7 @@ const AudioPlayer: React.FC<Props> = ({
     );
   }
 
-   if (isMobile && visible && !minimized) {
+  if (isMobile && visible && !minimized) {
     return (
       <div className={styles.audioPlayerBar}>
         <button
@@ -871,13 +871,13 @@ const AudioPlayer: React.FC<Props> = ({
             />
           </svg>
         </button>
-        
+
         <img
           src={currentSong?.putanjaGif || currentSong?.putanjaSlika || "/logo.gif"}
           alt="Decibel logo"
           className={styles.audioLogo}
         />
-        
+
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
             <Link to={`/izvodjac/${currentOwner?.id}`}>
@@ -895,7 +895,7 @@ const AudioPlayer: React.FC<Props> = ({
             {formatTime(progress)} / {formatTime(duration)}
           </div>
         </div>
-        
+
         <div className={styles.audioControls}>
           <button
             className={styles.controlBtn}
@@ -913,7 +913,7 @@ const AudioPlayer: React.FC<Props> = ({
               </svg>
             )}
           </button>
-          
+
           <input
             type="range"
             min={0}
@@ -924,7 +924,7 @@ const AudioPlayer: React.FC<Props> = ({
             className={styles.progressBar}
           />
         </div>
-        
+
         <div className={styles.audioExtras}>
           <div className={styles.mobileControlsRow}>
             <div className={styles.mobileControlsLeft}>
@@ -957,7 +957,7 @@ const AudioPlayer: React.FC<Props> = ({
                   </svg>
                 )}
               </button>
-              
+
               <input
                 type="range"
                 min={0}
@@ -968,7 +968,7 @@ const AudioPlayer: React.FC<Props> = ({
                 className={styles.volumeBar}
               />
             </div>
-            
+
             <div className={styles.mobileControlsRight}>
               <button
                 type="button"
@@ -990,7 +990,7 @@ const AudioPlayer: React.FC<Props> = ({
                   </g>
                 </svg>
               </button>
-              
+
               <button
                 type="button"
                 className={styles.muteBtn}
@@ -1009,7 +1009,7 @@ const AudioPlayer: React.FC<Props> = ({
                   </g>
                 </svg>
               </button>
-              
+
               <button
                 type="button"
                 className={styles.muteBtn}
@@ -1021,7 +1021,7 @@ const AudioPlayer: React.FC<Props> = ({
                   <rect x="8" y="18" width="28" height="8" />
                 </svg>
               </button>
-              
+
               <label className={styles.labelSmall}>
                 <select
                   value={playbackRate}
@@ -1040,7 +1040,7 @@ const AudioPlayer: React.FC<Props> = ({
             </div>
           </div>
         </div>
-        
+
         {showPlaylistModal && (
           <div
             style={{
@@ -1112,7 +1112,7 @@ const AudioPlayer: React.FC<Props> = ({
             </div>
           </div>
         )}
-        
+
         <audio
           ref={audioRef}
           src={currentSong?.putanjaAudio || ""}
@@ -1172,9 +1172,9 @@ const AudioPlayer: React.FC<Props> = ({
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
             <Link to={`/izvodjac/${currentOwner?.id}`}>
-            <span className={styles.audioArtist}>
-              {currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
-            </span>
+              <span className={styles.audioArtist}>
+                {currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
+              </span>
             </Link>
             <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
               <span className={styles.audioTitle}>
@@ -1182,7 +1182,7 @@ const AudioPlayer: React.FC<Props> = ({
               </span>
             </Link>
 
-             {pjesma && korisnik?.id && (
+            {pjesma && korisnik?.id && (
               <button
                 style={{
                   marginLeft: -10,

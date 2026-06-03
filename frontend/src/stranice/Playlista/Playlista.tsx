@@ -19,13 +19,17 @@ const Playlista: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
-      const current = theme || localStorage.getItem("decibel_tema") || "dark";
-      if (current === "light") {
-        const mod = await import("./PlaylistaWhite.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
-      } else {
-        const mod = await import("./Playlista.module.css");
-        setStyles(mod.default || (mod as unknown as Styles));
+      try {
+        const current = theme || localStorage.getItem("decibel_tema") || "dark";
+        if (current === "light") {
+          const mod = await import("./PlaylistaWhite.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        } else {
+          const mod = await import("./Playlista.module.css");
+          setStyles(mod.default || (mod as unknown as Styles));
+        }
+      } catch (e) {
+        console.error("Failed to load Playlista theme styles:", e);
       }
     };
     loadThemeStyles();
@@ -280,7 +284,7 @@ const Playlista: React.FC = () => {
             <div className={styles.playlistaInfo}>
               <h2 className={styles.playlistaNaziv}>{playlista.naziv}</h2>
               <div className={styles.playlistaOpis}>{playlista.opis}</div>
-              
+
             </div>
           </div>
           <div className={styles.pjesmeSection}>
@@ -324,7 +328,7 @@ const Playlista: React.FC = () => {
                         </button>
                         {isOwner && (
                           <button className={styles.removeSongBtn} onClick={() => handleRemoveSong(p.id)} title={t("remove") || "Izbaci iz playliste"}>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
                           </button>
                         )}
                         {showPlaylistModal === p.id && (

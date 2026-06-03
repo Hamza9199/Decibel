@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState,memo } from "react";
+import React, { useMemo, useEffect, useState, memo } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import "../../assets/logo.css";

@@ -3,10 +3,9 @@ import styles from "./Loading.module.css";
 
 const Loading: React.FC = () => {
   useEffect(() => {
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+   
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = "";
     };
   }, []);
 

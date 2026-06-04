@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback, memo } from "react";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import axios from "axios";
-import { Pjesma, Album, Playlista, Korisnik } from "../../types";
+import { Pjesma, Album, Playlista, Korisnik, IzvodjacPjesmaVeza } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 type Styles = Record<string, string>;
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+
 
 const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +27,9 @@ const Home: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   const [cssReady, setCssReady] = useState(false);
   const [postDataDelayDone, setPostDataDelayDone] = useState(false);
+  const [pjesmaIzvodjaci, setPjesmaIzvodjaci] = useState<
+    Record<number, Korisnik[]>
+  >({});
   const repeatAll = false;
 
   useEffect(() => {
@@ -106,6 +110,43 @@ const Home: React.FC = () => {
   const albumi = useMemo(() => sample(albumiQ.data || [], 20), [albumiQ.data]);
   const playliste = useMemo(() => sample(playlisteQ.data || [], 20), [playlisteQ.data]);
   const korisnici = useMemo(() => sample(korisniciQ.data || [], 20), [korisniciQ.data]);
+
+
+  useEffect(() => {
+  const loadArtists = async () => {
+    try {
+      const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      const veze: IzvodjacPjesmaVeza[] = vezeRes.data || [];
+
+      const result: Record<number, Korisnik[]> = {};
+
+      for (const pjesma of pjesme) {
+        const songVeze = veze.filter(
+          (v) => v.pjesmaID === pjesma.id
+        );
+
+        const artists = await Promise.all(
+          songVeze.map((v) =>
+            axios
+              .get(`${API_BASE}/korisnici/${v.izvodjacID}`)
+              .then((r) => r.data)
+              .catch(() => null)
+          )
+        );
+
+        result[pjesma.id] = artists.filter(Boolean);
+      }
+
+      setPjesmaIzvodjaci(result);
+    } catch {
+      setPjesmaIzvodjaci({});
+    }
+  };
+
+  if (pjesme.length) {
+    loadArtists();
+  }
+}, [pjesme]);
 
   useEffect(() => {
     if (activeSong) {
@@ -229,9 +270,18 @@ const Home: React.FC = () => {
                   <div className="link" onClick={() => handleNavigate(`/pjesma/${p.id}`)} style={{ cursor: "pointer" }}>
                     <div className={styles.cardTitle}>{p.naziv}</div>
                   </div>
-                  <div className="link" onClick={() => handleNavigate(`/izvodjac/${p.korisnik?.id}`)} style={{ cursor: "pointer" }}>
-                    <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
-                  </div>
+                      <div className={styles.cardDesc}>
+                      {(pjesmaIzvodjaci[p.id] || []).map((izv, idx) => (
+                        <span
+                          key={izv.id}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => handleNavigate(`/izvodjac/${izv.id}`)}
+                        >
+                          {izv.korisnicko_ime}
+                          {idx < (pjesmaIzvodjaci[p.id] || []).length - 1 ? ", " : ""}
+                        </span>
+                      ))}
+                    </div>
                 </div>
               ))}
             </div>

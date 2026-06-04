@@ -66,6 +66,7 @@ const AudioPlayer: React.FC<Props> = ({
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
   const location = useLocation();
   const isMobile = useMemo(() => window.innerWidth <= 480, []);
+  const [izvodjaci, setIzvodjaci] = useState<Korisnik[]>([]);
 
 
   const slusacID = useMemo(() => {
@@ -143,6 +144,27 @@ const AudioPlayer: React.FC<Props> = ({
         .catch(() => setCurrentOwner(undefined));
     } else {
       setCurrentOwner(undefined);
+    }
+    if (currentSong?.id) {
+      axios.get(`${API_BASE}/izvodjac_pjesma/`)
+        .then(async (res) => {
+          const veze = res.data.filter(
+            (v: { pjesmaID: number; izvodjacID: string }) =>
+              v.pjesmaID === currentSong.id
+          );
+
+          const korisnici = await Promise.all(
+            veze.map((v: { izvodjacID: string }) =>
+              axios
+                .get(`${API_BASE}/korisnici/${v.izvodjacID}`)
+                .then(r => r.data)
+                .catch(() => null)
+            )
+          );
+
+          setIzvodjaci(korisnici.filter(Boolean));
+        })
+        .catch(() => setIzvodjaci([]));
     }
     if (slusacID && currentSong.id) {
       axios
@@ -445,8 +467,10 @@ const AudioPlayer: React.FC<Props> = ({
   if (!pjesma || !slusacID) return;
 
   if (liked) {
+    setLiked(false);
     unlikeMutation.mutate();
   } else {
+    setLiked(true);
     likeMutation.mutate();
   }
 }, [pjesma, slusacID, liked, unlikeMutation, likeMutation]);
@@ -532,10 +556,10 @@ const AudioPlayer: React.FC<Props> = ({
     }
   }, [src, id, title, putanjaGif, putanjaSlika, korisnikID, globalPlaylist.length]);
 
-  // Remove axios owner fetch; rely on query for owner and clear when no korisnikID
   useEffect(() => {
     if (!currentSong?.korisnikID) {
       setCurrentOwner(undefined);
+      setIzvodjaci([]);
     }
   }, [currentSong?.korisnikID]);
 
@@ -580,18 +604,65 @@ const AudioPlayer: React.FC<Props> = ({
     return () => window.removeEventListener("globalAudioPlay", handler);
   }, []);
 
+  useEffect(() => {
+  const handler = (e: Event) => {
+    const detail = (e as CustomEvent).detail;
+
+    if (!detail?.playlist?.length) return;
+
+    setGlobalPlaylist(detail.playlist);
+    setPlaylistIdx(detail.idx ?? 0);
+    setPlaylistRepeat(!!detail.repeatAll);
+
+    const firstSong = detail.playlist[detail.idx ?? 0];
+
+    if (firstSong) {
+      setCurrentSong(firstSong);
+
+      if (audioRef.current && firstSong.putanjaAudio) {
+        audioRef.current.src = firstSong.putanjaAudio;
+        audioRef.current.load();
+        setPlaying(true);
+        setProgress(0);
+      }
+    }
+  };
+
+  window.addEventListener("globalAudioPlaylist", handler);
+
+  return () =>
+    window.removeEventListener("globalAudioPlaylist", handler);
+  }, []);
+
   const handleEnded = useCallback(() => {
+    console.log(
+      "ENDED",
+      currentSong?.naziv,
+      "idx:",
+      playlistIdx,
+      "repeatOne:",
+      repeatOne
+    );
+
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
       if (repeatOne) {
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(() => { });
+          audioRef.current.play().catch(() => {});
         }
-        setPlaying(true);
-        setProgress(0);
+
         return;
       }
+
       const nextIdx = playlistIdx + 1;
+
+      console.log(
+        "NEXT IDX:",
+        nextIdx,
+        "SONG:",
+        globalPlaylist[nextIdx]?.naziv
+      );
+
       if (nextIdx < globalPlaylist.length) {
         setPlaylistIdx(nextIdx);
       } else if (playlistRepeat) {
@@ -607,16 +678,29 @@ const AudioPlayer: React.FC<Props> = ({
       if (repeatOne) {
         if (audioRef.current) {
           audioRef.current.currentTime = 0;
-          audioRef.current.play().catch(() => { });
+          audioRef.current.play().catch(() => {});
         }
-        setPlaying(true);
-        setProgress(0);
         return;
       }
+
       setPlaying(false);
       setProgress(0);
     }
-  }, [globalPlaylist.length, playlistIdx, repeatOne, playlistRepeat]);
+  }, [
+    currentSong?.naziv,
+    globalPlaylist,
+    playlistIdx,
+    repeatOne,
+    playlistRepeat,
+  ]);
+
+  useEffect(() => {
+    console.log(
+      "PLAYLIST IDX CHANGED:",
+      playlistIdx,
+      globalPlaylist[playlistIdx]?.naziv
+    );
+  }, [playlistIdx, globalPlaylist]);
 
   useEffect(() => {
     if (pretplataValid === false && showNoSubMsg) {
@@ -636,7 +720,7 @@ const AudioPlayer: React.FC<Props> = ({
     if (currentSong) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: currentSong.naziv || '',
-        artist: currentOwner?.korisnicko_ime || '',
+        artist: artistNames || currentOwner?.korisnicko_ime || '',
         album: '',
         artwork: [
           {
@@ -718,13 +802,13 @@ const AudioPlayer: React.FC<Props> = ({
     if (playing) {
       ipc.invoke('update-discord-presence', {
         details: `${currentSong.naziv}`,
-        state: `${currentOwner.korisnicko_ime}`,
+        state: artistNames || currentOwner?.korisnicko_ime || "",
         largeImageKey: largeImageKey,
         largeImageText: "",
         startTimestamp,
         endTimestamp,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.vercel.app/izvodjac/${currentOwner.korisnicko_ime}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.korisnicko_ime}` }]
       });
     } else {
       let pausedProgress = songDuration;
@@ -735,18 +819,23 @@ const AudioPlayer: React.FC<Props> = ({
       }
       ipc.invoke('update-discord-presence', {
         details: `${currentSong.naziv}`,
-        state: `${currentOwner.korisnicko_ime}`,
+        state: artistNames || currentOwner?.korisnicko_ime || "",
         largeImageKey: largeImageKey,
         largeImageText: "",
         startTimestamp: now - pausedProgress,
         endTimestamp: songDuration ? now - pausedProgress + songDuration : undefined,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.vercel.app/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.vercel.app/izvodjac/${currentOwner.korisnicko_ime}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.korisnicko_ime}` }]
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
 
+
+  const artistNames = useMemo(
+  () => izvodjaci.map(i => i.korisnicko_ime).join(", "),
+  [izvodjaci]
+);
 
   if (pretplataValid === false) {
     if (showNoSubMsg) {
@@ -891,7 +980,7 @@ const AudioPlayer: React.FC<Props> = ({
           <div className={styles.audioDetails}>
             <Link to={`/izvodjac/${currentOwner?.id}`}>
               <span className={styles.audioArtist}>
-                {currentOwner?.korisnicko_ime || "Nepoznati korisnik"}
+                  {artistNames || currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
               </span>
             </Link>
             <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
@@ -1182,7 +1271,7 @@ const AudioPlayer: React.FC<Props> = ({
           <div className={styles.audioDetails}>
             <Link to={`/izvodjac/${currentOwner?.id}`}>
               <span className={styles.audioArtist}>
-                {currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
+                  {artistNames || currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
               </span>
             </Link>
             <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>

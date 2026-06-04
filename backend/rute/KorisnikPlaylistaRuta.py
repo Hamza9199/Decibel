@@ -68,12 +68,14 @@ async def get_playliste_korisnika(korisnikID: str, session: AsyncSession = Depen
     return enriched
 
 
-@router.get("/{korisnikID}/{playlistaID}", response_model=KorisnikPlaylista)
+@router.get("/{korisnikID}/{playlistaID}")
 async def get_veza(korisnikID: str, playlistaID: int, session: AsyncSession = Depends(get_session)):
     veza = await get_korisnik_playlista(session, korisnikID, playlistaID)
     if not veza:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return veza
+    return {
+        "liked": veza is not None
+    }
 
 @router.post("/", response_model=KorisnikPlaylista)
 async def nova_korisnik_playlista(data: KorisnikPlaylistaCreate, session: AsyncSession = Depends(get_session)):

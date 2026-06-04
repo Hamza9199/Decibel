@@ -21,6 +21,7 @@ const Album: React.FC = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
   const [likeCount, setLikeCount] = useState<number>(0);
+  const [liked, setLiked] = useState(false);
   const [styles, setStyles] = useState<Styles>({});
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
@@ -95,17 +96,21 @@ const Album: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  const likedAlbumQ = useQuery<boolean>({
-    queryKey: ["likedAlbum", korisnikID, albumId],
-    enabled: Boolean(korisnikID && albumId),
-    queryFn: async () => {
-      const r = await axios.get(`${API_BASE}/korisnik_album/`);
-      const veze = (r.data || []) as { korisnikID: string; albumID: number }[];
-      return !!veze.find((v) => v.korisnikID === korisnikID && String(v.albumID) === String(albumId));
-    },
-    staleTime: 300_000,
-    refetchOnWindowFocus: false,
-  });
+  useEffect(() => {
+    if (!korisnikID || !albumId) {
+      setLiked(false);
+      return;
+    }
+
+    axios
+      .get(
+        `${API_BASE}/korisnik_album/${korisnikID}/${albumId}/liked`
+      )
+      .then((res) => setLiked(res.data.liked))
+      .catch(() => setLiked(false));
+  }, [korisnikID, albumId]);
+
+ 
 
   const likedSongsMapQ = useQuery<Record<number, boolean>>({
     queryKey: ["likedSongsMap", korisnikID],
@@ -122,16 +127,18 @@ const Album: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
-  const liked = likedAlbumQ.data || false;
   const likeMap = likedSongsMapQ.data || {};
 
   const albumIdNum = useMemo(() => (albumId ? Number(albumId) : undefined), [albumId]);
 
   const likeAlbumMut = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (wasLiked: boolean) => {
       if (!albumIdNum || !korisnikID) return;
-      if (liked) {
-        await axios.delete(`${API_BASE}/korisnik_album/${korisnikID}/${albumIdNum}`);
+
+      if (wasLiked) {
+        await axios.delete(
+          `${API_BASE}/korisnik_album/${korisnikID}/${albumIdNum}`
+        );
       } else {
         await axios.post(`${API_BASE}/korisnik_album/`, {
           korisnikID,
@@ -139,15 +146,6 @@ const Album: React.FC = () => {
           kreiranDatumVrijeme: new Date().toISOString(),
         });
       }
-    },
-    onMutate: async () => {
-      setLikeCount((prev) => prev + (liked ? -1 : 1));
-    },
-    onError: () => {
-      setLikeCount((prev) => prev + (liked ? 1 : -1));
-    },
-    onSettled: () => {
-      qc.invalidateQueries({ queryKey: ["likedAlbum", korisnikID, albumId] });
     },
   });
 
@@ -202,8 +200,16 @@ const Album: React.FC = () => {
   }, [pjesmeQ.data]);
 
   const handleLike = useCallback(() => {
-    likeAlbumMut.mutate();
-  }, [likeAlbumMut]);
+    if (liked) {
+      setLiked(false);
+      setLikeCount((c) => Math.max(0, c - 1));
+      likeAlbumMut.mutate(true);
+    } else {
+      setLiked(true);
+      setLikeCount((c) => c + 1);
+      likeAlbumMut.mutate(false);
+    }
+  }, [liked, likeAlbumMut]);
 
   const handleAddToPlaylist = useCallback((p: Pjesma) => {
     setSelectedSong(p);
@@ -263,7 +269,7 @@ const Album: React.FC = () => {
             </div>
             <div className={styles.albumInfo}>
               <h2 className={styles.albumNaziv}>{album.naziv}</h2>
-              <div className={styles.albumOpis}>{album.opis}</div>
+              <div className={styles.albumOpis}>{album.korisnik?.korisnicko_ime}</div>
               
             </div>
           </div>

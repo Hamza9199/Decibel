@@ -56,6 +56,11 @@ const Pjesma: React.FC = () => {
   const [editKomentarTekst, setEditKomentarTekst] = useState("");
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [likeCount, setLikeCount] = useState<number>(0);
+  const [liked, setLiked] = useState(false);
+  const [topPjesmeIzvodjaci, setTopPjesmeIzvodjaci] = useState<
+    Record<number, Korisnik[]>
+  >({});
+  
 
   const mojID = useMemo(() => {
     try {
@@ -76,16 +81,19 @@ const Pjesma: React.FC = () => {
     setLikeCount(pjesmaQ.data?.brojLajkova || 0);
   }, [pjesmaQ.data?.brojLajkova]);
 
-  const likedQ = useQuery<boolean>({
-    queryKey: ["likedSong", mojID, pjesmaId],
-    enabled: Boolean(mojID && pjesmaId),
-    queryFn: async () => {
-      const r = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const veze = (r.data || []) as { korisnikID: string; pjesmaID: number }[];
-      return !!veze.find((v) => v.korisnikID === mojID && String(v.pjesmaID) === String(pjesmaId));
-    },
-    initialData: false,
-  });
+
+  useEffect(() => {
+  if (!mojID || !pjesmaId) {
+    setLiked(false);
+    return;
+  }
+
+  axios
+    .get(`${API_BASE}/korisnik_pjesma/${mojID}/${pjesmaId}`)
+    .then((res) => setLiked(res.data.liked))
+    .catch(() => setLiked(false));
+}, [mojID, pjesmaId]);
+  
 
   const izdavacQ = useQuery<Korisnik | null>({
     queryKey: ["izdavac", pjesmaQ.data?.korisnikID],
@@ -122,6 +130,47 @@ const Pjesma: React.FC = () => {
     initialData: [],
   });
 
+  const topPjesme = topPjesmeQ.data || [];
+
+
+  useEffect(() => {
+    const loadArtists = async () => {
+      if (!topPjesme.length) return;
+
+      try {
+        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+        const veze = vezeRes.data || [];
+
+        const result: Record<number, Korisnik[]> = {};
+
+        for (const song of topPjesme) {
+          const songVeze = veze.filter(
+            (v: IzvodjacPjesmaVeza) => v.pjesmaID === song.id
+          );
+
+          const artists = await Promise.all(
+            songVeze.map((v: IzvodjacPjesmaVeza) =>
+              axios
+                .get(`${API_BASE}/korisnici/${v.izvodjacID}`)
+                .then((r) => r.data)
+                .catch(() => null)
+            )
+          );
+
+          result[song.id] = artists.filter(Boolean);
+        }
+
+        setTopPjesmeIzvodjaci(result);
+      } catch {
+        setTopPjesmeIzvodjaci({});
+      }
+    };
+
+    loadArtists();
+  }, [topPjesme]);
+
+  
+
   const komentariQ = useQuery<KomentariQuery>({
     queryKey: ["komentari", pjesmaId],
     enabled: Boolean(pjesmaId),
@@ -139,25 +188,26 @@ const Pjesma: React.FC = () => {
     initialData: { list: [], users: {} },
   });
 
-  const likeMut = useMutation({
-    mutationFn: async () => {
-      if (!mojID || !pjesmaQ.data?.id) return;
-      if (likedQ.data) {
-        await axios.delete(`${API_BASE}/korisnik_pjesma/${mojID}/${pjesmaQ.data.id}`);
-      } else {
-        await axios.post(`${API_BASE}/korisnik_pjesma/`, { korisnikID: mojID, pjesmaID: pjesmaQ.data.id, kreiranDatumVrijeme: new Date().toISOString() });
-      }
-    },
-    onMutate: async () => {
-      setLikeCount((prev) => prev + (likedQ.data ? -1 : 1));
-    },
-    onError: () => {
-      setLikeCount((prev) => prev + (likedQ.data ? 1 : -1));
-    },
-    onSuccess: () => {
-      qc.setQueryData<boolean>(["likedSong", mojID, pjesmaId], (old) => !old);
-    },
-  });
+  
+const likeMutation = useMutation({
+  mutationFn: async () => {
+    await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+      korisnikID: mojID,
+      pjesmaID: pjesma.id,
+      kreiranDatumVrijeme: new Date().toISOString(),
+    });
+  },
+});
+
+const unlikeMutation = useMutation({
+  mutationFn: async () => {
+    await axios.delete(
+      `${API_BASE}/korisnik_pjesma/${mojID}/${pjesma.id}`
+    );
+  },
+});
+
+
 
   const addCommentMut = useMutation({
     mutationFn: async (text: string) => {
@@ -184,7 +234,18 @@ const Pjesma: React.FC = () => {
   });
 
   const handlePlay = useCallback((p: PjesmaType) => {
-    window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: { src: p.putanjaAudio, title: p.naziv, putanjaGif: p.putanjaGif, putanjaSlika: p.putanjaSlika, korisnikID: p.korisnikID } }));
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlay", {
+        detail: {
+          id: p.id,
+          src: p.putanjaAudio,
+          title: p.naziv,
+          putanjaGif: p.putanjaGif,
+          putanjaSlika: p.putanjaSlika,
+          korisnikID: p.korisnikID,
+        },
+      })
+    );
   }, []);
 
   const handleDodajKomentar = useCallback((e: React.FormEvent) => {
@@ -231,12 +292,27 @@ const Pjesma: React.FC = () => {
       </div>
     );
 
+const handleLajk = () => {
+  if (!pjesma || !mojID) return;
+
+  if (liked) {
+    setLiked(false);
+    setLikeCount((c) => Math.max(0, c - 1));
+    unlikeMutation.mutate();
+  } else {
+    setLiked(true);
+    setLikeCount((c) => c + 1);
+    likeMutation.mutate();
+  }
+};
+
   const pjesma = pjesmaQ.data;
   const izvodjaci = izvodjaciQ.data || [];
-  const topPjesme = topPjesmeQ.data || [];
-  const korisniciKomentara = komentariQ.data.users || {};
-  const liked = likedQ.data || false;
 
+  
+
+  const korisniciKomentara = komentariQ.data.users || {};
+  
   return (
     <>
       <Header />
@@ -249,7 +325,7 @@ const Pjesma: React.FC = () => {
               <div className={styles.actionBtnsRow}>
                 <button
                   className={`${styles.playBtn} ${styles.likeBtn} ${liked ? styles.liked : ""}`}
-                  onClick={() => likeMut.mutate()}
+                  onClick={handleLajk}
                   title={liked ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}
                   style={{ right: 18, left: "auto", background: liked ? "#f6b6d8ff" : "#b91d95" }}
                 >
@@ -277,7 +353,8 @@ const Pjesma: React.FC = () => {
               <div className={styles.izvodjaciWrap}>
                 <span className={styles.izvodjaciLabel}>{t("publisher") || "Izdavač"}:</span>
                 {izdavacQ.data ? (
-                  <span className={styles.izvodjacIme}>
+                  <span className={styles.izvodjacIme} style={{ cursor: "pointer" }}
+                    onClick={() => navigate(`/izvodjac/${izdavacQ.data?.id}`)}>
                     <img
                       src={izdavacQ.data.putanjaProfilneSlike || "/logo.gif"}
                       alt={izdavacQ.data.korisnicko_ime}
@@ -295,7 +372,8 @@ const Pjesma: React.FC = () => {
                   <span className={styles.izvodjacIme}>{t("unknown") || "Nepoznato"}</span>
                 ) : (
                   izvodjaci.map((izv) => (
-                    <span key={izv.id} className={styles.izvodjacIme}>
+                    <span key={izv.id} className={styles.izvodjacIme} style={{ cursor: "pointer" }}
+                      onClick={() => navigate(`/izvodjac/${izv.id}`)}>
                       <img src={izv.putanjaProfilneSlike || "/logo.gif"} alt={izv.korisnicko_ime} className={styles.izvodjacSlika} />
                       {izv.korisnicko_ime}
                     </span>
@@ -320,8 +398,20 @@ const Pjesma: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  <div className={styles.topPjesmaNaziv}>{p.naziv}</div>
-                  <div className={styles.topPjesmaIzvodjac}>{p.korisnik?.korisnicko_ime || ""}</div>
+                  <div className={styles.topPjesmaNaziv} style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/pjesma/${p.id}`)}>{p.naziv}</div>
+                  <div className={styles.topPjesmaIzvodjac}>
+                    {(topPjesmeIzvodjaci[p.id] || []).map((izv, idx) => (
+                      <span
+                        key={izv.id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => navigate(`/izvodjac/${izv.id}`)}
+                      >
+                        {izv.korisnicko_ime}
+                        {idx < (topPjesmeIzvodjaci[p.id] || []).length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
@@ -394,8 +484,17 @@ const Pjesma: React.FC = () => {
                           border: k.korisnikID === mojID ? "2px solid #b91d95" : "none",
                         }}
                       />
-                      <span style={{ color: "#ffe6ec", fontWeight: 600 }}>
-                        {korisniciKomentara[k.korisnikID]?.korisnicko_ime || t("user") || "Korisnik"}
+                      <span
+                        style={{
+                          color: "#ffe6ec",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => navigate(`/izvodjac/${k.korisnikID}`)}
+                      >
+                        {korisniciKomentara[k.korisnikID]?.korisnicko_ime ||
+                          t("user") ||
+                          "Korisnik"}
                         {k.korisnikID === mojID && " (Vi)"}
                       </span>
                       <span style={{ color: "#b3b3b3", fontSize: "0.98rem", marginLeft: 12 }}>

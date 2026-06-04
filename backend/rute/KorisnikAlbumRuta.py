@@ -68,12 +68,14 @@ async def get_korisnik_albumi(korisnikID: str, session: AsyncSession = Depends(g
         enriched.append(KorisnikAlbum(**v_dict))
     return enriched
 
-@router.get("/{korisnikID}/{albumID}", response_model=KorisnikAlbum)
+@router.get("/{korisnikID}/{albumID}")
 async def get_veza(korisnikID: str, albumID: int, session: AsyncSession = Depends(get_session)):
     veza = await get_korisnik_album(session, korisnikID, albumID)
     if not veza:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return veza
+    return {
+        "liked": veza is not None
+    }
 
 @router.post("/", response_model=KorisnikAlbum)
 async def nova_korisnik_album(data: KorisnikAlbumCreate, session: AsyncSession = Depends(get_session)):

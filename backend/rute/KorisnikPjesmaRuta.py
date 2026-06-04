@@ -67,12 +67,14 @@ async def get_korisnik_pjesme(korisnikID: str, session: AsyncSession = Depends(g
         enriched.append(KorisnikPjesma(**v_dict))
     return enriched
 
-@router.get("/{korisnikID}/{pjesmaID}", response_model=KorisnikPjesma)
+@router.get("/{korisnikID}/{pjesmaID}")
 async def get_veza(korisnikID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
     veza = await get_korisnik_pjesma(session, korisnikID, pjesmaID)
     if not veza:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return veza
+    return {
+        "liked": veza is not None
+    }
 
 @router.post("/", response_model=KorisnikPjesma)
 async def nova_korisnik_pjesma(data: KorisnikPjesmaCreate, session: AsyncSession = Depends(get_session)):

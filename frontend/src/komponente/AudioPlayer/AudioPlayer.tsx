@@ -144,51 +144,59 @@ const AudioPlayer: React.FC<Props> = ({
     } else {
       setCurrentOwner(undefined);
     }
-    if (korisnik?.id) {
-      axios.get(`${API_BASE}/korisnik_pjesma/`)
-        .then(r => {
-          const veze = r.data as { korisnikID: string; pjesmaID: number }[];
-          setLiked(!!veze.find(v => v.korisnikID === korisnik.id && v.pjesmaID === currentSong.id));
+    if (slusacID && currentSong.id) {
+      axios
+        .get(`${API_BASE}/korisnik_pjesma/${slusacID}/${currentSong.id}`)
+        .then((res) => {
+          console.log("LIKED RESPONSE:", res.status, res.data);
+          setLiked(res.data.liked);
         })
-        .catch(() => setLiked(false));
+        .catch((err) => {
+          console.log(
+            "NOT LIKED:",
+            err.response?.status,
+            err.response?.data
+          );
+          setLiked(false);
+        });
     } else {
       setLiked(false);
     }
-  }, [currentSong?.id, currentSong?.korisnikID, korisnik?.id]);
+  }, [currentSong?.id, currentSong?.korisnikID, slusacID]);
 
-  const likeMutation = useMutation({
-    mutationFn: async () => {
-      if (!pjesma || !korisnik?.id) return;
-      await axios
-        .post(`${API_BASE}/korisnik_pjesma/`, {
-          korisnikID: korisnik.id,
-          pjesmaID: pjesma.id,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        })
-        .catch(() => { });
-    },
-    onSuccess: () => {
-      setLiked(true);
-      queryClient.invalidateQueries({
-        queryKey: ["korisnik_pjesma_liked", korisnik?.id, pjesma?.id],
+ const likeMutation = useMutation({
+  mutationFn: async () => {
+    if (!pjesma || !slusacID) return;
+
+    await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+      korisnikID: slusacID,
+      pjesmaID: pjesma.id,
+      kreiranDatumVrijeme: new Date().toISOString(),
+    });
+  },
+  onSuccess: () => {
+    setLiked(true);
+    queryClient.invalidateQueries({
+        queryKey: ["korisnik_pjesma_liked", slusacID, pjesma?.id],
       });
-    },
-  });
+  },
+});
 
   const unlikeMutation = useMutation({
-    mutationFn: async () => {
-      if (!pjesma || !korisnik?.id) return;
-      await axios
-        .delete(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${pjesma.id}`)
-        .catch(() => { });
-    },
-    onSuccess: () => {
-      setLiked(false);
-      queryClient.invalidateQueries({
-        queryKey: ["korisnik_pjesma_liked", korisnik?.id, pjesma?.id],
+  mutationFn: async () => {
+    if (!pjesma || !slusacID) return;
+
+    await axios.delete(
+      `${API_BASE}/korisnik_pjesma/${slusacID}/${pjesma.id}`
+    );
+  },
+  onSuccess: () => {
+    setLiked(false);
+    queryClient.invalidateQueries({
+        queryKey: ["korisnik_pjesma_liked", slusacID, pjesma?.id],
       });
-    },
-  });
+  },
+});
 
   const historijaMutation = useMutation({
     mutationFn: async ({
@@ -434,13 +442,14 @@ const AudioPlayer: React.FC<Props> = ({
   }, [globalPlaylist.length, playlistIdx, src]);
 
   const handleLike = useCallback(() => {
-    if (!pjesma || !korisnik?.id) return;
-    if (liked) {
-      unlikeMutation.mutate();
-    } else {
-      likeMutation.mutate();
-    }
-  }, [pjesma, korisnik?.id, liked, unlikeMutation, likeMutation]);
+  if (!pjesma || !slusacID) return;
+
+  if (liked) {
+    unlikeMutation.mutate();
+  } else {
+    likeMutation.mutate();
+  }
+}, [pjesma, slusacID, liked, unlikeMutation, likeMutation]);
 
   const handleAddToPlaylist = useCallback((playlistaID: number) => {
     if (!src || !korisnikID || !pjesma?.id) return;
@@ -1182,7 +1191,7 @@ const AudioPlayer: React.FC<Props> = ({
               </span>
             </Link>
 
-            {pjesma && korisnik?.id && (
+            {pjesma && slusacID && (
               <button
                 style={{
                   marginLeft: -10,

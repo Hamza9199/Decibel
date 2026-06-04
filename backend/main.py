@@ -47,7 +47,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*", "http://localhost:5173", "https://deccibel.vercel.app"], 
+    allow_origins=["*", "http://localhost:5173", "https://deccibel.vercel.app", "https://decibel.click"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

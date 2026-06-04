@@ -155,12 +155,28 @@
 }
 
 .cardTitle {
-  color: #fff;
+  color: #f6f0f3;
   font-size: 1.05rem;
   font-weight: 600;
   margin-bottom: 2px;
   text-align: center;
   text-decoration: none;
+}
+
+.artistLink {
+  color: #f2eff1;
+  font-size: 0.9rem;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.cardTitle:hover{
+  color: #e754a2;
+}
+
+.artistLink:hover{
+    color: #e754a2;
+
 }
 
 .noItems {
@@ -404,7 +420,8 @@
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   }
   
   .playBtn {

@@ -48,6 +48,10 @@ const SvePjesme: React.FC = () => {
     }
   }, []);
 
+  const [songArtists, setSongArtists] = useState<
+    Record<number, { id: string; korisnicko_ime: string }[]>
+  >({});
+
   const songsQ = useQuery<Pjesma[]>({
     queryKey: ["mojePjesme", korisnikID],
     enabled: Boolean(korisnikID),
@@ -74,6 +78,7 @@ const SvePjesme: React.FC = () => {
       window.dispatchEvent(
         new CustomEvent("globalAudioPlay", {
           detail: {
+            id: p.id,
             src: p.putanjaAudio,
             title: p.naziv,
             putanjaGif: p.putanjaGif,
@@ -95,6 +100,30 @@ const SvePjesme: React.FC = () => {
   );
 
   const pjesme = useMemo(() => songsQ.data || [], [songsQ.data]);
+
+  useEffect(() => {
+    const loadArtists = async () => {
+      if (!pjesme.length) return;
+      try {
+        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+        const veze = vezeRes.data || [];
+        const result: Record<number, { id: string; korisnicko_ime: string }[]> = {};
+        for (const song of pjesme) {
+          const songVeze = veze.filter((v: { pjesmaID: number }) => v.pjesmaID === song.id);
+          const artists = await Promise.all(
+            songVeze.map((v: { izvodjacID: string }) =>
+              axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then((r) => r.data).catch(() => null)
+            )
+          );
+          result[song.id] = artists.filter(Boolean) as { id: string; korisnicko_ime: string }[];
+        }
+        setSongArtists(result);
+      } catch {
+        setSongArtists({});
+      }
+    };
+    loadArtists();
+  }, [pjesme]);
 
   const filtriranePjesme = useMemo(
     () => pjesme.filter((p) => p.naziv.toLowerCase().includes(search.toLowerCase())),
@@ -153,9 +182,19 @@ const SvePjesme: React.FC = () => {
                   <Link to={`/pjesma/${p.id}`}>
                     <div className={styles.cardTitle}>{p.naziv}</div>
                   </Link>
-                  <Link to={`/izvodjac/${p.korisnikID}`}>
-                    <div className={styles.cardDesc}>{p.korisnik?.korisnicko_ime || <span>&nbsp;</span>}</div>
-                  </Link>
+                  <div className={styles.cardDesc}>
+                    {(songArtists[p.id] || []).map((izv, idx) => (
+                      <Link key={izv.id} to={`/izvodjac/${izv.id}`} className={styles.artistLink}>
+                        {izv.korisnicko_ime}
+                        {idx < (songArtists[p.id] || []).length - 1 ? ", " : ""}
+                      </Link>
+                    ))}
+                    {((songArtists[p.id] || []).length === 0) && p.korisnik?.korisnicko_ime && (
+                      <Link to={`/izvodjac/${p.korisnikID}`} className={styles.artistLink}>
+                        {p.korisnik.korisnicko_ime}
+                      </Link>
+                    )}
+                  </div>
                   <div className={styles.cardActions}>
                     <Link to={`/uredi-pjesmu/${p.id}`} className="link">
                       <button className={styles.editButton}>

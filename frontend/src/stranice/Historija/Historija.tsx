@@ -9,7 +9,7 @@ import Loading from "../../komponente/Loading/Loading";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { queryClient as qc } from '../../config/queryClient';
+//import { queryClient as qc } from '../../config/queryClient';
 
 type Styles = Record<string, string>;
 
@@ -18,7 +18,12 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const Historija: React.FC = () => {
   const { t } = useTranslation();
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null);
+    const [likedSongs, setLikedSongs] = useState<Record<number, boolean>>({});
+  
   const [styles, setStyles] = useState<Styles>({});
+  const [songArtists, setSongArtists] = useState<
+    Record<number, { id: string; korisnicko_ime: string }[]>
+  >({});
 
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
@@ -74,37 +79,30 @@ const Historija: React.FC = () => {
     initialData: [],
   });
 
-  const likeMapQ = useQuery<Record<number, boolean>>({
-    queryKey: ["likeMap", korisnikID],
-    enabled: Boolean(korisnikID),
-    queryFn: async () => {
-      const r = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const veze = (r.data || []) as { korisnikID: string; pjesmaID: number }[];
-      const map: Record<number, boolean> = {};
-      veze.filter((v) => v.korisnikID === korisnikID).forEach((v) => (map[v.pjesmaID] = true));
-      return map;
-    },
-    initialData: {},
-  });
-
   const likeMutation = useMutation({
-    mutationFn: async (vars: { pjesmaId: number; liked: boolean }) => {
-      if (!korisnikID || !vars.pjesmaId) return;
-      if (vars.liked) {
-        await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${vars.pjesmaId}`);
-      } else {
-        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-          korisnikID,
-          pjesmaID: vars.pjesmaId,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        });
-      }
-      return vars.pjesmaId;
-    },
-    onSuccess: (pId) => {
-      qc.setQueryData<Record<number, boolean>>(["likeMap", korisnikID], (old) => ({ ...(old || {}), [pId as number]: !((old || {})[pId as number]) }));
-    },
-  });
+  mutationFn: async ({
+    pjesmaId,
+    wasLiked,
+  }: {
+    pjesmaId: number;
+    wasLiked: boolean;
+  }) => {
+    if (!korisnikID) return;
+
+    if (wasLiked) {
+      await axios.delete(
+        `${API_BASE}/korisnik_pjesma/${korisnikID}/${pjesmaId}`
+      );
+    } else {
+      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        korisnikID,
+        pjesmaID: pjesmaId,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      });
+    }
+  },
+});
+
 
   const addToPlaylistMutation = useMutation({
     mutationFn: async (vars: { pjesmaID: number; playlistaID: number }) => {
@@ -126,18 +124,87 @@ const Historija: React.FC = () => {
       .filter((x) => x.pjesma && x.pjesma.odobreno);
   }, [historijaQ.data, pjesmeQ.data]);
 
+ useEffect(() => {
+  const loadLikedSongs = async () => {
+    if (!korisnikID || !historijaPjesme.length) {
+      setLikedSongs({});
+      return;
+    }
+
+    const result: Record<number, boolean> = {};
+
+    await Promise.all(
+      historijaPjesme.map(async (h) => {
+        try {
+          const res = await axios.get(
+            `${API_BASE}/korisnik_pjesma/${korisnikID}/${h.pjesmaID}`
+          );
+
+          result[h.pjesmaID] = !!res.data.liked;
+        } catch {
+          result[h.pjesmaID] = false;
+        }
+      })
+    );
+
+    setLikedSongs(result);
+  };
+
+  loadLikedSongs();
+}, [korisnikID, historijaPjesme]);
+
+  useEffect(() => {
+    const loadArtists = async () => {
+      if (!historijaPjesme.length) return;
+      try {
+        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+        const veze = vezeRes.data || [];
+        const result: Record<number, { id: string; korisnicko_ime: string }[]> = {};
+        for (const entry of historijaPjesme) {
+          const song = entry.pjesma as Pjesma;
+          if (!song?.id) continue;
+          const songVeze = veze.filter((v: { pjesmaID: number }) => v.pjesmaID === song.id);
+          const artists = await Promise.all(
+            songVeze.map((v: { izvodjacID: string }) =>
+              axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then((r) => r.data).catch(() => null)
+            )
+          );
+          result[song.id] = artists.filter(Boolean) as { id: string; korisnicko_ime: string }[];
+        }
+        setSongArtists(result);
+      } catch {
+        setSongArtists({});
+      }
+    };
+    loadArtists();
+  }, [historijaPjesme]);
+
   const loading = useMemo(() => {
     const a = historijaQ.isLoading || pjesmeQ.isLoading;
-    const b = korisnikID ? playlisteQ.isLoading || likeMapQ.isLoading : false;
+    const b = korisnikID ? playlisteQ.isLoading : false;
     return a || b;
-  }, [historijaQ.isLoading, pjesmeQ.isLoading, playlisteQ.isLoading, likeMapQ.isLoading, korisnikID]);
+  }, [
+    historijaQ.isLoading,
+    pjesmeQ.isLoading,
+    playlisteQ.isLoading,
+    korisnikID,
+  ]);
 
   const handleLike = useCallback(
     (pjesmaId: number) => {
-      const lm = likeMapQ.data || {};
-      likeMutation.mutate({ pjesmaId, liked: !!lm[pjesmaId] });
+      const wasLiked = likedSongs[pjesmaId] || false;
+
+      setLikedSongs((prev) => ({
+        ...prev,
+        [pjesmaId]: !wasLiked,
+      }));
+
+      likeMutation.mutate({
+        pjesmaId,
+        wasLiked,
+      });
     },
-    [likeMutation, likeMapQ.data]
+    [likedSongs, likeMutation]
   );
 
   const handleAddToPlaylist = useCallback(
@@ -181,7 +248,18 @@ const Historija: React.FC = () => {
                     <td>
                       <Link to={`/pjesma/${h.pjesmaID}`} className="link">{h.pjesma?.naziv}</Link>
                     </td>
-                    <td>{h.pjesma?.korisnik?.korisnicko_ime || ""}</td>
+                    <td data-label={t("artist") || "Izvođač"}>
+                      {(songArtists[h.pjesma?.id || 0] || []).map((izv, idx) => (
+                        <span
+                          key={izv.id}
+                          style={{ cursor: "pointer", color: "inherit" }}
+                          onClick={() => (window.location.href = `/izvodjac/${izv.id}`)}
+                        >
+                          {izv.korisnicko_ime}
+                          {idx < (songArtists[h.pjesma?.id || 0] || []).length - 1 ? ", " : ""}
+                        </span>
+                      ))}
+                    </td>
                     <td>
                       <button
                         className={styles.songPlayBtn}
@@ -206,11 +284,11 @@ const Historija: React.FC = () => {
                         </svg>
                       </button>
                       <button
-                        className={`${styles.likeBtn} ${(likeMapQ.data || {})[h.pjesmaID] ? styles.liked : ""}`}
+                        className={`${styles.likeBtn} ${likedSongs[h.pjesmaID] ? styles.liked : ""}`}
                         onClick={() => handleLike(h.pjesmaID)}
-                        title={(likeMapQ.data || {})[h.pjesmaID] ? t("remove") : t("add_to_favorites") || "Lajkuj pjesmu"}
+                        title={likedSongs[h.pjesmaID] ? t("remove") : t("add_to_favorites") || "Lajkuj pjesmu"}
                       >
-                        <svg width="22" height="22" viewBox="0 0 28 28" fill={(likeMapQ.data || {})[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
+                        <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
                           <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                         </svg>
                       </button>

@@ -9,7 +9,7 @@ import type { Korisnik, Pjesma, Album, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { queryClient as qc } from '../../config/queryClient';
+//import { queryClient as qc } from '../../config/queryClient';
 
 type Styles = Record<string, string>;
 
@@ -21,6 +21,9 @@ const Izvodjac: React.FC = () => {
   const repeatAll = false;
   const [styles, setStyles] = useState<Styles>({});
   const [brojPratilaca, setBrojPratilaca] = useState<number>(0);
+  const [pratim, setPratim] = useState(false);
+  type Artist = { id: string; korisnicko_ime: string };
+  const [songArtists, setSongArtists] = useState<Record<number, Artist[]>>({});
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
       try {
@@ -65,6 +68,8 @@ const Izvodjac: React.FC = () => {
       setBrojPratilaca(izvodjacQ.data.brojPratilaca);
     }
   }, [izvodjacQ.data?.brojPratilaca]);
+
+  
 
   const pjesmeAuthorQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme", "byAuthor", izvodjacId],
@@ -125,6 +130,11 @@ const Izvodjac: React.FC = () => {
     initialData: false,
   });
 
+
+  useEffect(() => {
+  setPratim(pratimQ.data || false);
+}, [pratimQ.data]);
+
   const pjesme = useMemo(() => {
     const a = pjesmeAuthorQ.data || [];
     const b = collabSongsQ.data || [];
@@ -134,6 +144,33 @@ const Izvodjac: React.FC = () => {
     return Array.from(map.values());
   }, [pjesmeAuthorQ.data, collabSongsQ.data]);
 
+  useEffect(() => {
+    if (!pjesme.length) {
+      setSongArtists({});
+      return;
+    }
+    const loadArtists = async () => {
+      try {
+        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+        const veze = vezeRes.data || [];
+        const result: Record<number, { id: string; korisnicko_ime: string }[]> = {};
+        for (const song of pjesme) {
+          const songVeze = veze.filter((v: { pjesmaID: number }) => v.pjesmaID === song.id);
+          const artists = await Promise.all(
+            songVeze.map((v: { izvodjacID: string }) =>
+              axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then((r) => r.data as Artist).catch(() => null)
+            )
+          );
+          result[song.id] = artists.filter(Boolean) as Artist[];
+        }
+        setSongArtists(result);
+      } catch {
+        setSongArtists({});
+      }
+    };
+    loadArtists();
+  }, [pjesme]);
+
   const loading = useMemo(() => {
     return (
       izvodjacQ.isLoading || pjesmeAuthorQ.isLoading || collabSongsQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || pratimQ.isLoading
@@ -141,20 +178,19 @@ const Izvodjac: React.FC = () => {
   }, [izvodjacQ.isLoading, pjesmeAuthorQ.isLoading, collabSongsQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading, pratimQ.isLoading]);
 
   const pratiMut = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (wasFollowing: boolean) => {
       if (!mojID || !izvodjacId) return;
-      if (pratimQ.data) {
-        await axios.delete(`${API_BASE}/pratioci/${izvodjacId}/${mojID}`);
+
+      if (wasFollowing) {
+        await axios.delete(
+          `${API_BASE}/pratioci/${izvodjacId}/${mojID}`
+        );
       } else {
-        await axios.post(`${API_BASE}/pratioci/`, { korisnikID: izvodjacId, pratilacID: mojID });
+        await axios.post(`${API_BASE}/pratioci/`, {
+          korisnikID: izvodjacId,
+          pratilacID: mojID,
+        });
       }
-    },
-    onMutate: async () => {
-      setBrojPratilaca((prev) => prev + (pratimQ.data ? -1 : 1));
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pratim", izvodjacId, mojID] });
-      qc.invalidateQueries({ queryKey: ["izvodjac", izvodjacId] });
     },
   });
 
@@ -175,15 +211,24 @@ const Izvodjac: React.FC = () => {
   });
 
   const handlePrati = useCallback(() => {
-    if (!mojID || !izvodjacId) return;
-    pratiMut.mutate();
-  }, [pratiMut, mojID, izvodjacId]);
+  if (!mojID || !izvodjacId) return;
+
+    const wasFollowing = pratim;
+
+    setPratim(!wasFollowing);
+    setBrojPratilaca((prev) =>
+      wasFollowing ? Math.max(0, prev - 1) : prev + 1
+    );
+
+    pratiMut.mutate(wasFollowing);
+  }, [pratim, pratiMut, mojID, izvodjacId]);
 
   const handlePlay = useCallback((p: Pjesma) => {
     if (!p.putanjaAudio) return;
     window.dispatchEvent(
       new CustomEvent("globalAudioPlay", {
         detail: {
+          id: p.id,
           src: p.putanjaAudio,
           title: p.naziv,
           putanjaGif: p.putanjaGif,
@@ -195,13 +240,21 @@ const Izvodjac: React.FC = () => {
   }, []);
 
   const handlePlayAlbum = useCallback(
-    (albumId: number) => {
-      const albumSongs = pjesme.filter((p) => p.albumID === albumId && p.putanjaAudio);
-      if (albumSongs.length === 0) return;
-      window.dispatchEvent(new CustomEvent("globalAudioPlaylist", { detail: { playlist: albumSongs, idx: 0, repeatAll } }));
-    },
-    [pjesme, repeatAll]
-  );
+      (albumId: number) => {
+        const albumSongs = (pjesme || []).filter((p) => p.albumID === albumId && p.putanjaAudio);
+        if (albumSongs.length === 0) return;
+        window.dispatchEvent(
+          new CustomEvent("globalAudioPlaylist", {
+            detail: {
+              playlist: albumSongs,
+              idx: 0,
+              repeatAll,
+            },
+          })
+        );
+      },
+      [pjesme, repeatAll]
+    );
 
   const handlePlayPlaylist = useCallback(
     (playlistId: number) => {
@@ -226,7 +279,6 @@ const Izvodjac: React.FC = () => {
   const izvodjac = izvodjacQ.data;
   const albumi = albumiQ.data || [];
   const playliste = playlisteQ.data || [];
-  const pratim = pratimQ.data || false;
 
   return (
     <>
@@ -271,6 +323,15 @@ const Izvodjac: React.FC = () => {
                     <Link to={`/pjesma/${p.id}`} className={styles.cardTitle}>
                       {p.naziv}
                     </Link>
+                    {songArtists[p.id] && songArtists[p.id].length > 0 && (
+                      <div className={styles.artists}>
+                        {songArtists[p.id].map((artist) => (
+                          <Link key={artist.id} to={`/izvodjac/${artist.id}`} className={styles.artistLink}>
+                            {artist.korisnicko_ime}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               )}

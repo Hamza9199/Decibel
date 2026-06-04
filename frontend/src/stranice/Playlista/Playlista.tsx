@@ -5,7 +5,7 @@ import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { useParams } from "react-router-dom";
-import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from "../../types";
+import { Pjesma, Playlista as PlaylistaType } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -58,6 +58,8 @@ const Playlista: React.FC = () => {
     }
   }, []);
 
+  const [songArtists, setSongArtists] = useState<Record<number, { id: string; korisnicko_ime: string }[]>>({});
+
   const playlistaQ = useQuery<PlaylistaType | null>({
     queryKey: ["playlista", playlistaId],
     enabled: Boolean(playlistaId),
@@ -77,12 +79,6 @@ const Playlista: React.FC = () => {
     initialData: [],
   });
 
-  const songLikesQ = useQuery<KorisnikPjesma[]>({
-    queryKey: ["korisnik_pjesma", korisnikID],
-    enabled: Boolean(korisnikID),
-    queryFn: async () => axios.get(`${API_BASE}/korisnik_pjesma/`).then((r) => (r.data || []).filter((v: KorisnikPjesma) => v.korisnikID === korisnikID)),
-    initialData: [],
-  });
 
   const playlistsQ = useQuery<PlaylistaType[]>({
     queryKey: ["playliste"],
@@ -90,38 +86,85 @@ const Playlista: React.FC = () => {
     initialData: [],
   });
 
-  const userPlaylistLikesQ = useQuery<{ korisnikID: string; playlistaID: number }[]>({
-    queryKey: ["korisnik_playlista", korisnikID],
-    enabled: Boolean(korisnikID),
-    queryFn: async () => axios.get(`${API_BASE}/korisnik_playlista/`).then((r) => r.data || []),
-    initialData: [],
-  });
+ 
 
   useEffect(() => {
     if (playlistaQ.data?.brojLajkova != null) setLikeCount(playlistaQ.data.brojLajkova);
   }, [playlistaQ.data?.brojLajkova]);
 
+ 
   useEffect(() => {
-    if (!korisnikID || !playlistaId) return;
-    const veze = userPlaylistLikesQ.data || [];
-    setLikePlaylist(!!veze.find((v) => v.korisnikID === korisnikID && String(v.playlistaID) === String(playlistaId)));
-  }, [userPlaylistLikesQ.data, korisnikID, playlistaId]);
+    if (!korisnikID || !playlistaId) {
+      setLikePlaylist(false);
+      return;
+    }
+
+    axios
+      .get(
+        `${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`
+      )
+      .then((res) => setLikePlaylist(res.data.liked))
+      .catch(() => setLikePlaylist(false));
+  }, [korisnikID, playlistaId]);
 
   const pjesme = useMemo(() => songsQ.data || [], [songsQ.data]);
-  const likeMap = useMemo(() => {
-    const map: { [pjesmaId: number]: boolean } = {};
-    (songLikesQ.data || []).forEach((v) => {
-      map[v.pjesmaID] = true;
-    });
-    return map;
-  }, [songLikesQ.data]);
+  const [likedSongs, setLikedSongs] = useState<Record<number, boolean>>({});
+
+  useEffect(() => {
+    const loadLikedSongs = async () => {
+      if (!korisnikID || !pjesme.length) {
+        setLikedSongs({});
+        return;
+      }
+      const result: Record<number, boolean> = {};
+      await Promise.all(
+        pjesme.map(async (p) => {
+          try {
+            const res = await axios.get(`${API_BASE}/korisnik_pjesma/${korisnikID}/${p.id}`);
+            result[p.id] = !!res.data.liked;
+          } catch {
+            result[p.id] = false;
+          }
+        })
+      );
+      setLikedSongs(result);
+    };
+    loadLikedSongs();
+  }, [korisnikID, pjesme]);
   const playlists = useMemo(() => playlistsQ.data || [], [playlistsQ.data]);
   const isOwner = useMemo(() => (playlistaQ.data?.korisnikID && korisnikID ? playlistaQ.data?.korisnikID === korisnikID : false), [playlistaQ.data?.korisnikID, korisnikID]);
 
+  useEffect(() => {
+    const loadArtists = async () => {
+      if (!pjesme.length) {
+        setSongArtists({});
+        return;
+      }
+      try {
+        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+        const veze = vezeRes.data || [];
+        const result: Record<number, { id: string; korisnicko_ime: string }[]> = {};
+        for (const song of pjesme) {
+          const songVeze = veze.filter((v: { pjesmaID: number }) => v.pjesmaID === song.id);
+          const artists = await Promise.all(
+            songVeze.map((v: { izvodjacID: string }) =>
+              axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then((r) => r.data).catch(() => null)
+            )
+          );
+          result[song.id] = artists.filter(Boolean) as { id: string; korisnicko_ime: string }[];
+        }
+        setSongArtists(result);
+      } catch {
+        setSongArtists({});
+      }
+    };
+    loadArtists();
+  }, [pjesme]);
+
   const likeSongMut = useMutation({
-    mutationFn: async (pjesmaId: number) => {
+    mutationFn: async ({ pjesmaId, wasLiked }: { pjesmaId: number; wasLiked: boolean }) => {
       if (!korisnikID) return;
-      if (likeMap[pjesmaId]) {
+      if (wasLiked) {
         await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${pjesmaId}`);
       } else {
         await axios.post(`${API_BASE}/korisnik_pjesma/`, { korisnikID, pjesmaID: pjesmaId, kreiranDatumVrijeme: new Date().toISOString() });
@@ -144,18 +187,20 @@ const Playlista: React.FC = () => {
   });
 
   const likePlaylistMut = useMutation({
-    mutationFn: async (like: boolean) => {
+    mutationFn: async (wasLiked: boolean) => {
       if (!korisnikID || !playlistaId) return;
-      if (like) {
-        await axios.post(`${API_BASE}/korisnik_playlista/`, { korisnikID, playlistaID: Number(playlistaId), kreiranDatumVrijeme: new Date().toISOString() });
+
+      if (wasLiked) {
+        await axios.delete(
+          `${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`
+        );
       } else {
-        await axios.delete(`${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`);
+        await axios.post(`${API_BASE}/korisnik_playlista/`, {
+          korisnikID,
+          playlistaID: Number(playlistaId),
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
       }
-    },
-    onSuccess: (_data, like) => {
-      setLikePlaylist(like);
-      setLikeCount((prev) => prev + (like ? 1 : -1));
-      qc.invalidateQueries({ queryKey: ["korisnik_playlista", korisnikID] });
     },
   });
 
@@ -189,18 +234,27 @@ const Playlista: React.FC = () => {
   }, [pjesme]);
 
   const handleLikeSong = useCallback((pjesmaId: number) => {
-    if (!korisnikID || !pjesmaId) return;
-    likeSongMut.mutate(pjesmaId);
-  }, [likeSongMut, korisnikID]);
+    if (!korisnikID) return;
+    const wasLiked = likedSongs[pjesmaId] || false;
+    setLikedSongs((prev) => ({ ...prev, [pjesmaId]: !wasLiked }));
+    likeSongMut.mutate({ pjesmaId, wasLiked });
+  }, [likeSongMut, korisnikID, likedSongs]);
 
   const handleAddToPlaylist = useCallback((pjesmaID: number, plID: number) => {
     addToPlaylistMut.mutate({ pjesmaID, playlistaID: plID });
   }, [addToPlaylistMut]);
 
   const handleLikeThisPlaylist = useCallback(() => {
-    if (!korisnikID || !playlistaId) return;
-    likePlaylistMut.mutate(!likePlaylist);
-  }, [likePlaylistMut, likePlaylist, korisnikID, playlistaId]);
+    if (likePlaylist) {
+      setLikePlaylist(false);
+      setLikeCount((c) => Math.max(0, c - 1));
+      likePlaylistMut.mutate(true);
+    } else {
+      setLikePlaylist(true);
+      setLikeCount((c) => c + 1);
+      likePlaylistMut.mutate(false);
+    }
+  }, [likePlaylist, likePlaylistMut]);
 
   const handleDragStart = useCallback((idx: number) => {
     setDraggedIdx(idx);
@@ -283,8 +337,17 @@ const Playlista: React.FC = () => {
             </div>
             <div className={styles.playlistaInfo}>
               <h2 className={styles.playlistaNaziv}>{playlista.naziv}</h2>
-              <div className={styles.playlistaOpis}>{playlista.opis}</div>
-
+              {playlista.korisnik && (
+                <div className={styles.playlistaOpis} style={{ cursor: "pointer" }}
+                onClick={() =>
+                    playlista.korisnik?.id &&
+                    (window.location.href = `/izvodjac/${playlista.korisnik.id}`)
+                  }
+>
+                    {playlista.korisnik.korisnicko_ime}
+                  
+                </div>
+              )}
             </div>
           </div>
           <div className={styles.pjesmeSection}>
@@ -307,19 +370,25 @@ const Playlista: React.FC = () => {
                     <tr key={p.id} draggable={isOwner} onDragStart={() => handleDragStart(idx)} onDragOver={(e) => { e.preventDefault(); handleDragOver(idx); }} onDrop={() => handleDrop(idx)} className={`${styles.songRow} ${dragOverIdx === idx ? styles.dragOver : draggedIdx === idx ? styles.dragging : ""}`}>
                       <td data-label="#" className={styles.songNumber}>{idx + 1}</td>
                       <td data-label={t("song_name") || "Naziv"} className={styles.songNameCell}>
-                        <div className={styles.songInfo}>
-                          <img src={p.putanjaSlika || p.putanjaGif || "/logo.gif"} alt={p.naziv} className={styles.songImage} />
-                          <span className={styles.songName}>{p.naziv}</span>
-                        </div>
-                      </td>
+                          <div className={styles.songInfo}>
+                            <img src={p.putanjaSlika || p.putanjaGif || "/logo.gif"} alt={p.naziv} className={styles.songImage} />
+                            <a href={`/pjesma/${p.id}`} className={styles.songNameLink}>{p.naziv}</a>
+                          </div>
+                        </td>
                       <td data-label={t("duration_seconds") || "Trajanje"}>{formatTrajanje(p.trajanjeSekunde)}</td>
-                      <td data-label={t("artist") || "Izvođač"}>{p.korisnik?.korisnicko_ime || ""}</td>
+                      <td data-label={t("artist") || "Izvođač"} className={styles.artistCell}>
+                        {(songArtists[p.id] || []).map((izv, idx) => (
+                          <a key={izv.id} href={`/izvodjac/${izv.id}`} className={styles.artistLink}>
+                            {izv.korisnicko_ime}{idx < (songArtists[p.id] || []).length - 1 ? ", " : ""}
+                          </a>
+                        ))}
+                      </td>
                       <td data-label={t("actions") || "Akcije"} className={styles.songActions}>
                         <button className={styles.songPlayBtn} onClick={() => handlePlaySong(p)} title={t("play_song") || "Pusti pjesmu"}>
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff"><polygon points="12,8 36,22 12,36" /></svg>
                         </button>
-                        <button className={`${styles.songPlayBtn} ${likeMap[p.id] ? styles.liked : ""}`} onClick={() => handleLikeSong(p.id)} title={likeMap[p.id] ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}>
-                          <svg width="22" height="22" viewBox="0 0 28 28" fill={likeMap[p.id] ? "#f6b8d9ff" : "#fff"}>
+                        <button className={`${styles.songPlayBtn} ${likedSongs[p.id] ? styles.liked : ""}`} onClick={() => handleLikeSong(p.id)} title={likedSongs[p.id] ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}>
+                          <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[p.id] ? "#f6b8d9ff" : "#fff"}>
                             <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                           </svg>
                         </button>

@@ -379,7 +379,7 @@ const Playlista: React.FC = () => {
                       <td data-label={t("artist") || "Izvođač"} className={styles.artistCell}>
                         {(songArtists[p.id] || []).map((izv, idx) => (
                           <a key={izv.id} href={`/izvodjac/${izv.id}`} className={styles.artistLink}>
-                            {izv.korisnicko_ime}{idx < (songArtists[p.id] || []).length - 1 ? ", " : ""}
+                            {izv.korisnicko_ime}{idx < (songArtists[p.id] || []).length - 1 ? " & " : ""}
                           </a>
                         ))}
                       </td>

@@ -278,7 +278,7 @@ const Home: React.FC = () => {
                           onClick={() => handleNavigate(`/izvodjac/${izv.id}`)}
                         >
                           {izv.korisnicko_ime}
-                          {idx < (pjesmaIzvodjaci[p.id] || []).length - 1 ? ", " : ""}
+                          {idx < (pjesmaIzvodjaci[p.id] || []).length - 1 ? " & " : ""}
                         </span>
                       ))}
                     </div>

@@ -325,10 +325,13 @@ const Izvodjac: React.FC = () => {
                     </Link>
                     {songArtists[p.id] && songArtists[p.id].length > 0 && (
                       <div className={styles.artists}>
-                        {songArtists[p.id].map((artist) => (
-                          <Link key={artist.id} to={`/izvodjac/${artist.id}`} className={styles.artistLink}>
-                            {artist.korisnicko_ime}
-                          </Link>
+                        {songArtists[p.id].map((artist, idx) => (
+                          <React.Fragment key={artist.id}>
+                            <Link to={`/izvodjac/${artist.id}`} className={styles.artistLink}>
+                              {artist.korisnicko_ime}
+                            </Link>
+                            {idx < songArtists[p.id].length - 1 && ' & '}
+                          </React.Fragment>
                         ))}
                       </div>
                     )}

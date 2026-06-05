@@ -256,7 +256,7 @@ const Historija: React.FC = () => {
                           onClick={() => (window.location.href = `/izvodjac/${izv.id}`)}
                         >
                           {izv.korisnicko_ime}
-                          {idx < (songArtists[h.pjesma?.id || 0] || []).length - 1 ? ", " : ""}
+                          {idx < (songArtists[h.pjesma?.id || 0] || []).length - 1 ? " & " : ""}
                         </span>
                       ))}
                     </td>

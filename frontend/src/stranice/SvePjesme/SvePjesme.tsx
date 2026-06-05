@@ -186,7 +186,7 @@ const SvePjesme: React.FC = () => {
                     {(songArtists[p.id] || []).map((izv, idx) => (
                       <Link key={izv.id} to={`/izvodjac/${izv.id}`} className={styles.artistLink}>
                         {izv.korisnicko_ime}
-                        {idx < (songArtists[p.id] || []).length - 1 ? ", " : ""}
+                        {idx < (songArtists[p.id] || []).length - 1 ? " & " : ""}
                       </Link>
                     ))}
                     {((songArtists[p.id] || []).length === 0) && p.korisnik?.korisnicko_ime && (

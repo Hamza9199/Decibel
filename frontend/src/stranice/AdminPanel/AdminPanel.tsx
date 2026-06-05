@@ -73,6 +73,36 @@ const AdminPanel: React.FC = () => {
   const albumi = localAlbumi;
   const playliste = useMemo(() => playlisteQ.data || [], [playlisteQ.data]);
 
+  type Artist = { id: string; korisnicko_ime: string };
+  const [songArtists, setSongArtists] = useState<Record<number, Artist[]>>({});
+
+  useEffect(() => {
+    if (!pjesme.length) {
+      setSongArtists({});
+      return;
+    }
+    const loadArtists = async () => {
+      try {
+        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+        const veze = vezeRes.data || [];
+        const result: Record<number, Artist[]> = {};
+        for (const song of pjesme) {
+          const songVeze = veze.filter((v: { pjesmaID: number }) => v.pjesmaID === song.id);
+          const artists = await Promise.all(
+            songVeze.map((v: { izvodjacID: string }) =>
+              axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then(r => r.data as Artist).catch(() => null)
+            )
+          );
+          result[song.id] = artists.filter(Boolean) as Artist[];
+        }
+        setSongArtists(result);
+      } catch {
+        setSongArtists({});
+      }
+    };
+    loadArtists();
+  }, [pjesme]);
+
   const filtriranePjesme = useMemo(() => pjesme.filter(p => p.naziv.toLowerCase().includes(search.toLowerCase())), [pjesme, search]);
   const filtriraniAlbumi = useMemo(() => albumi.filter(a => a.naziv.toLowerCase().includes(search.toLowerCase())), [albumi, search]);
   const filtriranePlayliste = useMemo(() => playliste.filter(pl => pl.naziv.toLowerCase().includes(search.toLowerCase())), [playliste, search]);
@@ -309,9 +339,20 @@ const AdminPanel: React.FC = () => {
                               <Link className={styles.link} to={`/pjesma/${p.id}`}>{p.naziv}</Link>
                             </td>
                             <td data-label={t("artist") || "Izvođač"}>
-                              <Link className={styles.link} to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
-                                {p.korisnik?.korisnicko_ime || p.korisnikID}
-                              </Link>
+                              {songArtists[p.id] && songArtists[p.id].length > 0 ? (
+                                songArtists[p.id].map((artist, idx) => (
+                                  <React.Fragment key={artist.id}>
+                                    <Link className={styles.link} to={`/izvodjac/${artist.id}`}>
+                                      {artist.korisnicko_ime}
+                                    </Link>
+                                    {idx < songArtists[p.id].length - 1 && ' & '}
+                                  </React.Fragment>
+                                ))
+                              ) : (
+                                <Link className={styles.link} to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
+                                  {p.korisnik?.korisnicko_ime || p.korisnikID}
+                                </Link>
+                              )}
                             </td>
                             <td data-label={t("play") || "Preslušaj"}>
                               {p.putanjaAudio && (

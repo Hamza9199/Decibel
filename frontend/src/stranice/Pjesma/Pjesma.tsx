@@ -408,7 +408,7 @@ const handleLajk = () => {
                         onClick={() => navigate(`/izvodjac/${izv.id}`)}
                       >
                         {izv.korisnicko_ime}
-                        {idx < (topPjesmeIzvodjaci[p.id] || []).length - 1 ? ", " : ""}
+                        {idx < (topPjesmeIzvodjaci[p.id] || []).length - 1 ? " & " : ""}
                       </span>
                     ))}
                   </div>

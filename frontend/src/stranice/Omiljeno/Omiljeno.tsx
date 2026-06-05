@@ -414,7 +414,7 @@ const Omiljeno: React.FC = () => {
                             {izv.korisnicko_ime}
                             {idx <
                             (songArtists[p.id] || []).length - 1
-                              ? ", "
+                              ? " & "
                               : ""}
                           </span>
                         ))}

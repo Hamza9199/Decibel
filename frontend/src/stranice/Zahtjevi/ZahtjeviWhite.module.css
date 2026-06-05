@@ -2,14 +2,15 @@
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
+
 }
 
-.container {
+.containerZahtjevi {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 32px;
-  background: rgba(255, 255, 255, 0.97);
+  background: none;
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 }
@@ -103,7 +104,7 @@
 }
 
 @media (max-width: 768px) {
-  .container {
+  .containerZahtjevi {
     margin-left: 0;
     padding: 20px;
   }

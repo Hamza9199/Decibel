@@ -1,45 +1,51 @@
+
 .zahtjeviBg {
   min-height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
+  background: none;
+  display: flex;
+  align-items: start;
+  justify-content: center;
 }
 
-.container {
-  max-width: 1200px;
+.containerZahtjevi {
+  max-width: 1100px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px;
-  background: rgba(24, 24, 24, 0.95);
+  padding: 32px 24px 50px 24px;
+  background: none;
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
 }
 
 .title {
   color: #fff;
   font-size: 2rem;
   font-weight: 700;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+  letter-spacing: 1px;
   text-align: center;
 }
 
 .noSongs {
+  color: #7e17e4;
+  font-size: 1.08rem;
+  margin-bottom: 8px;
   text-align: center;
-  color: #b3b3b3;
-  padding: 30px;
-  font-size: 1.05rem;
 }
 
 .pjesmeTable {
   width: 100%;
   border-collapse: collapse;
-  overflow: hidden;
-  border-radius: 12px;
   background: #232323;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .pjesmeTable th {
   background: #b91d95;
-  color: white;
+  color: #fff;
   padding: 14px;
   text-align: center;
 }
@@ -47,7 +53,7 @@
 .pjesmeTable td {
   padding: 14px;
   text-align: center;
-  color: white;
+  color: #fff;
   border-bottom: 1px solid #333;
 }
 
@@ -56,13 +62,14 @@
 }
 
 .link {
-  color: #fff;
+  color: #e7c0de;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 600;
+  transition: color 0.15s;
 }
 
 .link:hover {
-  color: #b91d95;
+  color: #e754a2;
 }
 
 .playlistBtn {
@@ -101,7 +108,7 @@
 }
 
 @media (max-width: 768px) {
-  .container {
+  .containerZahtjevi {
     margin-left: 0;
     padding: 20px;
   }

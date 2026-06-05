@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
@@ -7,7 +7,7 @@ import Loading from "../../komponente/Loading/Loading";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { IzvodjacPjesmaVeza } from "../../types";
+import { IzvodjacPjesmaVeza, Pjesma } from "../../types";
 
 type Styles = Record<string, string>;
 
@@ -33,11 +33,11 @@ const Zahtjevi: React.FC = () => {
       const tema =
         localStorage.getItem("decibel_tema") || "dark";
 
-      if (tema === "light") {
-        const mod = await import("../Zahtjevi/Zahtjevi.module.css");
+      if (tema === "dark") {
+        const mod = await import("./Zahtjevi.module.css");
         setStyles(mod.default);
       } else {
-        const mod = await import("../Zahtjevi/ZahtjeviWhite.module.css");
+        const mod = await import("./ZahtjeviWhite.module.css");
         setStyles(mod.default);
       }
     };
@@ -93,6 +93,22 @@ const Zahtjevi: React.FC = () => {
     [localVeze, korisnikID]
   );
 
+  const handlePlay = useCallback((song?: Pjesma) => {
+    if (!song) return;
+    window.dispatchEvent(
+      new CustomEvent("globalAudioPlay", {
+        detail: {
+          id: song.id,
+          src: song.putanjaAudio,
+          title: song.naziv,
+          putanjaGif: song.putanjaGif,
+          putanjaSlika: song.putanjaSlika,
+          korisnikID: song.korisnikID,
+        },
+      })
+    );
+  }, []);
+
   
 
   if (vezeQ.isLoading) {
@@ -104,8 +120,8 @@ const Zahtjevi: React.FC = () => {
       <Header />
       <Sidebar />
 
-      <div className={styles.historijaBg}>
-        <div className={styles.container}>
+      <div className={styles.zahtjeviBg}>
+        <div className={styles.containerZahtjevi}>
 
           <h2 className={styles.title}>
             {t("requests_collaboration")}
@@ -119,8 +135,9 @@ const Zahtjevi: React.FC = () => {
             <table className={styles.pjesmeTable}>
               <thead>
                 <tr>
-                  <th>Pjesma</th>
-                  <th>Akcije</th>
+                  <th>{t("song") || "Pjesma"}</th>
+                  <th>{t("play") || "Play"}</th>
+                  <th>{t("actions") || "Akcije"}</th>
                 </tr>
               </thead>
 
@@ -135,6 +152,14 @@ const Zahtjevi: React.FC = () => {
                         >
                           {v.pjesma?.naziv}
                         </Link>
+                      </td>
+                      <td>
+                        <button
+                          className={styles.playlistBtn}
+                          onClick={() => handlePlay(v.pjesma)}
+                        >
+                          {t("play")}
+                        </button>
                       </td>
 
                       <td>
@@ -200,7 +225,8 @@ const Zahtjevi: React.FC = () => {
             <table className={styles.pjesmeTable}>
               <thead>
                 <tr>
-                  <th>Pjesma</th>
+                  <th>{t("song") || "Pjesma"}</th>
+                  <th>{t("play") || "Play"}</th>
                 </tr>
               </thead>
 
@@ -216,6 +242,14 @@ const Zahtjevi: React.FC = () => {
                             >
                               {song?.naziv}
                             </Link>
+                          </td>
+                          <td>
+                            <button
+                              className={styles.playlistBtn}
+                              onClick={() => handlePlay(song)}
+                            >
+                              {t("play")}
+                            </button>
                           </td>
                         </tr>
                       );

@@ -12,7 +12,9 @@ from kontroleri.IzvodjacPjesmaKontroler import (
     get_all_izvodjac_pjesma,
     get_izvodjac_pjesma,
     create_izvodjac_pjesma,
-    delete_izvodjac_pjesma
+    delete_izvodjac_pjesma,
+    update_potvrdjeno_izvodjac_pjesma,
+    get_pjesme_za_izvodjaca,
 )
 
 router = APIRouter(prefix="/api/izvodjac_pjesma", tags=["IzvodjacPjesma"])
@@ -52,6 +54,25 @@ async def nova_izvodjac_pjesma(data: IzvodjacPjesmaCreate, session: AsyncSession
 @router.delete("/{izvodjacID}/{pjesmaID}", response_model=IzvodjacPjesma)
 async def obrisi_vezu(izvodjacID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
     db_obj = await delete_izvodjac_pjesma(session, izvodjacID, pjesmaID)
+    if not db_obj:
+        raise HTTPException(status_code=404, detail="Veza nije pronađena")
+    return db_obj
+
+@router.get("/izvodjac/{izvodjacID}")
+async def get_pjesme_izvodjaca(
+    izvodjacID: str,
+    session: AsyncSession = Depends(get_session)
+):
+    return await get_pjesme_za_izvodjaca(session, izvodjacID)
+
+@router.patch("/{izvodjacID}/{pjesmaID}", response_model=IzvodjacPjesma)
+async def update_potvrdjeno(
+    izvodjacID: str,
+    pjesmaID: int,
+    potvrdjeno: bool,
+    session: AsyncSession = Depends(get_session),
+):
+    db_obj = await update_potvrdjeno_izvodjac_pjesma(session, izvodjacID, pjesmaID, potvrdjeno)
     if not db_obj:
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj

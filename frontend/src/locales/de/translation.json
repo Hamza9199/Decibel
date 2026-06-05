@@ -233,5 +233,12 @@
   "search_songs": "Lieder suchen",
   "search_albums": "Alben suchen",
   "search_users": "Nutzer suchen",
-  "no_results": "Keine Suchergebnisse."
+  "no_results": "Keine Suchergebnisse.",
+  "requests": "Anfragen",
+  "requests_collaboration": "Anfragen für Zusammenarbeit",
+  "no_new_requests": "Keine neuen Anfragen.",
+  "accept": "Akzeptieren",
+  "reject": "Ablehnen",
+  "accepted_collaborations": "Akzeptierte Kooperationen",
+  "no_accepted_songs": "Keine akzeptierten Lieder."
 }

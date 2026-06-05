@@ -113,7 +113,7 @@ const NovaPjesma: React.FC = () => {
           axios.post(`${API_BASE}/izvodjac_pjesma/`, {
             izvodjacID: izv.id,
             pjesmaID: pjesmaId,
-            potvrdjeno: String(izv.id) === String(vars.autorId),
+            potvrdjeno: izv.id === vars.autorId,
           }).catch(() => {})
         )
       );

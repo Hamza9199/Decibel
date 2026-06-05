@@ -233,6 +233,13 @@
   "search_songs": "Search songs",
   "search_albums": "Search albums",
   "search_users": "Search users",
-  "no_results": "No search results found."
+  "no_results": "No search results found.",
+  "requests": "Requests",
+  "requests_collaboration": "Collaboration requests",
+  "no_new_requests": "No new requests.",
+  "accept": "Accept",
+  "reject": "Reject",
+  "accepted_collaborations": "Accepted collaborations",
+  "no_accepted_songs": "No accepted songs."
 }
 

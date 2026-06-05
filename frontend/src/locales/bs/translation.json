@@ -240,5 +240,12 @@
   "email": "E-mail",
   "password": "Lozinka",
   "confirm_password": "Potvrdite lozinku",
-  "login_here": "Prijavite se ovdje"
+  "login_here": "Prijavite se ovdje",
+  "requests": "Zahtjevi",
+  "requests_collaboration": "Zahtjevi za saradnju",
+  "no_new_requests": "Nema novih zahtjeva.",
+  "accept": "Prihvati",
+  "reject": "Odbij",
+  "accepted_collaborations": "Prihvaćene saradnje",
+  "no_accepted_songs": "Nema prihvaćenih pjesama."
 }

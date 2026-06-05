@@ -1,5 +1,7 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from modeli.Pjesma import PjesmaORM
 
 from modeli.IzvodjacPjesma import IzvodjacPjesmaORM, IzvodjacPjesma, IzvodjacPjesmaCreate
 
@@ -33,4 +35,40 @@ async def delete_izvodjac_pjesma(session: AsyncSession, izvodjacID: str, pjesmaI
         return None
     await session.delete(obj)
     await session.commit()
+    return obj
+
+
+async def get_pjesme_za_izvodjaca(
+    session: AsyncSession,
+    izvodjacID: str,
+):
+    result = await session.execute(
+        select(IzvodjacPjesmaORM)
+        .options(
+            selectinload(IzvodjacPjesmaORM.pjesma)
+        )
+        .where(
+            IzvodjacPjesmaORM.izvodjacID == izvodjacID
+        )
+    )
+
+    return result.scalars().all()
+
+async def update_potvrdjeno_izvodjac_pjesma(
+    session: AsyncSession,
+    izvodjacID: str,
+    pjesmaID: int,
+    potvrdjeno: bool,
+) -> IzvodjacPjesma | None:
+    """Set the `potvrdjeno` flag for the specified IzvodjacPjesma record.
+
+    Returns the updated record or ``None`` if it does not exist.
+    """
+    obj = await get_izvodjac_pjesma(session, izvodjacID, pjesmaID)
+    if not obj:
+        return None
+    obj.potvrdjeno = potvrdjeno
+    session.add(obj)
+    await session.commit()
+    await session.refresh(obj)
     return obj

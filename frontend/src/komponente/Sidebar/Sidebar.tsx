@@ -216,6 +216,14 @@ const Sidebar: React.FC = () => {
                   </span>
                   {t("subscription")}
                 </button>
+                <button className={styles.subNavBtn} onClick={(e) => { e.stopPropagation(); navigate("/zahtjevi"); if (isMobile) handleCloseSidebar(); }}>
+                  <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}>
+                    <svg width="18" height="18" fill="#b91d95" viewBox="0 0 24 24">
+                      <path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                    </svg>
+                  </span>
+                  {t("requests") || "Zahtjevi"}
+                </button>
               </div>
             )}
           </div>

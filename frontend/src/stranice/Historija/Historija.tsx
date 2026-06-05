@@ -246,7 +246,7 @@ const Historija: React.FC = () => {
                       </Link>
                     </td>
                     <td>
-                      <Link to={`/pjesma/${h.pjesmaID}`} className="link">{h.pjesma?.naziv}</Link>
+                      <Link to={`/pjesma/${h.pjesmaID}`} ><span className= {styles.link}> {h.pjesma?.naziv} </span></Link>
                     </td>
                     <td data-label={t("artist") || "Izvođač"}>
                       {(songArtists[h.pjesma?.id || 0] || []).map((izv, idx) => (

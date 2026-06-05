@@ -151,7 +151,6 @@
   color: #fff;
 }
 
-/* Song card header layout for mobile */
 .songHeader {
   display: flex;
   align-items: flex-start;
@@ -170,7 +169,19 @@
   margin-top: 2px;
 }
 
-/* Enhanced mobile card structure */
+
+.link{
+  color: #f8edf5;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+
+.link:hover {
+  color: #b91d95;
+}
+
 @media (max-width: 480px) {
   .historijaBg {
     padding-top: 55px;

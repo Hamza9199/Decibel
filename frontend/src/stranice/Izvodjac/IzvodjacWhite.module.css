@@ -66,8 +66,8 @@
 
 .notFound { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; }
 
-artistLink {
-  color: #f2eff1;
+.artistLink {
+  color: #010101;
   font-size: 0.9rem;
   margin-top: 4px;
   display: inline-block;

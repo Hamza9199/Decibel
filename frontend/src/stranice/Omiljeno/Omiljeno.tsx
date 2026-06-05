@@ -91,9 +91,10 @@ const Omiljeno: React.FC = () => {
   interface KorisnikPlaylistaWithData extends KorisnikPlaylista { playlista?: Playlista; korisnik?: Korisnik; }
 
   const omiljenePjesme = useMemo(() => {
-    return (likedSongsQ.data || [])
+    const arr = (likedSongsQ.data || [])
       .filter((l) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
       .map((l) => ({ korisnikID: l.korisnikID, pjesmaID: l.pjesmaID, kreiranDatumVrijeme: l.kreiranDatumVrijeme }));
+    return arr.sort((a, b) => new Date(b.kreiranDatumVrijeme || '').getTime() - new Date(a.kreiranDatumVrijeme || '').getTime());
   }, [likedSongsQ.data]);
   const pjesme = useMemo(() => {
     return (likedSongsQ.data || [])
@@ -102,9 +103,10 @@ const Omiljeno: React.FC = () => {
   }, [likedSongsQ.data]);
 
   const omiljeniAlbumi = useMemo(() => {
-    return (likedAlbumsQ.data || [])
+    const arr = (likedAlbumsQ.data || [])
       .filter((l) => l.album && l.album.odobreno)
       .map((l) => ({ korisnikID: l.korisnikID, albumID: l.albumID, kreiranDatumVrijeme: l.kreiranDatumVrijeme }));
+    return arr.sort((a, b) => new Date(b.kreiranDatumVrijeme || '').getTime() - new Date(a.kreiranDatumVrijeme || '').getTime());
   }, [likedAlbumsQ.data]);
   const albumi = useMemo(() => {
     return (likedAlbumsQ.data || [])
@@ -113,9 +115,10 @@ const Omiljeno: React.FC = () => {
   }, [likedAlbumsQ.data]);
 
   const omiljenePlayliste = useMemo(() => {
-    return (likedPlaylistsQ.data || [])
+    const arr = (likedPlaylistsQ.data || [])
       .filter((l) => l.playlista && l.playlista.javno)
       .map((l) => ({ korisnikID: l.korisnikID, playlistaID: l.playlistaID, kreiranDatumVrijeme: l.kreiranDatumVrijeme }));
+    return arr.sort((a, b) => new Date(b.kreiranDatumVrijeme || '').getTime() - new Date(a.kreiranDatumVrijeme || '').getTime());
   }, [likedPlaylistsQ.data]);
   const playliste = useMemo(() => {
     return (likedPlaylistsQ.data || [])
@@ -394,7 +397,7 @@ const Omiljeno: React.FC = () => {
                         </Link>
                       </td>
                       <td>
-                        <Link to={`/pjesma/${p.id}`} className="link">{p.naziv}</Link>
+                        <Link to={`/pjesma/${p.id}`} className={styles.link}>{p.naziv}</Link>
                       </td>
                       <td data-label={t("artist") || "Izvođač"}>
                         {(songArtists[p.id] || []).map((izv, idx) => (
@@ -574,11 +577,11 @@ const Omiljeno: React.FC = () => {
                         </Link>
                       </td>
                       <td>
-                        <Link to={`/album/${a.id}`} className="link">{a.naziv}</Link>
+                        <Link to={`/album/${a.id}`} className={styles.link}>{a.naziv}</Link>
                       </td>
                       <td>
                         {izvodjac ? (
-                          <Link to={`/izvodjac/${izvodjac.id}`} className="link">{izvodjac.korisnicko_ime}</Link>
+                          <Link to={`/izvodjac/${izvodjac.id}`} className={styles.link}>{izvodjac.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
                       <td>
@@ -648,11 +651,11 @@ const Omiljeno: React.FC = () => {
                         </Link>
                       </td>
                       <td>
-                        <Link to={`/playlista/${pl.id}`} className="link">{pl.naziv}</Link>
+                        <Link to={`/playlista/${pl.id}`} className={styles.link}>{pl.naziv}</Link>
                       </td>
                       <td>
                         {vlasnik ? (
-                          <Link to={`/izvodjac/${vlasnik.id}`} className="link">{vlasnik.korisnicko_ime}</Link>
+                          <Link to={`/izvodjac/${vlasnik.id}`} className={styles.link}>{vlasnik.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
                       <td>

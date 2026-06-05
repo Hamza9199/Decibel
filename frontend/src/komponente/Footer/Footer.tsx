@@ -62,7 +62,7 @@ const Footer: React.FC = () => {
 
       <div className={styles.footerLinks}>
         <a
-          href="https://github.com/Hamza9199/Decibel"
+          href="https://github.com/Hamza9199"
           target="_blank"
           rel="noopener noreferrer"
           className={styles.footerLink}
@@ -70,7 +70,7 @@ const Footer: React.FC = () => {
           GitHub
         </a>
         <a
-          href="mailto:kontakt@decibel.com"
+          href="mailto:hamza.gacic.22@size.ba"
           className={styles.footerLink}
         >
           {t("contact") || "Kontakt"}

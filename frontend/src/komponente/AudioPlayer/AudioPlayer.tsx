@@ -230,9 +230,6 @@ const AudioPlayer: React.FC<Props> = ({
       pjesmaId: number;
       trajanje: number;
     }) => {
-      await axios
-        .delete(`${API_BASE}/historija/obrisi/${userId}/${pjesmaId}`)
-        .catch(() => { });
       await axios.post(`${API_BASE}/historija/`, {
         korisnikID: userId,
         pjesmaID: pjesmaId,
@@ -715,6 +712,11 @@ const AudioPlayer: React.FC<Props> = ({
     navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
   }, [playing]);
 
+  const artistNames = useMemo(
+    () => izvodjaci.map(i => i.korisnicko_ime).join(", "),
+    [izvodjaci]
+  );
+
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
     if (currentSong) {
@@ -731,7 +733,7 @@ const AudioPlayer: React.FC<Props> = ({
         ]
       });
     }
-  }, [currentSong, currentOwner]);
+  }, [currentSong, currentOwner, artistNames]);
 
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
@@ -832,10 +834,7 @@ const AudioPlayer: React.FC<Props> = ({
   }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
 
 
-  const artistNames = useMemo(
-  () => izvodjaci.map(i => i.korisnicko_ime).join(", "),
-  [izvodjaci]
-);
+  
 
   if (pretplataValid === false) {
     if (showNoSubMsg) {

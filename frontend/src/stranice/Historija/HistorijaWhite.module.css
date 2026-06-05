@@ -8,6 +8,17 @@
   justify-content: center;
 }
 
+.link{
+  color: #181016;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+
+.link:hover {
+  color: #b91d95;
+}
+
 .container {
   max-width: 1100px;
   width: 100%;

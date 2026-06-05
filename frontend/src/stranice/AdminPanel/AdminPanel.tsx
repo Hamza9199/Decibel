@@ -19,6 +19,8 @@ const AdminPanel: React.FC = () => {
   const [search, setSearch] = useState("");
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [localPjesme, setLocalPjesme] = useState<Pjesma[]>([]);
+  const [localAlbumi, setLocalAlbumi] = useState<Album[]>([]);
   const repeatAll = false;
   const { t } = useTranslation();
   const [styles, setStyles] = useState<Styles>({});
@@ -45,22 +47,30 @@ const AdminPanel: React.FC = () => {
   const pjesmeQ = useQuery<Pjesma[]>({
     queryKey: ["admin", "pjesme"],
     queryFn: async () => axios.get(`${API_BASE}/pjesme/`).then(r => r.data || []),
-    staleTime: 30_000,
+    staleTime: 0,
   });
   const albumiQ = useQuery<Album[]>({
     queryKey: ["admin", "albumi"],
     queryFn: async () => axios.get(`${API_BASE}/albumi/`).then(r => r.data || []),
-    staleTime: 30_000,
+    staleTime: 0,
   });
   const playlisteQ = useQuery<Playlista[]>({
     queryKey: ["admin", "playliste"],
     queryFn: async () => axios.get(`${API_BASE}/playliste/`).then(r => r.data || []),
-    staleTime: 30_000,
+    staleTime: 0,
   });
 
+  useEffect(() => {
+    setLocalPjesme(pjesmeQ.data || []);
+  }, [pjesmeQ.data]);
+
+  useEffect(() => {
+    setLocalAlbumi(albumiQ.data || []);
+  }, [albumiQ.data]);
+
   const loading = useMemo(() => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading, [pjesmeQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading]);
-  const pjesme = useMemo(() => pjesmeQ.data || [], [pjesmeQ.data]);
-  const albumi = useMemo(() => albumiQ.data || [], [albumiQ.data]);
+  const pjesme = localPjesme;
+  const albumi = localAlbumi;
   const playliste = useMemo(() => playlisteQ.data || [], [playlisteQ.data]);
 
   const filtriranePjesme = useMemo(() => pjesme.filter(p => p.naziv.toLowerCase().includes(search.toLowerCase())), [pjesme, search]);
@@ -72,15 +82,23 @@ const AdminPanel: React.FC = () => {
       await axios.put(`${API_BASE}/pjesme/${vars.pjesma.id}`, { ...vars.pjesma, odobreno: vars.odobreno }, { headers: { "Content-Type": "multipart/form-data" } });
       return vars;
     },
-    onSuccess: ({ pjesma, odobreno }) => {
-      qc.setQueryData<Pjesma[] | undefined>(["admin", "pjesme"], old => (old || []).map(p => (p.id === pjesma.id ? { ...p, odobreno } : p)));
-      setSuccess("Status pjesme je ažuriran.");
-      setError(null);
-    },
-    onError: () => {
-      setError("Greška pri ažuriranju statusa pjesme.");
-      setSuccess(null);
-    },
+   onSuccess: () => {
+    qc.invalidateQueries({
+      queryKey: ["admin", "pjesme"],
+    });
+
+    setSuccess("Status pjesme je ažuriran.");
+    setError(null);
+  },
+    onError: (_e, vars) => {
+    setLocalPjesme(prev =>
+      prev.map(x =>
+        x.id === vars.pjesma.id
+          ? { ...x, odobreno: !vars.odobreno }
+          : x
+      )
+    );
+  }
   });
 
   const odobriAlbumMut = useMutation({
@@ -88,15 +106,23 @@ const AdminPanel: React.FC = () => {
       await axios.put(`${API_BASE}/albumi/${vars.album.id}`, { ...vars.album, odobreno: vars.odobreno }, { headers: { "Content-Type": "multipart/form-data" } });
       return vars;
     },
-    onSuccess: ({ album, odobreno }) => {
-      qc.setQueryData<Album[] | undefined>(["admin", "albumi"], old => (old || []).map(a => (a.id === album.id ? { ...a, odobreno } : a)));
-      setSuccess("Status albuma je ažuriran.");
-      setError(null);
-    },
-    onError: () => {
-      setError("Greška pri ažuriranju statusa albuma.");
-      setSuccess(null);
-    },
+   onSuccess: () => {
+    qc.invalidateQueries({
+      queryKey: ["admin", "albumi"],
+    });
+
+    setSuccess("Status albuma je ažuriran.");
+    setError(null);
+  },
+    onError: (_e, vars) => {
+      setLocalAlbumi(prev =>
+        prev.map(x =>
+          x.id === vars.album.id
+            ? { ...x, odobreno: !vars.odobreno }
+            : x
+        )
+      );
+    }
   });
 
   const obrisiPjesmuMut = useMutation({
@@ -164,14 +190,26 @@ const AdminPanel: React.FC = () => {
   });
 
   const handleOdobriPjesmu = useCallback((p: Pjesma, odobreno: boolean) => {
-    setError(null);
-    setSuccess(null);
+    setLocalPjesme(prev =>
+      prev.map(x =>
+        x.id === p.id
+          ? { ...x, odobreno }
+          : x
+      )
+    );
+
     odobriPjesmuMut.mutate({ pjesma: p, odobreno });
   }, [odobriPjesmuMut]);
 
   const handleOdobriAlbum = useCallback((a: Album, odobreno: boolean) => {
-    setError(null);
-    setSuccess(null);
+    setLocalAlbumi(prev =>
+      prev.map(x =>
+        x.id === a.id
+          ? { ...x, odobreno }
+          : x
+      )
+    );
+
     odobriAlbumMut.mutate({ album: a, odobreno });
   }, [odobriAlbumMut]);
 
@@ -268,10 +306,10 @@ const AdminPanel: React.FC = () => {
                         filtriranePjesme.map((p) => (
                           <tr key={p.id}>
                             <td data-label={t("song_name") || "Naziv"}>
-                              <Link className="link" to={`/pjesma/${p.id}`}>{p.naziv}</Link>
+                              <Link className={styles.link} to={`/pjesma/${p.id}`}>{p.naziv}</Link>
                             </td>
                             <td data-label={t("artist") || "Izvođač"}>
-                              <Link className="link" to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
+                              <Link className={styles.link} to={`/izvodjac/${p.korisnik?.id || p.korisnikID}`}>
                                 {p.korisnik?.korisnicko_ime || p.korisnikID}
                               </Link>
                             </td>
@@ -331,10 +369,10 @@ const AdminPanel: React.FC = () => {
                         filtriraniAlbumi.map((a) => (
                           <tr key={a.id}>
                             <td data-label={t("album_name") || "Naziv"}>
-                              <Link className="link" to={`/album/${a.id}`}>{a.naziv}</Link>
+                              <Link className={styles.link} to={`/album/${a.id}`}>{a.naziv}</Link>
                             </td>
                             <td data-label={t("artist") || "Korisnik"}>
-                              <Link className="link" to={`/izvodjac/${a.korisnik?.id || a.korisnikID}`}>
+                              <Link className={styles.link} to={`/izvodjac/${a.korisnik?.id || a.korisnikID}`}>
                                 {a.korisnik?.korisnicko_ime || a.korisnikID}
                               </Link>
                             </td>
@@ -391,10 +429,10 @@ const AdminPanel: React.FC = () => {
                         filtriranePlayliste.map((pl) => (
                           <tr key={pl.id}>
                             <td data-label={t("playlist_name") || "Naziv"}>
-                              <Link className="link" to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
+                              <Link className={styles.link} to={`/playlista/${pl.id}`}>{pl.naziv}</Link>
                             </td>
                             <td data-label={t("artist") || "Korisnik"}>
-                              <Link className="link" to={`/izvodjac/${pl.korisnik?.id || pl.korisnikID}`}>
+                              <Link className={styles.link} to={`/izvodjac/${pl.korisnik?.id || pl.korisnikID}`}>
                                 {pl.korisnik?.korisnicko_ime || pl.korisnikID}
                               </Link>
                             </td>

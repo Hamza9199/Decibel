@@ -18,6 +18,16 @@
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
 }
 
+.link {
+  color: #f6eff4;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.18s;
+}
+.link:hover {
+  color: #e754a2;
+}
+
 .title {
   color: #fff;
   font-size: 2rem;

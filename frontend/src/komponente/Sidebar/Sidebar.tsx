@@ -149,7 +149,7 @@ const Sidebar: React.FC = () => {
     <>
       {isMobile && (
         <button className={styles.hamburger} aria-label="Otvori meni" onClick={handleToggleSidebar}>
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="#ffe6ec">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="#b91d95">
             <rect y="6" width="32" height="4" rx="2" />
             <rect y="14" width="32" height="4" rx="2" />
             <rect y="22" width="32" height="4" rx="2" />
@@ -170,7 +170,7 @@ const Sidebar: React.FC = () => {
         <nav className={styles.nav}>
           <button className={styles.navBtn} onClick={() => { navigate("/"); if (isMobile) handleCloseSidebar(); }}>
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-              <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+              <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                 <path d="M3 12L12 4l9 8v7a2 2 0 0 1-2 2h-3v-5h-6v5H5a2 2 0 0 1-2-2z" />
               </svg>
             </span>
@@ -179,7 +179,7 @@ const Sidebar: React.FC = () => {
           <div className={styles.profileMenu}>
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); setShowProfileMenu((prev) => !prev); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                   <circle cx="12" cy="8" r="4" />
                   <path d="M4 20c0-4 16-4 16 0" />
                 </svg>
@@ -222,7 +222,7 @@ const Sidebar: React.FC = () => {
           <div className={styles.profileMenu}>
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); navigate("/historija"); if (isMobile) handleCloseSidebar(); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                   <rect x="3" y="6" width="18" height="2" rx="1" />
                   <rect x="3" y="10" width="14" height="2" rx="1" />
                   <rect x="3" y="14" width="10" height="2" rx="1" />
@@ -234,7 +234,7 @@ const Sidebar: React.FC = () => {
           <div className={styles.profileMenu}>
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); setShowFavoritesMenu((prev) => !prev); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                   <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                 </svg>
               </span>
@@ -278,7 +278,7 @@ const Sidebar: React.FC = () => {
           <div className={styles.profileMenu}>
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); setShowPlaylistMenu((prev) => !prev); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                   <rect x="3" y="6" width="18" height="2" rx="1" />
                   <rect x="3" y="10" width="14" height="2" rx="1" />
                   <rect x="3" y="14" width="10" height="2" rx="1" />
@@ -319,7 +319,7 @@ const Sidebar: React.FC = () => {
               <div className={styles.profileMenu}>
                 <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); setShowSongsMenu((prev) => !prev); }}>
                   <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                    <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                    <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                       <path d="M9 17V5l12-2v12" />
                       <circle cx="6" cy="18" r="3" />
                       <circle cx="18" cy="16" r="3" />
@@ -354,7 +354,7 @@ const Sidebar: React.FC = () => {
               <div className={styles.profileMenu}>
                 <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); setShowAlbumsMenu((prev) => !prev); }}>
                   <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                    <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                    <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                       <circle cx="12" cy="12" r="10" />
                       <circle cx="12" cy="12" r="4" />
                     </svg>
@@ -392,7 +392,7 @@ const Sidebar: React.FC = () => {
               <div className={styles.sectionTitle}>Admin</div>
               <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); navigate("/admin-panel"); if (isMobile) handleCloseSidebar(); }}>
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                  <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                  <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                     <rect x="3" y="3" width="18" height="18" rx="3" />
                     <path d="M3 9h18" />
                     <path d="M9 21V9" />
@@ -402,7 +402,7 @@ const Sidebar: React.FC = () => {
               </button>
               <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); navigate("/statistika"); if (isMobile) handleCloseSidebar(); }}>
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                  <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                  <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                     <rect x="3" y="12" width="4" height="8" rx="1" />
                     <rect x="9" y="8" width="4" height="12" rx="1" />
                     <rect x="15" y="4" width="4" height="16" rx="1" />
@@ -412,7 +412,7 @@ const Sidebar: React.FC = () => {
               </button>
               <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); navigate("/korisnici"); if (isMobile) handleCloseSidebar(); }}>
                 <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                  <svg width="22" height="22" fill="#ffe6ec" viewBox="0 0 24 24">
+                  <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
                     <circle cx="9" cy="7" r="4" />
                     <circle cx="17" cy="17" r="3" />
                     <path d="M17 14v-1a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v1" />
@@ -426,7 +426,7 @@ const Sidebar: React.FC = () => {
           {isMobile && isLoggedIn && (
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); handleLogout(); if (isMobile) handleCloseSidebar(); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#ffe6ec">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#b91d95">
                   <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
                 </svg>
               </span>

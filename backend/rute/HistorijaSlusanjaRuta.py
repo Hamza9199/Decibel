@@ -13,7 +13,8 @@ from kontroleri.HistorijaSlusanjaKontroler import (
     get_all_historija,
     get_historija_by_id,
     create_historija,
-    delete_historija
+    delete_historija,
+    create_or_update_historija,
 )
 
 router = APIRouter(prefix="/api/historija", tags=["Historija slusanja"])
@@ -58,8 +59,7 @@ async def nova_historija(data: HistorijaSlusanjaCreate, session: AsyncSession = 
         await session.delete(postojeci)
         await session.flush()  
     
-    # Kreiraj novi zapis
-    db_obj = await create_historija(session, data)
+    db_obj = await create_or_update_historija(session, data)
     return db_obj
 
 @router.delete("/{historija_id}", response_model=HistorijaSlusanja)

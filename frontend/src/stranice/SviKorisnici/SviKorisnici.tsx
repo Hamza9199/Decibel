@@ -6,6 +6,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
 import { Korisnik, PrijavaIzvodjaca } from "../../types";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
 
@@ -39,6 +40,8 @@ const SviKorisnici: React.FC = () => {
   const [prijavaModal, setPrijavaModal] = useState<{ korisnikID: string; prijava: PrijavaIzvodjaca } | null>(null);
   const [suspendModal, setSuspendModal] = useState<{ korisnik: Korisnik; poruka: string; vrijemeDo: string } | null>(null);
   const [search, setSearch] = useState("");
+  const [localUsers, setLocalUsers] = useState<Korisnik[]>([]);
+  const [localPrijave, setLocalPrijave] = useState<PrijavaIzvodjaca[]>([]);
   const { t } = useTranslation();
 
   const usersQ = useQuery<Korisnik[]>({
@@ -52,8 +55,16 @@ const SviKorisnici: React.FC = () => {
     initialData: [],
   });
 
-  const korisnici = useMemo(() => usersQ.data || [], [usersQ.data]);
-  const prijave = useMemo(() => prijaveQ.data || [], [prijaveQ.data]);
+  const korisnici = localUsers;
+  const prijave = localPrijave;
+
+  useEffect(() => {
+    setLocalUsers(usersQ.data || []);
+  }, [usersQ.data]);
+
+  useEffect(() => {
+    setLocalPrijave(prijaveQ.data || []);
+  }, [prijaveQ.data]);
 
   const updateUserMut = useMutation({
     mutationFn: async (vars: { korisnik: Korisnik; field: "rola" | "statusKorisnika"; value: string }) => {
@@ -68,7 +79,7 @@ const SviKorisnici: React.FC = () => {
           const res = await axios.get(`${API_BASE}/suspendovani/korisnik/${vars.korisnik.id}`);
           if (res.data && res.data.id) await axios.delete(`${API_BASE}/suspendovani/${res.data.id}`);
         } catch {
-          // Ignore
+          // Ako nema suspenzije, samo nastavi
         }
       }
       return body as Korisnik;
@@ -77,7 +88,17 @@ const SviKorisnici: React.FC = () => {
       setSuccess("Uspješno ažurirano.");
       qc.setQueryData<Korisnik[]>(["korisnici"], (old) => (old || []).map((k) => (k.id === updated.id ? updated : k)));
     },
-    onError: () => setError("Greška pri ažuriranju korisnika."),
+    onError: (_err, vars) => {
+      setLocalUsers(prev =>
+        prev.map(u =>
+          u.id === vars.korisnik.id
+            ? vars.korisnik
+            : u
+        )
+      );
+
+      setError("Greška pri ažuriranju korisnika.");
+    },
   });
 
   const suspendMut = useMutation({
@@ -95,28 +116,53 @@ const SviKorisnici: React.FC = () => {
   });
 
   const deletePrijavaMut = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       await axios.delete(`${API_BASE}/prijave_izvodjaca/${id}`);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["prijave_izvodjaca"] });
+    onSuccess: (_data, id) => {
+      setLocalPrijave(prev =>
+        prev.filter(p => String(p.id) !== id)
+      );
+
       setPrijavaModal(null);
+   },
+    onError: () => {
+      qc.invalidateQueries({
+        queryKey: ["prijave_izvodjaca"],
+      });
+
+      alert(
+        t("error_deleting_application") ||
+        "Greška pri brisanju prijave."
+      );
     },
-    onError: () => alert(t("error_deleting_application") || "Greška pri brisanju prijave."),
   });
 
   const handleChange = useCallback(
-    (korisnik: Korisnik, field: "rola" | "statusKorisnika", value: string) => {
-      setError(null);
-      setSuccess(null);
-      if (field === "statusKorisnika" && value === "suspendovan") {
-        setSuspendModal({ korisnik, poruka: "", vrijemeDo: "" });
-        return;
-      }
-      updateUserMut.mutate({ korisnik, field, value });
-    },
-    [updateUserMut]
-  );
+  (korisnik: Korisnik, field: "rola" | "statusKorisnika", value: string) => {
+    setError(null);
+    setSuccess(null);
+
+    setLocalUsers(prev =>
+      prev.map(u =>
+        u.id === korisnik.id
+          ? {
+              ...u,
+              [field]: value,
+            }
+          : u
+      )
+    );
+
+    if (field === "statusKorisnika" && value === "suspendovan") {
+      setSuspendModal({ korisnik, poruka: "", vrijemeDo: "" });
+      return;
+    }
+
+    updateUserMut.mutate({ korisnik, field, value });
+  },
+  [updateUserMut]
+);
 
   const handlePotvrdiSuspenziju = useCallback(async () => {
     if (!suspendModal) return;
@@ -183,7 +229,9 @@ const SviKorisnici: React.FC = () => {
                             className={styles.profileImg}
                           />
                         </td>
-                        <td data-label={t("username") || "Korisničko ime"}>{k.korisnicko_ime}</td>
+                        <td data-label={t("username") || "Korisničko ime"}>
+                          <Link to={`/izvodjac/${k.id}`} className={styles.link}>{k.korisnicko_ime}</Link>
+                        </td>
                         <td data-label={t("email") || "Email"}>{k.email}</td>
                         <td data-label={t("role") || "Rola"}>
                           <select
@@ -207,8 +255,12 @@ const SviKorisnici: React.FC = () => {
                             <option value="suspendovan">{t("status_suspended") || "suspendovan"}</option>
                           </select>
                         </td>
-                        <td data-label={t("name") || "Ime"}>{k.ime}</td>
-                        <td data-label={t("surname") || "Prezime"}>{k.prezime}</td>
+                        <td data-label={t("name") || "Ime"}>
+                          <Link to={`/izvodjac/${k.id}`} className={styles.link}>{k.ime}</Link>
+                        </td>
+                        <td data-label={t("surname") || "Prezime"}>
+                          <Link to={`/izvodjac/${k.id}`} className={styles.link}>{k.prezime}</Link>
+                        </td>
                         <td data-label={t("artist_application") || "Prijava za izvođača"}>
                           {prijava ? (
                             <button
@@ -249,7 +301,7 @@ const SviKorisnici: React.FC = () => {
                         className={styles.deleteBtn}
                         onClick={() => {
                           if (!window.confirm(t("confirm_delete_application") || "Jeste li sigurni da želite obrisati ovu prijavu?")) return;
-                          deletePrijavaMut.mutate(Number(prijavaModal.prijava.id));
+                          deletePrijavaMut.mutate(String(prijavaModal.prijava.id));
                         }}
                       >
                         {t("delete_application") || "Obriši prijavu"}

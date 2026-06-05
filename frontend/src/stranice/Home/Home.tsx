@@ -106,10 +106,10 @@ const Home: React.FC = () => {
     return shuffled.slice(0, n);
   };
 
-  const pjesme = useMemo(() => sample(pjesmeQ.data || [], 20), [pjesmeQ.data]);
-  const albumi = useMemo(() => sample(albumiQ.data || [], 20), [albumiQ.data]);
-  const playliste = useMemo(() => sample(playlisteQ.data || [], 20), [playlisteQ.data]);
-  const korisnici = useMemo(() => sample(korisniciQ.data || [], 20), [korisniciQ.data]);
+  const pjesme = useMemo(() => sample(pjesmeQ.data || [], 10), [pjesmeQ.data]);
+  const albumi = useMemo(() => sample(albumiQ.data || [], 10), [albumiQ.data]);
+  const playliste = useMemo(() => sample(playlisteQ.data || [], 10), [playlisteQ.data]);
+  const korisnici = useMemo(() => sample(korisniciQ.data || [], 10), [korisniciQ.data]);
 
 
   useEffect(() => {

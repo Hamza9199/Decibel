@@ -8,6 +8,17 @@
   justify-content: center;
 }
 
+.link{
+  color: #f3eaf0;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.18s;
+}
+
+.link:hover {
+  color: #e754a2;
+}
+
 .container {
   max-width: 1200px;
   width: 100%;
@@ -105,7 +116,6 @@
   text-align: center;
 }
 
-/* Search input styling */
 .searchInput {
   width: 100%;
   max-width: 400px;

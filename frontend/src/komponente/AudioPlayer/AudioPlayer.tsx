@@ -977,11 +977,17 @@ const AudioPlayer: React.FC<Props> = ({
 
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
-            <Link to={`/izvodjac/${currentOwner?.id}`}>
-              <span className={styles.audioArtist}>
-                  {artistNames || currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
-              </span>
-            </Link>
+            {izvodjaci.map((izv, idx) => (
+              <Link
+              key={izv.id}
+              to={`/izvodjac/${izv.id}`}
+              className={styles.audioArtist}
+              style={{ marginRight: idx < izvodjaci.length - 1 ? 4 : 0 }}
+              >
+              {izv.korisnicko_ime}
+              {idx < izvodjaci.length - 1 && <span>, </span>}
+              </Link>
+            ))}
             <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
               <span className={styles.audioTitle}>
                 {currentSong?.naziv || "Trenutno nema pjesme"}
@@ -1268,11 +1274,24 @@ const AudioPlayer: React.FC<Props> = ({
         />
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
-            <Link to={`/izvodjac/${currentOwner?.id}`}>
-              <span className={styles.audioArtist}>
-                  {artistNames || currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
-              </span>
-            </Link>
+            {izvodjaci.map((izv, idx) => (
+              <Link
+                key={izv.id}
+                to={`/izvodjac/${izv.id}`}
+                className={styles.audioArtist}
+                style={{ marginRight: idx < izvodjaci.length - 1 ? 4 : 0 }}
+              >
+                {izv.korisnicko_ime}
+                {idx < izvodjaci.length - 1 && <span>, </span>}
+              </Link>
+            ))}
+            {izvodjaci.length === 0 && (
+              <Link to={`/izvodjac/${currentOwner?.id}`}> 
+                <span className={styles.audioArtist}>
+                  {currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
+                </span>
+              </Link>
+            )}
             <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
               <span className={styles.audioTitle}>
                 {currentSong?.naziv || "Trenutno nema pjesme"}

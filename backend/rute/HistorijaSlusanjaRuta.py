@@ -12,7 +12,6 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from kontroleri.HistorijaSlusanjaKontroler import (
     get_all_historija,
     get_historija_by_id,
-    create_historija,
     delete_historija,
     create_or_update_historija,
 )

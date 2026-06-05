@@ -3,7 +3,7 @@ from sqlalchemy.dialects.mysql import CHAR
 from sqlalchemy.orm import relationship
 from servisi.Baza import Base
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 import datetime
 from .KontekstPustanja import KontekstPustanja
 from sqlalchemy.types import Enum as SQLEnum
@@ -41,10 +41,4 @@ class HistorijaSlusanjaCreate(HistorijaSlusanjaBase):
 
 class HistorijaSlusanja(HistorijaSlusanjaBase):
     id: int
-
-    class Config:
-        orm_mode = True
-    id: int
-
-    class Config:
-        orm_mode = True
+    model_config = ConfigDict(from_attributes=True)

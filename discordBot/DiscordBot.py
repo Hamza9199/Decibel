@@ -2,13 +2,13 @@ import os
 import logging
 import discord
 from discord import app_commands, Embed
-import requests
 import random
 from dotenv import load_dotenv
 import datetime
 from discord.ui import View, Button
 import httpx
 import asyncio
+import aiohttp
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -22,18 +22,8 @@ class MyClient(discord.Client):
         intents.message_content = True
         super().__init__(intents=intents)
         self.tree = app_commands.CommandTree(self)
-        import threading
-        import time
-        def keep_alive():
-            url = os.getenv("KEEP_ALIVE_URL") or "http://localhost:8000/"
-            while True:
-                try:
-                    requests.get(url, timeout=10)
-                    print(f"[DiscordBot] Keep-alive request sent to {url}")
-                except Exception:
-                    pass
-                time.sleep(300)  
-        threading.Thread(target=keep_alive, daemon=True).start()
+        
+        
 
     async def setup_hook(self):
         GUILD_IDS = [899379078086426675, 373131243224694785, 775693283007397899]  
@@ -99,7 +89,6 @@ class MyClient(discord.Client):
                 if interaction.response.is_done():
                     return []
                 
-                import aiohttp
                 BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
                 
                 if not current or not current.strip():
@@ -220,8 +209,7 @@ class MyClient(discord.Client):
                     pass
                 return
 
-            import aiohttp
-            import asyncio
+           
             BACKEND_URL = os.getenv("BACKEND_URL") or "http://localhost:8000"
             
             try:

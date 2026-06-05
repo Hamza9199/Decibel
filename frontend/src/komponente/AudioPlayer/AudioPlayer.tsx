@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, memo, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, memo, useMemo, useCallback, Fragment } from "react";
 import styles from "./AudioPlayer.module.css";
 import axios from "axios";
 import { Korisnik, Playlista, Pjesma, KorisnikPretplata } from "../../types";
@@ -977,22 +977,37 @@ const AudioPlayer: React.FC<Props> = ({
 
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
-            {izvodjaci.map((izv, idx) => (
-              <Link
-              key={izv.id}
-              to={`/izvodjac/${izv.id}`}
-              className={styles.audioArtist}
-              style={{ marginRight: idx < izvodjaci.length - 1 ? 4 : 0 }}
-              >
-              {izv.korisnicko_ime}
-              {idx < izvodjaci.length - 1 && <span>, </span>}
-              </Link>
-            ))}
-            <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
-              <span className={styles.audioTitle}>
-                {currentSong?.naziv || "Trenutno nema pjesme"}
-              </span>
-            </Link>
+           <div className={styles.artistContainer}>
+              <div className={styles.marquee}>
+                {izvodjaci.map((izv, idx) => (
+                  <Fragment key={izv.id}>
+                    <Link
+                      to={`/izvodjac/${izv.id}`}
+                      className={styles.audioArtist}
+                    >
+                      {izv.korisnicko_ime}
+                    </Link>
+
+                    {idx < izvodjaci.length - 1 && (
+                      <span className={styles.audioArtistSeparator}>
+                        &
+                      </span>
+                    )}
+                  </Fragment>
+                ))}
+
+                <span className={styles.audioArtistSeparator}>
+                  -
+                </span>
+
+                <Link
+                  to={`/pjesma/${currentSong?.id}`}
+                  className={styles.audioTitle}
+                >
+                  {currentSong?.naziv}
+                </Link>
+              </div>
+            </div>
           </div>
           <div className={styles.audioTime}>
             {formatTime(progress)} / {formatTime(duration)}
@@ -1274,30 +1289,40 @@ const AudioPlayer: React.FC<Props> = ({
         />
         <div className={styles.audioMeta}>
           <div className={styles.audioDetails}>
-            {izvodjaci.map((izv, idx) => (
-              <Link
-                key={izv.id}
-                to={`/izvodjac/${izv.id}`}
-                className={styles.audioArtist}
-                style={{ marginRight: idx < izvodjaci.length - 1 ? 4 : 0 }}
-              >
-                {izv.korisnicko_ime}
-                {idx < izvodjaci.length - 1 && <span>, </span>}
-              </Link>
-            ))}
-            {izvodjaci.length === 0 && (
-              <Link to={`/izvodjac/${currentOwner?.id}`}> 
-                <span className={styles.audioArtist}>
-                  {currentOwner?.korisnicko_ime || "Nepoznati korisnik"} -
-                </span>
-              </Link>
-            )}
-            <Link to={currentSong?.id ? `/pjesma/${currentSong.id}` : "#"}>
-              <span className={styles.audioTitle}>
-                {currentSong?.naziv || "Trenutno nema pjesme"}
-              </span>
-            </Link>
 
+             <div className={styles.artistContainer}>
+              <div className={styles.marquee}>
+                {izvodjaci.map((izv, idx) => (
+                  <Fragment key={izv.id}>
+                    <Link
+                      to={`/izvodjac/${izv.id}`}
+                      className={styles.audioArtist}
+                    >
+                      {izv.korisnicko_ime}
+                    </Link>
+
+                    {idx < izvodjaci.length - 1 && (
+                      <span className={styles.audioArtistSeparator}>
+                        &
+                      </span>
+                    )}
+                  </Fragment>
+                ))}
+
+                <span className={styles.audioArtistSeparator}>
+                  -
+                </span>
+
+                <Link
+                  to={`/pjesma/${currentSong?.id}`}
+                  className={styles.audioTitle}
+                >
+                  {currentSong?.naziv}
+                </Link>
+              </div>
+            </div>
+          
+        
             {pjesma && slusacID && (
               <button
                 style={{

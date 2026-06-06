@@ -221,18 +221,29 @@ class MyClient(discord.Client):
                             if pjesma and pjesma.get('putanjaAudio'):
                                 url = pjesma['putanjaAudio']
                                 trajanje = pjesma.get('trajanjeSekunde', 0)
-                                izvodjac_ime = None
-                                korisnik_id = pjesma.get('korisnikID')
-                                
-                                if korisnik_id:
-                                    async with session.get(f"{BACKEND_URL}/api/korisnici/{korisnik_id}") as korisnik_resp:
-                                        if korisnik_resp.status == 200:
-                                            korisnik = await korisnik_resp.json()
-                                            izvodjac_ime = korisnik.get('korisnicko_ime')
-                                
-                                if not izvodjac_ime:
-                                    izvodjac_ime = "Nepoznati izvođač"
-                                
+                                artist_names: list[str] = []
+                                try:
+                                    async with session.get(f"{BACKEND_URL}/api/izvodjac_pjesma/") as rel_resp:
+                                        if rel_resp.status == 200:
+                                            veze = await rel_resp.json()
+                                            song_veze = [v for v in veze if v.get('pjesmaID') == pjesma.get('id')]
+                                            async def fetch_artist(v):
+                                                izvodjac_id = v.get('izvodjacID')
+                                                if not izvodjac_id:
+                                                    return None
+                                                async with session.get(f"{BACKEND_URL}/api/korisnici/{izvodjac_id}") as art_resp:
+                                                    if art_resp.status == 200:
+                                                        korisnik = await art_resp.json()
+                                                        return korisnik.get('korisnicko_ime')
+                                                    return None
+                                            artist_results = await asyncio.gather(*[fetch_artist(v) for v in song_veze])
+                                            artist_names = [name for name in artist_results if name]
+                                except Exception as e:
+                                    logging.exception("[DiscordBot] Failed to fetch artists for play command")
+                                if not artist_names:
+                                    artist_names = ["Nepoznati izvođač"]
+                                izvodjac_ime = " & ".join(artist_names)
+
                                 def make_embed(current_sec):
                                     bar_length = 19
                                     if trajanje > 0:

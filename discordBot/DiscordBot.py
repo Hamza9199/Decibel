@@ -438,6 +438,9 @@ class MyClient(discord.Client):
             await self.tree.sync(guild=discord.Object(id=guild_id)) 
 
     async def on_ready(self):
+        import shutil
+
+        print("FFMPEG PATH:", shutil.which("ffmpeg"))
         try:
             headers = {"Authorization": f"Bot {TOKEN}"}
             async with httpx.AsyncClient() as client:

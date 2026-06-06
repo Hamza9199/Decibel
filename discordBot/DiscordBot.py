@@ -397,19 +397,7 @@ class MyClient(discord.Client):
                 await voice_client.disconnect()
                 await interaction.response.send_message("Disconnected from voice channel!", ephemeral=False)
             else:
-                await interaction.response.send_message("I'm not in a voice channel!", ephemeral=True)
-
-        async def join_test(interaction: discord.Interaction):
-            """Join the invoking user's voice channel (test command)."""
-            if not interaction.user.voice or not interaction.user.voice.channel:
-                await interaction.response.send_message("Join VC first", ephemeral=True)
-                return
-            try:
-                await interaction.user.voice.channel.connect()
-                await interaction.response.send_message("Connected", ephemeral=False)
-            except Exception as e:
-                logging.exception("[DiscordBot] join_test error")
-                await interaction.response.send_message(f"Failed to connect: {type(e).__name__}", ephemeral=True)        
+                await interaction.response.send_message("I'm not in a voice channel!", ephemeral=True)      
 
         for guild_id in GUILD_IDS:
             self.tree.command(
@@ -444,11 +432,7 @@ class MyClient(discord.Client):
                 guild=discord.Object(id=guild_id)
             )(dis_command)
 
-            self.tree.command(
-                name="join_test",
-                description="Join the user's voice channel (test)",
-                guild=discord.Object(id=guild_id)
-            )(join_test)
+    
 
         for guild_id in GUILD_IDS:
             await self.tree.sync(guild=discord.Object(id=guild_id)) 

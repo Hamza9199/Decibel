@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import os
 from dotenv import load_dotenv
-from uuid import UUID
 
 
 from modeli.IzvodjacPjesma import IzvodjacPjesma, IzvodjacPjesmaCreate
@@ -41,6 +40,13 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 async def svi_izvodjac_pjesma(session: AsyncSession = Depends(get_session)):
     return await get_all_izvodjac_pjesma(session)
 
+@router.get("/izvodjac/{izvodjacID}")
+async def get_pjesme_izvodjaca(
+    izvodjacID: str,
+    session: AsyncSession = Depends(get_session)
+):
+    return await get_pjesme_za_izvodjaca(session, izvodjacID)
+
 @router.get("/{izvodjacID}/{pjesmaID}", response_model=IzvodjacPjesma)
 async def get_veza(izvodjacID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):
     veza = await get_izvodjac_pjesma(session, izvodjacID, pjesmaID)
@@ -60,13 +66,6 @@ async def obrisi_vezu(izvodjacID: str, pjesmaID: int, session: AsyncSession = De
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
 
-
-@router.get("/izvodjac/{izvodjacID}")
-async def get_pjesme_izvodjaca(
-    izvodjacID: UUID,
-    session: AsyncSession = Depends(get_session)
-):
-    return await get_pjesme_za_izvodjaca(session, izvodjacID)
 
 @router.patch("/{izvodjacID}/{pjesmaID}", response_model=IzvodjacPjesma)
 async def update_potvrdjeno(

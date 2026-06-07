@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from servisi.Baza import Base
 from typing import Optional
 from pydantic import BaseModel
+from .Pjesma import PjesmaORM, Pjesma
 import datetime
 
 class IzvodjacPjesmaORM(Base):
@@ -29,5 +30,8 @@ class IzvodjacPjesmaCreate(IzvodjacPjesmaBase):
     pass
 
 class IzvodjacPjesma(IzvodjacPjesmaBase):
+    pjesma: Optional[Pjesma] = None
+
+
     class Config:
         orm_mode = True

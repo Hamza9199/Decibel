@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 import os
 from dotenv import load_dotenv
+from uuid import UUID
+
 
 from modeli.IzvodjacPjesma import IzvodjacPjesma, IzvodjacPjesmaCreate
 from sqlalchemy.orm import sessionmaker
@@ -58,9 +60,10 @@ async def obrisi_vezu(izvodjacID: str, pjesmaID: int, session: AsyncSession = De
         raise HTTPException(status_code=404, detail="Veza nije pronađena")
     return db_obj
 
+
 @router.get("/izvodjac/{izvodjacID}")
 async def get_pjesme_izvodjaca(
-    izvodjacID: str,
+    izvodjacID: UUID,
     session: AsyncSession = Depends(get_session)
 ):
     return await get_pjesme_za_izvodjaca(session, izvodjacID)

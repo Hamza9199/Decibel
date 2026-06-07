@@ -81,25 +81,25 @@ const AdminPanel: React.FC = () => {
       setSongArtists({});
       return;
     }
-    const loadArtists = async () => {
-      try {
-        const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
-        const veze = vezeRes.data || [];
-        const result: Record<number, Artist[]> = {};
-        for (const song of pjesme) {
-          const songVeze = veze.filter((v: { pjesmaID: number }) => v.pjesmaID === song.id);
-          const artists = await Promise.all(
-            songVeze.map((v: { izvodjacID: string }) =>
-              axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then(r => r.data as Artist).catch(() => null)
-            )
-          );
-          result[song.id] = artists.filter(Boolean) as Artist[];
-        }
-        setSongArtists(result);
-      } catch {
-        setSongArtists({});
-      }
-    };
+        const loadArtists = async () => {
+          try {
+            const vezeRes = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+            const veze = vezeRes.data || [];
+            const result: Record<number, Artist[]> = {};
+            for (const song of pjesme) {
+              const songVeze = veze.filter((v: { pjesmaID: number; potvrdjeno?: boolean }) => v.pjesmaID === song.id && v.potvrdjeno);
+              const artists = await Promise.all(
+                songVeze.map((v: { izvodjacID: string }) =>
+                  axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then(r => r.data as Artist).catch(() => null)
+                )
+              );
+              result[song.id] = artists.filter(Boolean) as Artist[];
+            }
+            setSongArtists(result);
+          } catch {
+            setSongArtists({});
+          }
+        };
     loadArtists();
   }, [pjesme]);
 

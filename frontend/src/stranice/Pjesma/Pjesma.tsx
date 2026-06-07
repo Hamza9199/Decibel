@@ -54,6 +54,7 @@ const Pjesma: React.FC = () => {
   const [noviKomentar, setNoviKomentar] = useState("");
   const [editKomentarId, setEditKomentarId] = useState<number | null>(null);
   const [editKomentarTekst, setEditKomentarTekst] = useState("");
+  const [localComments, setLocalComments] = useState<Komentar[]>([]);
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [likeCount, setLikeCount] = useState<number>(0);
   const [liked, setLiked] = useState(false);
@@ -188,6 +189,10 @@ const Pjesma: React.FC = () => {
     initialData: { list: [], users: {} },
   });
 
+
+  useEffect(() => {
+    setLocalComments(komentariQ.data.list || []);
+  }, [komentariQ.data.list]);
   
 const likeMutation = useMutation({
   mutationFn: async () => {
@@ -214,9 +219,23 @@ const unlikeMutation = useMutation({
       if (!mojID || !pjesmaId || !text.trim()) throw new Error("invalid");
       await axios.post(`${API_BASE}/komentari/`, { korisnikID: mojID, pjesmaID: Number(pjesmaId), tekst: text, vrijemePjesmeSekunde: 0, kreiranDatumVrijeme: new Date().toISOString() });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["komentari", pjesmaId] });
+   onSuccess: async () => {
+      const r = await axios.get(`${API_BASE}/komentari/`);
+
+      const svi = r.data || [];
+
+      setLocalComments(
+        svi.filter(
+          (k: Komentar) =>
+            String(k.pjesmaID) === String(pjesmaId)
+        )
+      );
+
       setNoviKomentar("");
+
+      qc.invalidateQueries({
+        queryKey: ["komentari", pjesmaId],
+      });
     },
     onError: () => setKomentarError("Greška pri dodavanju komentara."),
   });
@@ -225,11 +244,22 @@ const unlikeMutation = useMutation({
     mutationFn: async (vars: { id: number; text: string }) => {
       await axios.put(`${API_BASE}/komentari/${vars.id}`, { tekst: vars.text });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["komentari", pjesmaId] });
-      setEditKomentarId(null);
-      setEditKomentarTekst("");
-    },
+    onSuccess: (_data, vars) => {
+    setLocalComments(prev =>
+      prev.map(k =>
+        k.id === vars.id
+          ? { ...k, tekst: vars.text }
+          : k
+      )
+    );
+
+    setEditKomentarId(null);
+    setEditKomentarTekst("");
+
+    qc.invalidateQueries({
+      queryKey: ["komentari", pjesmaId],
+    });
+  },
     onError: () => setKomentarError("Greška pri uređivanju komentara."),
   });
 
@@ -268,12 +298,12 @@ const unlikeMutation = useMutation({
   }, [editCommentMut, editKomentarTekst]);
 
   const komentariSortirani = useMemo(() => {
-    const list = komentariQ.data.list || [];
+    const list = localComments;
     if (!mojID) return list;
     const vlasnikKomentar = list.find((k) => k.korisnikID === mojID);
     const ostali = list.filter((k) => k.korisnikID !== mojID);
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
-  }, [komentariQ.data.list, mojID]);
+  }, [mojID, localComments]);
 
   const loading = useMemo(() => pjesmaQ.isLoading || topPjesmeQ.isLoading || izvodjaciQ.isLoading || komentariQ.isLoading, [pjesmaQ.isLoading, topPjesmeQ.isLoading, izvodjaciQ.isLoading, komentariQ.isLoading]);
 

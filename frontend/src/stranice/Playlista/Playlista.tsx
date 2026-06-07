@@ -48,6 +48,7 @@ const Playlista: React.FC = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null);
   const [likePlaylist, setLikePlaylist] = useState(false);
   const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
+  const [playlistLocked, setPlaylistLocked] = useState(false);
   const { t } = useTranslation();
 
   const korisnikID = useMemo(() => {
@@ -58,6 +59,7 @@ const Playlista: React.FC = () => {
       return "";
     }
   }, []);
+
 
   const [songArtists, setSongArtists] = useState<Record<number, { id: string; korisnicko_ime: string }[]>>({});
 
@@ -85,7 +87,7 @@ const Playlista: React.FC = () => {
     setLocalSongs(songsQ.data || []);
   }, [songsQ.data]);
 
-
+  
   const playlistsQ = useQuery<PlaylistaType[]>({
     queryKey: ["playliste"],
     queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
@@ -214,40 +216,54 @@ const Playlista: React.FC = () => {
     mutationFn: async (vars: { draggedPjesmaId: number; prevId: number | null }) => {
       await axios.post(`${API_BASE}/pjesma_playlista/promjeni-redoslijed/`, { playlistaID: Number(playlistaId), pjesmaID: vars.draggedPjesmaId, nova_pozicija_iza_pjesmeID: vars.prevId });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["playlistSongs", playlistaId] });
-    },
+      onSuccess: () => {
+        qc.invalidateQueries({
+          queryKey: ["playlistSongs", playlistaId]
+        });
+      },
+
+      onSettled: () => {
+        setTimeout(() => {
+          setPlaylistLocked(false);
+        }, 4000);
+      },
   });
 
   const removeSongMut = useMutation({
-      mutationFn: async (pjesmaId: number) => {
-        if (!playlistaId) return;
+    mutationFn: async (pjesmaId: number) => {
+      if (!playlistaId) return;
 
-        await axios.delete(
-          `${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`
-        );
-      },
+      await axios.delete(
+        `${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`
+      );
+    },
 
-      onMutate: async (pjesmaId) => {
-        setLocalSongs(prev =>
-          prev.filter(p => p.id !== pjesmaId)
-        );
-      },
+    onMutate: async (pjesmaId) => {
+      setLocalSongs(prev =>
+        prev.filter(p => p.id !== pjesmaId)
+      );
+    },
 
-      onError: () => {
-        qc.invalidateQueries({
-          queryKey: ["playlistSongs", playlistaId],
-        });
+    onError: () => {
+      qc.invalidateQueries({
+        queryKey: ["playlistSongs", playlistaId],
+      });
 
-        alert("Greška pri izbacivanju pjesme iz playliste.");
-      },
+      alert("Greška pri izbacivanju pjesme iz playliste.");
+    },
 
-      onSuccess: () => {
-        qc.invalidateQueries({
-          queryKey: ["playlistSongs", playlistaId],
-        });
-      },
-    });
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: ["playlistSongs", playlistaId],
+      });
+    },
+
+    onSettled: () => {
+      setTimeout(() => {
+        setPlaylistLocked(false);
+      }, 4000);
+    },
+  });
 
   const handlePlaySong = useCallback((p: Pjesma) => {
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: { src: p.putanjaAudio, title: p.naziv, putanjaGif: p.putanjaGif, putanjaSlika: p.putanjaSlika, korisnikID: p.korisnikID } }));
@@ -290,30 +306,57 @@ const Playlista: React.FC = () => {
     setDragOverIdx(idx);
   }, []);
 
-  const handleDrop = useCallback(async (idx: number) => {
+ const handleDrop = useCallback(async (idx: number) => {
+    if (playlistLocked) {
+      setDraggedIdx(null);
+      setDragOverIdx(null);
+      return;
+    }
     if (draggedIdx === null || draggedIdx === idx) {
       setDraggedIdx(null);
       setDragOverIdx(null);
       return;
     }
+
     const draggedPjesma = pjesme[draggedIdx];
+
     const temp = [...pjesme];
     const [moved] = temp.splice(draggedIdx, 1);
-    const insertIndex = draggedIdx < idx ? idx - 1 : idx;
+
+    const insertIndex = idx;
+
     temp.splice(insertIndex, 0, moved);
+
+    setLocalSongs(temp);
+
     let prevId: number | null = null;
-    if (insertIndex !== 0) prevId = temp[insertIndex - 1].id;
+
+    if (insertIndex !== 0) {
+      prevId = temp[insertIndex - 1].id;
+    }
+
     try {
-      await reorderMut.mutateAsync({ draggedPjesmaId: draggedPjesma.id, prevId });
-    } catch { void 0; }
+      setPlaylistLocked(true);
+      
+      await reorderMut.mutateAsync({
+        draggedPjesmaId: draggedPjesma.id,
+        prevId,
+      });
+    } catch {
+      setLocalSongs(pjesme);
+    }
+
     setDraggedIdx(null);
     setDragOverIdx(null);
-  }, [draggedIdx, pjesme, reorderMut]);
+  }, [draggedIdx, pjesme, reorderMut, playlistLocked]);
 
   const handleRemoveSong = useCallback((pjesmaId: number) => {
-    if (!playlistaId) return;
+    if (!playlistaId || playlistLocked) return;
+
+    setPlaylistLocked(true);
+
     removeSongMut.mutate(pjesmaId);
-  }, [removeSongMut, playlistaId]);
+  }, [removeSongMut, playlistaId, playlistLocked]);
 
   const formatTrajanje = useCallback((sec?: number) => {
     if (!sec) return "0:00";
@@ -392,7 +435,7 @@ const Playlista: React.FC = () => {
                 </thead>
                 <tbody>
                   {pjesme.map((p, idx) => (
-                    <tr key={p.id} draggable={isOwner} onDragStart={() => handleDragStart(idx)} onDragOver={(e) => { e.preventDefault(); handleDragOver(idx); }} onDrop={() => handleDrop(idx)} className={`${styles.songRow} ${dragOverIdx === idx ? styles.dragOver : draggedIdx === idx ? styles.dragging : ""}`}>
+                    <tr key={p.id} draggable={isOwner && !playlistLocked} onDragStart={() => handleDragStart(idx)} onDragOver={(e) => { e.preventDefault(); handleDragOver(idx); }} onDrop={() => handleDrop(idx)} className={`${styles.songRow} ${dragOverIdx === idx ? styles.dragOver : draggedIdx === idx ? styles.dragging : ""}`}>
                       <td data-label="#" className={styles.songNumber}>{idx + 1}</td>
                       <td data-label={t("song_name") || "Naziv"} className={styles.songNameCell}>
                           <div className={styles.songInfo}>
@@ -421,7 +464,7 @@ const Playlista: React.FC = () => {
                           <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec"><rect x="18" y="8" width="8" height="28" /><rect x="8" y="18" width="28" height="8" /></svg>
                         </button>
                         {isOwner && (
-                          <button className={styles.removeSongBtn} onClick={() => handleRemoveSong(p.id)} title={t("remove") || "Izbaci iz playliste"}>
+                          <button  disabled={playlistLocked} className={styles.removeSongBtn} onClick={() => handleRemoveSong(p.id)} title={t("remove") || "Izbaci iz playliste"}>
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" /></svg>
                           </button>
                         )}

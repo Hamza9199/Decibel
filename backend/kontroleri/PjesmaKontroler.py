@@ -11,7 +11,7 @@ from modeli.StatistikaReprodukcije import StatistikaReprodukcijeORM
 from modeli.PjesmaPlaylista import PjesmaPlaylistaORM
 from servisi.PlaylistaRedoslijed import obrisi_pjesmu
 from sqlalchemy import delete, update
-
+from sqlalchemy.orm import selectinload
 
 async def get_all_pjesme(session: AsyncSession):
     result = await session.execute(
@@ -108,8 +108,8 @@ async def get_pjesme_by_korisnik_id(
     korisnik_id: str
 ):
     result = await session.execute(
-        select(PjesmaORM).where(
-            PjesmaORM.korisnikID == korisnik_id
-        )
-    )
+    select(PjesmaORM)
+    .options(selectinload(PjesmaORM.korisnik))
+    .where(PjesmaORM.korisnikID == korisnik_id)
+    )   
     return result.scalars().all()

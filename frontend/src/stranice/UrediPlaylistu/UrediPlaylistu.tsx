@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo, useRef } from "react";
 // import styles from "./UrediPlaylistu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
@@ -39,7 +39,9 @@ const UrediPlaylistu: React.FC = () => {
   const { playlistaId } = useParams<{ playlistaId: string }>();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [removing, setRemoving] = useState<number | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const processingRef = useRef(false);
+  const removeQueue = useRef<number[]>([]);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -141,8 +143,38 @@ const UrediPlaylistu: React.FC = () => {
       if (!playlistaId) return;
       await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["playlistSongs", playlistaId] });
+    onMutate: async (pjesmaId) => {
+      await qc.cancelQueries({
+        queryKey: ["playlistSongs", playlistaId],
+      });
+
+      const previousSongs =
+        qc.getQueryData<Pjesma[]>([
+          "playlistSongs",
+          playlistaId,
+        ]) || [];
+
+      qc.setQueryData(
+        ["playlistSongs", playlistaId],
+        previousSongs.filter(
+          (p) => p.id !== pjesmaId
+        )
+      );
+
+      return { previousSongs };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previousSongs) {
+        qc.setQueryData(
+          ["playlistSongs", playlistaId],
+          context.previousSongs
+        );
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({
+        queryKey: ["playlistSongs", playlistaId],
+      });
     },
   });
 
@@ -156,13 +188,38 @@ const UrediPlaylistu: React.FC = () => {
     [updateMut]
   );
 
-  const handleRemoveSong = useCallback(
-    (pjesmaId: number) => {
-      setRemoving(pjesmaId);
-      removeSongMut.mutate(pjesmaId, { onSettled: () => setRemoving(null) });
-    },
-    [removeSongMut]
-  );
+  const processQueue = useCallback(() => {
+    if (processingRef.current) return;
+
+    const nextSongId = removeQueue.current.shift();
+
+    if (nextSongId == null) return;
+
+    processingRef.current = true;
+    setRemoving(true);
+
+    removeSongMut.mutate(nextSongId, {
+      onSettled: () => {
+        processingRef.current = false;
+        setRemoving(false);
+        processQueue();
+      },
+    });
+  }, [removeSongMut]);
+
+    const handleRemoveSong = useCallback(
+      (pjesmaId: number) => {
+        if (removeQueue.current.includes(pjesmaId)) {
+          return;
+        }
+
+        removeQueue.current.push(pjesmaId);
+
+        processQueue();
+      },
+      [processQueue]
+    );
+  
 
   const playlista = playlistaQ.data;
   const pjesme = songsQ.data || [];
@@ -276,8 +333,12 @@ const UrediPlaylistu: React.FC = () => {
                       <span className={styles.songName}>{p.naziv}</span>
                       <span className={styles.songDuration}>{p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}</span>
                     </div>
-                    <button className={styles.removeBtn} disabled={removing === p.id} onClick={() => handleRemoveSong(p.id)} style={{ opacity: removing === p.id ? 0.6 : 1 }}>
-                      {removing === p.id ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
+                      <button
+                        className={styles.removeBtn}
+                        disabled={removing}
+                        onClick={() => handleRemoveSong(p.id)}
+                      > 
+                      {removing ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
                     </button>
                   </li>
                 ))}

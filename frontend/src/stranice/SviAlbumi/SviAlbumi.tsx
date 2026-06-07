@@ -36,6 +36,7 @@ const SviAlbumi: React.FC = () => {
   }, []);
 
   const [search, setSearch] = useState("");
+  const [localAlbumi, setLocalAlbumi] = useState<Album[]>([]);
   const { t } = useTranslation();
 
   const korisnikID = useMemo(() => {
@@ -58,6 +59,11 @@ const SviAlbumi: React.FC = () => {
     initialData: [],
   });
 
+
+  useEffect(() => {
+    setLocalAlbumi(albumiQ.data || []);
+  }, [albumiQ.data]);
+
   const pjesmeQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme"],
     queryFn: async () => axios.get(`${API_BASE}/pjesme/`).then((r) => r.data || []),
@@ -68,10 +74,29 @@ const SviAlbumi: React.FC = () => {
     mutationFn: async (id: number) => {
       await axios.delete(`${API_BASE}/albumi/${id}`);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["mojiAlbumi", korisnikID] });
+
+    onMutate: async (id: number) => {
+      setLocalAlbumi(prev =>
+        prev.filter(album => album.id !== id)
+      );
     },
-    onError: () => alert(t("error_deleting_album") || "Greška pri brisanju albuma."),
+
+    onError: () => {
+      qc.invalidateQueries({
+        queryKey: ["mojiAlbumi", korisnikID],
+      });
+
+      alert(
+        t("error_deleting_album") ||
+        "Greška pri brisanju albuma."
+      );
+    },
+
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: ["mojiAlbumi", korisnikID],
+      });
+    },
   });
 
   const pjesme = useMemo(() => pjesmeQ.data || [], [pjesmeQ.data]);
@@ -85,7 +110,7 @@ const SviAlbumi: React.FC = () => {
     [pjesme]
   );
 
-  const albumi = useMemo(() => albumiQ.data || [], [albumiQ.data]);
+  const albumi = localAlbumi;
   const filtriraniAlbumi = useMemo(() => albumi.filter((a) => a.naziv.toLowerCase().includes(search.toLowerCase())), [albumi, search]);
   const loading = albumiQ.isLoading && Boolean(korisnikID);
 

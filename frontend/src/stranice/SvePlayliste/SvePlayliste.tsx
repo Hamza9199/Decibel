@@ -36,6 +36,7 @@ const SvePlayliste: React.FC = () => {
   }, []);
 
   const [search, setSearch] = useState("");
+  const [localPlaylists, setLocalPlaylists] = useState<Playlista[]>([]);
   const { t } = useTranslation();
 
   const korisnikID = useMemo(() => {
@@ -58,6 +59,11 @@ const SvePlayliste: React.FC = () => {
     initialData: [],
   });
 
+
+  useEffect(() => {
+    setLocalPlaylists(playlistsQ.data || []);
+  }, [playlistsQ.data]);
+
   const playPlaylistSongsMut = useMutation({
     mutationFn: async (playlistId: number) => {
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
@@ -73,21 +79,66 @@ const SvePlayliste: React.FC = () => {
     onError: () => console.error("Greška pri učitavanju playliste."),
   });
 
-  const deleteMut = useMutation({
+ const deleteMut = useMutation({
     mutationFn: async (id: number) => {
       await axios.delete(`${API_BASE}/playliste/${id}`);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["mojePlayliste", korisnikID] });
+
+    onMutate: async (id) => {
+      setLocalPlaylists(prev =>
+        prev.filter(pl => pl.id !== id)
+      );
+
+      await qc.cancelQueries({
+        queryKey: ["mojePlayliste", korisnikID],
+      });
+
+      const previousPlaylists =
+        qc.getQueryData<Playlista[]>([
+          "mojePlayliste",
+          korisnikID,
+        ]) || [];
+
+      qc.setQueryData(
+        ["mojePlayliste", korisnikID],
+        previousPlaylists.filter(
+          pl => pl.id !== id
+        )
+      );
+
+      return { previousPlaylists };
     },
-    onError: () => alert(t("error_deleting_playlist") || "Greška pri brisanju playliste."),
+
+    onError: (_err, _id, context) => {
+      if (context?.previousPlaylists) {
+        setLocalPlaylists(
+          context.previousPlaylists
+        );
+
+        qc.setQueryData(
+          ["mojePlayliste", korisnikID],
+          context.previousPlaylists
+        );
+      }
+
+      alert(
+        t("error_deleting_playlist") ||
+        "Greška pri brisanju playliste."
+      );
+    },
+
+    onSettled: () => {
+      qc.invalidateQueries({
+        queryKey: ["mojePlayliste", korisnikID],
+      });
+    },
   });
 
   const handlePlayPlaylist = useCallback((playlistId: number) => {
     playPlaylistSongsMut.mutate(playlistId);
   }, [playPlaylistSongsMut]);
 
-  const playliste = useMemo(() => playlistsQ.data || [], [playlistsQ.data]);
+  const playliste = localPlaylists;
   const filtriranePlayliste = useMemo(() => playliste.filter((pl) => pl.naziv.toLowerCase().includes(search.toLowerCase())), [playliste, search]);
   const loading = playlistsQ.isLoading && Boolean(korisnikID);
 

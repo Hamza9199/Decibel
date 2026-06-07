@@ -41,6 +41,11 @@ const UrediAlbum: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [removing, setRemoving] = useState<number | null>(null);
   const [dodajuci, setDodajuci] = useState<number | null>(null);
+  const [naziv, setNaziv] = useState("");
+  const [opis, setOpis] = useState("");
+  const [fileSlika, setFileSlika] = useState<File | null>(null);
+  const [fileGif, setFileGif] = useState<File | null>(null);
+  const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -69,10 +74,9 @@ const UrediAlbum: React.FC = () => {
     initialData: [],
   });
 
-  const [naziv, setNaziv] = useState("");
-  const [opis, setOpis] = useState("");
-  const [fileSlika, setFileSlika] = useState<File | null>(null);
-  const [fileGif, setFileGif] = useState<File | null>(null);
+  useEffect(() => {
+    setLocalSongs(pjesmeQ.data || []);
+  }, [pjesmeQ.data]);
 
   useEffect(() => {
     if (albumQ.data) {
@@ -100,9 +104,25 @@ const UrediAlbum: React.FC = () => {
       );
     },
 
+    onMutate: async (pjesmaId) => {
+      setLocalSongs(prev =>
+        prev.map(p =>
+          p.id === pjesmaId
+            ? { ...p, albumID: undefined } 
+            : p
+        )
+      );
+    },
+
+    onError: () => {
+      qc.invalidateQueries({
+        queryKey: ["pjesme", korisnikID],
+      });
+    },
+
     onSuccess: () => {
       qc.invalidateQueries({
-        queryKey: ["pjesme"],
+        queryKey: ["pjesme", korisnikID],
       });
     },
   });
@@ -114,9 +134,28 @@ const UrediAlbum: React.FC = () => {
       );
     },
 
+    onMutate: async (pjesmaId) => {
+      setLocalSongs(prev =>
+        prev.map(p =>
+          p.id === pjesmaId
+            ? {
+                ...p,
+                albumID: Number(albumId),
+              }
+            : p
+        )
+      );
+    },
+
+    onError: () => {
+      qc.invalidateQueries({
+        queryKey: ["pjesme", korisnikID],
+      });
+    },
+
     onSuccess: () => {
       qc.invalidateQueries({
-        queryKey: ["pjesme"],
+        queryKey: ["pjesme", korisnikID],
       });
     },
   });
@@ -159,7 +198,7 @@ const UrediAlbum: React.FC = () => {
     [addSongMut]
   );
 
-  const pjesme = useMemo(() => pjesmeQ.data || [], [pjesmeQ.data]);
+  const pjesme = localSongs;
   const pjesmeAlbuma = useMemo(() => pjesme.filter((p) => String(p.albumID) === String(albumId)), [pjesme, albumId]);
   const svePjesme = useMemo(() => pjesme.filter((p) => !p.albumID || String(p.albumID) === "null" || p.albumID === null), [pjesme]);
 

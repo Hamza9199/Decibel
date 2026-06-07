@@ -68,7 +68,7 @@ const NoviAlbum: React.FC = () => {
       if (albumId && vars.odabranePjesme.length > 0) {
         await Promise.all(
           vars.odabranePjesme.map((pjesmaId) =>
-            axios.put(`${API_BASE}/pjesme/${pjesmaId}`, { ...vars.svePjesme.find((p) => p.id === pjesmaId), albumID: albumId })
+            axios.post(`${API_BASE}/albumi/${albumId}/pjesme/${pjesmaId}`)
           )
         );
       }

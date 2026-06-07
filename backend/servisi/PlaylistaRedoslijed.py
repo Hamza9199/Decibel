@@ -126,6 +126,8 @@ async def obrisi_pjesmu(session: AsyncSession, playlistaID: int, pjesmaID: int):
         f"BRISEM {pjesmaID}, prev={prethodna_id}, next={sljedeca_id}"
     )
 
+    prva_id = await pronadji_prvu_pjesmu(session, playlistaID)
+
     if prethodna_id is None and sljedeca_id == pjesmaID:
         # Jedina pjesma
         await session.delete(obj)
@@ -158,7 +160,10 @@ async def obrisi_pjesmu(session: AsyncSession, playlistaID: int, pjesmaID: int):
         )
         sljed_obj = sljed_result.scalar_one_or_none()
         if sljed_obj:
-            sljed_obj.pokazivacNaPrethodnuPjesmuID = prethodna_id
+            if sljedeca_id == prva_id:
+                sljed_obj.pokazivacNaPrethodnuPjesmuID = None
+            else:
+                sljed_obj.pokazivacNaPrethodnuPjesmuID = prethodna_id
             session.add(sljed_obj)
 
     await session.delete(obj)

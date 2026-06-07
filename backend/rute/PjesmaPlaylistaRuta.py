@@ -91,12 +91,6 @@ async def dodaj_na_kraj(data: DodajPjesmuRequest, session: AsyncSession = Depend
     except Exception as e:
         raise HTTPException(status_code=500, detail="Greška pri dodavanju pjesme")
 
-@router.delete("/{pjesmaID}/{playlistaID}", response_model=PjesmaPlaylista)
-async def obrisi_vezu(pjesmaID: int, playlistaID: int, session: AsyncSession = Depends(get_session)):
-    db_obj = await delete_pjesma_playlista(session, pjesmaID, playlistaID)
-    if not db_obj:
-        raise HTTPException(status_code=404, detail="Veza nije pronađena")
-    return db_obj
 
 @router.delete("/obrisi-iz-playliste/{pjesmaID}/{playlistaID}", response_model=dict)
 async def obrisi_iz_playliste(pjesmaID: int, playlistaID: int, session: AsyncSession = Depends(get_session)):

@@ -47,6 +47,7 @@ const Playlista: React.FC = () => {
   const draggingRow = useRef<number | null>(null);
   const [showPlaylistModal, setShowPlaylistModal] = useState<null | number>(null);
   const [likePlaylist, setLikePlaylist] = useState(false);
+  const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
   const { t } = useTranslation();
 
   const korisnikID = useMemo(() => {
@@ -80,6 +81,11 @@ const Playlista: React.FC = () => {
   });
 
 
+  useEffect(() => {
+    setLocalSongs(songsQ.data || []);
+  }, [songsQ.data]);
+
+
   const playlistsQ = useQuery<PlaylistaType[]>({
     queryKey: ["playliste"],
     queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
@@ -107,7 +113,7 @@ const Playlista: React.FC = () => {
       .catch(() => setLikePlaylist(false));
   }, [korisnikID, playlistaId]);
 
-  const pjesme = useMemo(() => songsQ.data || [], [songsQ.data]);
+  const pjesme = localSongs;
   const [likedSongs, setLikedSongs] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
@@ -214,15 +220,34 @@ const Playlista: React.FC = () => {
   });
 
   const removeSongMut = useMutation({
-    mutationFn: async (pjesmaId: number) => {
-      if (!playlistaId) return;
-      await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["playlistSongs", playlistaId] });
-    },
-    onError: () => alert("Greška pri izbacivanju pjesme iz playliste."),
-  });
+      mutationFn: async (pjesmaId: number) => {
+        if (!playlistaId) return;
+
+        await axios.delete(
+          `${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`
+        );
+      },
+
+      onMutate: async (pjesmaId) => {
+        setLocalSongs(prev =>
+          prev.filter(p => p.id !== pjesmaId)
+        );
+      },
+
+      onError: () => {
+        qc.invalidateQueries({
+          queryKey: ["playlistSongs", playlistaId],
+        });
+
+        alert("Greška pri izbacivanju pjesme iz playliste.");
+      },
+
+      onSuccess: () => {
+        qc.invalidateQueries({
+          queryKey: ["playlistSongs", playlistaId],
+        });
+      },
+    });
 
   const handlePlaySong = useCallback((p: Pjesma) => {
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: { src: p.putanjaAudio, title: p.naziv, putanjaGif: p.putanjaGif, putanjaSlika: p.putanjaSlika, korisnikID: p.korisnikID } }));

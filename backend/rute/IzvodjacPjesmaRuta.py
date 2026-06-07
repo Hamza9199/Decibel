@@ -38,14 +38,18 @@ async def get_session() -> AsyncGenerator[AsyncSession, None]:
 
 @router.get("/", response_model=List[IzvodjacPjesma])
 async def svi_izvodjac_pjesma(session: AsyncSession = Depends(get_session)):
-    return await get_all_izvodjac_pjesma(session)
+    all_veze = await get_all_izvodjac_pjesma(session)
+    accepted = [veza for veza in all_veze if getattr(veza, "potvrdjeno", False)]
+    return accepted
 
 @router.get("/izvodjac/{izvodjacID}")
 async def get_pjesme_izvodjaca(
     izvodjacID: str,
     session: AsyncSession = Depends(get_session)
 ):
-    return await get_pjesme_za_izvodjaca(session, izvodjacID)
+    all_veze = await get_pjesme_za_izvodjaca(session, izvodjacID)
+    accepted = [veza for veza in all_veze if getattr(veza, "potvrdjeno", False)]
+    return accepted
 
 @router.get("/{izvodjacID}/{pjesmaID}", response_model=IzvodjacPjesma)
 async def get_veza(izvodjacID: str, pjesmaID: int, session: AsyncSession = Depends(get_session)):

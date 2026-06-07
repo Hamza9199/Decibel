@@ -42,6 +42,15 @@ const UrediPlaylistu: React.FC = () => {
   const [removing, setRemoving] = useState(false);
   const processingRef = useRef(false);
   const removeQueue = useRef<number[]>([]);
+  const [naziv, setNaziv] = useState("");
+  const [opis, setOpis] = useState("");
+  const [fileSlika, setFileSlika] = useState<File | null>(null);
+  const [fileGif, setFileGif] = useState<File | null>(null);
+  const [previewSlika, setPreviewSlika] = useState<string>("");
+  const [previewGif, setPreviewGif] = useState<string>("");
+  const [javno, setJavno] = useState(false);
+  const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
+  
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -73,13 +82,9 @@ const UrediPlaylistu: React.FC = () => {
     initialData: [],
   });
 
-  const [naziv, setNaziv] = useState("");
-  const [opis, setOpis] = useState("");
-  const [fileSlika, setFileSlika] = useState<File | null>(null);
-  const [fileGif, setFileGif] = useState<File | null>(null);
-  const [previewSlika, setPreviewSlika] = useState<string>("");
-  const [previewGif, setPreviewGif] = useState<string>("");
-  const [javno, setJavno] = useState(false);
+  useEffect(() => {
+    setLocalSongs(songsQ.data || []);
+  }, [songsQ.data]);
 
   useEffect(() => {
     if (playlistaQ.data) {
@@ -144,7 +149,10 @@ const UrediPlaylistu: React.FC = () => {
       await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
     },
     onMutate: async (pjesmaId) => {
-      await qc.cancelQueries({
+       setLocalSongs(prev =>
+        prev.filter(p => p.id !== pjesmaId)
+      );
+          await qc.cancelQueries({
         queryKey: ["playlistSongs", playlistaId],
       });
 
@@ -165,6 +173,7 @@ const UrediPlaylistu: React.FC = () => {
     },
     onError: (_err, _id, context) => {
       if (context?.previousSongs) {
+          setLocalSongs(context.previousSongs);
         qc.setQueryData(
           ["playlistSongs", playlistaId],
           context.previousSongs
@@ -222,7 +231,7 @@ const UrediPlaylistu: React.FC = () => {
   
 
   const playlista = playlistaQ.data;
-  const pjesme = songsQ.data || [];
+  const pjesme = localSongs;
   const loading = playlistaQ.isLoading || songsQ.isLoading;
 
   if (loading) return <Loading />;

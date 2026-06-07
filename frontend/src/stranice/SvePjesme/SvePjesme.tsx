@@ -52,6 +52,8 @@ const SvePjesme: React.FC = () => {
     Record<number, { id: string; korisnicko_ime: string }[]>
   >({});
 
+  const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
+
   const songsQ = useQuery<Pjesma[]>({
     queryKey: ["mojePjesme", korisnikID],
     enabled: Boolean(korisnikID),
@@ -63,12 +65,31 @@ const SvePjesme: React.FC = () => {
     initialData: [],
   });
 
+  useEffect(() => {
+    setLocalSongs(songsQ.data || []);
+  }, [songsQ.data]);
+
   const deleteMut = useMutation({
     mutationFn: async (id: number) => {
       await axios.delete(`${API_BASE}/pjesme/${id}`);
     },
+
+    onMutate: async (id: number) => {
+      setLocalSongs(prev =>
+        prev.filter(song => song.id !== id)
+      );
+    },
+
+    onError: () => {
+      qc.invalidateQueries({
+        queryKey: ["mojePjesme", korisnikID],
+      });
+    },
+
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["mojePjesme", korisnikID] });
+      qc.invalidateQueries({
+        queryKey: ["mojePjesme", korisnikID],
+      });
     },
   });
 
@@ -99,7 +120,8 @@ const SvePjesme: React.FC = () => {
     [deleteMut]
   );
 
-  const pjesme = useMemo(() => songsQ.data || [], [songsQ.data]);
+  const pjesme = localSongs;
+
 
   useEffect(() => {
     const loadArtists = async () => {

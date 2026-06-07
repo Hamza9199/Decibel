@@ -91,23 +91,29 @@ const UrediAlbum: React.FC = () => {
 
   const removeSongMut = useMutation({
     mutationFn: async (pjesmaId: number) => {
-      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      const pjesma = pjesmaRes.data as Pjesma;
-      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, { ...pjesma, albumID: null });
+      await axios.delete(
+        `${API_BASE}/albumi/${albumId}/pjesme/${pjesmaId}`
+      );
     },
+
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pjesme"] });
+      qc.invalidateQueries({
+        queryKey: ["pjesme"],
+      });
     },
   });
 
   const addSongMut = useMutation({
     mutationFn: async (pjesmaId: number) => {
-      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      const pjesma = pjesmaRes.data as Pjesma;
-      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, { ...pjesma, albumID: Number(albumId) });
+      await axios.post(
+        `${API_BASE}/albumi/${albumId}/pjesme/${pjesmaId}`
+      );
     },
+
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["pjesme"] });
+      qc.invalidateQueries({
+        queryKey: ["pjesme"],
+      });
     },
   });
 

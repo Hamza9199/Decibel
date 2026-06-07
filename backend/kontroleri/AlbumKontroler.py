@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from modeli.Album import AlbumORM, Album, AlbumCreate
+from modeli.Pjesma import PjesmaORM
 
 async def get_all_albumi(session: AsyncSession):
     result = await session.execute(
@@ -56,3 +57,53 @@ async def get_pjesme_by_album_id(session: AsyncSession, album_id: int):
         select(AlbumORM.pjesme).where(AlbumORM.id == album_id)
     )
     return result.scalars().all() if result else None
+
+async def dodaj_pjesmu_u_album(
+    session: AsyncSession,
+    album_id: int,
+    pjesma_id: int
+):
+    result = await session.execute(
+        select(PjesmaORM).where(
+            PjesmaORM.id == pjesma_id
+        )
+    )
+
+    pjesma = result.scalar_one_or_none()
+
+    if not pjesma:
+        return None
+
+    pjesma.albumID = album_id
+
+    session.add(pjesma)
+    await session.commit()
+    await session.refresh(pjesma)
+
+    return pjesma
+
+
+async def ukloni_pjesmu_iz_albuma(
+    session: AsyncSession,
+    album_id: int,
+    pjesma_id: int
+):
+    result = await session.execute(
+        select(PjesmaORM).where(
+            PjesmaORM.id == pjesma_id,
+            PjesmaORM.albumID == album_id
+        )
+    )
+
+    pjesma = result.scalar_one_or_none()
+
+    if not pjesma:
+        return None
+
+    pjesma.albumID = None
+
+    session.add(pjesma)
+    await session.commit()
+    await session.refresh(pjesma)
+
+    return pjesma

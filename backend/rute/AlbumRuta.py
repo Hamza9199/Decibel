@@ -17,7 +17,9 @@ from kontroleri.AlbumKontroler import (
     create_album,
     get_pjesme_by_album_id,
     update_album,
-    delete_album
+    delete_album,
+    dodaj_pjesmu_u_album,
+    ukloni_pjesmu_iz_albuma,
 )
 from servisi.FirebaseStorage import upload_file
 
@@ -165,3 +167,43 @@ async def pjesme_po_albumu(album_id: int, session: AsyncSession = Depends(get_se
         raise HTTPException(status_code=404, detail="Album nije pronađen ili nema pjesama")
     return pjesme
 
+@router.post("/{album_id}/pjesme/{pjesma_id}")
+async def dodaj_pjesmu(
+    album_id: int,
+    pjesma_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    pjesma = await dodaj_pjesmu_u_album(
+        session,
+        album_id,
+        pjesma_id
+    )
+
+    if not pjesma:
+        raise HTTPException(
+            status_code=404,
+            detail="Pjesma nije pronađena"
+        )
+
+    return pjesma
+
+
+@router.delete("/{album_id}/pjesme/{pjesma_id}")
+async def ukloni_pjesmu(
+    album_id: int,
+    pjesma_id: int,
+    session: AsyncSession = Depends(get_session)
+):
+    pjesma = await ukloni_pjesmu_iz_albuma(
+        session,
+        album_id,
+        pjesma_id
+    )
+
+    if not pjesma:
+        raise HTTPException(
+            status_code=404,
+            detail="Pjesma nije pronađena"
+        )
+
+    return pjesma

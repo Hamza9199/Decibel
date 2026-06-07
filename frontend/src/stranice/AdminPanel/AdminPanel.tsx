@@ -103,7 +103,10 @@ const AdminPanel: React.FC = () => {
     loadArtists();
   }, [pjesme]);
 
-  const filtriranePjesme = useMemo(() => pjesme.filter(p => p.naziv.toLowerCase().includes(search.toLowerCase())), [pjesme, search]);
+  const filtriranePjesme = useMemo(() => {
+    const filtered = pjesme.filter(p => p.naziv.toLowerCase().includes(search.toLowerCase()));
+    return filtered.sort((a, b) => Number(a.odobreno) - Number(b.odobreno));
+  }, [pjesme, search]);
   const filtriraniAlbumi = useMemo(() => albumi.filter(a => a.naziv.toLowerCase().includes(search.toLowerCase())), [albumi, search]);
   const filtriranePlayliste = useMemo(() => playliste.filter(pl => pl.naziv.toLowerCase().includes(search.toLowerCase())), [playliste, search]);
 
@@ -220,6 +223,12 @@ const AdminPanel: React.FC = () => {
   });
 
   const handleOdobriPjesmu = useCallback((p: Pjesma, odobreno: boolean) => {
+    const artists = songArtists[p.id] || [];
+    if (artists.length === 0) {
+      setError(t("no_accepted_artists") || "Song has no accepted artists. Cannot approve.");
+      return;
+    }
+
     setLocalPjesme(prev =>
       prev.map(x =>
         x.id === p.id
@@ -229,7 +238,7 @@ const AdminPanel: React.FC = () => {
     );
 
     odobriPjesmuMut.mutate({ pjesma: p, odobreno });
-  }, [odobriPjesmuMut]);
+  }, [odobriPjesmuMut, songArtists, setError, t]);
 
   const handleOdobriAlbum = useCallback((a: Album, odobreno: boolean) => {
     setLocalAlbumi(prev =>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, memo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback, memo, } from "react";
 // import styles from "./UrediPlaylistu.module.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
@@ -39,9 +39,9 @@ const UrediPlaylistu: React.FC = () => {
   const { playlistaId } = useParams<{ playlistaId: string }>();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [removing, setRemoving] = useState(false);
-  const processingRef = useRef(false);
-  const removeQueue = useRef<number[]>([]);
+  //const [removing, setRemoving] = useState(false);
+  //const processingRef = useRef(false);
+  //const removeQueue = useRef<number[]>([]);
   const [naziv, setNaziv] = useState("");
   const [opis, setOpis] = useState("");
   const [fileSlika, setFileSlika] = useState<File | null>(null);
@@ -143,6 +143,7 @@ const UrediPlaylistu: React.FC = () => {
     onError: () => setError("Greška pri ažuriranju playliste."),
   });
 
+  /*
   const removeSongMut = useMutation({
     mutationFn: async (pjesmaId: number) => {
       if (!playlistaId) return;
@@ -187,6 +188,8 @@ const UrediPlaylistu: React.FC = () => {
     },
   });
 
+  */
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
@@ -197,6 +200,7 @@ const UrediPlaylistu: React.FC = () => {
     [updateMut]
   );
 
+  /*
   const processQueue = useCallback(() => {
     if (processingRef.current) return;
 
@@ -216,6 +220,7 @@ const UrediPlaylistu: React.FC = () => {
     });
   }, [removeSongMut]);
 
+  
     const handleRemoveSong = useCallback(
       (pjesmaId: number) => {
         if (removeQueue.current.includes(pjesmaId)) {
@@ -228,7 +233,7 @@ const UrediPlaylistu: React.FC = () => {
       },
       [processQueue]
     );
-  
+  */
 
   const playlista = playlistaQ.data;
   const pjesme = localSongs;
@@ -342,6 +347,7 @@ const UrediPlaylistu: React.FC = () => {
                       <span className={styles.songName}>{p.naziv}</span>
                       <span className={styles.songDuration}>{p.trajanjeSekunde ? `${Math.floor(p.trajanjeSekunde / 60)}:${(p.trajanjeSekunde % 60).toString().padStart(2, "0")}` : ""}</span>
                     </div>
+                    {/*
                       <button
                         className={styles.removeBtn}
                         disabled={removing}
@@ -349,6 +355,7 @@ const UrediPlaylistu: React.FC = () => {
                       > 
                       {removing ? t("removing") || "Uklanjam..." : t("remove") || "Izbaci"}
                     </button>
+                     */}
                   </li>
                 ))}
               </ul>

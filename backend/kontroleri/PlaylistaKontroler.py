@@ -2,6 +2,9 @@ from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from sqlalchemy import delete
+from modeli.KorisnikPlaylista import KorisnikPlaylistaORM
+from modeli.PjesmaPlaylista import PjesmaPlaylistaORM
 from modeli.Playlista import PlaylistaORM, Playlista, PlaylistaCreate
 
 async def get_all_playliste(session: AsyncSession):
@@ -41,6 +44,20 @@ async def delete_playlista(session: AsyncSession, playlista_id: int):
     db_playlista = await get_playlista_by_id(session, playlista_id)
     if not db_playlista:
         return None
+    
+    await session.execute(
+        delete(KorisnikPlaylistaORM).where(
+            KorisnikPlaylistaORM.playlistaID == playlista_id
+        )
+    )
+
+    await session.execute(
+        delete(PjesmaPlaylistaORM).where(
+            PjesmaPlaylistaORM.playlistaID == playlista_id
+        )
+    )
+
+
     await session.delete(db_playlista)
     await session.commit()
     return db_playlista

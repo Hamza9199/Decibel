@@ -38,9 +38,9 @@ const NoviAlbum: React.FC = () => {
     queryKey: ["mojePjesmeBezAlbuma", korisnikID],
     enabled: Boolean(korisnikID),
     queryFn: async () => {
-      const r = await axios.get(`${API_BASE}/pjesme/`);
+      const r = await axios.get(`${API_BASE}/pjesme/korisnik/${korisnikID}`);
       const all: Pjesma[] = r.data || [];
-      return all.filter((p) => String(p.korisnikID) === String(korisnikID) && !p.albumID);
+      return all.filter((p) => !p.albumID);
     },
     initialData: [],
   });

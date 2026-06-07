@@ -1,9 +1,12 @@
 from sqlalchemy.future import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy import delete, update
 
 from modeli.Album import AlbumORM, Album, AlbumCreate
 from modeli.Pjesma import PjesmaORM
+from modeli.KorisnikAlbum import KorisnikAlbumORM
+
 
 async def get_all_albumi(session: AsyncSession):
     result = await session.execute(
@@ -38,12 +41,34 @@ async def update_album(session: AsyncSession, album_id: int, album: AlbumCreate)
     await session.refresh(db_album, attribute_names=["korisnik"])
     return db_album
 
-async def delete_album(session: AsyncSession, album_id: int):
-    db_album = await get_album_by_id(session, album_id)
+async def delete_album(
+    session: AsyncSession,
+    album_id: int
+):
+    db_album = await get_album_by_id(
+        session,
+        album_id
+    )
+
     if not db_album:
         return None
+
+    await session.execute(
+        delete(KorisnikAlbumORM).where(
+            KorisnikAlbumORM.albumID == album_id
+        )
+    )
+
+    await session.execute(
+        update(PjesmaORM)
+        .where(PjesmaORM.albumID == album_id)
+        .values(albumID=None)
+    )
+
     await session.delete(db_album)
+
     await session.commit()
+
     return db_album
 
 async def get_albumi_by_korisnik_id(session: AsyncSession, korisnik_id: int):

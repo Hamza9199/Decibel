@@ -12,6 +12,7 @@ from modeli.PjesmaPlaylista import PjesmaPlaylistaORM
 from servisi.PlaylistaRedoslijed import obrisi_pjesmu
 from sqlalchemy import delete, update
 from sqlalchemy.orm import selectinload
+from modeli.Komentar import KomentarORM
 
 async def get_all_pjesme(session: AsyncSession):
     result = await session.execute(
@@ -94,6 +95,12 @@ async def delete_pjesma(
     await session.execute(
         delete(StatistikaReprodukcijeORM).where(
             StatistikaReprodukcijeORM.pjesmaID == pjesma_id
+        )
+    )
+
+    await session.execute(
+        delete(KomentarORM).where(
+            KomentarORM.pjesmaID == pjesma_id
         )
     )
 

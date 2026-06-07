@@ -60,8 +60,12 @@ const UrediAlbum: React.FC = () => {
   });
 
   const pjesmeQ = useQuery<Pjesma[]>({
-    queryKey: ["pjesme"],
-    queryFn: async () => axios.get(`${API_BASE}/pjesme/`).then((r) => r.data || []),
+    queryKey: ["pjesme", korisnikID],
+    enabled: Boolean(korisnikID),
+    queryFn: async () =>
+      axios
+        .get(`${API_BASE}/pjesme/korisnik/${korisnikID}`)
+        .then((r) => r.data || []),
     initialData: [],
   });
 

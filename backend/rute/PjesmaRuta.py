@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 import tempfile
 
-from modeli.Pjesma import Pjesma, PjesmaCreate
+from modeli.Pjesma import Pjesma, PjesmaCreate, PjesmaORM
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
@@ -14,7 +14,8 @@ from kontroleri.PjesmaKontroler import (
     get_pjesma_by_id,
     create_pjesma,
     update_pjesma,
-    delete_pjesma
+    delete_pjesma,
+    get_pjesme_by_korisnik_id
 )
 from kontroleri.IzvodjacPjesmaKontroler import create_izvodjac_pjesma
 from modeli.IzvodjacPjesma import IzvodjacPjesmaCreate
@@ -43,6 +44,22 @@ async def sve_pjesme(session: AsyncSession = Depends(get_session)):
     pjesme = await get_all_pjesme(session)
     return pjesme
 
+@router.get("/pjesma/search", response_model=List[Pjesma])
+async def search_pjesme(q: str, session: AsyncSession = Depends(get_session)):
+    pjesme = await get_all_pjesme(session)
+    q_lower = q.lower()
+    filtered = [p for p in pjesme if q_lower in p.naziv.lower() and p.javno and p.odobreno]
+    return filtered
+
+@router.get("/korisnik/{korisnik_id}", response_model=List[Pjesma])
+async def get_pjesme_by_korisnik(
+    korisnik_id: str,
+    session: AsyncSession = Depends(get_session)
+):
+   
+    pjesme = await get_pjesme_by_korisnik_id(session, korisnik_id)
+    return pjesme
+
 @router.get("/{pjesma_id}", response_model=Pjesma)
 async def get_pjesma(pjesma_id: int, session: AsyncSession = Depends(get_session)):
     pjesma = await get_pjesma_by_id(session, pjesma_id)
@@ -50,13 +67,6 @@ async def get_pjesma(pjesma_id: int, session: AsyncSession = Depends(get_session
         raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
     return pjesma
 
-
-@router.get("/pjesma/search", response_model=List[Pjesma])
-async def search_pjesme(q: str, session: AsyncSession = Depends(get_session)):
-    pjesme = await get_all_pjesme(session)
-    q_lower = q.lower()
-    filtered = [p for p in pjesme if q_lower in p.naziv.lower() and p.javno and p.odobreno]
-    return filtered
 
 @router.post("/", response_model=Pjesma)
 async def nova_pjesma(

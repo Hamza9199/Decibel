@@ -101,3 +101,15 @@ async def delete_pjesma(
     await session.commit()
 
     return db_pjesma
+
+
+async def get_pjesme_by_korisnik_id(
+    session: AsyncSession,
+    korisnik_id: str
+):
+    result = await session.execute(
+        select(PjesmaORM).where(
+            PjesmaORM.korisnikID == korisnik_id
+        )
+    )
+    return result.scalars().all()

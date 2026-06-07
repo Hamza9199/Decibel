@@ -122,7 +122,7 @@ async def obrisi_pjesmu(session: AsyncSession, playlistaID: int, pjesmaID: int):
     prethodna_id = obj.pokazivacNaPrethodnuPjesmuID
     sljedeca_id = obj.pokazivacNaSljedecuPjesmuID
 
-    if prethodna_id == pjesmaID and sljedeca_id == pjesmaID:
+    if prethodna_id is None and sljedeca_id == pjesmaID:
         # Jedina pjesma
         await session.delete(obj)
         await session.commit()

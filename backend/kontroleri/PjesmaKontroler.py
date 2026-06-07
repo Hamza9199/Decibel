@@ -108,8 +108,11 @@ async def get_pjesme_by_korisnik_id(
     korisnik_id: str
 ):
     result = await session.execute(
-    select(PjesmaORM)
-    .options(selectinload(PjesmaORM.korisnik))
-    .where(PjesmaORM.korisnikID == korisnik_id)
-    )   
+        select(PjesmaORM)
+        .options(selectinload(PjesmaORM.korisnik))
+        .where(
+            PjesmaORM.korisnikID == korisnik_id,
+            PjesmaORM.odobreno == True,
+        )
+    )
     return result.scalars().all()

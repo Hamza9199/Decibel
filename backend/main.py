@@ -41,7 +41,8 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from modeli.SuspendovanKorisnik import SuspendovanKorisnikORM
 from modeli.Korisnik import KorisnikORM
 from modeli.KorisnikStatus import KorisnikStatusEnum
-from servisi.DiscordBot import start_discord_bot
+import httpx
+
 
 app = FastAPI()
 
@@ -61,29 +62,6 @@ DISCORD_BOT_TOKEN = os.getenv("TOKEN")
 async def startup():
     create_tables()  
     await database.connect()
-
-    import httpx
-    if DISCORD_BOT_TOKEN:
-        try:
-            headers = {"Authorization": f"Bot {DISCORD_BOT_TOKEN}"}
-            async with httpx.AsyncClient() as client:
-                r = await client.get("https://discord.com/api/v10/users/@me", headers=headers)
-                if r.status_code == 200:
-                    user = r.json()
-                    bot_id = user.get("id")
-                    if bot_id:
-                        invite_url = f"https://discord.com/api/oauth2/authorize?client_id={bot_id}&scope=bot%20applications.commands"
-                        print(f"[Discord Bot] Invite link: {invite_url}")
-                    else:
-                        print("[Discord Bot] Nije pronađen bot ID.")
-                else:
-                    print("[Discord Bot] Ne mogu dohvatiti bot user info. Provjeri token.")
-        except Exception as e:
-            print(f"[Discord Bot] Greška pri dohvaćanju invite linka: {e}")
-    else:
-        print("[Discord Bot] Bot token nije definisan u .env")
-
-    
 
     ASYNC_DATABASE_URL = os.getenv("DATABASE_URL_ASYNC")
     engine = create_async_engine(
@@ -141,11 +119,8 @@ async def startup():
             time.sleep(60 * 30 * 1)
 
     threading.Thread(target=auto_cleanup, daemon=True).start()
-    if os.getenv("RUN_DISCORD_IN_PROCESS", "false").lower() == "true":
-        threading.Thread(target=start_discord_bot, daemon=True).start()
-    else:
-        print("[Discord Bot] Not starting bot inside FastAPI process. To enable set RUN_DISCORD_IN_PROCESS=true in the environment and restart.")
-   
+    
+    
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()

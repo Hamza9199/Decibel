@@ -279,11 +279,16 @@ class MyClient(discord.Client):
                                             voice_client.pause()
                                             self.paused = True
                                             button.label = "\u25B6"
+                                            # Defer if not already responded
+                                            if not interaction2.response.is_done():
+                                                await interaction2.response.defer()
                                             await interaction2.response.edit_message(view=self)
                                         elif voice_client and voice_client.is_paused():
                                             voice_client.resume()
                                             self.paused = False
                                             button.label = "\u23F8"
+                                            if not interaction2.response.is_done():
+                                                await interaction2.response.defer()
                                             await interaction2.response.edit_message(view=self)
                                     
                                     @discord.ui.button(label="\u23ED", style=discord.ButtonStyle.secondary, custom_id="skip_btn")
@@ -291,6 +296,8 @@ class MyClient(discord.Client):
                                         voice_client = discord.utils.get(interaction2.client.voice_clients, guild=interaction2.guild)
                                         if voice_client and (voice_client.is_playing() or voice_client.is_paused()):
                                             voice_client.stop()
+                                        if not interaction2.response.is_done():
+                                            await interaction2.response.defer()
                                         await interaction2.response.edit_message(view=self)
                                     
                                     @discord.ui.button(label="\u23F9", style=discord.ButtonStyle.danger, custom_id="stop_btn")
@@ -300,6 +307,8 @@ class MyClient(discord.Client):
                                             if voice_client.is_playing() or voice_client.is_paused():
                                                 voice_client.stop()
                                             await voice_client.disconnect()
+                                        if not interaction2.response.is_done():
+                                            await interaction2.response.defer()
                                         await interaction2.response.edit_message(view=self)
                                 
                                 try:

@@ -19,10 +19,9 @@ const Zahtjevi: React.FC = () => {
   const [localVeze, setLocalVeze] = useState<IzvodjacPjesmaVeza[]>([]);
 
   const korisnikID = useMemo(() => {
-    try {
-      return JSON.parse(
-        localStorage.getItem("korisnik") || "{}"
-      )?.id;
+     try {
+      const user = JSON.parse(localStorage.getItem("korisnik") || "");
+      return user?.id || "";
     } catch {
       return "";
     }
@@ -47,6 +46,7 @@ const Zahtjevi: React.FC = () => {
 
   const vezeQ = useQuery({
     queryKey: ["zahtjevi", korisnikID],
+    enabled: Boolean(korisnikID), 
     queryFn: async () =>
         axios
         .get(`${API_BASE}/izvodjac_pjesma/izvodjac/${korisnikID}`)

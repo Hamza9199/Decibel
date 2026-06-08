@@ -208,9 +208,7 @@ const Postavke: React.FC = () => {
                 </a>
               </span>
             </div>
-            <div className={styles.label} style={{ marginTop: 24, color: "#b3b3b3", fontSize: "0.98rem" }}>
-              {t("additional_settings")}
-            </div>
+            
             <button className={styles.downloadButton} type="button" onClick={handleDownloadData}>
               {t("download_my_data") || "Preuzmi moje podatke"}
             </button>

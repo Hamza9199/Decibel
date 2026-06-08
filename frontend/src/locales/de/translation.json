@@ -241,5 +241,6 @@
   "reject": "Ablehnen",
   "accepted_collaborations": "Akzeptierte Kooperationen",
   "no_accepted_songs": "Keine akzeptierten Lieder.",
-  "no_accepted_artists": "Keine akzeptierten Künstler."
+  "no_accepted_artists": "Keine akzeptierten Künstler.",
+  "download_my_data": "Meine Daten herunterladen"
 }

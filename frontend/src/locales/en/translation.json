@@ -241,6 +241,7 @@
   "reject": "Reject",
   "accepted_collaborations": "Accepted collaborations",
   "no_accepted_songs": "No accepted songs.",
-  "no_accepted_artists": "No accepted artists."
+  "no_accepted_artists": "No accepted artists.",
+  "download_my_data": "Download my data"
 }
 

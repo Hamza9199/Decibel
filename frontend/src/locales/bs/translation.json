@@ -248,5 +248,6 @@
   "reject": "Odbij",
   "accepted_collaborations": "Prihvaćene saradnje",
   "no_accepted_songs": "Nema prihvaćenih pjesama.",
-  "no_accepted_artists": "Nema prihvaćenih izvođača."
+  "no_accepted_artists": "Nema prihvaćenih izvođača.",
+  "download_my_data": "Preuzmi moje podatke"
 }

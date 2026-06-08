@@ -129,7 +129,7 @@
     font-size: 0.85rem;
     padding: 4px 10px;
   }
-  .container { max-width: 98vw; padding: 16px 12px 30px 12px; }
+  .container { max-width: 98vw; padding: 16px 12px 30px 12px;  box-sizing: border-box; }
   .pjesmaMain { flex-direction: column; align-items: center; gap: 16px; text-align: center; }
   .pjesmaSlikaWrap { width: 140px; height: 140px; }
   .pjesmaNaziv { font-size: 1.4rem; }
@@ -147,53 +147,183 @@
 }
 
 @media (max-width: 480px) {
-  .pjesmaBg { padding-top: 55px; padding-bottom: 30px; min-height: 100vh; }
-  .container { max-width: 100vw; padding: 12px 8px 20px 8px; border-radius: 0; box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: #ffffff; }
-  .pjesmaMain { gap: 12px; margin-bottom: 16px; }
-  .pjesmaSlikaWrap { width: 120px; height: 120px; border-radius: 8px; }
-  .pjesmaSlika { border-radius: 8px; }
-  .actionBtnsRow { bottom: 8px; left: 8px; right: 8px; }
-  .playBtn, .likeBtn { width: 36px; height: 36px; }
-  .likeBtn span { font-size: 0.8rem; margin-left: 2px; }
-  .pjesmaNaziv { font-size: 1.2rem; margin-bottom: 6px; letter-spacing: 0.5px; }
-  .pjesmaOpis { font-size: 0.8rem; margin-bottom: 6px; }
-  .pjesmaMeta { font-size: 0.75rem; gap: 8px; margin-bottom: 6px; }
-  .izvodjaciWrap { gap: 6px; margin-top: 8px; }
-  .izvodjaciLabel { font-size: 0.9rem; }
-  .izvodjacIme { font-size: 0.85rem; gap: 4px; }
-  .izvodjacSlika { width: 24px; height: 24px; }
-  .topPjesmeSection { margin-top: 40px; }
-  .topPjesmeTitle { font-size: 1.1rem; margin-bottom: 16px; border-left: 3px solid #b91d95; padding-left: 8px; }
-  .topPjesmeGrid { gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .topPjesmaCard { min-width: 90px; max-width: 90px; padding: 8px 6px 6px 6px; border-radius: 8px; }
-  .topPjesmaSlikaWrap { width: 60px; height: 60px; border-radius: 6px; margin-bottom: 6px; }
-  .topPjesmaSlika { border-radius: 6px; }
-  .topPlayBtn { width: 24px; height: 24px; bottom: 2px; right: 2px; }
-  .topPlayBtn svg { width: 14px; height: 14px; }
-  .topPjesmaNaziv { font-size: 0.8rem; margin-bottom: 2px; line-height: 1.2; word-break: break-word; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; }
-  .topPjesmaIzvodjac { font-size: 0.7rem; }
-  .kom { flex-direction: column; gap: 8px; }
-  .notFound { padding: 20px 8px; }
-  .backBtn { padding: 8px 16px; font-size: 1rem; margin-top: 12px; }
-}
-
-@media (max-width: 375px) {
-  .playBtnDuration {
-    font-size: 0.65rem;
+  .pjesmaBg {
+    padding-top: 75px;
+    padding-bottom: 30px;
+    min-height: 100vh;
+        overflow-x: hidden;
   }
-  .container { padding: 8px 4px 16px 4px; }
-  .pjesmaSlikaWrap { width: 100px; height: 100px; }
-  .playBtn, .likeBtn { width: 28px; height: 28px; }
-  .likeBtn span { font-size: 0.75rem; }
-  .pjesmaNaziv { font-size: 1.1rem; }
-  .pjesmaOpis { font-size: 0.75rem; }
-  .pjesmaMeta { font-size: 0.7rem; }
-  .izvodjacIme { font-size: 0.8rem; }
-  .izvodjacSlika { width: 20px; height: 20px; }
-  .topPjesmaCard { min-width: 80px; max-width: 80px; }
-  .topPjesmaSlikaWrap { width: 50px; height: 50px; }
-  .topPlayBtn { width: 20px; height: 20px; bottom: 1px; right: 1px; }
-  .topPlayBtn svg { width: 12px; height: 12px; }
-  .topPjesmaNaziv { font-size: 0.75rem; }
-  .topPjesmaIzvodjac { font-size: 0.65rem; }
+  
+  .container {
+    width: 100%;
+    max-width: 100vw;
+     box-sizing: border-box;
+    padding: 12px 8px 20px 8px;
+    border-radius: 0;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .pjesmaMain {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .pjesmaSlikaWrap {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+  }
+  
+  .pjesmaSlika {
+    border-radius: 8px;
+  }
+  
+  .actionBtnsRow {
+    bottom: 8px;
+    left: 25px;
+    right: 8px;
+  }
+  
+  .likeBtn {
+    width: 36px;
+    height: 36px;
+  }
+  
+.playBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .likeBtn span {
+    font-size: 0.8rem;
+    margin-right: 3px;
+  }
+
+.playBtn svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  .playBtn span {
+    font-size: 0.6rem;
+    margin-left: 3px;
+    margin-bottom: 2px;
+  }
+
+
+  .pjesmaNaziv {
+    font-size: 1.2rem;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  
+  .pjesmaOpis {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+  }
+  
+  .pjesmaMeta {
+    font-size: 0.75rem;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .izvodjaciWrap {
+    gap: 6px;
+    margin-top: 8px;
+  }
+  
+  .izvodjaciLabel {
+    font-size: 0.9rem;
+  }
+  
+  .izvodjacIme {
+    font-size: 0.85rem;
+    gap: 4px;
+  }
+  
+  .izvodjacSlika {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .topPjesmeSection {
+    margin-top: 40px;
+  }
+  
+  .topPjesmeTitle {
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    border-left: 3px solid #b91d95;
+    padding-left: 8px;
+  }
+  
+  .topPjesmeGrid {
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .topPjesmaCard {
+    min-width: 90px;
+    max-width: 90px;
+    padding: 8px 6px 6px 6px;
+    border-radius: 8px;
+  }
+  
+  .topPjesmaSlikaWrap {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
+  
+  .topPjesmaSlika {
+    border-radius: 6px;
+  }
+  
+  .topPlayBtn {
+    width: 24px;
+    height: 24px;
+    bottom: 2px;
+    right: 2px;
+  }
+  
+  .topPlayBtn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .topPjesmaNaziv {
+    font-size: 0.8rem;
+    margin-bottom: 2px;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  
+  .topPjesmaIzvodjac {
+    font-size: 0.7rem;
+  }
+  
+  .kom {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .notFound {
+    padding: 20px 8px;
+  }
+  
+  .backBtn {
+    padding: 8px 16px;
+    font-size: 1rem;
+    margin-top: 12px;
+  }
 }

@@ -284,7 +284,8 @@ textarea {
     gap: 20px;
     align-items: center;
     padding: 0 10px;
-    width: 80%;
+    min-width: 90vw;
+  max-width: 90vw;
   }
   
   .novaPjesmaForm {
@@ -297,6 +298,8 @@ textarea {
     -webkit-backdrop-filter: blur(2px);
     border: 1px solid #b91d95;
   }
+
+
   
   .artistsSection {
     min-width: 90vw;
@@ -413,6 +416,17 @@ textarea {
     margin-bottom: 10px;
     border-radius: 5px;
   }
+
+    .input,
+.fileInput,
+textarea,
+.button,
+.artistSearch,
+.addArtistBtn {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+  
 }
 
 @media (max-width: 375px) {

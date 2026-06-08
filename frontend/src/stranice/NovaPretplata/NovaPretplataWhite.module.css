@@ -40,12 +40,12 @@
 .cardPreview {
   width: 100%;
   height: 200px;
-  background: linear-gradient(135deg, #2e77d1 0%, #5b8ee0 100%);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   border-radius: 16px;
   padding: 24px;
-  color: #fff;
+  color: white;
   position: relative;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   font-family: 'Courier New', monospace;
   display: flex;
   flex-direction: column;
@@ -84,7 +84,6 @@
 .input.amex:focus { border-color: #006fcf; box-shadow: 0 0 0 3px rgba(0, 111, 207, 0.12); }
 .input.discover:focus { border-color: #ff6000; box-shadow: 0 0 0 3px rgba(255, 96, 0, 0.12); }
 
-/* Month input specific styling */
 .input[type="month"] { color-scheme: light; }
 .input[type="month"]::-webkit-calendar-picker-indicator { filter: none; cursor: pointer; }
 
@@ -117,7 +116,6 @@
 .success { color: #1f7a43; background: #e8f6ee; border: 1px solid #c5e8d4; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
 .error { color: #a1224f; background: #fde7ef; border: 1px solid #f5c1d7; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
 
-/* Date Picker Styles */
 .datePickerContainer { position: relative; }
 .calendarIcon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); cursor: pointer; font-size: 20px; user-select: none; z-index: 2; }
 .datePickerDropdown { position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 2px solid #b91d95; border-radius: 12px; z-index: 2000; box-shadow: 0 8px 24px rgba(0,0,0,0.12); max-height: 300px; overflow: hidden; margin-top: 4px; }
@@ -129,7 +127,6 @@
 .monthOption:hover { background: rgba(185, 29, 149, 0.08); border-left-color: #b91d95; }
 .monthOption.selected { background: rgba(185, 29, 149, 0.12); border-left-color: #b91d95; color: #111; font-weight: 700; }
 
-/* Scrollbar styling for month list */
 .monthsList::-webkit-scrollbar { width: 6px; }
 .monthsList::-webkit-scrollbar-track { background: #f0f0f4; border-radius: 3px; }
 .monthsList::-webkit-scrollbar-thumb { background: #b91d95; border-radius: 3px; }
@@ -140,7 +137,7 @@
   .container { max-width: 90vw; margin: 0 auto; padding: 20px 16px 20px 16px; border-radius: 12px; gap: 12px; }
   .title { font-size: 1.3rem; margin-bottom: 12px; }
   .kupovinaDetalji { font-size: 1rem; margin-bottom: 12px; }
-  .cardPreview { height: 160px; padding: 20px; }
+  .cardPreview { height: 160px; padding: 20px;  }
   .cardNumber { font-size: 20px; margin: 16px 0; }
   .cardName, .cardExp { font-size: 12px; }
   .inputGroup label { font-size: 13px; }
@@ -156,7 +153,7 @@
   .container { max-width: 95vw; margin: 0 auto; padding: 16px 12px 16px 12px; border-radius: 8px; gap: 10px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: #ffffff; }
   .title { font-size: 1.2rem; margin-bottom: 10px; letter-spacing: 0.5px; }
   .kupovinaDetalji { font-size: 0.9rem; margin-bottom: 10px; }
-  .cardPreview { height: 140px; padding: 16px; border-radius: 12px; }
+  .cardPreview { height: 140px; padding: 16px; border-radius: 12px; box-sizing: border-box; }
   .cardNumber { font-size: 18px; margin: 12px 0; letter-spacing: 2px; }
   .cardName, .cardExp { font-size: 11px; }
   .inputGroup { margin-bottom: 12px; }
@@ -176,7 +173,7 @@
   .container { max-width: 98vw; padding: 12px 8px 12px 8px; }
   .title { font-size: 1.1rem; }
   .kupovinaDetalji { font-size: 0.85rem; }
-  .cardPreview { height: 120px; padding: 14px; }
+  .cardPreview { height: 120px; padding: 14px; box-sizing: border-box; }
   .cardNumber { font-size: 16px; margin: 10px 0; letter-spacing: 1px; }
   .cardName, .cardExp { font-size: 10px; }
   .inputGroup label { font-size: 11px; }

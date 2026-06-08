@@ -1,8 +1,11 @@
 .sviAlbumiBg {
-  min-height: 100vh;
+  height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
   background: #f6f7fb;
+    overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .searchInput {

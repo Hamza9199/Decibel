@@ -334,29 +334,16 @@
     padding: 6px 8px;
     margin-bottom: 3px;
   }
+
+  .formContainer,
+.editAlbumForm,
+.songsSection,
+.input,
+.button,
+.addBtn,
+.removeBtn {
+  box-sizing: border-box;
+  max-width: 100%;
+}
 }
 
-@media (max-width: 375px) {
-  .editAlbumForm {
-    max-width: 98vw;
-    padding: 12px 8px 12px 8px;
-  }
-  
-  .title {
-    font-size: 1.1rem;
-  }
-  
-  .label {
-    font-size: 0.8rem;
-  }
-  
-  .input {
-    font-size: 0.8rem;
-    padding: 6px 8px;
-  }
-  
-  .button {
-    font-size: 0.85rem;
-    padding: 8px 0;
-  }
-}

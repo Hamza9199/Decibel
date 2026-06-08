@@ -178,8 +178,17 @@ const SviKorisnici: React.FC = () => {
   }, [suspendModal]);
 
   const filtriraniKorisnici = useMemo(
-    () => (korisnici || []).filter((k) => k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())),
-    [korisnici, search]
+    () => {
+      const filtered = (korisnici || []).filter((k) =>
+        k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
+      );
+      return filtered.sort((a, b) => {
+        const aHas = prijave.some((p) => p.korisnikID === a.id);
+        const bHas = prijave.some((p) => p.korisnikID === b.id);
+        return Number(bHas) - Number(aHas);
+      });
+    },
+    [korisnici, prijave, search]
   );
   const loading = usersQ.isLoading || prijaveQ.isLoading;
 

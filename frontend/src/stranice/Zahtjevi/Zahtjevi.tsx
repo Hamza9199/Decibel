@@ -135,7 +135,7 @@ const Zahtjevi: React.FC = () => {
             <table className={styles.pjesmeTable}>
               <thead>
                 <tr>
-                  <th>{t("song") || "Pjesma"}</th>
+                  <th>{t("songs") || "Pjesma"}</th>
                   <th>{t("play") || "Play"}</th>
                   <th>{t("actions") || "Akcije"}</th>
                 </tr>
@@ -225,7 +225,7 @@ const Zahtjevi: React.FC = () => {
             <table className={styles.pjesmeTable}>
               <thead>
                 <tr>
-                  <th>{t("song") || "Pjesma"}</th>
+                  <th>{t("songs") || "Pjesma"}</th>
                   <th>{t("play") || "Play"}</th>
                 </tr>
               </thead>

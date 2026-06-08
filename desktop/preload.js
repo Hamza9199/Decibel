@@ -247,8 +247,24 @@ function setupTitlebar() {
   } catch { }
 }
 
-if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', () => { try { setupTitlebar(); __tb_api.reflow(); ipcRenderer.send('preload-ready'); } catch { try { ipcRenderer.send('preload-ready'); } catch { } } }, { once: true });
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        setupTitlebar();
+        __tb_api.reflow();
+        __tb_api.setOffset(15);
+        ipcRenderer.send('preload-ready');
+      } catch {
+        try { ipcRenderer.send('preload-ready'); } catch { }
+      }
+    }, { once: true });
 } else {
-  try { setupTitlebar(); __tb_api.reflow(); ipcRenderer.send('preload-ready'); } catch { try { ipcRenderer.send('preload-ready'); } catch { } }
+  try {
+    setupTitlebar();
+    __tb_api.reflow();
+    __tb_api.setOffset(15);
+    ipcRenderer.send('preload-ready');
+  } catch {
+    try { ipcRenderer.send('preload-ready'); } catch { }
+  }
 }

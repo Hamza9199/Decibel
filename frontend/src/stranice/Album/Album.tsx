@@ -403,7 +403,7 @@ const Album: React.FC = () => {
                         </div>
                       </td>
                       <td data-label={t("duration_seconds") || "Trajanje"}>{formatTrajanje(p.trajanjeSekunde)}</td>
-                      <td data-label={t("artist") || "Izvođač"}>
+                      <td data-label={t("artist") || "Izvođač"} className={styles.songArtist}>
                         {(songArtists[p.id] || []).map((izv, idx) => (
                           <span
                             key={izv.id}

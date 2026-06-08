@@ -153,7 +153,6 @@
   box-shadow: 0 0 0 3px rgba(255, 96, 0, 0.1);
 }
 
-/* Month input specific styling */
 .input[type="month"] {
   color-scheme: dark;
 }
@@ -259,7 +258,6 @@
   text-align: center;
 }
 
-/* Date Picker Styles */
 .datePickerContainer {
   position: relative;
 }
@@ -348,7 +346,6 @@
   font-weight: 600;
 }
 
-/* Scrollbar styling for month list */
 .monthsList::-webkit-scrollbar {
   width: 6px;
 }
@@ -394,6 +391,8 @@
   .cardPreview {
     height: 160px;
     padding: 20px;
+    box-sizing: border-box;
+   
   }
   
   .cardNumber {
@@ -552,6 +551,7 @@
   .cardPreview {
     height: 120px;
     padding: 14px;
+    box-sizing: border-box;
   }
   
   .cardNumber {

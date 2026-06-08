@@ -109,17 +109,7 @@ const Header: React.FC = () => {
 
   return (
     <header className={styles.header}>
-      {!isMobile && (
-        <>
-          <Link to="/">
-            <img src="/logo.gif" alt="Decibel logo" className="logoImg" />
-          </Link>
-          <Link to="/">
-            <div className={styles.logo}>Decibel</div>
-          </Link>
-        </>
-      )}
-
+      
       <div className={styles.searchWrap}>
         <Search />
       </div>

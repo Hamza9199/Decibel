@@ -168,44 +168,172 @@
 .songDate { color: #333; font-size: 12px; font-weight: 500; margin-top: 2px; }
 
 @media (max-width: 480px) {
-  .historijaBg { padding-top: 55px; padding-bottom: 100px; min-height: 100vh; }
-  .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); background: #ffffff; }
-  .title { font-size: 1.75rem; margin-bottom: 28px; letter-spacing: 1px; font-weight: 700; color: #111; }
-  .noSongs { font-size: 1rem; margin-top: 40px; font-style: italic; color: #666; }
-
-  .pjesmeTable { display: block; border-radius: 0; background: transparent; overflow: visible; margin-top: 0; }
-  .pjesmeTable thead { display: none; }
-  .pjesmeTable tbody { display: block; }
-  .pjesmeTable tr { display: block; background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid #eee; white-space: normal; position: relative; }
-  .pjesmeTable td { display: block; border: none; padding: 0; text-align: left; white-space: normal; font-size: 0.875rem; color: #111; }
-  .pjesmeTable td:first-child { display: none; }
-  .pjesmeTable td:nth-child(2) { margin-bottom: 0; }
-  .pjesmeTable td:nth-child(3) { flex: 1; margin-left: 62px; margin-top: -62px; margin-bottom: 2px; }
-  .pjesmeTable td:nth-child(4) { flex: 1; margin-left: 62px; margin-top: -4px; margin-bottom: 8px; }
-  .pjesmeTable td:nth-child(3), .pjesmeTable td:nth-child(4) { display: flex; align-items: center; }
-  .songImage { width: 50px; height: 50px; margin-right: 12px; border-radius: 8px; }
-  .songPlayBtn, .likeBtn, .addBtn { width: 40px; height: 40px; margin-right: 8px; margin-bottom: 4px; border-radius: 20px; }
-  .songPlayBtn svg, .likeBtn svg, .addBtn svg { width: 20px; height: 20px; }
-  .modal { min-width: 300px; max-width: 90vw; padding: 24px; border-radius: 12px; }
-  .playlistBtn { font-size: 1rem; padding: 12px 0; margin-bottom: 8px; font-weight: 600; }
-  .closeModalBtn { font-size: 1rem; padding: 12px 0; margin-top: 16px; }
-  .pjesmeTable tr { position: relative; padding-right: 60px; }
-  .pjesmeTable td:nth-child(5) { position: absolute !important; top: 16px; right: 8px; margin: 0 !important; display: flex; flex-direction: row; align-items: center; gap: 8px; }
+  .historijaBg {
+    padding-top: 55px;
+    padding-bottom: 100px;
+    min-height: 100vh;
+  }
+  
+  .container {
+    max-width: 95%;
+    margin: 0 auto;
+    padding: 20px 20px 20px 20px;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+  }
+  
+  .title {
+    font-size: 1.75rem;
+    margin-bottom: 28px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+  
+  .noSongs {
+    font-size: 1rem;
+    margin-top: 40px;
+    font-style: italic;
+  }
+  
+  .pjesmeTable {
+    display: block;
+    border-radius: 0;
+    background: transparent;
+    overflow: visible;
+    margin-top: 0;
+  }
+  
+  .pjesmeTable thead {
+    display: none;
+  }
+  
+  .pjesmeTable tbody {
+    display: block;
+  }
+  
+  .pjesmeTable tr {
+    display: block;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #333;
+    white-space: normal;
+    position: relative;
+  }
+  
+  .pjesmeTable td {
+    display: block;
+    border: none;
+    padding: 0;
+    text-align: left;
+    white-space: normal;
+    font-size: 0.875rem;
+  }
+  
+  .pjesmeTable td:first-child {
+    display: none;
+  }
+  
+  .pjesmeTable td:nth-child(2) {
+    margin-bottom: 0;
+  }
+  
+  .pjesmeTable td:nth-child(3) {
+    flex: 1;
+    margin-left: 62px;
+    margin-top: -62px;
+    margin-bottom: 2px;
+  }
+  
+  .pjesmeTable td:nth-child(4) {
+    flex: 1;
+    margin-left: 62px;
+    margin-top: -4px;
+    margin-bottom: 8px;
+  }
+  
+  .pjesmeTable td:nth-child(3),
+  .pjesmeTable td:nth-child(4) {
+    display: flex;
+    align-items: center;
+  }
+  
+  .songImage {
+    width: 50px;
+    height: 50px;
+    margin-right: 12px;
+    border-radius: 8px;
+  }
+  
+  .songPlayBtn, .likeBtn, .addBtn {
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
+    margin-bottom: 4px;
+    border-radius: 20px;
+  }
+  
+  .songPlayBtn svg, .likeBtn svg, .addBtn svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .modal {
+    min-width: 300px;
+    max-width: 90vw;
+    padding: 24px;
+    border-radius: 12px;
+  }
+  
+  .playlistBtn {
+    font-size: 1rem;
+    padding: 12px 0;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  
+  .closeModalBtn {
+    font-size: 1rem;
+    padding: 12px 0;
+    margin-top: 16px;
+  }
+  
+  .pjesmeTable tr {
+    position: relative;
+    padding-right: 60px;
+  }
+  
+  .pjesmeTable td:nth-child(5) {
+    position: absolute !important;
+    top: 16px;
+    right: 8px;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px  ;
+  }
+  
   .pjesmeTable td:nth-child(5) .songPlayBtn,
   .pjesmeTable td:nth-child(5) .likeBtn,
-  .pjesmeTable td:nth-child(5) .addBtn { margin-right: 0; margin-bottom: 4px; }
-  .pjesmeTable td:nth-child(5) .addBtn { margin-bottom: 0; }
+  .pjesmeTable td:nth-child(5) .addBtn {
+    margin-right: 0;
+    margin-bottom: 4px;
+  }
+  
+  
 }
 
-@media (max-width: 375px) {
-  .container { padding: 8px 4px 16px 4px; }
-  .title { font-size: 1.1rem; }
-  .pjesmeTable td { font-size: 0.7rem; }
-  .pjesmeTable td:before { font-size: 0.65rem; }
-  .songImage { width: 20px; height: 20px; }
-  .songPlayBtn, .likeBtn, .addBtn { width: 20px; height: 20px; }
-  .songPlayBtn svg, .likeBtn svg, .addBtn svg { width: 12px; height: 12px; }
-  .modal { min-width: 260px; padding: 20px 12px 12px 12px; }
-  .playlistBtn { font-size: 0.85rem; }
-  .closeModalBtn { font-size: 0.85rem; }
+
+@media (max-width: 360px) {
+  .songPlayBtn, .likeBtn, .addBtn {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .songPlayBtn svg, .likeBtn svg, .addBtn svg {
+    width: 15px;
+    height: 15px;
+  }
+  
 }

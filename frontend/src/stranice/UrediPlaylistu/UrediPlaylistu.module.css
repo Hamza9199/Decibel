@@ -395,11 +395,11 @@
   }
 
   .formContainer {
-    padding: 0 8px;
+    padding: 0 18px;
   }
 
   .editPlaylistForm {
-    padding: 20px 16px 20px 16px;
+    padding: 20px 60px 20px 60px;
     gap: 16px;
     border-radius: 14px;
     box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
@@ -489,59 +489,5 @@
     font-size: 0.8rem;
     padding: 6px 10px;
     border-radius: 6px;
-  }
-}
-
-@media (max-width: 375px) {
-  .editPlaylistForm {
-    padding: 16px 12px 16px 12px;
-  }
-
-  .title {
-    font-size: 1.2rem;
-  }
-
-  .label {
-    font-size: 0.85rem;
-  }
-
-  .input, .textarea {
-    font-size: 0.85rem;
-    padding: 8px 10px;
-  }
-
-  .textarea {
-    min-height: 60px;
-  }
-
-  .filesGrid {
-    gap: 10px;
-  }
-
-  .uploadArea {
-    height: 100px;
-    gap: 6px;
-  }
-
-  .uploadArea svg {
-    width: 28px;
-    height: 28px;
-  }
-
-  .checkboxLabel {
-    font-size: 0.8rem;
-  }
-
-  .button {
-    font-size: 0.9rem;
-    padding: 10px 0;
-  }
-
-  .cancelBtn {
-    font-size: 0.85rem;
-  }
-
-  .noSongsText {
-    font-size: 0.85rem;
   }
 }

@@ -143,7 +143,7 @@ const NovaPretplata: React.FC = () => {
     },
     onSuccess: () => {
       setKupovinaSuccess("Pretplata je uspješno kupljena!");
-      setTimeout(() => (window.location.href = "/pretplata"), 1500);
+      setTimeout(() => (window.location.href = "/profile/subscription"), 1500);
     },
     onError: (error: unknown) => {
       const errorMessage = axios.isAxiosError(error) && error.response ? error.response.data.detail || "Greška pri kupovini pretplate." : "Greška pri kupovini pretplate.";

@@ -1,11 +1,12 @@
 .novaPlaylistaBg {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   background: #f6f7fb;
   padding-top: 80px;
   padding-bottom: 60px;
+ 
 }
 
 .formContainer {
@@ -291,6 +292,7 @@
 }
 
 @media (max-width: 480px) {
+
   .novaPlaylistaBg {
     padding-top: 55px;
     padding-bottom: 30px;
@@ -301,10 +303,19 @@
   }
 
   .novaPlaylistaForm {
-    padding: 20px 16px 20px 16px;
+    padding: 20px 10px 20px 16px;
     gap: 16px;
     border-radius: 14px;
-    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+
+  }
+
+   .input,
+  .textarea,
+  .button,
+  .cancelBtn {
+    box-sizing: border-box;
+    max-width: 100%;
   }
 
   .title {

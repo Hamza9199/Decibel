@@ -138,5 +138,5 @@
   .table td:before { font-size: 0.65rem; }
   .table img { width: 20px; height: 20px; }
   .table button { width: 20px; height: 20px; }
-  .table button svg { width: 12px; height: 12px; }
+  .table button svg { width: 20px; height: 20px; }
 }

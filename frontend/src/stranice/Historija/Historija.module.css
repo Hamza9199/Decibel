@@ -338,53 +338,19 @@
     margin-bottom: 4px;
   }
   
-  .pjesmeTable td:nth-child(5) .addBtn {
-    margin-bottom: 0;
-  }
+  
 }
 
-@media (max-width: 375px) {
-  .container {
-    padding: 8px 4px 16px 4px;
-  }
-  
-  .title {
-    font-size: 1.1rem;
-  }
-  
-  .pjesmeTable td {
-    font-size: 0.7rem;
-  }
-  
-  .pjesmeTable td:before {
-    font-size: 0.65rem;
-  }
-  
-  .songImage {
-    width: 20px;
-    height: 20px;
-  }
-  
+
+@media (max-width: 360px) {
   .songPlayBtn, .likeBtn, .addBtn {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
   }
   
   .songPlayBtn svg, .likeBtn svg, .addBtn svg {
-    width: 12px;
-    height: 12px;
+    width: 15px;
+    height: 15px;
   }
   
-  .modal {
-    min-width: 260px;
-    padding: 20px 12px 12px 12px;
-  }
-  
-  .playlistBtn {
-    font-size: 0.85rem;
-  }
-  
-  .closeModalBtn {
-    font-size: 0.85rem;
-  }
 }

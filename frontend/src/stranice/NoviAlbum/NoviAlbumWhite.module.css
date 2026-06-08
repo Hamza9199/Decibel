@@ -151,25 +151,171 @@
 .songName { color: #111; font-weight: 600; }
 .songDuration { color: #666; font-size: 0.9rem; }
 
+
 @media (max-width: 600px) {
-  .noviAlbumBg { padding: 20px 0; }
-  .noviAlbumForm { min-width: 90vw; max-width: 90vw; padding: 28px 20px 24px 20px; border-radius: 12px; }
-  .title { font-size: 1.5rem; margin-bottom: 20px; }
-  .input, .textarea { padding: 10px 12px; font-size: 0.95rem; margin-bottom: 12px; }
-  .fileInputs { flex-direction: column; gap: 12px; }
+  .noviAlbumBg {
+    margin-top: 70px;
+    padding: 20px 0;
+  }
+  
+  .noviAlbumForm {
+    min-width: 90vw;
+    max-width: 90vw;
+    padding: 28px 20px 24px 20px;
+    border-radius: 12px;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .input, .textarea {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+  
+  .fileInputs {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .fileLabel {
+    font-size: 0.9rem;
+  }
+  
+  .button {
+    padding: 10px 0;
+    font-size: 1rem;
+  }
+  
+  .cancelBtn {
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
-  .noviAlbumBg { padding: 15px 0; min-height: 100vh; background: #fafbfe; }
-  .noviAlbumForm { padding: 20px 16px; border-radius: 8px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: #ffffff; }
-  .title { font-size: 1.3rem; margin-bottom: 18px; letter-spacing: 0.5px; }
-  .input, .textarea { padding: 10px 12px; font-size: 0.9rem; margin-bottom: 10px; border-radius: 6px; }
-  .textarea { min-height: 50px; max-height: 120px; }
-  .fileInputs { flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .noviAlbumBg {
+    margin-top: 60px;
+    padding: 15px 0;
+  }
+  
+  .formContainer {
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 0 10px;
+  }
+  
+  .noviAlbumForm {
+    padding: 20px 16px 20px 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  
+  .songsSection {
+    min-width: 90vw;
+    max-width: 90vw;
+    max-height: none;
+    padding: 16px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+  }
+  
+  .songsTitle {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .noSongsText {
+    font-size: 0.85rem;
+  }
+  
+  .songItem {
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+  
+  .songCheckbox {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .songName {
+    font-size: 0.85rem;
+  }
+  
+  .songDuration {
+    font-size: 0.8rem;
+    min-width: 35px;
+  }
+  
+  .title {
+    font-size: 1.3rem;
+    margin-bottom: 18px;
+    letter-spacing: 0.5px;
+  }
+  
+  .input, .textarea {
+    padding: 10px 12px;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    border-radius: 6px;
+  }
+  
+  .input:focus, .textarea:focus {
+    border: 1.5px solid #e754a2;
+  }
+  
+  .textarea {
+    min-height: 50px;
+    max-height: 120px;
+  }
+  
+  .fileInputs {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  
+  .fileLabel {
+    font-size: 0.85rem;
+    gap: 2px;
+  }
+  
+  .button {
+    padding: 10px 0;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  
+  .cancelBtn {
+    font-size: 0.85rem;
+    padding: 8px 0;
+    border-radius: 6px;
+  }
+  
+  .error, .success {
+    font-size: 0.85rem;
+    padding: 6px 10px;
+    margin-bottom: 8px;
+  }
+
+  .noviAlbumForm,
+.input,
+.textarea,
+.button,
+.cancelBtn,
+.songsSection {
+  box-sizing: border-box;
+  max-width: 100%;
+}
 }
 
-@media (max-width: 375px) {
-  .noviAlbumForm { min-width: 98vw; max-width: 98vw; padding: 16px 12px; }
-  .title { font-size: 1.2rem; }
-  .input, .textarea { font-size: 0.85rem; padding: 8px 10px; }
-}
+

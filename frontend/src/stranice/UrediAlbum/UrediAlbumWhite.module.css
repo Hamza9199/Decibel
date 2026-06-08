@@ -109,12 +109,15 @@
   .input:focus { border: 1.5px solid #e754a2; }
   .button { padding: 10px 0; font-size: 0.9rem; margin-top: 5px; border-radius: 6px; }
   .error, .success { font-size: 0.8rem; padding: 6px 8px; margin-bottom: 3px; }
+  .formContainer,
+.editAlbumForm,
+.songsSection,
+.input,
+.button,
+.addBtn,
+.removeBtn {
+  box-sizing: border-box;
+  max-width: 100%;
+}
 }
 
-@media (max-width: 375px) {
-  .editAlbumForm { max-width: 98vw; padding: 12px 8px 12px 8px; }
-  .title { font-size: 1.1rem; }
-  .label { font-size: 0.8rem; }
-  .input { font-size: 0.8rem; padding: 6px 8px; }
-  .button { font-size: 0.85rem; padding: 8px 0; }
-}

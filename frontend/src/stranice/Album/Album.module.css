@@ -517,7 +517,6 @@
     font-size: 0.9rem;
   }
   
-  /* Mobile card-based layout for songs */
   .pjesmeTable {
     display: block;
     border-radius: 0;
@@ -525,119 +524,133 @@
     overflow: visible;
     margin-top: 8px;
   }
+  .pjesmeTable th:nth-child(3),
+.pjesmeTable td:nth-child(3) {
+  display: none;
+}
+
+.pjesmeTable td:nth-child(4) {
+  position: absolute;
+  left: 78px;
+  top: 34px;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+
+.pjesmeTable {
+  display: block;
+  border-radius: 0;
+  background: transparent;
+  overflow: visible;
+  margin-top: 0;
+}
+
+.pjesmeTable thead {
+  display: none;
+}
+
+.pjesmeTable tbody {
+  display: block;
+}
+
+.pjesmeTable tr {
+  display: flex;
+  align-items: flex-start;
+  border-radius: 12px;
+  padding: 16px;
+  padding-right: 50px;
+  margin-bottom: 12px;
+  white-space: normal;
+  position: relative;
+}
+
+.pjesmeTable td {
+  display: block;
+  border: none;
+  padding: 0;
+  text-align: left;
+  white-space: normal;
+}
+
+.pjesmeTable td:first-child {
+  display: none;
+}
+
+.songNumber {
+  display: none !important;
+}
+
+.songNameCell {
+  flex: 1;
+  position: static !important;
+  margin: 0 !important;
+}
+
+.songInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.songImage {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 8px;
+}
+
+.songNameCell a {
+  display: block;
+}
+
+.songName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.pjesmeTable td.songArtist {
+  position: absolute !important;
+  left: 78px !important;
+  top: 55px !important;
+  display: block !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 0.8rem !important;
+}
+
+.songActions {
+  position: static !important;
+  margin-left: auto;
+  margin-right: 3px;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.songPlayBtn,
+.songAddBtn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+}
+
+.songPlayBtn svg,
+.songAddBtn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.songRow {
+  display: flex !important;
+  align-items: center !important;
+  padding: 12px !important;
+  min-height: 72px;
+}
   
-  .pjesmeTable thead {
-    display: none;
-  }
-  
-  .pjesmeTable tbody {
-    display: block;
-  }
-  
-  .pjesmeTable tr {
-    display: block;
-    background: #232323;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-    border: 1px solid #333;
-    white-space: normal;
-    position: relative;
-    box-shadow: 0 2px 8px rgba(185, 29, 149, 0.1);
-  }
-  
-  .pjesmeTable td {
-    display: block;
-    border: none;
-    padding: 0;
-    text-align: left;
-    white-space: normal;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-  }
-  
-  .pjesmeTable td:last-child {
-    margin-bottom: 0;
-  }
-  
-  .pjesmeTable td:before {
-    display: none;
-  }
-  
-  .songNumber {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    color: #fff;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
-    font-weight: 700;
-  }
-  
-  .songNameCell {
-    margin-bottom: 12px;
-  }
-  
-  .songInfo {
-    gap: 12px;
-    align-items: flex-start;
-    flex-direction: row;
-  }
-  
-  .songImage {
-    width: 50px;
-    height: 50px;
-    border-radius: 8px;
-    flex-shrink: 0;
-  }
-  
-  .songName {
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.2;
-    flex: 1;
-    margin-bottom: 4px;
-  }
-  
-  .songDetails {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-  }
-  
-  .songArtist {
-    font-size: 0.85rem;
-    color: #b3b3b3;
-    font-weight: 400;
-  }
-  
-  .songDuration {
-    font-size: 0.8rem;
-    color: #999;
-    margin-top: 2px;
-  }
-  
-  .songActions {
-    justify-content: flex-start;
-    gap: 12px;
-    margin-top: 8px;
-  }
-  
-  .songPlayBtn, .songAddBtn {
-    width: 32px;
-    height: 32px;
-    margin-right: 10;
-  }
-  
-  .songPlayBtn svg, .songAddBtn svg {
-    width: 18px;
-    height: 18px;
-  }
   
   .modalContent {
     min-width: 280px;
@@ -678,16 +691,8 @@
     height: 100px;
   }
   
-  .playBtn, .likeBtn, .repeatBtn {
-    width: 28px;
-    height: 28px;
-    bottom: 4px;
-  }
   
-  .playBtn { left: 2px; }
-  .likeBtn { left: 32px; }
-  .repeatBtn { right: 2px; }
-  
+
   .albumNaziv {
     font-size: 1.2rem;
   }
@@ -708,26 +713,15 @@
     font-size: 0.65rem;
   }
   
-  .songPlayBtn, .songAddBtn {
-    width: 20px;
-    height: 20px;
-  }
   
-  .songPlayBtn svg, .songAddBtn svg {
-    width: 12px;
-    height: 12px;
-  }
-  
+ 
   .modal {
     min-width: 260px;
     padding: 16px 12px 12px 12px;
   }
+
+    .playlistBtn { font-size: 0.85rem; }
+  .closeModalBtn, .modalCloseBtn { font-size: 0.85rem; }
   
-  .playlistBtn {
-    font-size: 0.85rem;
-  }
   
-  .closeModalBtn {
-    font-size: 0.85rem;
-  }
 }

@@ -1,8 +1,11 @@
 .svePlaylisteBg {
-  min-height: 100vh;
+  height: 100vh;
   padding-top: 80px;
   padding-bottom: 60px;
   background: rgba(24,24,24,0.7);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 .playButton {
   position: absolute;
@@ -45,6 +48,7 @@
   background: rgba(24,24,24,0.97);
   border-radius: 18px;
   box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  
 }
 
 .title {
@@ -284,7 +288,8 @@
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   }
   
   .cardDesc {
@@ -298,7 +303,8 @@
     overflow: hidden;
     display: -webkit-box;
     -webkit-box-orient: vertical;
-    -webkit-line-clamp: 1;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
   }
 
   .searchInput {

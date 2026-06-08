@@ -144,6 +144,29 @@ const Postavke: React.FC = () => {
     localStorage.setItem("decibel_lang", lang);
   }, [i18n]);
 
+  const handleDownloadData = useCallback(async () => {
+    const korisnik = localStorage.getItem("korisnik");
+    if (!korisnik) {
+      alert("Morate biti prijavljeni da biste preuzeli podatke.");
+      return;
+    }
+    const korisnikID = JSON.parse(korisnik).id;
+    try {
+      const response = await axios.get(`${API_BASE}/korisnici/${korisnikID}/izvoz-podataka`);
+      const dataStr = JSON.stringify(response.data, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `korisnik_${korisnikID}_podaci.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("Greška pri preuzimanju podataka.");
+    }
+  }, []);
+
   if (!cssReady || !postDataDelayDone) return <Loading />;
 
   return (
@@ -188,6 +211,9 @@ const Postavke: React.FC = () => {
             <div className={styles.label} style={{ marginTop: 24, color: "#b3b3b3", fontSize: "0.98rem" }}>
               {t("additional_settings")}
             </div>
+            <button className={styles.downloadButton} type="button" onClick={handleDownloadData}>
+              {t("download_my_data") || "Preuzmi moje podatke"}
+            </button>
           </div>
         </div>
       </div>

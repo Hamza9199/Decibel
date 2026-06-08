@@ -9,4 +9,5 @@ export type Korisnik = {
   email?: string;
   brojPratilaca?: number;
   bio?: string;
+  obrisan?: boolean;
 };

@@ -4,7 +4,7 @@ import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import axios from "axios";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import type { Korisnik, Pjesma, Album, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
 const Izvodjac: React.FC = () => {
   const { izvodjacId } = useParams<{ izvodjacId: string }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const repeatAll = false;
   const [styles, setStyles] = useState<Styles>({});
   const [brojPratilaca, setBrojPratilaca] = useState<number>(0);
@@ -68,6 +69,17 @@ const Izvodjac: React.FC = () => {
       setBrojPratilaca(izvodjacQ.data.brojPratilaca);
     }
   }, [izvodjacQ.data?.brojPratilaca]);
+
+  useEffect(() => {
+    const izvodjac = izvodjacQ.data;
+    if (!izvodjac) return;
+  const status = izvodjac.statusKorisnika?.toString().toLowerCase();
+  const isSuspended = status && status !== "aktivan";
+  const isDeleted = izvodjac.obrisan === true;
+    if (isSuspended || isDeleted) {
+      navigate(-1);
+    }
+  }, [izvodjacQ.data, navigate]);
 
   
 

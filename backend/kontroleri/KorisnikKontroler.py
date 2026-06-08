@@ -5,6 +5,21 @@ from uuid import uuid4
 from passlib.context import CryptContext
 
 from modeli.Korisnik import KorisnikORM, Korisnik, KorisnikCreate
+from modeli.Album import AlbumORM
+from modeli.Pjesma import PjesmaORM
+from modeli.Playlista import PlaylistaORM
+from modeli.KorisnikPjesma import KorisnikPjesmaORM
+from modeli.KorisnikAlbum import KorisnikAlbumORM
+from modeli.KorisnikPlaylista import KorisnikPlaylistaORM
+from modeli.HistorijaSlusanja import HistorijaSlusanjaORM
+from modeli.Komentar import KomentarORM
+from modeli.PratilacKorisnik import PratilacKorisnikORM
+from modeli.IzvodjacPjesma import IzvodjacPjesmaORM
+from modeli.StatistikaReprodukcije import StatistikaReprodukcijeORM
+from modeli.KorisnikPretplata import KorisnikPretplataORM
+from modeli.ObnovaPretplate import ObnovaPretplateORM
+from modeli.PrijavaIzvodjaca import PrijavaIzvodjacaORM
+from modeli.SuspendovanKorisnik import SuspendovanKorisnikORM
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -85,3 +100,180 @@ async def delete_korisnik(session: AsyncSession, korisnik_id: str):
     await session.delete(db_korisnik)
     await session.commit()
     return db_korisnik
+
+async def export_korisnik_podaci(
+    session: AsyncSession,
+    korisnik_id: str
+):
+    db_korisnik = await get_korisnik_by_id(session, korisnik_id)
+    if not db_korisnik:
+        return None
+    
+    korisnik = db_korisnik
+
+    albumi = (
+    await session.execute(
+        select(AlbumORM).where(
+            AlbumORM.korisnikID == korisnik_id
+        )
+    )
+    ).scalars().all()
+
+    pjesme = (
+    await session.execute(
+        select(PjesmaORM).where(
+            PjesmaORM.korisnikID == korisnik_id
+        )
+    )
+    ).scalars().all()
+
+    playliste = (
+    await session.execute(
+        select(PlaylistaORM).where(
+            PlaylistaORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    lajk_pjesme = (
+    await session.execute(
+        select(KorisnikPjesmaORM).where(
+            KorisnikPjesmaORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    lajk_albumi = (
+    await session.execute(
+        select(KorisnikAlbumORM).where(
+            KorisnikAlbumORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    lajk_playliste = (
+    await session.execute(
+        select(KorisnikPlaylistaORM).where(
+            KorisnikPlaylistaORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    historija = (
+    await session.execute(
+        select(HistorijaSlusanjaORM).where(
+            HistorijaSlusanjaORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    komentari = (
+    await session.execute(
+        select(KomentarORM).where(
+            KomentarORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    pratim = (
+    await session.execute(
+        select(PratilacKorisnikORM).where(
+            PratilacKorisnikORM.pratilacID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    prati_me = (
+    await session.execute(
+        select(PratilacKorisnikORM).where(
+            PratilacKorisnikORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    izvodjac_pjesma = (
+    await session.execute(
+        select(IzvodjacPjesmaORM).where(
+            IzvodjacPjesmaORM.izvodjacID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    statistika = (
+    await session.execute(
+        select(StatistikaReprodukcijeORM).where(
+            StatistikaReprodukcijeORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    pretplata = (
+    await session.execute(
+        select(KorisnikPretplataORM).where(
+            KorisnikPretplataORM.korisnikID == korisnik_id
+        )
+    )
+).scalar_one_or_none()
+    
+    obnove = []
+    if pretplata:
+        obnove = (
+            await session.execute(
+                select(ObnovaPretplateORM).where(
+                    ObnovaPretplateORM.korisnikPretplataID == pretplata.id
+                )
+            )
+        ).scalars().all()
+
+
+    prijave = (
+    await session.execute(
+        select(PrijavaIzvodjacaORM).where(
+            PrijavaIzvodjacaORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    suspenzije = (
+    await session.execute(
+        select(SuspendovanKorisnikORM).where(
+            SuspendovanKorisnikORM.korisnikID == korisnik_id
+        )
+    )
+).scalars().all()
+    
+    broj_pjesama = len(pjesme)
+    broj_albuma = len(albumi)
+    broj_playlista = len(playliste)
+    broj_komentara = len(komentari)
+    ukupno_preslusavanja = sum(
+        s.brojReprodukcija for s in statistika
+    )
+
+    
+    return {
+    "korisnik": korisnik,
+    "albumi": albumi,
+    "pjesme": pjesme,
+    "playliste": playliste,
+    "lajkovanePjesme": lajk_pjesme,
+    "lajkovaniAlbumi": lajk_albumi,
+    "lajkovanePlayliste": lajk_playliste,
+    "historijaSlusanja": historija,
+    "komentari": komentari,
+    "pratim": pratim,
+    "pratiMe": prati_me,
+    "izvodjacNaPjesmama": izvodjac_pjesma,
+    "statistikaReprodukcije": statistika,
+    "pretplata": pretplata,
+    "obnovePretplate": obnove,
+    "prijaveIzvodjaca": prijave,
+    "suspenzije": suspenzije,
+    "statistikaNaloga": {
+        "brojPjesama": broj_pjesama,
+        "brojAlbuma": broj_albuma,
+        "brojPlaylista": broj_playlista,
+        "brojKomentara": broj_komentara,
+        "ukupnoPreslusavanja": ukupno_preslusavanja
+    }
+}

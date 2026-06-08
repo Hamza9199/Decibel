@@ -19,7 +19,8 @@ from kontroleri.KorisnikKontroler import (
     login_korisnik,
     get_korisnik_by_id,
     update_korisnik,
-    delete_korisnik
+    delete_korisnik,
+    export_korisnik_podaci
 )
 
 router = APIRouter(prefix="/api/korisnici", tags=["Korisnici"])
@@ -52,6 +53,16 @@ async def get_korisnik(korisnik_id: str, session: AsyncSession = Depends(get_ses
     if not korisnik:
         raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
     return korisnik
+
+@router.get("/{korisnik_id}/izvoz-podataka")
+async def export_podataka(
+    korisnik_id: str,
+    session: AsyncSession = Depends(get_session)
+    ):
+    return await export_korisnik_podaci(
+        session,
+        korisnik_id
+    )
 
 @router.put("/{korisnik_id}", response_model=Korisnik)
 async def update(korisnik_id: str, korisnik: KorisnikCreate, session: AsyncSession = Depends(get_session)):

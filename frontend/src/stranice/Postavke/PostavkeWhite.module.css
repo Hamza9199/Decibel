@@ -82,6 +82,24 @@
   background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
 }
 
+.downloadButton {
+  width: 100%;
+  background: #4a90e2;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+
+.downloadButton:hover {
+  background: #357ab8;
+}
+
 .error {
   color: #a1224f;
   background: #fde7ef;

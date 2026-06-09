@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,7 +68,7 @@ async def dobij_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: Asy
         (result.pretplataStatus == PretplataStatusEnum.aktivna or
          result.pretplataStatus == PretplataStatusEnum.pauzirana)
         and result.datumIsteka
-        and result.datumIsteka > date.today()
+        and result.datumIsteka > datetime.datetime.utcnow()
     )
 
     if not validna:

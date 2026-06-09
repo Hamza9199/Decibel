@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 import datetime
 
+
 from modeli.KorisnikPretplata import KorisnikPretplataORM, KorisnikPretplata, KorisnikPretplataCreate
 from modeli.ObnovaPretplate import ObnovaPretplateORM
 
@@ -74,7 +75,7 @@ async def delete_korisnik_pretplata(session: AsyncSession, korisnik_pretplata_id
     return db_obj
 
 
-async def get_korisnik_pretplata_by_korisnik_id(session: AsyncSession, korisnik_id: int):
+async def get_korisnik_pretplata_by_korisnik_id(session: AsyncSession, korisnik_id: str):
     result = await session.execute(
         select(KorisnikPretplataORM).options(joinedload(KorisnikPretplataORM.pretplata)).where(KorisnikPretplataORM.korisnikID == korisnik_id)
     )

@@ -1,3 +1,4 @@
+import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,6 +7,7 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.orm import selectinload
 
+from modeli.PretplataStatus import PretplataStatusEnum
 from modeli.KorisnikPretplata import KorisnikPretplata, KorisnikPretplataCreate
 from modeli.KorisnikPretplata import KorisnikPretplataORM  # Dodaj import ORM klase
 from modeli.Pretplata import PretplataORM  
@@ -57,11 +59,30 @@ async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSessi
     return obj
 
 @router.get("/korisnik/{korisnik_id}", response_model=KorisnikPretplata)
-async def get_korisnik_pretplata_by_korisnik_id(korisnik_id: int, session: AsyncSession = Depends(get_session)):
+async def get_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: AsyncSession = Depends(get_session)):
     result = await get_korisnik_pretplata_by_korisnik_id(session, korisnik_id)
     if not result:
         raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena za dati korisnikID")
+    
+    validna = (
+        result.pretplataStatus
+        and result.datumIsteka
+        and result.datumIsteka > datetime.datetime.utcnow()
+    )
+
+    if not validna:
+        return KorisnikPretplata(
+            id=result.id,
+            korisnikID=result.korisnikID,
+            pretplataID=result.pretplataID,
+            datumKupovine=result.datumKupovine,
+            datumIsteka=result.datumIsteka,
+            pretplataStatus= PretplataStatusEnum.istekla,  
+            pretplata=None
+        )
+    
     return result
+
    
 
 @router.post("/", response_model=KorisnikPretplata)

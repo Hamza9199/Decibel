@@ -94,7 +94,7 @@ const AudioPlayer: React.FC<Props> = ({
     }
     if (pretplateQuery?.data) {
       const moja = pretplateQuery.data;
-      setPretplataValid(!!(moja && moja.datumIsteka && new Date(moja.datumIsteka) > new Date()));
+      setPretplataValid(moja.pretplataStatus === "aktivna" || moja.pretplataStatus === "pauzirana");
     } else if (pretplateQuery.isError) {
       setPretplataValid(false);
     }
@@ -298,7 +298,8 @@ const AudioPlayer: React.FC<Props> = ({
     }
     if (isMounted) {
       const moja =  pretplateQuery.data;
-      setPretplataValid(!!(moja && moja.datumIsteka && new Date(moja.datumIsteka) > new Date()));
+      setPretplataValid(moja?.pretplataStatus === "aktivna" || moja?.pretplataStatus === "pauzirana");
+
     }
     return () => {
       isMounted = false;

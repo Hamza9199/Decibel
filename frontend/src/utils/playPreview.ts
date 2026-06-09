@@ -8,14 +8,21 @@ export const playPreview = async (
   src: string,
 ) => {
 
-  const slusacID = localStorage.getItem("korisnik") || "";
-     
+  const user = JSON.parse(localStorage.getItem("korisnik") || "{}");
+  const slusacID = user?.id || "";
+  let pretplataValid = false;  
 
-  const res = await axios.get(
-    `${API_BASE}/korisnik_pretplata/korisnik/${slusacID}`
-  );
+  try {
+    const res = await axios.get(
+      `${API_BASE}/korisnik_pretplata/korisnik/${slusacID}`
+    );
 
-  const pretplataValid = res.data?.aktivna === true;
+    pretplataValid =
+      res.data?.pretplataStatus === "aktivna" ||
+      res.data?.pretplataStatus === "pauzirana";
+  } catch {
+    pretplataValid = false;
+  }
 
   if (pretplataValid) {
     return false;

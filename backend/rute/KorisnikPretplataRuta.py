@@ -1,4 +1,4 @@
-import datetime
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -65,9 +65,10 @@ async def get_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: Async
         raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena za dati korisnikID")
     
     validna = (
-        result.pretplataStatus
+        (result.pretplataStatus == PretplataStatusEnum.aktivna or
+         result.pretplataStatus == PretplataStatusEnum.pauzirana)
         and result.datumIsteka
-        and result.datumIsteka > datetime.datetime.utcnow()
+        and result.datumIsteka > date.today()
     )
 
     if not validna:
@@ -78,7 +79,7 @@ async def get_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: Async
             datumKupovine=result.datumKupovine,
             datumIsteka=result.datumIsteka,
             pretplataStatus= PretplataStatusEnum.istekla,  
-            pretplata=None
+            pretplata=result.pretplata
         )
     
     return result

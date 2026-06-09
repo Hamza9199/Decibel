@@ -53,12 +53,25 @@ const Pretplata: React.FC = () => {
     queryKey: ["korisnikPretplata", korisnikID],
     enabled: Boolean(korisnikID),
     queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/korisnik_pretplata/korisnik/${korisnikID}`);
-      const pretplata: KorisnikPretplata | null = res.data ?? null;
-      const validna =
-        pretplata?.pretplataStatus === "aktivna" ||
-        pretplata?.pretplataStatus === "pauzirana";
-      return validna ? pretplata : null;
+      try {
+        const res = await axios.get(
+          `${API_BASE}/korisnik_pretplata/korisnik/${korisnikID}`
+        );
+
+        const pretplata: KorisnikPretplata | null = res.data ?? null;
+
+        const validna =
+          pretplata?.pretplataStatus === "aktivna" ||
+          pretplata?.pretplataStatus === "pauzirana";
+
+        return validna ? pretplata : null;
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          return null;
+        }
+
+        throw err;
+      }
     },
   });
 

@@ -81,8 +81,8 @@ const AudioPlayer: React.FC<Props> = ({
   const pretplateQuery = useQuery({
     queryKey: ["korisnik_pretplata"],
     queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
-      return (res.data || []) as KorisnikPretplata[];
+      const res = await axios.get(`${API_BASE}/korisnik_pretplata/korisnik/${slusacID}/`);
+      return (res.data || null) as KorisnikPretplata;
     },
     enabled: !!slusacID,
   });
@@ -93,7 +93,7 @@ const AudioPlayer: React.FC<Props> = ({
       return;
     }
     if (pretplateQuery?.data) {
-      const moja = pretplateQuery.data.find((p) => p.korisnikID === slusacID);
+      const moja = pretplateQuery.data;
       setPretplataValid(!!(moja && moja.datumIsteka && new Date(moja.datumIsteka) > new Date()));
     } else if (pretplateQuery.isError) {
       setPretplataValid(false);
@@ -297,7 +297,7 @@ const AudioPlayer: React.FC<Props> = ({
       return;
     }
     if (isMounted) {
-      const moja = pretplateQuery.data?.find((p) => p.korisnikID === slusacID);
+      const moja =  pretplateQuery.data;
       setPretplataValid(!!(moja && moja.datumIsteka && new Date(moja.datumIsteka) > new Date()));
     }
     return () => {
@@ -594,6 +594,8 @@ const AudioPlayer: React.FC<Props> = ({
           audioRef.current.load();
           setPlaying(true);
           setProgress(0);
+
+          
         }
       }
     };
@@ -713,7 +715,7 @@ const AudioPlayer: React.FC<Props> = ({
   }, [playing]);
 
   const artistNames = useMemo(
-    () => izvodjaci.map(i => i.korisnicko_ime).join(", "),
+    () => izvodjaci.map(i => i.korisnicko_ime).join(" & "),
     [izvodjaci]
   );
 

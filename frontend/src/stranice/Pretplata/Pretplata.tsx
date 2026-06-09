@@ -53,9 +53,9 @@ const Pretplata: React.FC = () => {
     queryKey: ["korisnikPretplata", korisnikID],
     enabled: Boolean(korisnikID),
     queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/korisnik_pretplata/`);
-      const pretplate: KorisnikPretplata[] = res.data || [];
-      return pretplate.find((p) => p.korisnikID === korisnikID) || null;
+      const res = await axios.get(`${API_BASE}/korisnik_pretplata/korisnik/${korisnikID}`);
+      const pretplata: KorisnikPretplata = res.data || [];
+      return pretplata && pretplata.pretplataStatus ? pretplata : null;
     },
   });
 

@@ -16,7 +16,9 @@ from kontroleri.KorisnikPretplataKontroler import (
     get_all_korisnik_pretplata,
     get_korisnik_pretplata_by_id,
     create_korisnik_pretplata,
-    delete_korisnik_pretplata
+    delete_korisnik_pretplata,
+    get_korisnik_pretplata_by_korisnik_id
+
 )
 
 router = APIRouter(prefix="/api/korisnik_pretplata", tags=["KorisnikPretplata"])
@@ -53,6 +55,14 @@ async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSessi
     if not obj:
         raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena")
     return obj
+
+@router.get("/korisnik/{korisnik_id}", response_model=KorisnikPretplata)
+async def get_korisnik_pretplata_by_korisnik_id(korisnik_id: int, session: AsyncSession = Depends(get_session)):
+    result = await get_korisnik_pretplata_by_korisnik_id(session, korisnik_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena za dati korisnikID")
+    return result
+   
 
 @router.post("/", response_model=KorisnikPretplata)
 async def nova_korisnik_pretplata(data: KorisnikPretplataCreate, session: AsyncSession = Depends(get_session)):

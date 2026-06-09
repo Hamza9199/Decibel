@@ -72,3 +72,10 @@ async def delete_korisnik_pretplata(session: AsyncSession, korisnik_pretplata_id
     await session.delete(db_obj)
     await session.commit()
     return db_obj
+
+
+async def get_korisnik_pretplata_by_korisnik_id(session: AsyncSession, korisnik_id: int):
+    result = await session.execute(
+        select(KorisnikPretplataORM).options(joinedload(KorisnikPretplataORM.pretplata)).where(KorisnikPretplataORM.korisnikID == korisnik_id)
+    )
+    return result.scalar_one_or_none()

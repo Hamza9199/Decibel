@@ -8,6 +8,7 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { playPreview } from "../../utils/playPreview";
 
 type Styles = Record<string, string>;
 
@@ -157,11 +158,16 @@ const Home: React.FC = () => {
   }, [activeSong]);
 
   const handlePlay = useCallback(
-    (id: number, audioUrl?: string) => {
+    async (id: number, audioUrl?: string) => {
       setActiveSongId(id);
       const song = (pjesme || []).find((p) => p.id === id);
       setActiveSong(song && audioUrl ? { ...song, putanjaAudio: audioUrl } : null);
       if (song && audioUrl) {
+        
+        await playPreview(
+          audioUrl
+        );
+                
         window.dispatchEvent(
           new CustomEvent("globalAudioPlay", {
             detail: {

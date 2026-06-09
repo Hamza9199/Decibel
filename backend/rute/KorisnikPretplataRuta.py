@@ -59,7 +59,7 @@ async def get_korisnik_pretplata(korisnik_pretplata_id: int, session: AsyncSessi
     return obj
 
 @router.get("/korisnik/{korisnik_id}", response_model=KorisnikPretplata)
-async def get_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: AsyncSession = Depends(get_session)):
+async def dobij_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: AsyncSession = Depends(get_session)):
     result = await get_korisnik_pretplata_by_korisnik_id(session, korisnik_id)
     if not result:
         raise HTTPException(status_code=404, detail="KorisnikPretplata nije pronađena za dati korisnikID")

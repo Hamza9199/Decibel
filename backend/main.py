@@ -35,12 +35,14 @@ from rute.PlaylistaRuta import router as playlista_router
 from rute.PratilacKorisnikRuta import router as pratilac_korisnik_router
 from rute.PrijavaIzvodjacaRuta import router as prijava_izvodjaca_router
 from rute.SuspendovanKorisnikRuta import router as suspendovan_korisnik_router
+from rute.DiscordLinkRuta import router as discord_link_router
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 from modeli.SuspendovanKorisnik import SuspendovanKorisnikORM
 from modeli.Korisnik import KorisnikORM
 from modeli.KorisnikStatus import KorisnikStatusEnum
+
 import httpx
 
 
@@ -150,3 +152,4 @@ app.include_router(obnova_pretplate_router)
 app.include_router(pratilac_korisnik_router)
 app.include_router(prijava_izvodjaca_router)
 app.include_router(suspendovan_korisnik_router)
+app.include_router(discord_link_router)

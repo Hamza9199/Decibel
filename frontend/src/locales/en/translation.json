@@ -250,6 +250,20 @@
   "download_desc": "Download our app and enjoy music without limits!",
   "download_desktop": "Download for desktop",
   "download_mobile": "Download for mobile",
-  "download_discord_bot": "Invite Discord bot"
+  "download_discord_bot": "Invite Discord bot",
+  "discordLink": {
+    "title": "Link your account with Discord",
+    "generateCode": "Generate code",
+    "generating": "Generating...",
+    "yourCode": "Your code",
+    "howToLink": "How to link your account?",
+    "step1": "Join the Decibel Discord server.",
+    "step2": "Run the Discord bot.",
+    "step3": "Type the command:",
+    "joinServer": "Join the Discord server",
+    "discordID": "Your Discord ID",
+    "unlink": "Unlink Discord account",
+    "refresh": "Refresh status"
+  }
 }
 

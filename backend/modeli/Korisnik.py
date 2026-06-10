@@ -25,6 +25,7 @@ class KorisnikORM(Base):
     datumRegistracije = Column(DateTime, default=datetime.datetime.utcnow)
     brojPratilaca = Column(BigInteger, default=0)
     obrisan = Column(Boolean, default=False)
+    discordID = Column(String(50), nullable=True, unique=True)
 
 class KorisnikCreate(BaseModel):
     ime: str
@@ -39,6 +40,7 @@ class KorisnikCreate(BaseModel):
     datumRegistracije: Optional[datetime.datetime] = None
     brojPratilaca: Optional[int] = 0
     obrisan: Optional[bool] = False
+    discordID: Optional[str] = None
 
 class Korisnik(KorisnikCreate):
     id: Optional[UUID]

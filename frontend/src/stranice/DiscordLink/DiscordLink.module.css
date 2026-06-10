@@ -1,0 +1,146 @@
+.container {
+    min-height: 100vh;
+
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  max-width: 95vw;
+  margin: 0 auto;
+  margin-top: 50px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  width: 100%;
+  max-width: 800px;
+  background: #181818;
+  border: 1px solid #2c2c2c;
+  border-radius: 18px;
+  padding: 32px;
+  color: #fff;
+}
+
+.title {
+  margin-bottom: 16px;
+}
+
+.description {
+  color: #bdbdbd;
+  margin-bottom: 24px;
+}
+
+.statusBox {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.statusLabel {
+  font-weight: 700;
+}
+
+.statusDisconnected {
+  color: #ff6b6b;
+}
+
+.statusConnected {
+  color: #2ecc71;
+}
+
+.generateBtn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: #b91d95;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.generateBtn:hover {
+  opacity: 0.9;
+}
+
+.codeBox {
+  margin-top: 24px;
+  padding: 20px;
+  background: #101010;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.codeTitle {
+  margin-bottom: 10px;
+  color: #aaa;
+}
+
+.code {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 4px;
+}
+
+.instructions {
+  margin-top: 24px;
+}
+
+.command {
+  margin-top: 12px;
+  background: #0f0f0f;
+  border-radius: 10px;
+  padding: 14px;
+  font-family: monospace;
+  font-size: 1.1rem;
+}
+
+.discordBtn {
+  display: block;
+  margin-top: 24px;
+  text-align: center;
+  background: #b91d95;
+  color: white;
+  text-decoration: none;
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.discordBtn:hover {
+  opacity: 0.9;
+  color: white;
+}
+
+.refreshBtn {
+  background: transparent;
+  border: 1px solid #2c2c2c;
+  color: #bdbdbd;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.refreshBtn:hover {
+  background: #2c2c2c;
+  color: white;
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 10px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+
+  .code {
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+  }
+}

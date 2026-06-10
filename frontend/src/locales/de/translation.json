@@ -250,5 +250,25 @@
   "download_desc": "Laden Sie unsere App herunter und genießen Sie Musik ohne Einschränkungen!",
   "download_desktop": "Für Desktop herunterladen",
   "download_mobile": "Für Mobilgerät herunterladen",
-  "download_discord_bot": "Discord-Bot einladen"
+  "download_discord_bot": "Discord-Bot einladen",
+  "discordLink": {
+    "title": "Discord-Konto verknüpfen",
+    "description": "Verknüpfen Sie Ihr Decibel-Konto mit Discord, um exklusive Vorteile zu erhalten, wie z.B. Zugriff auf spezielle Kanäle, Rollen und mehr!",
+    "status": "Status",
+    "notConnected": "Discord ist nicht verbunden",
+    "connected": "Discord ist verbunden",
+    "generateCode": "Code generieren",
+    "generating": "Code wird generiert...",
+    "yourCode": "Ihr Code",
+    "howToLink": "Wie verknüpfe ich mein Konto?",
+    "step1": "Treten Sie dem Decibel Discord-Server bei.",
+    "step2": "Starten Sie den Discord-Bot.",
+    "step3": "Geben Sie den Befehl ein:",
+    "joinServer": "Dem Discord-Server beitreten",
+    "discordID": "Ihre Discord-ID",
+    "unlink": "Discord-Konto trennen",
+    "refresh": "Status aktualisieren"
+    
+
+  }
 }

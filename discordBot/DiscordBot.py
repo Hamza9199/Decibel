@@ -120,8 +120,59 @@ class MyClient(discord.Client):
             except Exception as e:
                 logging.warning(f"[DiscordBot] Autocomplete error: {e}")
             return []
+        
+
+        async def provjeri_pristup(interaction: discord.Interaction):
+            discord_id = str(interaction.user.id)
+
+            try:
+                async with aiohttp.ClientSession() as session:
+
+                    async with session.get(
+                        f"{BACKEND_URL}/api/discordlink/{discord_id}"
+                    ) as resp:
+
+                        if resp.status != 200:
+                            await interaction.response.send_message(
+                                "❌ You need to connect your decibel account.\n\nhttps://decibel.click/discord-link",
+                                ephemeral=True
+                            )
+                            return None
+
+                        korisnik = await resp.json()
+
+                    async with session.get(
+                        f"{BACKEND_URL}/api/korisnik_pretplata/korisnik/{korisnik['id']}"
+                    ) as pretplata_resp:
+
+                        if pretplata_resp.status != 200:
+                            await interaction.response.send_message(
+                                "❌ U need subscription on Decibel.\n\nhttps://decibel.click/profile/subscription",
+                                ephemeral=True
+                            )
+                            return None
+
+                        pretplata = await pretplata_resp.json()
+                        status = pretplata.get("pretplataStatus")
+
+                        if status not in ["aktivna", "pauzirana"]:
+                            await interaction.response.send_message(
+                                "❌ U need active subscription on Decibel.\n\nhttps://decibel.click/profile/subscription",
+                                ephemeral=True
+                            )
+                            return None
+
+                return korisnik
+
+            except Exception as e:
+                logging.exception("[DiscordBot] check access error")
+                return None
 
         async def play_command(interaction: discord.Interaction, naziv: str):
+            korisnik = await provjeri_pristup(interaction)
+
+            if not korisnik:
+                return
             if os.getenv("DISABLE_VOICE", "false").lower() == "true":
                 try:
                     await interaction.response.send_message(
@@ -381,7 +432,46 @@ class MyClient(discord.Client):
             except Exception:
                 pass
 
+
+        async def link_command(
+            interaction: discord.Interaction,
+            kod: str
+        ):
+            try:
+                async with aiohttp.ClientSession() as session:
+
+                    async with session.post(
+                        f"{BACKEND_URL}/api/discordlink/link",
+                        params={
+                            "kod": kod,
+                            "discord_id": str(interaction.user.id)
+                        }
+                    ) as resp:
+
+                        if resp.status == 200:
+                            await interaction.response.send_message(
+                                "✅ Discord account successfully linked! You can now use the music commands.\n\nIf you want to unlink, use the command `/unlink` and follow the instructions.",
+                                ephemeral=True
+                            )
+                        else:
+                            data = await resp.json()
+
+                            await interaction.response.send_message(
+                                f"❌ {data.get('detail', 'Unknown error')}",
+                                ephemeral=True
+                            )
+
+            except Exception:
+                await interaction.response.send_message(
+                    "❌ Error while connecting your account.",
+                    ephemeral=True
+                )
+
         async def skip_command(interaction: discord.Interaction):
+            korisnik = await provjeri_pristup(interaction)
+
+            if not korisnik:
+                return
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
             try:
                 if voice_client and voice_client.is_playing():
@@ -393,6 +483,10 @@ class MyClient(discord.Client):
                 pass
 
         async def pause_command(interaction: discord.Interaction):
+            korisnik = await provjeri_pristup(interaction)
+
+            if not korisnik:
+                return
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
             if voice_client and voice_client.is_playing():
                 voice_client.pause()
@@ -401,6 +495,10 @@ class MyClient(discord.Client):
                 await interaction.response.send_message("There is no song to pause!", ephemeral=True)
 
         async def unpause_command(interaction: discord.Interaction):
+            korisnik = await provjeri_pristup(interaction)
+
+            if not korisnik:
+                return
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
             if voice_client and voice_client.is_paused():
                 voice_client.resume()
@@ -409,6 +507,10 @@ class MyClient(discord.Client):
                 await interaction.response.send_message("There is no paused song!", ephemeral=True)
 
         async def dis_command(interaction: discord.Interaction):
+            korisnik = await provjeri_pristup(interaction)
+
+            if not korisnik:
+                return
             voice_client = discord.utils.get(self.voice_clients, guild=interaction.guild)
             if voice_client:
                 if voice_client.is_playing():
@@ -424,6 +526,15 @@ class MyClient(discord.Client):
                 description="I am funny!",
                 guild=discord.Object(id=guild_id)
             )(active_command)
+            self.tree.command(
+                name="link",
+                description="Connect your Decibel account with Discord (one-time, 5 minute code)",
+                guild=discord.Object(id=guild_id)
+            )(
+                app_commands.describe(
+                    kod="The code you received from the Decibel website (valid for 5 minutes)"
+                )(link_command)
+            )
             play_cmd = self.tree.command(
                 name="play",
                 description="Play some songs broski!",
@@ -450,6 +561,7 @@ class MyClient(discord.Client):
                 description="Disconnect the bot from the voice channel",
                 guild=discord.Object(id=guild_id)
             )(dis_command)
+            
 
     
 

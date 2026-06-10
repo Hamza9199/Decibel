@@ -34,6 +34,7 @@ import axios from "axios";
 import { useCallback } from 'react';
 import Zahtjevi from './stranice/Zahtjevi/Zahtjevi';
 import Download from './stranice/Download/Download';
+import DiscordLink from './stranice/DiscordLink/DiscordLink';
 
 
 const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () => void }> = ({ poruka, vrijemeDo, onLogout }) => (
@@ -349,6 +350,7 @@ const AppContent: FC = () => {
         <Route path="/omiljene/playliste" element={<Omiljeno />} />
         <Route path="/zahtjevi" element={<Zahtjevi />} />
         <Route path="/download" element={<Download />} />
+        <Route path="/discord-link" element={<DiscordLink />} />
         <Route path="/404" element={
           <>
             <Header/>

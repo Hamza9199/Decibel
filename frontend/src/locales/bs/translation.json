@@ -257,5 +257,24 @@
   "download_desc": "Preuzmite našu aplikaciju i uživajte u muzici bez ograničenja!",
   "download_desktop": "Preuzmi za desktop",
   "download_mobile": "Preuzmi za mobilni",
-  "download_discord_bot": "Pozovi Discord bota"
+  "download_discord_bot": "Pozovi Discord bota",
+  "title": "Discord povezivanje",
+  "discordLink": {
+    "title": "Discord povezivanje",
+    "description": "Povežite svoj Discord račun kako biste koristili Decibel Discord bota.",
+    "status": "Status",
+    "notConnected": "Discord nije povezan",
+    "connected": "Discord je povezan",
+    "generateCode": "Generiši kod",
+    "generating": "Generisanje...",
+    "yourCode": "Vaš kod",
+    "howToLink": "Kako povezati račun?",
+    "step1": "Pridružite se Decibel Discord serveru.",
+    "step2": "Pokrenite Discord bota.",
+    "step3": "Ukucajte komandu:",
+    "joinServer": "Pridruži se Discord serveru",
+    "discordID": "Discord ID",
+    "unlink": "Odveži Discord račun",
+    "refresh": "Osvježi status"
+  }
 }

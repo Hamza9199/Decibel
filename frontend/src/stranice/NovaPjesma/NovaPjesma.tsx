@@ -64,7 +64,6 @@ const NovaPjesma: React.FC = () => {
 
   useEffect(() => {
     if (!korisnikId) return;
-    // Dodaj sebe samo ako je lista prazna (prvi load)
     setIzabraniIzvodjaci((prev) => {
       if (prev.length === 0) {
         const userObj = (sviIzvodjaciQ.data || []).find((k) => String(k.id) === String(korisnikId)) || (korisnik as Korisnik);
@@ -113,7 +112,7 @@ const NovaPjesma: React.FC = () => {
           axios.post(`${API_BASE}/izvodjac_pjesma/`, {
             izvodjacID: izv.id,
             pjesmaID: pjesmaId,
-            potvrdjeno: izv.id === vars.autorId,
+            potvrdjeno: String(izv.id) === String(vars.autorId),
           }).catch(() => {})
         )
       );

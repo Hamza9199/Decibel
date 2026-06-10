@@ -59,7 +59,7 @@ async def read_korisnik_by_discord(
     return korisnik
 
 
-@router.post("/", response_model=DiscordLinkORM, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=DiscordLink, status_code=status.HTTP_201_CREATED)
 async def create_link(link: DiscordLink, session: AsyncSession = Depends(get_session)):
     return await create_discord_link(session, link)
 

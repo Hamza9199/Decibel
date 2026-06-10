@@ -30,7 +30,6 @@ class MyClient(discord.Client):
         
         async def keep_alive_task():
             await self.wait_until_ready()
-            import asyncio
             while not self.is_closed():
                 try:
                     for vc in list(self.voice_clients):

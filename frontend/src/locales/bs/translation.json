@@ -256,5 +256,6 @@
   "download": "Preuzmi aplikaciju",
   "download_desc": "Preuzmite našu aplikaciju i uživajte u muzici bez ograničenja!",
   "download_desktop": "Preuzmi za desktop",
-  "download_mobile": "Preuzmi za mobilni"
+  "download_mobile": "Preuzmi za mobilni",
+  "download_discord_bot": "Pozovi Discord bota"
 }

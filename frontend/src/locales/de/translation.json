@@ -247,5 +247,7 @@
   "inactive_subscription": "Ihr Abonnement ist nicht aktiv. Sie können es erneuern.",
   "add_song_playlist": "Lied zur Playlist hinzufügen",
   "download": "App herunterladen",
-  "download_desc": "Laden Sie unsere App herunter und genießen Sie Musik ohne Einschränkungen!"
+  "download_desc": "Laden Sie unsere App herunter und genießen Sie Musik ohne Einschränkungen!",
+  "download_desktop": "Für Desktop herunterladen",
+  "download_mobile": "Für Mobilgerät herunterladen"
 }

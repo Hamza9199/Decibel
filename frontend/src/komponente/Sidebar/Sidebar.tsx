@@ -17,6 +17,8 @@ const Sidebar: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   const [cssReady, setCssReady] = useState(false);
   const [cssDelayDone, setCssDelayDone] = useState(false);
+  const isElectron = navigator.userAgent.toLowerCase().includes("electron");
+
 
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
@@ -437,7 +439,7 @@ const Sidebar: React.FC = () => {
               </button>
             </>
           )}
-          {isMobile && (
+          {isMobile && !isElectron && (
               <button className={styles.navBtn} onClick={() => handleDownload()}>
           <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
 

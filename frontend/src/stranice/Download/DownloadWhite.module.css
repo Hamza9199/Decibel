@@ -1,10 +1,9 @@
 
 .container {
-   min-height: 100vh;
+  min-height: 100vh;
   padding-top: 100px;
   padding-bottom: 60px;
-  background: rgba(255,255,255,0.6);
- 
+  background: rgba(24,24,24,0.6);
 }
 
 .naslov {
@@ -17,16 +16,34 @@
   margin-bottom: 30px;
 }
 
+.downloadButtons {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 100px;
+}
+
 .downloadLink {
   text-decoration: none;
 }
 
 .downloadBtn {
-  background-color: #007bff;
+  background-color: #b91d95;
   color: white;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  font-size: 18px;
+  font-size: 22px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  
+}
+
+.downloadBtn:hover {
+  background-color: #9c1a7a;
+}
+
+.downloadBtn svg {
+  margin-right: 8px;
 }

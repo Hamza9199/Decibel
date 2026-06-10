@@ -19,6 +19,7 @@ const Header: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   const [cssReady, setCssReady] = useState(false);
   const [cssDelayDone, setCssDelayDone] = useState(false);
+  const isElectron = navigator.userAgent.toLowerCase().includes("electron");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -122,6 +123,7 @@ const Header: React.FC = () => {
     
       </div>
 
+      {!isElectron && (
       <div className={styles.downloadBtn} onClick={() => handleDownload()}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -135,6 +137,7 @@ const Header: React.FC = () => {
           </svg>
             {t("download")}
         </div>
+      )}
 
 
       {isMobile ? (

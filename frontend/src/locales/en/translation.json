@@ -242,6 +242,9 @@
   "accepted_collaborations": "Accepted collaborations",
   "no_accepted_songs": "No accepted songs.",
   "no_accepted_artists": "No accepted artists.",
-  "download_my_data": "Download my data"
+  "download_my_data": "Download my data",
+  "expired_subscription": "Your subscription has expired. You can renew it.",
+  "inactive_subscription": "Your subscription is not active. You can renew it.",
+  "add_song_playlist": "Add song to playlist"
 }
 

@@ -419,11 +419,11 @@ const Omiljeno: React.FC = () => {
                           </span>
                         ))}
                       </td>
-                      <td>
+                      <td className={styles.actionsCell}>
                         {p.putanjaAudio && (
                           <>
                             <button
-                              style={{ background: "#b91d95", border: "none", borderRadius: "50%", width: 38, height: 38, color: "#fff", cursor: "pointer", marginRight: 6 }}
+                              className={styles.playButton}
                               onClick={() => handlePlay(p)}
                               title="Pusti pjesmu"
                             >
@@ -433,32 +433,18 @@ const Omiljeno: React.FC = () => {
                             </button>
                             <button
                               style={{
-                                background: likedSongs[p.id] ? "#e754a2" : "#efe6edff",
-                                border: "none",
-                                borderRadius: "50%",
-                                width: 38,
-                                height: 38,
-                                color: "#fff",
-                                cursor: "pointer",
-                                marginRight: 6
+                                background: likedSongs[p.id] ? "#e754a2" : "#efe6edff",                          
                               }}
+                              className= {styles.likeButton}
                               onClick={() => handleLike(p)}
-                              title={likedSongs[p.id] ? "Ukloni lajk" : "Lajkuj pjesmu"}
                             >
                               <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[p.id] ? "#fdb9ddff" : "#fff"}>
                                 <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                               </svg>
                             </button>
                             <button
-                              style={{
-                                background: "#b91d95",
-                                border: "none",
-                                borderRadius: "50%",
-                                width: 38,
-                                height: 38,
-                                color: "#fff",
-                                cursor: "pointer"
-                              }}
+                          
+                              className={styles.addButton}
                               onClick={() => setShowPlaylistModal(p.id)}
                               title="Dodaj u playlistu"
                             >
@@ -491,7 +477,7 @@ const Omiljeno: React.FC = () => {
                                   }}
                                   onClick={e => e.stopPropagation()}
                                 >
-                                  <h4 style={{ color: "#fff", marginBottom: 18 }}>Dodaj pjesmu u playlistu</h4>
+                                  <h4 style={{ color: "#fff", marginBottom: 18 }}>{t("add_song_playlist")}</h4>
                                   <ul style={{ listStyle: "none", padding: 0, margin: 0, marginBottom: 18 }}>
                                     {playlists.map((pl) => (
                                       <li key={pl.id} style={{ marginBottom: 8 }}>
@@ -530,7 +516,7 @@ const Omiljeno: React.FC = () => {
                                     }}
                                     onClick={() => setShowPlaylistModal(null)}
                                   >
-                                    Zatvori
+                                    {t("close")}
                                   </button>
                                 </div>
                               </div>
@@ -584,9 +570,9 @@ const Omiljeno: React.FC = () => {
                           <Link to={`/izvodjac/${izvodjac.id}`} className={styles.link}>{izvodjac.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
-                      <td>
+                      <td className={styles.actionsCell}>
                         <button
-                          style={{ background: "#b91d95", border: "none", borderRadius: "50%", width: 38, height: 38, color: "#fff", cursor: "pointer", marginRight: 6 }}
+                          className={styles.playButton}
                           onClick={() => handlePlayAlbum(a.id)}
                           title="Pusti album"
                         >
@@ -595,17 +581,12 @@ const Omiljeno: React.FC = () => {
                           </svg>
                         </button>
                         <button
+                          className={styles.likeButton}
                           style={{
                             background: likedAlbums[a.id] ? "#e754a2" : "#efe6edff",
-                            border: "none",
-                            borderRadius: "50%",
-                            width: 38,
-                            height: 38,
-                            color: "#fff",
-                            cursor: "pointer"
                           }}
                           onClick={() => handleLikeAlbum(a.id)}
-                          title={likedAlbums[a.id] ? "Ukloni lajk" : "Lajkuj album"}
+                          
                         >
                           <svg width="22" height="22" viewBox="0 0 28 28" fill={likedAlbums[a.id] ? "#fdb9ddff" : "#fff"}>
                             <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -658,9 +639,9 @@ const Omiljeno: React.FC = () => {
                           <Link to={`/izvodjac/${vlasnik.id}`} className={styles.link}>{vlasnik.korisnicko_ime}</Link>
                         ) : ""}
                       </td>
-                      <td>
+                      <td className={styles.actionsCell}> 
                         <button
-                          style={{ background: "#b91d95", border: "none", borderRadius: "50%", width: 38, height: 38, color: "#fff", cursor: "pointer", marginRight: 6 }}
+                          className={styles.playButton}
                           onClick={() => handlePlayPlaylist(pl.id)}
                           title="Pusti playlistu"
                         >
@@ -669,17 +650,11 @@ const Omiljeno: React.FC = () => {
                           </svg>
                         </button>
                         <button
+                          className={styles.likeButton}
                           style={{
                             background: likedPlaylists[pl.id] ? "#e754a2" : "#efe6edff",
-                            border: "none",
-                            borderRadius: "50%",
-                            width: 38,
-                            height: 38,
-                            color: "#fff",
-                            cursor: "pointer"
                           }}
                           onClick={() => handleLikePlaylist(pl.id)}
-                          title={likedPlaylists[pl.id] ? "Ukloni lajk" : "Lajkuj playlistu"}
                         >
                           <svg width="22" height="22" viewBox="0 0 28 28" fill={likedPlaylists[pl.id] ? "#fdb9ddff" : "#fff"}>
                             <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />

@@ -242,5 +242,8 @@
   "accepted_collaborations": "Akzeptierte Kooperationen",
   "no_accepted_songs": "Keine akzeptierten Lieder.",
   "no_accepted_artists": "Keine akzeptierten Künstler.",
-  "download_my_data": "Meine Daten herunterladen"
+  "download_my_data": "Meine Daten herunterladen",
+  "expired_subscription": "Ihr Abonnement ist abgelaufen. Sie können es erneuern.",
+  "inactive_subscription": "Ihr Abonnement ist nicht aktiv. Sie können es erneuern.",
+  "add_song_playlist": "Lied zur Playlist hinzufügen"
 }

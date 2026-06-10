@@ -249,5 +249,8 @@
   "accepted_collaborations": "Prihvaćene saradnje",
   "no_accepted_songs": "Nema prihvaćenih pjesama.",
   "no_accepted_artists": "Nema prihvaćenih izvođača.",
-  "download_my_data": "Preuzmi moje podatke"
+  "download_my_data": "Preuzmi moje podatke",
+  "expired_subscription": "Vaša pretplata je istekla. Možete je obnoviti.",
+  "inactive_subscription": "Vaša pretplata nije aktivna. Možete je obnoviti.",
+  "add_song_playlist": "Dodaj pjesmu u playlistu"
 }

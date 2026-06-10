@@ -37,6 +37,7 @@ const Pretplata: React.FC = () => {
   }, []);
 
   const [error, setError] = useState<string | null>(null);
+  
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -49,6 +50,8 @@ const Pretplata: React.FC = () => {
     }
   }, []);
 
+  
+
   const korisnikPretplataQ = useQuery<KorisnikPretplata | null>({
     queryKey: ["korisnikPretplata", korisnikID],
     enabled: Boolean(korisnikID),
@@ -60,11 +63,7 @@ const Pretplata: React.FC = () => {
 
         const pretplata: KorisnikPretplata | null = res.data ?? null;
 
-        const validna =
-          pretplata?.pretplataStatus === "aktivna" ||
-          pretplata?.pretplataStatus === "pauzirana";
-
-        return validna ? pretplata : null;
+        return pretplata;
       } catch (err) {
         if (axios.isAxiosError(err) && err.response?.status === 404) {
           return null;
@@ -74,6 +73,7 @@ const Pretplata: React.FC = () => {
       }
     },
   });
+  
 
   const ponudeQ = useQuery<Pretplata[]>({
     queryKey: ["pretplatePonude"],
@@ -119,6 +119,11 @@ const Pretplata: React.FC = () => {
   const displayError = useMemo(() => (!korisnikID ? "Morate biti prijavljeni." : error), [korisnikID, error]);
 
   const korisnikPretplata = korisnikPretplataQ.data as KorisnikPretplata | null;
+
+  const status = korisnikPretplata?.pretplataStatus;
+  const aktivna = status === "aktivna" || status === "pauzirana";
+  const istekla = status === "istekla";
+  const neaktivna = status === "neaktivna";
   const ponude = (ponudeQ.data as Pretplata[]) || [];
 
   return (
@@ -133,33 +138,101 @@ const Pretplata: React.FC = () => {
           ) : displayError ? (
             <div className={styles.error}>{displayError}</div>
           ) : korisnikPretplata ? (
-            <div className={styles.infoBox}>
-              <div className={styles.status}>
-                {t("status") || "Status"}: <b>{korisnikPretplata.pretplataStatus}</b>
-              </div>
-              <div className={styles.naziv}>
-                {t("package") || "Paket"}: <b>{korisnikPretplata.pretplata?.naziv || t("no_data")}</b>
-              </div>
-              <div className={styles.opis}>{korisnikPretplata.pretplata?.opis}</div>
-              <div className={styles.cijena}>
-                {t("price") || "Cijena"}: <b>{korisnikPretplata.pretplata?.cijena} KM / mj</b>
-              </div>
-              {korisnikPretplata.datumIsteka && (
-                <div className={styles.istice}>
-                  {t("expires") || "Ističe"}: <b>{new Date(korisnikPretplata.datumIsteka).toLocaleDateString()} ({new Date(korisnikPretplata.datumIsteka).toLocaleTimeString()})</b>
+              <div className={styles.infoBox}>
+                <div className={styles.status}>
+                  {t("status") || "Status"}: <b>{korisnikPretplata.pretplataStatus}</b>
                 </div>
-              )}
-              <div style={{ display: "flex", gap: 12, marginTop: 16, justifyContent: "center" }}>
-                <button className={styles.kupiBtn} style={{ background: "#e754a2" }} onClick={handleObnoviPretplatu} disabled={cancelMut.isPending}>
-                  {t("renew_subscription") || "Obnovi pretplatu"}
-                </button>
-                <button className={styles.kupiBtn} style={{ background: "#232323", color: "#ffe6ec", border: "1px solid #b91d95" }} onClick={handleOtkaziPretplatu} disabled={cancelMut.isPending}>
-                  {t("cancel_subscription") || "Otkaži pretplatu"}
-                </button>
+
+                <div className={styles.naziv}>
+                  {t("package") || "Paket"}:{" "}
+                  <b>{korisnikPretplata.pretplata?.naziv || t("no_data")}</b>
+                </div>
+
+                <div className={styles.opis}>
+                  {korisnikPretplata.pretplata?.opis}
+                </div>
+
+                <div className={styles.cijena}>
+                  {t("price") || "Cijena"}:{" "}
+                  <b>{korisnikPretplata.pretplata?.cijena} KM / mj</b>
+                </div>
+
+                {korisnikPretplata.datumIsteka && (
+                  <div className={styles.istice}>
+                    {t("expires") || "Ističe"}:{" "}
+                    <b>
+                      {new Date(
+                        korisnikPretplata.datumIsteka
+                      ).toLocaleDateString()}{" "}
+                      (
+                      {new Date(
+                        korisnikPretplata.datumIsteka
+                      ).toLocaleTimeString()}
+                      )
+                    </b>
+                  </div>
+                )}
+
+                {aktivna && (
+                  <div className={styles.success}>
+                    {t("active_subscription") ||
+                      "Imate aktivnu pretplatu."}
+                  </div>
+                )}
+
+                {istekla && (
+                  <div className={styles.warning}>
+                    {t("expired_subscription") ||
+                      "Vaša pretplata je istekla. Možete je obnoviti."}
+                  </div>
+                )}
+
+                {neaktivna && (
+                  <div className={styles.warning}>
+                    {t("inactive_subscription") ||
+                      "Vaša pretplata nije aktivna. Možete je obnoviti."}
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 12,
+                    marginTop: 16,
+                    justifyContent: "center",
+                  }}
+                >
+                  {aktivna && (
+                    <>
+                
+
+                      <button
+                        className={styles.kupiBtn}
+                        style={{
+                          background: "#232323",
+                          color: "#ffe6ec",
+                          border: "1px solid #b91d95",
+                        }}
+                        onClick={handleOtkaziPretplatu}
+                        disabled={cancelMut.isPending}
+                      >
+                        {t("cancel_subscription") || "Otkaži pretplatu"}
+                      </button>
+                    </>
+                  )}
+
+                  {(istekla || neaktivna) && (
+                    <button
+                      className={styles.kupiBtn}
+                      style={{ background: "#e754a2" }}
+                      onClick={handleObnoviPretplatu}
+                    >
+                      {t("renew_subscription") || "Obnovi pretplatu"}
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className={styles.success}>{t("active_subscription") || "Imate aktivnu pretplatu."}</div>
-            </div>
-          ) : (
+            ) : (
             <div className={styles.noSub}>
               <div className={styles.warning}>{t("no_active_subscription") || "Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:"}</div>
               <div className={styles.ponudeGrid}>

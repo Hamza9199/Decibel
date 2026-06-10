@@ -8,6 +8,86 @@
   justify-content: center;
 }
 
+
+.actionsCell {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+}
+
+.playButton {
+   background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+
+.playButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.playButton:hover {
+  background: #e754a2;
+  transform: scale(1.08);
+}
+
+.likeButton {
+   background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+
+.likeButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.likeButton:hover {
+  background: #e754a2;
+  transform: scale(1.08);
+}
+
+
+.addButton {
+   background: #b91d95;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  padding: 0;
+}
+
+.addButton svg {
+  width: 20px;
+  height: 20px;
+}
+
+.addButton:hover {
+  background: #e754a2;
+  transform: scale(1.08);
+}
+
 .container {
   max-width: 1100px;
   width: 100%;
@@ -74,20 +154,6 @@
 
 .table img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
 
-.table button {
-  background: #b91d95;
-  border: none;
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-  padding: 0;
-}
-.table button:hover { background: #e754a2; transform: scale(1.08); }
 
 .table td:nth-child(3), .table td:nth-child(4) { text-align: center; }
 
@@ -98,7 +164,6 @@
   .table th, .table td { padding: 8px 6px; font-size: 0.9rem; }
   .table th { font-size: 0.95rem; }
   .table img { width: 40px; height: 40px; }
-  .table button { width: 32px; height: 32px; }
 }
 
 @media (max-width: 600px) {
@@ -107,7 +172,6 @@
   .table th, .table td { padding: 6px 4px; font-size: 0.8rem; }
   .table th { font-size: 0.85rem; }
   .table img { width: 32px; height: 32px; }
-  .table button { width: 28px; height: 28px; }
 }
 
 @media (max-width: 480px) {
@@ -126,17 +190,34 @@
   .table td:nth-child(4) { position: absolute; left: 78px; top: 40px; color: #555; font-size: 0.875rem; margin-top: -4px; flex: 1; }
   .table td:nth-child(5) { position: absolute !important; top: 16px; right: 8px; margin: 0 !important; display: flex; flex-direction: row; align-items: center; }
   .table img { width: 50px; height: 50px; border-radius: 8px; }
-  .table button { width: 40px; height: 40px; margin-right: 0; margin-bottom: 4px; border-radius: 20px; }
   .table td:nth-child(5) .table button:last-child { margin-bottom: 0; }
-  .table button svg { width: 20px; height: 20px; }
+   .link{
+    font-size: 0.8rem;
+  }
+
+  
 }
 
 @media (max-width: 375px) {
-  .container { padding: 8px 4px 16px 4px; }
-  .title { font-size: 1.1rem; }
-  .table td { font-size: 0.7rem; }
-  .table td:before { font-size: 0.65rem; }
-  .table img { width: 20px; height: 20px; }
-  .table button { width: 20px; height: 20px; }
-  .table button svg { width: 20px; height: 20px; }
+  
+  .link{
+    font-size: 0.8rem;
+  }
+
+  .likeButton {
+    width: 27px;
+    height: 27px;
+  }
+
+  
+  .playButton {
+     width: 27px;
+    height: 27px;
+  }
+
+
+  .addButton {
+      width: 27px;
+    height: 27px;
+  }
 }

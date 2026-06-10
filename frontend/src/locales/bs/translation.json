@@ -252,5 +252,7 @@
   "download_my_data": "Preuzmi moje podatke",
   "expired_subscription": "Vaša pretplata je istekla. Možete je obnoviti.",
   "inactive_subscription": "Vaša pretplata nije aktivna. Možete je obnoviti.",
-  "add_song_playlist": "Dodaj pjesmu u playlistu"
+  "add_song_playlist": "Dodaj pjesmu u playlistu",
+  "download": "Preuzmi aplikaciju",
+  "download_desc": "Preuzmite našu aplikaciju i uživajte u muzici bez ograničenja!"
 }

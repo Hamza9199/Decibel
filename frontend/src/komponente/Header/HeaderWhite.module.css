@@ -55,6 +55,24 @@
 
 }
 
+
+.downloadBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+  margin-left:120px;
+}
+
+
 .logoutBtn {
   background: #b91d95;
   color: #fff;
@@ -122,5 +140,9 @@
     order: 2;
     align-self: center;
     margin-top: 7px;
+  }
+
+  .downloadBtn {
+    display: none !important;
   }
 }

@@ -33,6 +33,7 @@ import Omiljeno from './stranice/Omiljeno/Omiljeno';
 import axios from "axios";
 import { useCallback } from 'react';
 import Zahtjevi from './stranice/Zahtjevi/Zahtjevi';
+import Download from './stranice/Download/Download';
 
 
 const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () => void }> = ({ poruka, vrijemeDo, onLogout }) => (
@@ -347,6 +348,7 @@ const AppContent: FC = () => {
         <Route path="/omiljene/albumi" element={<Omiljeno />} />
         <Route path="/omiljene/playliste" element={<Omiljeno />} />
         <Route path="/zahtjevi" element={<Zahtjevi />} />
+        <Route path="/download" element={<Download />} />
         <Route path="/404" element={
           <>
             <Header/>

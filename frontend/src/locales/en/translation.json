@@ -245,6 +245,8 @@
   "download_my_data": "Download my data",
   "expired_subscription": "Your subscription has expired. You can renew it.",
   "inactive_subscription": "Your subscription is not active. You can renew it.",
-  "add_song_playlist": "Add song to playlist"
+  "add_song_playlist": "Add song to playlist",
+  "download": "Download app",
+  "download_desc": "Download our app and enjoy music without limits!"
 }
 

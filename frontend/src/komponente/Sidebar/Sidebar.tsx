@@ -143,7 +143,13 @@ const Sidebar: React.FC = () => {
     setSidebarOpen(false);
   }, []);
 
+  const handleDownload = useCallback(() => {
+      navigate("/download");
+  }, [navigate]); 
+
+
   if (!cssReady || !cssDelayDone) return <Loading />;
+
 
   return (
     <>
@@ -430,6 +436,25 @@ const Sidebar: React.FC = () => {
                 {t("all_users") || "Svi korisnici"}
               </button>
             </>
+          )}
+          {isMobile && (
+              <button className={styles.navBtn} onClick={() => handleDownload()}>
+          <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="#b91d95"
+            className={styles.downloadIcon}
+            viewBox="0 0 24 24"
+          >
+            <path d="M5 20h14v2H5c-1.1 0-2-.9-2-2V6h2v14zm7-18L5.33 9h3.84v4h4V9h3.84L12 2z" />
+          </svg>
+          </span>
+            {t("download")}
+        </button>
+
           )}
           {isMobile && isLoggedIn && (
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); handleLogout(); if (isMobile) handleCloseSidebar(); }}>

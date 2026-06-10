@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
 // import styles from "./Header.module.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Korisnik } from "../../types";
 import { useTranslation } from "react-i18next";
@@ -19,6 +19,7 @@ const Header: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   const [cssReady, setCssReady] = useState(false);
   const [cssDelayDone, setCssDelayDone] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
@@ -103,6 +104,11 @@ const Header: React.FC = () => {
     },
   });
 
+  const handleDownload = useCallback(() => {
+      navigate("/download");
+  }, [navigate]); 
+
+
   const handleLogout = useCallback(() => logoutMutation.mutate(), [logoutMutation]);
 
   if (!cssReady || !cssDelayDone) return <Loading />;
@@ -112,7 +118,24 @@ const Header: React.FC = () => {
       
       <div className={styles.searchWrap}>
         <Search />
+
+    
       </div>
+
+      <div className={styles.downloadBtn} onClick={() => handleDownload()}>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            className={styles.downloadIcon}
+            viewBox="0 0 24 24"
+          >
+            <path d="M5 20h14v2H5c-1.1 0-2-.9-2-2V6h2v14zm7-18L5.33 9h3.84v4h4V9h3.84L12 2z" />
+          </svg>
+            {t("download")}
+        </div>
+
 
       {isMobile ? (
         <>

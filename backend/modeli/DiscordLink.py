@@ -7,7 +7,7 @@ class DiscordLinkORM(Base):
     __tablename__ = "discord_link"
 
     kod = Column(String(12), primary_key=True)
-    discordID = Column(String(50), nullable=False)
+    discordID = Column(String(50), nullable=True)
     korisnikID = Column(CHAR(36), nullable=False)
     datumKreiranja = Column(DateTime)
 

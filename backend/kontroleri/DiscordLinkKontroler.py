@@ -117,6 +117,7 @@ async def link_discord_account(
     if not korisnik:
         raise Exception("Korisnik nije pronađen")
 
+    link.discordID = discord_id
     korisnik.discordID = discord_id
 
     await session.delete(link)

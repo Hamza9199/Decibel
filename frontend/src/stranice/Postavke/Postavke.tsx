@@ -7,6 +7,7 @@ import Loading from "../../komponente/Loading/Loading";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import "../../i18n";
+import { useNavigate } from "react-router-dom";
 
 type Styles = Record<string, string>;
 
@@ -22,6 +23,7 @@ const Postavke: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   const [cssReady, setCssReady] = useState(false);
   const [postDataDelayDone, setPostDataDelayDone] = useState(false);
+const navigate = useNavigate();
 
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
@@ -167,6 +169,10 @@ const Postavke: React.FC = () => {
     }
   }, []);
 
+    const handleDiscordLink = useCallback(() => {
+        navigate("/discord-link");
+    } , []);
+
   if (!cssReady || !postDataDelayDone) return <Loading />;
 
   return (
@@ -197,6 +203,14 @@ const Postavke: React.FC = () => {
               <span style={{ marginLeft: 8 }}>
                 <a href="#" className={styles.link} style={{ color: "#1e90ff" }} onClick={handleOpenModal}>
                   {t("apply_here")}
+                </a>
+              </span>
+            </div>
+              <div className={styles.label}>
+              <span>{t("discordLink.title")}:</span>
+              <span style={{ marginLeft: 8 }}>
+                <a href="#" className={styles.link} style={{ color: "#1e90ff" }} onClick={() => handleDiscordLink()}>
+                  {t("discordLink.description")}
                 </a>
               </span>
             </div>

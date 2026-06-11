@@ -253,6 +253,7 @@
   "download_discord_bot": "Invite Discord bot",
   "discordLink": {
     "title": "Link your account with Discord",
+    "description": "Link your Discord account to use the Decibel Discord bot",
     "generateCode": "Generate code",
     "generating": "Generating...",
     "yourCode": "Your code",

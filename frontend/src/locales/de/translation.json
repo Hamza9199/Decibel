@@ -270,5 +270,7 @@
     "refresh": "Status aktualisieren"
     
 
-  }
+  },
+  "noSubscription": "Sie benötigen ein aktives Abonnement, um Musik zu hören.",
+  "buySubscription": "Abonnement kaufen"
 }

@@ -276,5 +276,7 @@
     "discordID": "Discord ID",
     "unlink": "Odveži Discord račun",
     "refresh": "Osvježi status"
-  }
+  },
+  "noSubscription": "Za slušanje muzike morate imati aktivnu pretplatu.",
+  "buySubscription": "Kupi pretplatu"
 }

@@ -265,6 +265,8 @@
     "discordID": "Your Discord ID",
     "unlink": "Unlink Discord account",
     "refresh": "Refresh status"
-  }
+  },
+  "buySubscription": "Buy subscription",
+  "noSubscription": "You must have an active subscription to listen to music."
 }
 

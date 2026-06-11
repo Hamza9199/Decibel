@@ -807,7 +807,7 @@ const AudioPlayer: React.FC<Props> = ({
     if (playing) {
       ipc.invoke('update-discord-presence', {
         details: `${currentSong.naziv}`,
-        state: artistNames || currentOwner?.korisnicko_ime || "",
+        state: artistNames || "",
         largeImageKey: largeImageKey,
         largeImageText: "",
         startTimestamp,
@@ -824,17 +824,17 @@ const AudioPlayer: React.FC<Props> = ({
       }
       ipc.invoke('update-discord-presence', {
         details: `${currentSong.naziv}`,
-        state: artistNames || currentOwner?.korisnicko_ime || "",
+        state: artistNames || "",
         largeImageKey: largeImageKey,
         largeImageText: "",
         startTimestamp: now - pausedProgress,
         endTimestamp: songDuration ? now - pausedProgress + songDuration : undefined,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.korisnicko_ime}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.id}` }]
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSong?.naziv, currentOwner?.korisnicko_ime, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
+  }, [currentSong?.naziv, currentOwner?.korisnicko_ime, artistNames, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
 
 
   
@@ -875,7 +875,7 @@ const AudioPlayer: React.FC<Props> = ({
             ×
           </button>
           <div style={{ fontSize: "1.2rem", marginBottom: 16 }}>
-            Za slušanje muzike morate imati aktivnu pretplatu.
+            {t("noSubscription")}
           </div>
           <button
             style={{
@@ -890,7 +890,7 @@ const AudioPlayer: React.FC<Props> = ({
             }}
             onClick={() => window.location.href = "/profile/subscription"}
           >
-            Kupi pretplatu
+            {t("buySubscription")}
           </button>
         </div>
       );

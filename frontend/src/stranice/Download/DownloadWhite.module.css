@@ -47,3 +47,54 @@
 .downloadBtn svg {
   margin-right: 8px;
 }
+
+@media (max-width: 768px) {
+
+    .container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .naslov {
+    font-size: 28px;
+  }
+
+  .opis {
+    font-size: 16px;
+  }
+
+  .downloadBtn {
+    font-size: 18px;
+    padding: 8px 16px;
+  }
+} 
+
+
+@media (max-width: 480px) {
+
+  .container{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .naslov {
+    font-size: 24px;
+  }
+
+  .opis {
+    font-size: 14px;
+  }
+
+  .downloadBtn {
+    font-size: 16px;
+    padding: 6px 12px;
+  }
+
+   .downloadButtons {
+    flex-direction: column;
+    gap: 20px;
+    
+  }
+}

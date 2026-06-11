@@ -813,7 +813,7 @@ const AudioPlayer: React.FC<Props> = ({
         startTimestamp,
         endTimestamp,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.korisnicko_ime}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.id}` }]
       });
     } else {
       let pausedProgress = songDuration;

@@ -227,7 +227,7 @@ const DiscordLink = () => {
                         )}
 
                         <a
-                        href="https://discord.gg/decibel"
+                        href="https://discord.gg/cKUexW8cta"
                         target="_blank"
                         rel="noopener noreferrer"
                         className={styles.discordBtn}

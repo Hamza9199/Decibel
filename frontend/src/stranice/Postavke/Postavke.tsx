@@ -208,7 +208,7 @@ const navigate = useNavigate();
                 </a>
               </span>
             </div>
-            {isElectron && (
+            {!isElectron && (
               <div className={styles.label}>
               <span>{t("discordLink.title")}:</span>
               <span style={{ marginLeft: 8 }}>

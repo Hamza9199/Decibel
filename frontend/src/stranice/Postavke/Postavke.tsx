@@ -23,6 +23,8 @@ const Postavke: React.FC = () => {
   const [styles, setStyles] = useState<Styles>({});
   const [cssReady, setCssReady] = useState(false);
   const [postDataDelayDone, setPostDataDelayDone] = useState(false);
+    const isElectron = navigator.userAgent.toLowerCase().includes("electron");
+
 const navigate = useNavigate();
 
   useEffect(() => {
@@ -206,6 +208,7 @@ const navigate = useNavigate();
                 </a>
               </span>
             </div>
+            {isElectron && (
               <div className={styles.label}>
               <span>{t("discordLink.title")}:</span>
               <span style={{ marginLeft: 8 }}>
@@ -214,6 +217,7 @@ const navigate = useNavigate();
                 </a>
               </span>
             </div>
+            )}
             <div className={styles.label}>
               <span>{t("delete_profile")}:</span>
               <span style={{ marginLeft: 8 }}>

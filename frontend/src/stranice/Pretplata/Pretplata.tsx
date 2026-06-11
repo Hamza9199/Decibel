@@ -91,12 +91,27 @@ const Pretplata: React.FC = () => {
       const kp = korisnikPretplataQ.data as KorisnikPretplata | null;
       const id = kp?.id;
       if (!id) throw new Error("no-sub");
-      await axios.delete(`${API_BASE}/korisnik_pretplata/${id}`);
+
+      await axios.delete(
+        `${API_BASE}/korisnik_pretplata/${id}`
+      );
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["korisnikPretplata", korisnikID] });
+
+    onSuccess: async () => {
+      await qc.invalidateQueries({
+        queryKey: ["korisnikPretplata", korisnikID],
+      });
+
+      await qc.invalidateQueries({
+        queryKey: ["pretplatePonude"],
+      });
+
+      await korisnikPretplataQ.refetch();
+      await ponudeQ.refetch();
     },
-    onError: () => setError("Greška pri otkazivanju pretplate."),
+
+    onError: () =>
+      setError("Greška pri otkazivanju pretplate."),
   });
 
   const handleOtkaziPretplatu = useCallback(() => {

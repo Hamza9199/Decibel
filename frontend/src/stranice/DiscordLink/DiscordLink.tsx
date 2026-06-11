@@ -22,6 +22,22 @@ const DiscordLink = () => {
         localStorage.getItem("korisnik") || "null"
     );
 
+    useEffect(() => {
+        const fetchKorisnik = async () => {
+            if (!korisnik?.id) return;
+                 axios.get(`${API_BASE}/korisnici/${korisnik?.id}`)
+                .then(res => {
+                    const updatedKorisnik = res.data;
+                    localStorage.setItem("korisnik", JSON.stringify(updatedKorisnik));
+                }
+                )
+                .catch(err => console.error("Greška pri dohvaćanju korisnika:", err));
+        }
+
+        fetchKorisnik();
+    }, []);
+
+
     const isLinked = !!korisnik?.discordID;
 
 

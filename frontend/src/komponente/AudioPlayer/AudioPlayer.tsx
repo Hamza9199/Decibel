@@ -1447,7 +1447,7 @@ const AudioPlayer: React.FC<Props> = ({
             <rect x="8" y="18" width="28" height="8" />
           </svg>
         </button>
-        <label className={styles.labelSmall} style={{ marginLeft: 8 }}>
+        <div className={styles.labelSmall} style={{ marginLeft: 8 }}>
           <button
             type="button"
             className={styles.muteBtn}
@@ -1489,7 +1489,7 @@ const AudioPlayer: React.FC<Props> = ({
             onChange={handleVolumeChange}
             className={styles.volumeBar}
           />
-        </label>
+        </div>
       </div>
       {showPlaylistModal && (
         <div

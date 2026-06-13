@@ -35,6 +35,7 @@ import { useCallback } from 'react';
 import Zahtjevi from './stranice/Zahtjevi/Zahtjevi';
 import Download from './stranice/Download/Download';
 import DiscordLink from './stranice/DiscordLink/DiscordLink';
+import Offline from './stranice/Offline/Offline';
 
 
 const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () => void }> = ({ poruka, vrijemeDo, onLogout }) => (
@@ -302,6 +303,8 @@ const setBodyBackground = (imgUrl?: string) => {
 };
 
 const AppContent: FC = () => {
+  const isElectron = navigator.userAgent.toLowerCase().includes("electron");
+
   useEffect(() => {
     const handler = (e: Event) => {
       const customEvent = e as CustomEvent;
@@ -351,6 +354,11 @@ const AppContent: FC = () => {
         <Route path="/zahtjevi" element={<Zahtjevi />} />
         <Route path="/download" element={<Download />} />
         <Route path="/discord-link" element={<DiscordLink />} />
+        {
+          isElectron && (
+            <Route path="/offline" element={<Offline />} />
+          )
+        }
         <Route path="/404" element={
           <>
             <Header/>

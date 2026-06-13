@@ -267,6 +267,9 @@
     "refresh": "Refresh status"
   },
   "buySubscription": "Buy subscription",
-  "noSubscription": "You must have an active subscription to listen to music."
+  "noSubscription": "You must have an active subscription to listen to music.",
+  "download_song_error": "Error downloading song. Please try again.",
+  "offlinesongs": "Offline Songs",
+  "noofflinesongs": "You have no offline songs."
 }
 

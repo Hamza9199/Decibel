@@ -67,6 +67,8 @@ const AudioPlayer: React.FC<Props> = ({
   const location = useLocation();
   const isMobile = useMemo(() => window.innerWidth <= 480, []);
   const [izvodjaci, setIzvodjaci] = useState<Korisnik[]>([]);
+  const isElectron =
+  navigator.userAgent.toLowerCase().includes("electron");
 
 
   const slusacID = useMemo(() => {
@@ -837,6 +839,47 @@ const AudioPlayer: React.FC<Props> = ({
   }, [currentSong?.naziv, currentOwner?.korisnicko_ime, artistNames, currentSong?.putanjaSlika, currentSong?.putanjaGif, duration, playing, progress]);
 
 
+  const handleDownloadSong = useCallback(async () => {
+    if (!currentSong) return;
+
+    try {
+      console.log("Download song:", currentSong);
+
+          type ElectronWindow = Window & {
+      electron?: {
+        ipcRenderer?: {
+          invoke?: (...args: unknown[]) => Promise<unknown>;
+        };
+      };
+    };
+
+    const electronWindow = window as ElectronWindow;
+
+    let result: unknown = undefined;
+    if (electronWindow.electron?.ipcRenderer?.invoke) {
+      result = await electronWindow.electron.ipcRenderer.invoke(
+        "download-song",
+        {
+           id: currentSong.id,
+          naziv: currentSong.naziv,
+          izvodjac: artistNames,
+          putanjaSlika:
+            currentSong.putanjaSlika,
+          audioUrl:
+            currentSong.putanjaAudio,
+        }
+      );
+      alert("Download initiated! Check your downloads folder.");
+    } else {
+      console.warn("IPC invoke is not available – download not performed.");
+    }
+
+    console.log(result);
+    } catch (err) {
+      console.error(err);
+      alert("Error downloading song. Please try again.");
+    }
+  }, [currentSong, artistNames]);
   
 
   if (pretplataValid === false) {
@@ -1345,6 +1388,7 @@ const AudioPlayer: React.FC<Props> = ({
                   <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                 </svg>
               </button>
+            
             )}
           </div>
           <div className={styles.audioTime}>
@@ -1447,6 +1491,40 @@ const AudioPlayer: React.FC<Props> = ({
             <rect x="8" y="18" width="28" height="8" />
           </svg>
         </button>
+        {isElectron && (
+        <button
+          className={styles.muteBtn}
+          onClick={handleDownloadSong}
+          title="Download"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <path
+              d="M12 4V16"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+            <path
+              d="M7 11L12 16L17 11"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M4 20H20"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+        )}
         <div className={styles.labelSmall} style={{ marginLeft: 8 }}>
           <button
             type="button"

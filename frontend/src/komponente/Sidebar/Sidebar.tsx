@@ -266,6 +266,41 @@ const Sidebar: React.FC = () => {
               {t("history")}
             </button>
           </div>
+          { isElectron && (
+            <div className={styles.profileMenu}>
+              <button className={styles.navBtn} onClick={() => navigate("/offline")}>
+                <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+                    <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    >
+                    <path
+                      d="M12 4V16"
+                      stroke="#b91d95"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M7 11L12 16L17 11"
+                      stroke="#b91d95"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M4 20H20"
+                      stroke="#b91d95"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    </svg>
+                </span>
+                {t("offlinesongs")}
+              </button>
+            </div>
+          )}
           <div className={styles.profileMenu}>
             <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); setShowFavoritesMenu((prev) => !prev); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>

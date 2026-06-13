@@ -5,6 +5,8 @@ const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const envPath = path.join(process.resourcesPath, '.env');
 require('dotenv').config({ path: envPath });
+const https = require("https");
+const os = require("os");
 try {
   app.setAppUserModelId('com.decibel.desktop');
   app.setName('Decibel');
@@ -275,6 +277,189 @@ ipcMain.handle("update-discord-presence", async (_evt, presence) => {
   console.log("[Discord RPC] update-discord-presence", presence);
   setDiscordPresence(presence);
 });
+
+ipcMain.handle("download-song", async (_evt, song) => {
+  try {
+    const offlineDir = path.join(
+      app.getPath("userData"),
+      "offline"
+    );
+
+    if (!fs.existsSync(offlineDir)) {
+      fs.mkdirSync(offlineDir, { recursive: true });
+    }
+
+    const fileName = `${song.id}.mp3`;
+    const filePath = path.join(
+      offlineDir,
+      fileName
+    );
+
+    await new Promise((resolve, reject) => {
+      const file = fs.createWriteStream(filePath);
+
+      https.get(song.audioUrl, (response) => {
+        response.pipe(file);
+
+        file.on("finish", () => {
+          file.close();
+          resolve();
+        });
+      }).on("error", (err) => {
+        fs.unlink(filePath, () => {});
+        reject(err);
+      });
+    });
+
+    const metadataPath = path.join(
+      offlineDir,
+      "metadata.json"
+    );
+
+    let songs = [];
+
+    if (fs.existsSync(metadataPath)) {
+      try {
+        songs = JSON.parse(
+          fs.readFileSync(metadataPath, "utf8")
+        );
+      } catch {
+        songs = [];
+      }
+    }
+
+    songs = songs.filter(
+      (s) => s.id !== song.id
+    );
+
+    songs.push({
+      id: song.id,
+      naziv: song.naziv,
+      izvodjac: song.izvodjac,
+      putanjaAudio: filePath,
+      putanjaSlika: song.putanjaSlika,
+      datumPreuzimanja: Date.now()
+    });
+
+    fs.writeFileSync(
+      metadataPath,
+      JSON.stringify(songs, null, 2),
+      "utf8"
+    );
+
+    return {
+      success: true,
+      path: filePath
+    };
+
+  } catch (err) {
+    console.error(err);
+
+    return {
+      success: false
+    };
+  }
+});
+
+
+ipcMain.handle(
+  "get-offline-songs",
+  async () => {
+    try {
+      const offlineDir = path.join(
+        app.getPath("userData"),
+        "offline"
+      );
+
+      const metadataPath = path.join(
+        offlineDir,
+        "metadata.json"
+      );
+
+      if (!fs.existsSync(metadataPath)) {
+        return [];
+      }
+
+      return JSON.parse(
+        fs.readFileSync(
+          metadataPath,
+          "utf8"
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      return [];
+    }
+  }
+);
+
+ipcMain.handle(
+  "delete-offline-song",
+  async (_evt, songId) => {
+    try {
+      const offlineDir = path.join(
+        app.getPath("userData"),
+        "offline"
+      );
+
+      const metadataPath = path.join(
+        offlineDir,
+        "metadata.json"
+      );
+
+      if (!fs.existsSync(metadataPath)) {
+        return false;
+      }
+
+      const songs = JSON.parse(
+        fs.readFileSync(
+          metadataPath,
+          "utf8"
+        )
+      );
+
+      const song = songs.find(
+        (s) => s.id === songId
+      );
+
+      if (song?.putanjaAudio) {
+        try {
+          if (fs.existsSync(song.putanjaAudio)) {
+            fs.unlinkSync(song.putanjaAudio);
+          }
+        } catch (err) {
+          console.error(
+            "Delete audio error:",
+            err
+          );
+        }
+      }
+
+      const updatedSongs = songs.filter(
+        (s) => s.id !== songId
+      );
+
+      fs.writeFileSync(
+        metadataPath,
+        JSON.stringify(
+          updatedSongs,
+          null,
+          2
+        ),
+        "utf8"
+      );
+
+      return true;
+    } catch (err) {
+      console.error(
+        "Delete offline song error:",
+        err
+      );
+
+      return false;
+    }
+  }
+);
 
 app.on("window-all-closed", () => {
   if (rpcReady) {

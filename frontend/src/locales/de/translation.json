@@ -272,5 +272,8 @@
 
   },
   "noSubscription": "Sie benötigen ein aktives Abonnement, um Musik zu hören.",
-  "buySubscription": "Abonnement kaufen"
+  "buySubscription": "Abonnement kaufen",
+  "download_song_error": "Fehler beim Herunterladen des Liedes. Bitte versuchen Sie es erneut.",
+  "offlinesongs": "Offline-Lieder",
+  "noofflinesongs": "Sie haben keine Offline-Lieder."
 }

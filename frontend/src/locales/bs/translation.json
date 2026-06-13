@@ -278,5 +278,8 @@
     "refresh": "Osvježi status"
   },
   "noSubscription": "Za slušanje muzike morate imati aktivnu pretplatu.",
-  "buySubscription": "Kupi pretplatu"
+  "buySubscription": "Kupi pretplatu",
+  "download_song_error": "Greška pri preuzimanju pjesme. Molimo pokušajte ponovo.",
+  "offlinesongs": "Offline Pjesme",
+  "noofflinesongs": "Nemate offline pjesama."
 }

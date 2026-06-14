@@ -1,7 +1,10 @@
 import React, { useEffect, memo } from "react";
 import styles from "./Loading.module.css";
+import { useTranslation } from "react-i18next";
 
 const Loading: React.FC = () => {
+    const { t } = useTranslation();
+
   useEffect(() => {
    
     return () => {
@@ -16,7 +19,7 @@ const Loading: React.FC = () => {
         <span className={styles.note} style={{ left: "30%" }} />
         <span className={styles.note} style={{ left: "60%" }} />
       </div>
-      <div className={styles.text}>Učitavanje...</div>
+      <div className={styles.text}>{t("loading")}</div>
     </div>
   );
 };

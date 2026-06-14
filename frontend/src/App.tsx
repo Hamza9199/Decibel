@@ -36,123 +36,143 @@ import Zahtjevi from './stranice/Zahtjevi/Zahtjevi';
 import Download from './stranice/Download/Download';
 import DiscordLink from './stranice/DiscordLink/DiscordLink';
 import Offline from './stranice/Offline/Offline';
+import { useTranslation } from 'react-i18next';
 
 
-const SuspendovanScreen: FC<{ poruka: string; vrijemeDo: string; onLogout: () => void }> = ({ poruka, vrijemeDo, onLogout }) => (
-  <div style={{
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(24,24,24,0.97)",
-    color: "#fff",
-    zIndex: 9999
-  }}>
+
+const SuspendovanScreen: FC<{
+  poruka: string;
+  vrijemeDo: string;
+  onLogout: () => void;
+}> = ({ poruka, vrijemeDo, onLogout }) => {
+
+  const { t } = useTranslation();  
+
+
+  return (
     <div style={{
-      background: "#232323",
-      borderRadius: 18,
-      padding: "40px 32px",
-      boxShadow: "0 4px 24px #b91d9533",
-      maxWidth: 420,
-      textAlign: "center"
+      minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "rgba(24,24,24,0.97)",
+      color: "#fff",
+      zIndex: 9999
     }}>
-      <img src="/logo.gif" alt="Suspendovan" style={{ width: 120, height: 120, marginBottom: 24 }} />
-      <h2 style={{ color: "#e754a2", marginBottom: 18 }}>Vaš nalog je suspendovan</h2>
-      <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
-        <b>Razlog:</b>
+      <div style={{
+        background: "#232323",
+        borderRadius: 18,
+        padding: "40px 32px",
+        boxShadow: "0 4px 24px #b91d9533",
+        maxWidth: 420,
+        textAlign: "center"
+      }}>
+        <img src="/logo.gif" alt="Suspendovan" style={{ width: 120, height: 120, marginBottom: 24 }} />
+        <h2 style={{ color: "#e754a2", marginBottom: 18 }}>{t("account_suspended")}</h2>
+        <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
+          <b>{t("suspension_reason")}:</b>
+          <div style={{
+            background: "#181818",
+            borderRadius: 6,
+            padding: 12,
+            marginTop: 4,
+            whiteSpace: "pre-wrap"
+          }}>{poruka}</div>
+        </div>
+        <div style={{ marginBottom: 24 }}>
+        <b>{t("suspension_until")}:</b> <span style={{ color: "#ffe6ec" }}>{new Date(vrijemeDo).toLocaleString()}</span>
+        </div>
+        <button
+          style={{
+            background: "#b91d95",
+            color: "#fff",
+            border: "none",
+            borderRadius: "8px",
+            padding: "10px 28px",
+            fontWeight: 600,
+            fontSize: "1.1rem",
+            cursor: "pointer"
+          }}
+          onClick={onLogout}
+        >
+          {t("logout")}
+        </button>
+      </div>
+    </div>
+     
+ );
+};
+
+const ObrisanScreen: FC<{
+  onLogout: () => void;
+  onReaktiviraj: () => void;
+}> = ({ onLogout, onReaktiviraj }) => {
+  
+  const { t } = useTranslation();
+
+    return (
+      <div style={{
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "rgba(24,24,24,0.97)",
+        color: "#fff",
+        zIndex: 9999
+      }}>
         <div style={{
-          background: "#181818",
-          borderRadius: 6,
-          padding: 12,
-          marginTop: 4,
-          whiteSpace: "pre-wrap"
-        }}>{poruka}</div>
+          background: "#232323",
+          borderRadius: 18,
+          padding: "40px 32px",
+          boxShadow: "0 4px 24px #b91d9533",
+          maxWidth: 420,
+          textAlign: "center"
+        }}>
+          <img src="/logo.gif" alt="Obrisan" style={{ width: 120, height: 120, marginBottom: 24 }} />
+          <h2 style={{ color: "#e754a2", marginBottom: 18 }}>{t("profile_deleted")}</h2>
+          <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
+    {t("profile_deleted_info")}
+          </div>
+          <div style={{ marginBottom: 24 }}>
+            {t("profile_reactivate_info")}
+          </div>
+          <button
+            style={{
+              background: "#b91d95",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 28px",
+              fontWeight: 600,
+              fontSize: "1.1rem",
+              cursor: "pointer",
+              marginRight: 12
+            }}
+            onClick={onReaktiviraj}
+          >
+            {t("profile_reactivate")}
+          </button>
+          <button
+            style={{
+              background: "#444",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "10px 28px",
+              fontWeight: 600,
+              fontSize: "1.1rem",
+              cursor: "pointer"
+            }}
+            onClick={onLogout}
+          >
+            {t("logout")}
+          </button>
+        </div>
       </div>
-      <div style={{ marginBottom: 24 }}>
-        <b>Suspenzija traje do:</b> <span style={{ color: "#ffe6ec" }}>{new Date(vrijemeDo).toLocaleString()}</span>
-      </div>
-      <button
-        style={{
-          background: "#b91d95",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          padding: "10px 28px",
-          fontWeight: 600,
-          fontSize: "1.1rem",
-          cursor: "pointer"
-        }}
-        onClick={onLogout}
-      >
-        Logout
-      </button>
-    </div>
-  </div>
-);
-
-const ObrisanScreen: FC<{ onLogout: () => void; onReaktiviraj: () => void }> = ({ onLogout, onReaktiviraj }) => (
-
-  <div style={{
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(24,24,24,0.97)",
-    color: "#fff",
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: "#232323",
-      borderRadius: 18,
-      padding: "40px 32px",
-      boxShadow: "0 4px 24px #b91d9533",
-      maxWidth: 420,
-      textAlign: "center"
-    }}>
-      <img src="/logo.gif" alt="Obrisan" style={{ width: 120, height: 120, marginBottom: 24 }} />
-      <h2 style={{ color: "#e754a2", marginBottom: 18 }}>Vaš nalog je deaktiviran</h2>
-      <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
-        Vaš nalog je postavljen kao neaktivan (obrisan). Ne možete koristiti aplikaciju dok ga ne reaktivirate.
-      </div>
-      <div style={{ marginBottom: 24 }}>
-        Ako želite ponovo koristiti nalog, kliknite na <b>Reaktiviraj nalog</b>.
-      </div>
-      <button
-        style={{
-          background: "#b91d95",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          padding: "10px 28px",
-          fontWeight: 600,
-          fontSize: "1.1rem",
-          cursor: "pointer",
-          marginRight: 12
-        }}
-        onClick={onReaktiviraj}
-      >
-        Reaktiviraj nalog
-      </button>
-      <button
-        style={{
-          background: "#444",
-          color: "#fff",
-          border: "none",
-          borderRadius: "8px",
-          padding: "10px 28px",
-          fontWeight: 600,
-          fontSize: "1.1rem",
-          cursor: "pointer"
-        }}
-        onClick={onLogout}
-      >
-        Logout
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();

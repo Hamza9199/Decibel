@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import Header from "../../komponente/Header/Header";
 import Sidebar from "../../komponente/Sidebar/Sidebar";
 import Footer from "../../komponente/Footer/Footer";
+import { playPreview } from "../../utils/playPreview";
 
 type Styles = Record<string, string>;
 
@@ -99,6 +100,9 @@ useEffect(() => {
     const handlePlay = (
     song: OfflineSong
     ) => {
+
+          playPreview(song.putanjaAudio);
+      
     window.dispatchEvent(
         new CustomEvent(
         "globalAudioPlay",

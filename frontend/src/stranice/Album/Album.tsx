@@ -9,6 +9,7 @@ import type { Album as AlbumType, Pjesma, Playlista } from "../../types";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { playPreview } from "../../utils/playPreview";
 //import { queryClient as qc } from '../../config/queryClient';
 
 type Styles = Record<string, string>;
@@ -262,8 +263,10 @@ const Album: React.FC = () => {
     },
   });
 
-  const handlePlaySong = useCallback((p: Pjesma) => {
+   const handlePlaySong = useCallback((p: Pjesma) => {
     if (!p.putanjaAudio) return;
+    playPreview(p.putanjaAudio);
+                  
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: { src: p.putanjaAudio, title: p.naziv, putanjaGif: p.putanjaGif, putanjaSlika: p.putanjaSlika, korisnikID: p.korisnikID } }));
   }, []);
 

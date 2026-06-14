@@ -10,6 +10,7 @@ import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
+import { playPreview } from "../../utils/playPreview";
 
 type Styles = Record<string, string>;
 
@@ -266,8 +267,12 @@ const Playlista: React.FC = () => {
   });
 
   const handlePlaySong = useCallback((p: Pjesma) => {
+    if (!p.putanjaAudio) 
+    playPreview(p.putanjaAudio?? "");
+        
+
     window.dispatchEvent(new CustomEvent("globalAudioPlay", { detail: { src: p.putanjaAudio, title: p.naziv, putanjaGif: p.putanjaGif, putanjaSlika: p.putanjaSlika, korisnikID: p.korisnikID } }));
-  }, []);
+  }, [ ]);
 
   const handlePlayPlaylist = useCallback(() => {
     if (pjesme.length === 0) return;

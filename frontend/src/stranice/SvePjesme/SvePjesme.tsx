@@ -9,6 +9,7 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
+import { playPreview } from "../../utils/playPreview";
 
 type Styles = Record<string, string>;
 
@@ -96,6 +97,7 @@ const SvePjesme: React.FC = () => {
   const handlePlay = useCallback((p: Pjesma) => {
     setActiveSongId(p.id);
     if (p.putanjaAudio) {
+          playPreview(p.putanjaAudio?? "");
       window.dispatchEvent(
         new CustomEvent("globalAudioPlay", {
           detail: {

@@ -869,7 +869,52 @@ const AudioPlayer: React.FC<Props> = ({
             currentSong.putanjaAudio,
         }
       );
-      alert("Download initiated! Check your downloads folder.");
+      const showDownloadAlert = () => {
+        const overlay = document.createElement("div");
+        overlay.style.position = "fixed";
+        overlay.style.top = "0";
+        overlay.style.left = "0";
+        overlay.style.width = "100vw";
+        overlay.style.height = "100vh";
+        overlay.style.background = "rgba(0,0,0,0.6)";
+        overlay.style.display = "flex";
+        overlay.style.alignItems = "center";
+        overlay.style.justifyContent = "center";
+        overlay.style.zIndex = "5000";
+
+        const box = document.createElement("div");
+        box.style.background = "#000";               
+        box.style.border = "2px solid #b91d95";      
+        box.style.borderRadius = "8px";
+        box.style.padding = "20px 30px";
+        box.style.maxWidth = "90%";
+        box.style.boxShadow = "0 4px 12px rgba(0,0,0,0.4)";
+        box.style.textAlign = "center";
+        box.style.color = "#fff";
+
+        const msg = document.createElement("p");
+        msg.textContent = "Download initiated! Check your downloads folder.";
+        msg.style.margin = "0 0 12px 0";
+        box.appendChild(msg);
+
+        const btn = document.createElement("button");
+        btn.textContent = "OK";
+        btn.style.background = "#b91d95";
+        btn.style.color = "#fff";
+        btn.style.border = "none";
+        btn.style.borderRadius = "4px";
+        btn.style.padding = "8px 16px";
+        btn.style.cursor = "pointer";
+        btn.onclick = () => {
+          document.body.removeChild(overlay);
+        };
+        box.appendChild(btn);
+
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+      };
+
+      showDownloadAlert();
     } else {
       console.warn("IPC invoke is not available – download not performed.");
     }

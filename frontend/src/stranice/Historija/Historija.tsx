@@ -9,6 +9,7 @@ import Loading from "../../komponente/Loading/Loading";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { playPreview } from "../../utils/playPreview";
 //import { queryClient as qc } from '../../config/queryClient';
 
 type Styles = Record<string, string>;
@@ -263,7 +264,9 @@ const Historija: React.FC = () => {
                     <td>
                       <button
                         className={styles.songPlayBtn}
-                        onClick={() =>
+                        onClick={() => {
+                          playPreview(h.pjesma?.putanjaAudio ?? "");
+
                           window.dispatchEvent(
                             new CustomEvent("globalAudioPlay", {
                               detail: {
@@ -275,8 +278,8 @@ const Historija: React.FC = () => {
                                 korisnikID: h.pjesma?.korisnikID,
                               },
                             })
-                          )
-                        }
+                          );
+                        }}
                         title={t("play_song")}
                       >
                         <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff">

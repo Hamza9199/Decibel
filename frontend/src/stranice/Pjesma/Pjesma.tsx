@@ -10,6 +10,7 @@ import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
+import { playPreview } from "../../utils/playPreview";
 
 type Styles = Record<string, string>;
 
@@ -264,6 +265,9 @@ const unlikeMutation = useMutation({
   });
 
   const handlePlay = useCallback((p: PjesmaType) => {
+    if (!p.putanjaAudio) return;
+    playPreview(p.putanjaAudio);
+    
     window.dispatchEvent(
       new CustomEvent("globalAudioPlay", {
         detail: {

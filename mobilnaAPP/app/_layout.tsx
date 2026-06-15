@@ -3,8 +3,8 @@ import { useEffect, useState, createContext, useContext, type ReactNode, type Re
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useSegments, Stack } from 'expo-router';
 import { AppState, InteractionManager, View, Text, TouchableOpacity } from 'react-native';
-import { PanGestureHandler, State,GestureHandlerRootView } from 'react-native-gesture-handler';
-import '../i18n'; 
+import { PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
+import '../i18n';
 import { AudioProvider, useAudio } from '@/context/AudioContext';
 import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
 import Sidebar from '@/komponente/Sidebar/Sidebar';
@@ -32,9 +32,9 @@ export const useGlobalSidebar = () => {
 function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement {
   const [showSidebar, setShowSidebar] = useState(false);
   const segments = useSegments();
-  
+
   const isAuthScreen = segments.includes('login') || segments.includes('register');
-  
+
   const onGestureEvent = (event: any) => {
     if (isAuthScreen) return;
     const { translationX, translationY } = event.nativeEvent;
@@ -67,13 +67,13 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
 
   const getCurrentSource = () => {
     const currentRoute = segments.join('/');
-    
+
     const routeMapping: { [key: string]: string } = {
       '(tabs)': 'home',
-      '(tabs)/library': 'library', 
+      '(tabs)/library': 'library',
       '(tabs)/search': 'search',
       'pjesma/[pjesmaId]': 'pjesme',
-      'album/[albumId]': 'album', 
+      'album/[albumId]': 'album',
       'playlista/[playlistaId]': 'playlista',
       'izvodjac/[artistId]': 'izvodjac',
       'history': 'history',
@@ -98,7 +98,7 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
       'login': 'login',
       'register': 'register'
     };
-    
+
     return routeMapping[currentRoute] || 'home';
   };
 
@@ -127,9 +127,9 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
           </PanGestureHandler>
         )}
       </View>
-      
+
       {!isAuthScreen && (
-        <View style={{ 
+        <View style={{
           position: 'absolute',
           top: 0,
           left: 0,
@@ -139,8 +139,8 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
           elevation: 9999,
           pointerEvents: showSidebar ? 'auto' : 'none'
         }}>
-          <Sidebar 
-            visible={showSidebar} 
+          <Sidebar
+            visible={showSidebar}
             onClose={handleSidebarClose}
             source={currentSource}
           />
@@ -161,7 +161,7 @@ export default function RootLayout() {
   const blocked = !provjera && (obrisan || !!suspendInfo);
 
   const handleLogout = useCallback(async () => {
-    try { await AsyncStorage.removeItem('korisnik'); } catch {}
+    try { await AsyncStorage.removeItem('korisnik'); } catch { }
     setSuspendInfo(null);
     setObrisan(false);
     setProvjera(false);
@@ -185,7 +185,7 @@ export default function RootLayout() {
       setObrisan(false);
       setSuspendInfo(null);
       setProvjera(false);
-    } catch {}
+    } catch { }
   }, []);
 
   const checkAccountFlags = useCallback(async () => {
@@ -242,11 +242,11 @@ export default function RootLayout() {
     if (isLoggedIn) checkAccountFlags();
   }, [checkAccountFlags, isLoggedIn, segments]);
 
-    
+
 
   useEffect(() => {
     if (isLoggedIn === null) return;
-    if (blocked) return; 
+    if (blocked) return;
 
     const currentRoute = segments.join('/');
     const inAuthGroup = currentRoute === 'login' || currentRoute === 'register';
@@ -268,26 +268,26 @@ export default function RootLayout() {
           queryClient.removeQueries({ queryKey: query.queryKey });
         }
       });
-      
+
       queryClient.getMutationCache().clear();
-      
+
       if (__DEV__ && typeof (global as any).gc === 'function') {
         setTimeout(() => ((global as any).gc as Function)(), 100);
       }
     };
-  }, [segments]); 
+  }, [segments]);
 
   useEffect(() => {
-  return () => {
-    InteractionManager.runAfterInteractions(() => {
-      queryClient.getQueryCache().getAll().forEach(query => {
-        if (!query.getObserversCount()) {
-          queryClient.removeQueries({ queryKey: query.queryKey });
-        }
+    return () => {
+      InteractionManager.runAfterInteractions(() => {
+        queryClient.getQueryCache().getAll().forEach(query => {
+          if (!query.getObserversCount()) {
+            queryClient.removeQueries({ queryKey: query.queryKey });
+          }
+        });
       });
-    });
-  };
-}, []);
+    };
+  }, []);
 
   const checkAuthState = async () => {
     try {
@@ -305,82 +305,82 @@ export default function RootLayout() {
   };
 
   return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <QueryClientProvider client={queryClient}>
-          <AudioProvider>
-            <StatusBar style="dark" />
-            <View style={{ flex: 1, position: 'relative' }}>
-              {blocked ? (
-                <View style={{
-                  position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-                  backgroundColor: 'rgba(24,24,24,0.97)',
-                  alignItems: 'center', justifyContent: 'center',
-                  zIndex: 10000,
-                }}>
-                  <View style={{ backgroundColor: '#232323', borderRadius: 18, padding: 24, width: '84%', maxWidth: 420, alignItems: 'center' }}>
-                    <Text style={{ color: '#e754a2', fontSize: 20, fontWeight: '700', marginBottom: 12 }}>
-                      {obrisan ? 'Vaš nalog je deaktiviran' : 'Vaš nalog je suspendovan'}
-                    </Text>
-                    {suspendInfo && !obrisan && (
-                      <>
-                        <Text style={{ color: '#fff', marginBottom: 8 }}>Razlog:</Text>
-                        <View style={{ backgroundColor: '#181818', borderRadius: 6, padding: 10, marginBottom: 12, width: '100%' }}>
-                          <Text style={{ color: '#ffe6ec' }}>{suspendInfo.poruka}</Text>
-                        </View>
-                        {!!suspendInfo.vrijemeDo && (
-                          <Text style={{ color: '#fff', marginBottom: 16 }}>
-                            Suspenzija traje do: <Text style={{ color: '#ffe6ec' }}>{new Date(suspendInfo.vrijemeDo).toLocaleString()}</Text>
-                          </Text>
-                        )}
-                      </>
-                    )}
-                    {obrisan && (
-                      <Text style={{ color: '#fff', marginBottom: 16, textAlign: 'center' }}>
-                        Vaš nalog je postavljen kao neaktivan. Ne možete koristiti aplikaciju dok ga ne reaktivirate.
-                      </Text>
-                    )}
-                    <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                      {obrisan && (
-                        <TouchableOpacity onPress={handleReaktiviraj} style={{ backgroundColor: '#b91d95', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, marginRight: 10 }}>
-                          <Text style={{ color: '#fff', fontWeight: '700' }}>Reaktiviraj nalog</Text>
-                        </TouchableOpacity>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <AudioProvider>
+          <StatusBar style="dark" />
+          <View style={{ flex: 1, position: 'relative' }}>
+            {blocked ? (
+              <View style={{
+                position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+                backgroundColor: 'rgba(24,24,24,0.97)',
+                alignItems: 'center', justifyContent: 'center',
+                zIndex: 10000,
+              }}>
+                <View style={{ backgroundColor: '#232323', borderRadius: 18, padding: 24, width: '84%', maxWidth: 420, alignItems: 'center' }}>
+                  <Text style={{ color: '#e754a2', fontSize: 20, fontWeight: '700', marginBottom: 12 }}>
+                    {obrisan ? 'Vaš nalog je deaktiviran' : 'Vaš nalog je suspendovan'}
+                  </Text>
+                  {suspendInfo && !obrisan && (
+                    <>
+                      <Text style={{ color: '#fff', marginBottom: 8 }}>Razlog:</Text>
+                      <View style={{ backgroundColor: '#181818', borderRadius: 6, padding: 10, marginBottom: 12, width: '100%' }}>
+                        <Text style={{ color: '#ffe6ec' }}>{suspendInfo.poruka}</Text>
+                      </View>
+                      {!!suspendInfo.vrijemeDo && (
+                        <Text style={{ color: '#fff', marginBottom: 16 }}>
+                          Suspenzija traje do: <Text style={{ color: '#ffe6ec' }}>{new Date(suspendInfo.vrijemeDo).toLocaleString()}</Text>
+                        </Text>
                       )}
-                      <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: obrisan ? '#444' : '#b91d95', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
-                        <Text style={{ color: '#fff', fontWeight: '700' }}>Logout</Text>
+                    </>
+                  )}
+                  {obrisan && (
+                    <Text style={{ color: '#fff', marginBottom: 16, textAlign: 'center' }}>
+                      Vaš nalog je postavljen kao neaktivan. Ne možete koristiti aplikaciju dok ga ne reaktivirate.
+                    </Text>
+                  )}
+                  <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                    {obrisan && (
+                      <TouchableOpacity onPress={handleReaktiviraj} style={{ backgroundColor: '#b91d95', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, marginRight: 10 }}>
+                        <Text style={{ color: '#fff', fontWeight: '700' }}>Reaktiviraj nalog</Text>
                       </TouchableOpacity>
-                    </View>
+                    )}
+                    <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: obrisan ? '#444' : '#b91d95', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
+                      <Text style={{ color: '#fff', fontWeight: '700' }}>Logout</Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
-              ) : (
-                <>
-                  <GlobalSwipeHandler>
-                    <Stack
-                      key={isLoggedIn === false ? 'loggedOut' : 'loggedIn'}
-                      screenOptions={{
-                        headerShown: false,
-                        contentStyle: { backgroundColor: '#181818' },
-                        freezeOnBlur: true,
-                      }}
-                    >
-                      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                      <Stack.Screen name="login" options={{ headerShown: false }} />
-                      <Stack.Screen name="register" options={{ headerShown: false }} />
-                    </Stack>
-                  </GlobalSwipeHandler>
-                  <AudioPlayerWrapper />
-                </>
-              )}
-            </View>
-          </AudioProvider>
-        </QueryClientProvider>
-      </GestureHandlerRootView>
+              </View>
+            ) : (
+              <>
+                <GlobalSwipeHandler>
+                  <Stack
+                    key={isLoggedIn === false ? 'loggedOut' : 'loggedIn'}
+                    screenOptions={{
+                      headerShown: false,
+                      contentStyle: { backgroundColor: '#181818' },
+                      freezeOnBlur: true,
+                    }}
+                  >
+                    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="login" options={{ headerShown: false }} />
+                    <Stack.Screen name="register" options={{ headerShown: false }} />
+                  </Stack>
+                </GlobalSwipeHandler>
+                <AudioPlayerWrapper />
+              </>
+            )}
+          </View>
+        </AudioProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 
 function AudioPlayerWrapper() {
   const audio = useAudio();
   return (
-    <AudioPlayer
+    <AudioPlayerNew
       id={audio.audioState.id}
       src={audio.audioState.src}
       title={audio.audioState.title}

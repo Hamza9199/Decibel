@@ -6,4 +6,8 @@ export type AudioState = {
   visible: boolean;
   korisnikID?: string;
   minimized?: boolean;
+  globalPlaylist?: number[];
+  playlistIdx?: number;
+  playlistRepeat?: boolean;
+
 };

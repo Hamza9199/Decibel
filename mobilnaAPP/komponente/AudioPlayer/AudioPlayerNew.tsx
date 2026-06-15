@@ -27,6 +27,9 @@ interface AudioPlayerNewProps {
   onClose?: () => void;
   minimized?: boolean;
   onExpand?: () => void;
+  globalPlaylist?: number[];
+  playlistIdx?: number;
+  playlistRepeat?: boolean;
 }
 
 const RATE_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
@@ -73,7 +76,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           korisnikID: effectiveKorisnikID,
         } as Pjesma;
       }
-      return allSongs.find(p => p.putanjaAudio === effectiveSrc) || null;
+      return allSongs.find((p: Pjesma) => p.putanjaAudio === effectiveSrc) || null;
     }
     return null;
   }, [globalPlaylist, playlistIdx, allSongs, effectiveSrc, id, effectiveTitle, effectiveGif, effectiveSlika, effectiveKorisnikID]);
@@ -116,11 +119,11 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   });
 
   const addToHistoryMutation = useMutation({
-    mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string; pjesmaID: number }) => { await axios.delete(`${API_BASE}/historija/obrisi/${korisnikID}/${pjesmaID}`).catch(()=>{}); return axios.post(`${API_BASE}/historija/`, { korisnikID, pjesmaID, playlistaID: null, kreiranDatumVrijeme: new Date().toISOString(), trajanje: currentSong?.trajanjeSekunde || 0, kontekstPustanjaURL: null, offline: false, kontekstPustanja: null }); }
+    mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string; pjesmaID: number }) => { await axios.delete(`${API_BASE}/historija/obrisi/${korisnikID}/${pjesmaID}`).catch(() => { }); return axios.post(`${API_BASE}/historija/`, { korisnikID, pjesmaID, playlistaID: null, kreiranDatumVrijeme: new Date().toISOString(), trajanje: currentSong?.trajanjeSekunde || 0, kontekstPustanjaURL: null, offline: false, kontekstPustanja: null }); }
   });
 
   const statistikaMutation = useMutation({
-    mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string; pjesmaID: number }) => { await axios.post(`${API_BASE}/statistika/`, { korisnikID, pjesmaID, brojReprodukcija: 1, ukupnoTrajanje: currentSong?.trajanjeSekunde || 0, zadnjePustanje: new Date().toISOString() }).catch(()=>{}); if (currentSong) await axios.put(`${API_BASE}/pjesme/${pjesmaID}`, { ...currentSong, brojReprodukcija: (currentSong.brojReprodukcija||0)+1 }).catch(()=>{}); }
+    mutationFn: async ({ korisnikID, pjesmaID }: { korisnikID: string; pjesmaID: number }) => { await axios.post(`${API_BASE}/statistika/`, { korisnikID, pjesmaID, brojReprodukcija: 1, ukupnoTrajanje: currentSong?.trajanjeSekunde || 0, zadnjePustanje: new Date().toISOString() }).catch(() => { }); if (currentSong) await axios.put(`${API_BASE}/pjesme/${pjesmaID}`, { ...currentSong, brojReprodukcija: (currentSong.brojReprodukcija || 0) + 1 }).catch(() => { }); }
   });
 
   const player = useAudioPlayer(undefined);
@@ -147,15 +150,14 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
   useEffect(() => { setPretplataValid(true); }, []);
 
-  useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false, shouldPlayInBackground: true, interruptionMode: 'mixWithOthers', interruptionModeAndroid: 'duckOthers', shouldRouteThroughEarpiece: false }).catch(()=>{}); }, []);
+  useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); }, []);
 
-  // Replace effect that reloaded on any control change with src-only load logic
   const lastLoadedSrcRef = useRef<string | null>(null);
   useEffect(() => {
     if (!effectiveSrc) return;
     if (lastLoadedSrcRef.current === effectiveSrc) return;
     lastLoadedSrcRef.current = effectiveSrc;
-    try { player.replace({ uri: effectiveSrc, headers: { 'Accept': 'audio/*', 'Range': 'bytes=0-' } }); player.play(); } catch {}
+    try { player.replace({ uri: effectiveSrc }); player.play(); } catch { }
   }, [effectiveSrc, player]);
 
   const volumeRef = useRef(volume);
@@ -166,11 +168,11 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   useEffect(() => { player.loop = repeatOne; }, [repeatOne, player]);
 
   const rateRef = useRef(playbackRate);
-  useEffect(() => { if (!isLoaded) return; if (rateRef.current !== playbackRate) { rateRef.current = playbackRate; try { player.setPlaybackRate(playbackRate); } catch {} } }, [playbackRate, isLoaded, player]);
+  useEffect(() => { if (!isLoaded) return; if (rateRef.current !== playbackRate) { rateRef.current = playbackRate; try { player.setPlaybackRate(playbackRate); } catch { } } }, [playbackRate, isLoaded, player]);
 
   useEffect(() => { if (!isSeeking) setSeekValue(progress); }, [progress, isSeeking]);
 
-  useEffect(() => { if (status?.didJustFinish) { if (repeatOne) { player.seekTo(0).then(()=>player.play()); } else if (globalPlaylist.length > 0 && playlistIdx >= 0) { const nextIdx = playlistIdx + 1; if (nextIdx < globalPlaylist.length) audioCtx.setPlaylistIdx(nextIdx); else if (playlistRepeat) audioCtx.setPlaylistIdx(0); } } }, [status?.didJustFinish, repeatOne, playlistIdx, globalPlaylist.length, playlistRepeat, audioCtx, player]);
+  useEffect(() => { if (status?.didJustFinish) { if (repeatOne) { player.seekTo(0).then(() => player.play()); } else if (globalPlaylist.length > 0 && playlistIdx >= 0) { const nextIdx = playlistIdx + 1; if (nextIdx < globalPlaylist.length) audioCtx.setPlaylistIdx(nextIdx); else if (playlistRepeat) audioCtx.setPlaylistIdx(0); } } }, [status?.didJustFinish, repeatOne, playlistIdx, globalPlaylist.length, playlistRepeat, audioCtx, player]);
 
   useEffect(() => { if (!currentSong?.id || !korisnik?.id) { setLiked(false); return; } setLiked(likedSongs.some((it: any) => it.korisnikID === korisnik.id && it.pjesmaID === currentSong.id)); }, [currentSong?.id, korisnik?.id, likedSongs]);
 
@@ -181,7 +183,30 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   useEffect(() => { if (!currentSong?.id || !korisnik?.id || !playing) return; if (progress < 30 || statistikaSent) return; const params = { korisnikID: korisnik.id, pjesmaID: currentSong.id, sent: true }; if (!statistikaRef.current || statistikaRef.current.pjesmaID !== params.pjesmaID || !statistikaRef.current.sent) { statistikaRef.current = params; statistikaMutation.mutate({ korisnikID: params.korisnikID, pjesmaID: params.pjesmaID }); setStatistikaSent(true); } }, [progress, statistikaSent, playing, currentSong?.id, korisnik?.id, statistikaMutation]);
   useEffect(() => { setStatistikaSent(false); if (statistikaRef.current) statistikaRef.current.sent = false; }, [effectiveSrc]);
 
- 
+  const lastPlaylistIdxRef = useRef<number | null>(null);
+  const lastPlaylistRepeatRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    if (
+      globalPlaylist.length > 0 &&
+      playlistIdx >= 0 &&
+      playlistIdx < globalPlaylist.length
+    ) {
+      if (
+        lastPlaylistIdxRef.current !== playlistIdx ||
+        lastPlaylistRepeatRef.current !== playlistRepeat
+      ) {
+        const song = globalPlaylist[playlistIdx];
+        if (song?.putanjaAudio) {
+          setStatistikaSent(false);
+          audioCtx.playPlaylist(globalPlaylist, playlistIdx, playlistRepeat);
+        }
+        lastPlaylistIdxRef.current = playlistIdx;
+        lastPlaylistRepeatRef.current = playlistRepeat;
+      }
+    }
+  }, [playlistIdx, globalPlaylist, playlistRepeat, audioCtx]);
+
+
 
   const handlePlayPause = useCallback(() => {
     if (!isLoaded || isBuffering) return;
@@ -191,14 +216,33 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       player.play();
     }
   }, [playing, isLoaded, isBuffering, player]);
+
   const handleSeekStart = useCallback(() => setIsSeeking(true), []);
-  const handleSeekChange = useCallback((v: number | number[]) => setSeekValue(Array.isArray(v)? v[0]: v), []);
-  const handleSeekComplete = useCallback((v: number | number[]) => { const val = Array.isArray(v)? v[0]: v; player.seekTo(val).finally(()=> setIsSeeking(false)); }, [player]);
-  const handleVolumeChange = useCallback((v: number | number[]) => { const val = Array.isArray(v)? v[0]: v; setVolume(val); if (!muted) player.volume = val; if (muted && val>0) { setMuted(false); player.muted = false; player.volume = val; } }, [muted, player]);
-  const handleRateChange = useCallback((r: number) => { setPlaybackRate(r); try { player.setPlaybackRate(r); } catch {} }, [player]);
+  const handleSeekChange = useCallback((v: number | number[]) => setSeekValue(Array.isArray(v) ? v[0] : v), []);
+  const handleSeekComplete = useCallback((v: number | number[]) => { const val = Array.isArray(v) ? v[0] : v; player.seekTo(val).finally(() => setIsSeeking(false)); }, [player]);
+
+  const handleVolumeSeekStart = useCallback(() => { }, []);
+  const handleVolumeSeekChange = useCallback((v: number | number[]) => {
+    const val = Array.isArray(v) ? v[0] : v;
+    setVolume(val);
+  }, []);
+  const handleVolumeSeekComplete = useCallback((v: number | number[]) => {
+    const val = Array.isArray(v) ? v[0] : v;
+    setVolume(val);
+    if (isLoaded) {
+      player.volume = val;
+      if (muted && val > 0) {
+        setMuted(false);
+        player.muted = false;
+      }
+    }
+  }, [isLoaded, muted, player]);
+
+  const handleRateChange = useCallback((r: number) => { setPlaybackRate(r); try { player.setPlaybackRate(r); } catch { } }, [player]);
   const handleMuteToggle = useCallback(() => { setMuted(m => { player.muted = !m; if (!m) player.volume = 0; else player.volume = volume; return !m; }); }, [player, volume]);
   const handleRepeatToggle = useCallback(() => { setRepeatOne(r => { const n = !r; player.loop = n; if (n) audioCtx.setPlaylistRepeat(false); return n; }); }, [player, audioCtx]);
   const handleRepeatAllToggle = useCallback(() => { audioCtx.setPlaylistRepeat(!playlistRepeat); if (repeatOne) { setRepeatOne(false); player.loop = false; } }, [audioCtx, playlistRepeat, repeatOne, player]);
+
   const goPrev = useCallback(() => { if (progress > 5) { player.seekTo(0); return; } if (globalPlaylist.length > 0 && playlistIdx >= 0) { const prevIdx = playlistIdx - 1; if (prevIdx >= 0) audioCtx.setPlaylistIdx(prevIdx); else if (playlistRepeat) audioCtx.setPlaylistIdx(globalPlaylist.length - 1); } }, [progress, globalPlaylist, playlistIdx, playlistRepeat, audioCtx, player]);
   const goNext = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
@@ -206,85 +250,323 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       if (nextIdx < globalPlaylist.length) audioCtx.setPlaylistIdx(nextIdx); else if (playlistRepeat) audioCtx.setPlaylistIdx(0);
     }
   }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
-  const handleLike = useCallback(async () => { if (!currentSong?.id || !korisnik?.id || likeMutation.isPending) return; const action: 'like' | 'unlike' = liked ? 'unlike' : 'like'; setLiked(!liked); try { await likeMutation.mutateAsync({ action, pjesmaID: currentSong.id }); } catch { setLiked(liked); } }, [currentSong?.id, korisnik?.id, liked, likeMutation]);
-  const handleAddToPlaylist = useCallback(async (playlistaID: number) => { if (!currentSong?.id || !korisnik?.id || addToPlaylistMutation.isPending) return; try { await addToPlaylistMutation.mutateAsync({ pjesmaID: currentSong.id, playlistaID }); } catch {} }, [currentSong?.id, korisnik?.id, addToPlaylistMutation]);
-  const ensureDir = useCallback(async (p: string) => { const i = p.lastIndexOf('/'); if (i === -1) return; const dir = p.slice(0,i+1); const info = await FileSystem.getInfoAsync(dir); if (!info.exists) await FileSystem.makeDirectoryAsync(dir,{intermediates:true}); }, []);
-  const safeFileName = useCallback((r: string) => r.split('/').pop()?.replace(/[^a-zA-Z0-9_.-]/g,'_') || `f_${Date.now()}`, []);
-  const handleDownload = useCallback(async () => { if (!currentSong?.putanjaAudio) return; try { const base = FileSystem.documentDirectory; if (!base) return; const dir = base + 'offline_songs/'; await ensureDir(dir + 'x'); const audioLocal = dir + safeFileName(currentSong.putanjaAudio); await FileSystem.downloadAsync(currentSong.putanjaAudio, audioLocal); let imageLocal=''; if (currentSong.putanjaSlika){ imageLocal = dir + safeFileName(currentSong.putanjaSlika); await FileSystem.downloadAsync(currentSong.putanjaSlika,imageLocal);} const offlineSong={ id:currentSong.id,naziv:currentSong.naziv,izvođač:currentOwner?.korisnicko_ime||'',putanjaAudio:audioLocal,putanjaSlika:imageLocal}; const existing= await AsyncStorage.getItem('offline_pjesme'); const list= existing? JSON.parse(existing):[]; if(!list.find((s:any)=>s.id===currentSong.id)){ list.push(offlineSong); await AsyncStorage.setItem('offline_pjesme', JSON.stringify(list)); Alert.alert(t('success'), t('song_downloaded_offline')||'Downloaded'); } else { Alert.alert(t('info'), t('song_already_downloaded')||'Already downloaded'); } } catch { Alert.alert(t('error'), t('error_downloading_song')||'Error'); } }, [currentSong, currentOwner?.korisnicko_ime, ensureDir, safeFileName, t]);
-  const formatTime = useCallback((s: number) => { if (!isFinite(s)) return '0:00'; const m=Math.floor(s/60); const sec=Math.floor(s%60); return `${m}:${sec.toString().padStart(2,'0')}`; }, []);
-  const speedOptions = useMemo(()=> RATE_OPTIONS, []);
 
-  if (pretplataValid === false) { if (showNoSubMsg) { return (<View style={styles.subscriptionContainer}><TouchableOpacity style={styles.closeButton} onPress={()=>setShowNoSubMsg(false)}><MaterialIcons name="close" size={24} color="#ffe6ec" /></TouchableOpacity><Text style={styles.subscriptionText}>{t('subscription_required')}</Text><TouchableOpacity style={styles.subscriptionButton} onPress={()=>{}}><Text style={styles.subscriptionButtonText}>{t('buy_subscription')}</Text></TouchableOpacity></View>); } return null; }
+  useEffect(() => {
+    if (currentSong && isLoaded) {
+      const artistNames = currentOwner?.korisnicko_ime || t('unknown_user');
+      const songTitle = currentSong.naziv || effectiveTitle || t('no_current_song');
+      const artwork = currentSong.putanjaSlika || effectiveSlika || '';
+
+      try {
+        // @ts-ignore: updateLockScreenMetadata added per request
+        if (typeof (player as any).updateLockScreenMetadata === 'function') {
+          (player as any).updateLockScreenMetadata({
+            title: songTitle,
+            artist: artistNames,
+            artworkUrl: artwork,
+          });
+        } else if (typeof (player as any).setActiveForLockScreen === 'function') {
+          // @ts-ignore
+          (player as any).setActiveForLockScreen(true, {
+            title: songTitle,
+            artist: artistNames,
+            artworkUrl: artwork,
+          });
+        }
+      } catch (e) {
+        console.warn('Lock screen error', e);
+      }
+
+      if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: songTitle,
+          artist: artistNames,
+          artwork: artwork ? [{ src: artwork, sizes: '512x512', type: 'image/jpeg' }] : []
+        });
+        navigator.mediaSession.setActionHandler('play', () => { player.play(); });
+        navigator.mediaSession.setActionHandler('pause', () => { player.pause(); });
+        navigator.mediaSession.setActionHandler('previoustrack', () => { goPrev(); });
+        navigator.mediaSession.setActionHandler('nexttrack', () => { goNext(); });
+      }
+    }
+  }, [currentSong, currentOwner, effectiveTitle, effectiveSlika, isLoaded, player, t, goPrev, goNext]);
+
+  const handleLike = useCallback(async () => { if (!currentSong?.id || !korisnik?.id || likeMutation.isPending) return; const action: 'like' | 'unlike' = liked ? 'unlike' : 'like'; setLiked(!liked); try { await likeMutation.mutateAsync({ action, pjesmaID: currentSong.id }); } catch { setLiked(liked); } }, [currentSong?.id, korisnik?.id, liked, likeMutation]);
+
+  const handleAddToPlaylist = useCallback(async (playlistaID: number) => { if (!currentSong?.id || !korisnik?.id || addToPlaylistMutation.isPending) return; try { await addToPlaylistMutation.mutateAsync({ pjesmaID: currentSong.id, playlistaID }); } catch { } }, [currentSong?.id, korisnik?.id, addToPlaylistMutation]);
+
+  const handleClosePress = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
+  const ensureDir = useCallback(async (p: string) => { const i = p.lastIndexOf('/'); if (i === -1) return; const dir = p.slice(0, i + 1); const info = await FileSystem.getInfoAsync(dir); if (!info.exists) await FileSystem.makeDirectoryAsync(dir, { intermediates: true }); }, []);
+  const safeFileName = useCallback((r: string) => r.split('/').pop()?.replace(/[^a-zA-Z0-9_.-]/g, '_') || `f_${Date.now()}`, []);
+  const handleDownload = useCallback(async () => { if (!currentSong?.putanjaAudio) return; try { const base = FileSystem.documentDirectory; if (!base) return; const dir = base + 'offline_songs/'; await ensureDir(dir + 'x'); const audioLocal = dir + safeFileName(currentSong.putanjaAudio); await FileSystem.downloadAsync(currentSong.putanjaAudio, audioLocal); let imageLocal = ''; if (currentSong.putanjaSlika) { imageLocal = dir + safeFileName(currentSong.putanjaSlika); await FileSystem.downloadAsync(currentSong.putanjaSlika, imageLocal); } const offlineSong = { id: currentSong.id, naziv: currentSong.naziv, izvođač: currentOwner?.korisnicko_ime || '', putanjaAudio: audioLocal, putanjaSlika: imageLocal }; const existing = await AsyncStorage.getItem('offline_pjesme'); const list = existing ? JSON.parse(existing) : []; if (!list.find((s: any) => s.id === currentSong.id)) { list.push(offlineSong); await AsyncStorage.setItem('offline_pjesme', JSON.stringify(list)); Alert.alert(t('success'), t('song_downloaded_offline') || 'Downloaded'); } else { Alert.alert(t('info'), t('song_already_downloaded') || 'Already downloaded'); } } catch { Alert.alert(t('error'), t('error_downloading_song') || 'Error'); } }, [currentSong, currentOwner?.korisnicko_ime, ensureDir, safeFileName, t]);
+
+  const formatTime = useCallback((seconds: number): string => {
+    if (!isFinite(seconds)) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }, []);
+
+  const handleOutsidePress = useCallback(() => {
+    if (showSpeedModal) {
+      setShowSpeedModal(false);
+    }
+  }, [showSpeedModal]);
+
+  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
+    <TouchableOpacity
+      style={styles.playlistItem}
+      onPress={() => handleAddToPlaylist(item.id)}
+    >
+      <Text style={styles.playlistItemText}>{item.naziv}</Text>
+    </TouchableOpacity>
+  ), [handleAddToPlaylist]);
+
+  const speedOptions = useMemo(() => RATE_OPTIONS, []);
+
+  if (pretplataValid === false) {
+    if (showNoSubMsg) {
+      return (
+        <View style={styles.subscriptionContainer}>
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => setShowNoSubMsg(false)}
+          >
+            <MaterialIcons name="close" size={24} color="#ffe6ec" />
+          </TouchableOpacity>
+          <Text style={styles.subscriptionText}>
+            {t('subscription_required')}
+          </Text>
+          <TouchableOpacity
+            style={styles.subscriptionButton}
+            onPress={() => { }}
+          >
+            <Text style={styles.subscriptionButtonText}>{t('buy_subscription')}</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return null;
+  }
 
   if (!visible && !minimized) return null;
 
-  if (minimized) return (
-    <TouchableOpacity style={[styles.miniPlayer, { bottom: tabBarHeight + insets.bottom }]} onPress={onExpand}>
-      <Image source={{ uri: currentSong?.putanjaSlika || effectiveSlika || '../../assets/images/icon.png' }} style={styles.miniPlayerImage} cachePolicy="memory-disk" />
-      <Text style={styles.miniPlayerText} numberOfLines={1}>{currentSong?.naziv || effectiveTitle || t('current_song')}</Text>
-      <MaterialIcons name={playing ? 'pause' : 'play-arrow'} size={24} color="#ffe6ec" />
-    </TouchableOpacity>
-  );
+  if (minimized) {
+    return (
+      <TouchableOpacity style={[styles.miniPlayer, { bottom: tabBarHeight + insets.bottom }]} onPress={onExpand}>
+        <Image
+          source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
+          style={styles.miniPlayerImage}
+          cachePolicy="memory-disk"
+        />
+        <Text style={styles.miniPlayerText} numberOfLines={1}>
+          {currentSong?.naziv || t('current_song')}
+        </Text>
+        <MaterialIcons name={playing ? 'pause' : 'play-arrow'} size={24} color="#ffe6ec" />
+      </TouchableOpacity>
+    );
+  }
 
   return (
-    <View style={[styles.audioPlayerBar, { bottom: tabBarHeight + insets.bottom }]}>      
-      {showSpeedModal && (
-        <TouchableOpacity
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'transparent' }}
-          activeOpacity={1}
-          onPress={() => setShowSpeedModal(false)}
-        />
-      )}
-      <TouchableOpacity style={styles.closeBtn} onPress={onClose}> <MaterialIcons name="close" size={20} color="#ffe6ec" /> </TouchableOpacity>
+    <TouchableOpacity
+      style={[styles.audioPlayerBar, { bottom: tabBarHeight + insets.bottom }]}
+      activeOpacity={1}
+      onPress={handleOutsidePress}
+    >
+      <TouchableOpacity style={styles.closeBtn} onPress={handleClosePress}>
+        <MaterialIcons name="close" size={20} color="#ffe6ec" />
+      </TouchableOpacity>
+
       <View style={styles.topRow}>
-        <Image source={{ uri: currentSong?.putanjaSlika || effectiveSlika || '../../assets/images/icon.png' }} style={styles.audioLogo} />
+        <Image
+          source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
+          style={styles.audioLogo}
+        />
+
         <View style={styles.audioMeta}>
           <View style={styles.audioDetails}>
-            <Text style={styles.audioArtist} numberOfLines={1}>{currentOwner?.korisnicko_ime || t('unknown_user')}</Text>
-            <Text style={styles.audioTitle} numberOfLines={1}>{currentSong?.naziv || effectiveTitle || t('no_current_song')}</Text>
+            <Text style={styles.audioArtist} numberOfLines={1}>
+              {currentOwner?.korisnicko_ime || t('unknown_user')}
+            </Text>
+            <Text style={styles.audioTitle} numberOfLines={1}>
+              {currentSong?.naziv || t('no_current_song')}
+            </Text>
           </View>
-          <Text style={styles.audioTime}>{formatTime(isSeeking ? seekValue : progress)} / {formatTime(duration)}</Text>
-          {isBuffering && <Text style={styles.loadingText}>{t('loading')}...</Text>}
+          <Text style={styles.audioTime}>
+            {formatTime(isSeeking ? seekValue : progress)} / {formatTime(duration)}
+          </Text>
+          {isBuffering && (
+            <Text style={styles.loadingText}>
+              {t('loading')}...
+            </Text>
+          )}
         </View>
-        <TouchableOpacity onPress={handleLike} disabled={!isLoaded || isBuffering || !korisnik?.id || likeMutation.isPending} style={styles.likeButton}>
-          <MaterialIcons name={liked ? 'favorite' : 'favorite-border'} size={20} color={liked ? '#e91e63' : (!isLoaded || isBuffering || !korisnik?.id) ? '#666' : '#ffe6ec'} />
+
+        <TouchableOpacity
+          onPress={handleLike}
+          disabled={!isLoaded || isBuffering || !korisnik?.id || likeMutation.isPending}
+          style={styles.likeButton}
+        >
+          <MaterialIcons
+            name={liked ? 'favorite' : 'favorite-border'}
+            size={20}
+            color={liked ? "#e91e63" : (!isLoaded || isBuffering || !korisnik?.id) ? "#666" : "#ffe6ec"}
+          />
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleDownload} disabled={!isLoaded || isBuffering} style={[styles.likeButton, { left: 180, backgroundColor: '#e754a2' }]}>
+
+        <TouchableOpacity
+          onPress={handleDownload}
+          disabled={!isLoaded || isBuffering}
+          style={[styles.likeButton, { left: 180, backgroundColor: '#e754a2' }]}
+        >
           <MaterialIcons name="download" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
+
       <View style={styles.controlsRow}>
-        <TouchableOpacity style={[styles.controlBtn, (!isLoaded || isBuffering) && styles.controlBtnDisabled]} onPress={handlePlayPause} disabled={!isLoaded || isBuffering}>
-          <MaterialIcons name={playing ? 'pause' : 'play-arrow'} size={20} color={!isLoaded || isBuffering ? '#666' : '#fff'} />
+        <TouchableOpacity
+          style={[styles.controlBtn, (!isLoaded || isBuffering) && styles.controlBtnDisabled]}
+          onPress={handlePlayPause}
+          disabled={!isLoaded || isBuffering}
+        >
+          <MaterialIcons
+            name={playing ? 'pause' : 'play-arrow'}
+            size={20}
+            color={(!isLoaded || isBuffering) ? "#666" : "#fff"}
+          />
         </TouchableOpacity>
+
         <View style={styles.progressContainer}>
-          <Slider value={isSeeking ? seekValue : progress} minimumValue={0} maximumValue={duration || 1} onSlidingStart={handleSeekStart} onValueChange={handleSeekChange} onSlidingComplete={handleSeekComplete} disabled={!isLoaded || isBuffering} trackStyle={styles.progressTrack} thumbStyle={styles.progressThumb} minimumTrackTintColor="#b91d95" maximumTrackTintColor="#444" />
+          <Slider
+            value={isSeeking ? seekValue : progress}
+            minimumValue={0}
+            maximumValue={duration || 1}
+            onSlidingStart={handleSeekStart}
+            onValueChange={handleSeekChange}
+            onSlidingComplete={handleSeekComplete}
+            disabled={!isLoaded || isBuffering}
+            trackStyle={styles.progressTrack}
+            thumbStyle={styles.progressThumb}
+            minimumTrackTintColor="#b91d95"
+            maximumTrackTintColor="#444"
+
+          />
         </View>
       </View>
+
       <View style={styles.bottomRow}>
         <View style={styles.leftControls}>
-          <TouchableOpacity onPress={goPrev} disabled={!isLoaded} style={styles.controlIcon}><MaterialIcons name="skip-previous" size={20} color={!isLoaded ? '#666' : '#ffe6ec'} /></TouchableOpacity>
-          <TouchableOpacity onPress={handleMuteToggle} disabled={!isLoaded} style={styles.controlIcon}><MaterialIcons name={muted ? 'volume-off' : 'volume-up'} size={20} color={!isLoaded ? '#666' : '#ffe6ec'} /></TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleMuteToggle}
+            disabled={!isLoaded || isBuffering}
+            style={styles.controlIcon}
+          >
+            <MaterialIcons
+              name={muted ? 'volume-off' : 'volume-up'}
+              size={20}
+              color={(!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+            />
+          </TouchableOpacity>
+
           <View style={styles.volumeSliderContainer}>
-            <Slider value={muted ? 0 : volume} minimumValue={0} maximumValue={0.3} step={0.01} onValueChange={handleVolumeChange} disabled={!isLoaded} trackStyle={styles.volumeTrack} thumbStyle={styles.volumeThumb} minimumTrackTintColor="#b91d95" maximumTrackTintColor="#444" />
+            <Slider
+              value={volume}
+              minimumValue={0}
+              maximumValue={0.3}
+              step={0.01}
+              onSlidingStart={handleVolumeSeekStart}
+              onValueChange={handleVolumeSeekChange}
+              onSlidingComplete={handleVolumeSeekComplete}
+              disabled={!isLoaded || isBuffering}
+              trackStyle={styles.volumeTrack}
+              thumbStyle={styles.volumeThumb}
+              minimumTrackTintColor="#b91d95"
+              maximumTrackTintColor="#444"
+
+            />
           </View>
         </View>
+
         <View style={styles.rightControls}>
-          <TouchableOpacity onPress={handleRepeatToggle} style={styles.controlIcon}><MaterialIcons name="repeat-one" size={20} color={repeatOne ? '#b91d95' : (!isLoaded || isBuffering) ? '#666' : '#ffe6ec'} /></TouchableOpacity>
-          <TouchableOpacity onPress={handleRepeatAllToggle} style={styles.controlIcon}><MaterialIcons name="repeat" size={20} color={playlistRepeat ? '#b91d95' : (!isLoaded || isBuffering) ? '#666' : '#ffe6ec'} /></TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowPlaylistModal(true)} disabled={!isLoaded || isBuffering || !currentSong?.id} style={styles.controlIcon}><MaterialIcons name="playlist-add" size={20} color={!isLoaded || isBuffering ? '#666' : '#ffe6ec'} /></TouchableOpacity>
-          <TouchableOpacity onPress={goNext} disabled={!isLoaded} style={styles.controlIcon}><MaterialIcons name="skip-next" size={20} color={!isLoaded ? '#666' : '#ffe6ec'} /></TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleRepeatToggle}
+            style={styles.controlIcon}
+          >
+            <MaterialIcons
+              name="repeat-one"
+              size={20}
+              color={repeatOne ? "#b91d95" : (!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleRepeatAllToggle}
+            style={styles.controlIcon}
+          >
+            <MaterialIcons
+              name="repeat"
+              size={20}
+              color={playlistRepeat ? "#b91d95" : (!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setShowPlaylistModal(true)}
+            disabled={!isLoaded || isBuffering}
+            style={styles.controlIcon}
+          >
+            <MaterialIcons
+              name="playlist-add"
+              size={20}
+              color={(!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+            />
+          </TouchableOpacity>
+
           <View style={styles.speedContainer}>
-            <TouchableOpacity onPress={() => setShowSpeedModal(true)} disabled={!isLoaded || isBuffering} style={styles.speedSelector}>
-              <Text style={[styles.speedText, (!isLoaded || isBuffering) && styles.speedTextDisabled]}>{playbackRate}x</Text>
-              <MaterialIcons name="expand-more" size={16} color={!isLoaded || isBuffering ? '#666' : '#ffe6ec'} />
+            <TouchableOpacity
+              onPress={() => setShowSpeedModal(true)}
+              disabled={!isLoaded || isBuffering}
+              style={styles.speedSelector}
+            >
+              <Text style={[
+                styles.speedText,
+                (!isLoaded || isBuffering) && styles.speedTextDisabled
+              ]}>
+                {playbackRate}x
+              </Text>
+              <MaterialIcons
+                name="expand-more"
+                size={16}
+                color={(!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+              />
             </TouchableOpacity>
+
             {showSpeedModal && (
               <View style={styles.speedDropdown}>
-                {speedOptions.map(r => (
-                  <TouchableOpacity key={r} style={[styles.speedDropdownItem, playbackRate === r && styles.speedDropdownItemActive]} onPress={() => { handleRateChange(r); setShowSpeedModal(false); }}>
-                    <Text style={[styles.speedDropdownText, playbackRate === r && styles.speedDropdownTextActive]}>{r}x</Text>
-                    {playbackRate === r && <MaterialIcons name="check" size={14} color="#fff" />}
+                {speedOptions.map((rate) => (
+                  <TouchableOpacity
+                    key={rate}
+                    style={[
+                      styles.speedDropdownItem,
+                      playbackRate === rate && styles.speedDropdownItemActive
+                    ]}
+                    onPress={() => {
+                      handleRateChange(rate);
+                      setShowSpeedModal(false);
+                    }}
+                  >
+                    <Text style={[
+                      styles.speedDropdownText,
+                      playbackRate === rate && styles.speedDropdownTextActive
+                    ]}>
+                      {rate}x
+                    </Text>
+                    {playbackRate === rate && (
+                      <MaterialIcons name="check" size={14} color="#fff" />
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -292,21 +574,34 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           </View>
         </View>
       </View>
-      <Modal visible={showPlaylistModal} transparent animationType="fade" onRequestClose={() => setShowPlaylistModal(false)}>
+
+      <Modal
+        visible={showPlaylistModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPlaylistModal(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>{t('add_to_playlist')}</Text>
-            <FlatList data={playlists} keyExtractor={(item: Playlista) => item.id.toString()} renderItem={({ item }: { item: Playlista }) => (
-              <TouchableOpacity style={styles.playlistItem} onPress={() => handleAddToPlaylist(item.id)}>
-                <Text style={styles.playlistItemText}>{item.naziv}</Text>
-              </TouchableOpacity>
-            )} />
-            <TouchableOpacity style={styles.modalCloseBtn} onPress={() => setShowPlaylistModal(false)}><Text style={styles.modalCloseBtnText}>{t('close')}</Text></TouchableOpacity>
+            <FlatList
+              data={playlists}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderPlaylistItem}
+            />
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={() => setShowPlaylistModal(false)}
+            >
+              <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </View>
+    </TouchableOpacity>
   );
 };
+
+AudioPlayerNew.displayName = 'AudioPlayerNew';
 
 export default React.memo(AudioPlayerNew);

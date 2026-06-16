@@ -16,7 +16,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
-import { styles } from './UrediProfil.styles';
+import { styles as darkStyles } from './UrediProfil.styles';
+import { styles as lightStyles } from './UrediProfilWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
@@ -26,6 +27,23 @@ import Back from '@/komponente/Back/Back';
 const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
   const [ime, setIme] = useState('');
   const [prezime, setPrezime] = useState('');
   const [korisnickoIme, setKorisnickoIme] = useState('');

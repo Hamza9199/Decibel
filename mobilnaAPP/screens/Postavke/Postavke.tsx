@@ -15,11 +15,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
-import { styles } from './Postavke.styles';
+import { styles as darkStyles } from './Postavke.styles';
+import { styles as lightStyles } from './PostavkeWhite.styles';
 import { useRouter,useLocalSearchParams } from 'expo-router';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import * as FileSystem from 'expo-file-system';
 
 const Postavke: React.FC = React.memo(() => {
   const { t, i18n } = useTranslation();
@@ -28,6 +30,7 @@ const Postavke: React.FC = React.memo(() => {
   const [brisanje, setBrisanje] = useState(false);
   const [jezik, setJezik] = useState(i18n.language || 'bs');
   const [tema, setTema] = useState('dark');
+  const styles = tema === 'light' ? lightStyles : darkStyles;
   const router = useRouter();
 
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -178,7 +181,25 @@ const Postavke: React.FC = React.memo(() => {
     );
   }, [deleteAccountMutation, t]);
 
-  // Memoize picker items
+  const handleDownloadData = useCallback(async () => {
+    const userData = await AsyncStorage.getItem('korisnik');
+    if (!userData) {
+      Alert.alert(t('error'), t('must_be_logged_in') || 'You must be logged in');
+      return;
+    }
+    const korisnikID = JSON.parse(userData).id;
+    try {
+      const response = await axios.get(`${API_BASE}/korisnici/${korisnikID}/izvoz-podataka`);
+      const jsonStr = JSON.stringify(response.data, null, 2);
+      const fileUri = `${FileSystem.documentDirectory}korisnik_${korisnikID}_podaci.json`;
+  await FileSystem.writeAsStringAsync(fileUri, jsonStr);
+      Alert.alert(t('success'), t('data_saved') || `Data saved to ${fileUri}`);
+    } catch (error) {
+      console.error(error);
+      Alert.alert(t('error'), t('download_error') || 'Error downloading data');
+    }
+  }, [t]);
+
   const themePickerItems = useMemo(() => [
     <Picker.Item key="dark" label={t('dark_mode')} value="dark" />,
     <Picker.Item key="light" label={t('white_mode')} value="light" />
@@ -250,9 +271,13 @@ const Postavke: React.FC = React.memo(() => {
             </View>
           </View>
 
-          <Text style={styles.additionalText}>
-            {t('additional_settings')}
-          </Text>
+          <View style={styles.section}>
+            <TouchableOpacity style={styles.linkButton} onPress={handleDownloadData}>
+              <Text style={styles.linkText}>{t('download_my_data') || 'Download My Data'}</Text>
+            </TouchableOpacity>
+          </View>
+
+          
         </View>
       </ScrollView>
 

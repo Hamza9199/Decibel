@@ -399,12 +399,12 @@ const Home: React.FC = () => {
                   <div key={k.id} className={styles.card}>
                     <div className={styles.cardImageWrap}>
                       {k.putanjaProfilneSlike ? (
-                        <img
-                          src={k.putanjaProfilneSlike}
-                          alt={k.korisnicko_ime}
-                          className={styles.cardImage}
-                        />
-                      ) : (
+                          <img
+                            src={k.putanjaProfilneSlike || "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8"}
+                            alt={k.korisnicko_ime}
+                            className={styles.cardImage}
+                          />
+                        ) : (
                         <div
                           className={styles.cardImage}
                           style={{ background: "#222" }}

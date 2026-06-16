@@ -19,34 +19,31 @@ import Header from '@/komponente/Header/Header';
 import { useAudio } from '@/context/AudioContext';
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Biblioteka.styles';
+import { styles as darkStyles } from './Biblioteka.styles';
+import { styles as lightStyles } from './BibliotekaWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 type LibraryFilter = 'prateci' | 'pjesme' | 'albumi' | 'playliste';
 
-const SkeletonItem: React.FC = React.memo(() => (
+const SkeletonItem: React.FC<{ styles: any }> = React.memo(({ styles }) => (
   <View style={[styles.itemCard, { opacity: 0.6 }]}>
-    <View style={styles.itemHeader}>
+    <View style={[styles.itemHeader, { marginBottom: 0 }]}>
       <View style={[styles.itemImage, { backgroundColor: '#333' }]} />
       <View style={styles.itemInfo}>
         <View style={[styles.skeletonLine, { width: '70%', height: 16, marginBottom: 8 }]} />
         <View style={[styles.skeletonLine, { width: '50%', height: 12 }]} />
       </View>
     </View>
-    <View style={styles.itemActions}>
-      <View style={[styles.actionButton, { backgroundColor: '#333' }]} />
-      <View style={[styles.actionButton, { backgroundColor: '#333', marginLeft: 8 }]} />
-    </View>
   </View>
 ));
 SkeletonItem.displayName = "SkeletonItem";
 
-const SkeletonLoader: React.FC = React.memo(() => (
+const SkeletonLoader: React.FC<{ styles: any }> = React.memo(({ styles }) => (
   <View>
     {Array.from({ length: 5 }).map((_, index) => (
-      <SkeletonItem key={`skeleton-${index}`} />
+      <SkeletonItem key={`skeleton-${index}`} styles={styles} />
     ))}
   </View>
 ));
@@ -55,20 +52,37 @@ SkeletonLoader.displayName = "SkeletonLoader";
 
 const apiClient = axios.create({
   baseURL: API_BASE,
-  timeout: 10000, 
+  timeout: 10000,
 });
 
 const Biblioteka: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { playAudio, playPlaylist } = useAudio();
-  
+
   const abortControllerRef = useRef<AbortController>(null);
-  
+
   const [activeFilter, setActiveFilter] = useState<LibraryFilter>('prateci');
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
   const [playingAlbumId, setPlayingAlbumId] = useState<number | null>(null);
   const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
   useEffect(() => {
     const abortController = abortControllerRef.current;
     return () => {
@@ -93,15 +107,15 @@ const Biblioteka: React.FC = React.memo(() => {
   }, []);
 
   const loadBatchData = useCallback(async <T,>(
-    ids: (string | number)[], 
+    ids: (string | number)[],
     endpoint: string,
     signal?: AbortSignal
   ): Promise<T[]> => {
     if (ids.length === 0) return [];
-    
-    const batchSize = 15; 
+
+    const batchSize = 15;
     const results: T[] = [];
-    
+
     for (let i = 0; i < ids.length; i += batchSize) {
       const batch = ids.slice(i, i + batchSize);
       try {
@@ -115,20 +129,20 @@ const Biblioteka: React.FC = React.memo(() => {
           throw error;
         }
         const fallbackResults = await Promise.allSettled(
-          batch.map(id => 
+          batch.map(id =>
             apiClient.get(`/${endpoint}/${id}`, { signal })
               .then(res => res.data)
           )
         );
         const successfulResults = fallbackResults
-          .filter((result): result is PromiseFulfilledResult<T> => 
+          .filter((result): result is PromiseFulfilledResult<T> =>
             result.status === 'fulfilled' && result.value
           )
           .map(result => result.value);
         results.push(...successfulResults);
       }
     }
-    
+
     return results;
   }, []);
 
@@ -136,15 +150,20 @@ const Biblioteka: React.FC = React.memo(() => {
     queryKey: ['following', userId],
     queryFn: async ({ signal }) => {
       if (!userId) return [];
-      const response = await apiClient.get(`/pratioci/korisnik/${userId}`, { signal });
-      const followedIds = (response.data || [])
-        .map((p: any) => p.korisnikID)
-        .filter(Boolean);
+      try {
+        const response = await apiClient.get(`/pratioci/korisnik/${userId}`, { signal });
+        const followedIds = (response.data || [])
+          .map((p: any) => p.korisnikID)
+          .filter(Boolean);
 
-      if (followedIds.length === 0) return [];
+        if (followedIds.length === 0) return [];
 
-      const followedUsers = await loadBatchData<Korisnik>(followedIds, 'korisnici', signal);
-      return followedUsers.filter(user => followedIds.includes(user.id));
+        const followedUsers = await loadBatchData<Korisnik>(followedIds, 'korisnici', signal);
+        return followedUsers.filter(user => followedIds.includes(user.id));
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -153,36 +172,46 @@ const Biblioteka: React.FC = React.memo(() => {
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
- const useLikedSongs = (userId?: string) => useQuery({
-  queryKey: ['likedSongs', userId],
-  queryFn: async ({ signal }) => {
-    if (!userId) return [];
-    const likedResponse = await apiClient.get(`/korisnik_pjesma/korisnik/${userId}`, { signal });
-    return (likedResponse.data || [])
-      .filter((l: any) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
-      .map((l: any) => ({
-        ...l.pjesma,
-        korisnik: l.korisnik || l.pjesma.korisnik || null
-      }));
-  },
-  enabled: !!userId,
-  staleTime: 10 * 60 * 1000,
-  gcTime: 30 * 60 * 1000,
-  retry: 2,
-  retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-});
+  const useLikedSongs = (userId?: string) => useQuery({
+    queryKey: ['likedSongs', userId],
+    queryFn: async ({ signal }) => {
+      if (!userId) return [];
+      try {
+        const likedResponse = await apiClient.get(`/korisnik_pjesma/korisnik/${userId}`, { signal });
+        return (likedResponse.data || [])
+          .filter((l: any) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
+          .map((l: any) => ({
+            ...l.pjesma,
+            korisnik: l.korisnik || l.pjesma.korisnik || null
+          }));
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
+    },
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
 
-const useLikedAlbums = (userId?: string) => useQuery({
+  const useLikedAlbums = (userId?: string) => useQuery({
     queryKey: ['likedAlbums', userId],
     queryFn: async ({ signal }) => {
       if (!userId) return [];
-      const likedResponse = await apiClient.get(`/korisnik_album/korisnik/${userId}`, { signal });
-      return (likedResponse.data || [])
-        .filter((l: any) => l.album && l.album.odobreno)
-        .map((l: any) => ({
-          ...l.album,
-          korisnik: l.korisnik || l.album.korisnik || null
-        }));
+      try {
+        const likedResponse = await apiClient.get(`/korisnik_album/korisnik/${userId}`, { signal });
+        return (likedResponse.data || [])
+          .filter((l: any) => l.album && l.album.odobreno)
+          .map((l: any) => ({
+            ...l.album,
+            korisnik: l.korisnik || l.album.korisnik || null
+          }));
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -195,13 +224,18 @@ const useLikedAlbums = (userId?: string) => useQuery({
     queryKey: ['likedPlaylists', userId],
     queryFn: async ({ signal }) => {
       if (!userId) return [];
-      const likedResponse = await apiClient.get(`/korisnik_playlista/korisnik/${userId}`, { signal });
-      return (likedResponse.data || [])
-        .filter((l: any) => l.playlista && l.playlista.javno)
-        .map((l: any) => ({
-          ...l.playlista,
-          korisnik: l.korisnik || l.playlista.korisnik || null
-        }));
+      try {
+        const likedResponse = await apiClient.get(`/korisnik_playlista/korisnik/${userId}`, { signal });
+        return (likedResponse.data || [])
+          .filter((l: any) => l.playlista && l.playlista.javno)
+          .map((l: any) => ({
+            ...l.playlista,
+            korisnik: l.korisnik || l.playlista.korisnik || null
+          }));
+      } catch (error: any) {
+        if (error.response?.status === 404) return [];
+        throw error;
+      }
     },
     enabled: !!userId,
     staleTime: 10 * 60 * 1000,
@@ -219,22 +253,40 @@ const useLikedAlbums = (userId?: string) => useQuery({
   const albumsQuery = useLikedAlbums(korisnik?.id);
   const playlistsQuery = useLikedPlaylists(korisnik?.id);
 
+  const allVezeQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      return r.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allKorisniciQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/korisnici/`);
+      return r.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
     if (!korisnik?.id) return;
 
     const prefetchData = () => {
       const prefetches = [
-        { 
-          key: 'prateci', 
-          queryKey: ['following', korisnik.id], 
+        {
+          key: 'prateci',
+          queryKey: ['following', korisnik.id],
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
             const response = await apiClient.get(`/pratioci/korisnik/${korisnik.id}`, { signal });
             return response.data || [];
           }
         },
-        { 
-          key: 'pjesme', 
-          queryKey: ['likedSongs', korisnik.id], 
+        {
+          key: 'pjesme',
+          queryKey: ['likedSongs', korisnik.id],
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
             const response = await apiClient.get(`/korisnik_pjesma/korisnik/${korisnik.id}`, { signal });
             return (response.data || []).filter((l: any) => l.pjesma && l.pjesma.odobreno && l.pjesma.putanjaAudio)
@@ -244,9 +296,9 @@ const useLikedAlbums = (userId?: string) => useQuery({
               }));
           }
         },
-        { 
-          key: 'albumi', 
-          queryKey: ['likedAlbums', korisnik.id], 
+        {
+          key: 'albumi',
+          queryKey: ['likedAlbums', korisnik.id],
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
             const response = await apiClient.get(`/korisnik_album/korisnik/${korisnik.id}`, { signal });
             return (response.data || []).filter((l: any) => l.album && l.album.odobreno)
@@ -256,9 +308,9 @@ const useLikedAlbums = (userId?: string) => useQuery({
               }));
           }
         },
-        { 
-          key: 'playliste', 
-          queryKey: ['likedPlaylists', korisnik.id], 
+        {
+          key: 'playliste',
+          queryKey: ['likedPlaylists', korisnik.id],
           queryFn: async ({ signal }: { signal?: AbortSignal }) => {
             const response = await apiClient.get(`/korisnik_playlista/korisnik/${korisnik.id}`, { signal });
             return (response.data || []).filter((l: any) => l.playlista && l.playlista.javno)
@@ -289,103 +341,91 @@ const useLikedAlbums = (userId?: string) => useQuery({
     return () => clearTimeout(timer);
   }, [korisnik?.id, activeFilter]);
 
-  const unfollowMutation = useMutation({
-    mutationFn: async (artistId: string) => {
+  const toggleFollowMutation = useMutation({
+    mutationFn: async ({ artistId, wasFollowing }: { artistId: string; wasFollowing: boolean }) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await apiClient.delete(`/pratioci/${artistId}/${korisnik.id}`);
-      return artistId;
+      if (wasFollowing) {
+        await apiClient.delete(`/pratioci/${artistId}/${korisnik.id}`);
+      } else {
+        await apiClient.post(`/pratioci/`, {
+          korisnikID: artistId,
+          pratilacID: korisnik.id,
+        });
+      }
+      return { artistId, wasFollowing };
     },
-    onMutate: async (artistId) => {
-      await queryClient.cancelQueries({ queryKey: ['following', korisnik?.id] });
-      const previousData = queryClient.getQueryData(['following', korisnik?.id]);
-      
-      queryClient.setQueryData(['following', korisnik?.id], (old: Korisnik[] = []) =>
-        old.filter(a => a.id !== artistId)
-      );
-      
-      return { previousData };
+    onSuccess: (_, { wasFollowing }) => {
+      queryClient.invalidateQueries({ queryKey: ['following', korisnik?.id] });
+      Alert.alert(t('success'), wasFollowing ? t('unfollowed_artist') : t('followed_artist') || 'Followed!');
     },
-    onError: (err, artistId, context) => {
-      queryClient.setQueryData(['following', korisnik?.id], context?.previousData);
+    onError: () => {
       Alert.alert(t('error'), t('error_unfollowing'));
     },
+  });
+
+  const toggleSongLikeMutation = useMutation({
+    mutationFn: async ({ songId, wasLiked }: { songId: number; wasLiked: boolean }) => {
+      if (!korisnik?.id) throw new Error('No user ID');
+      if (wasLiked) {
+        await apiClient.delete(`/korisnik_pjesma/${korisnik.id}/${songId}`);
+      } else {
+        await apiClient.post(`/korisnik_pjesma/`, {
+          korisnikID: korisnik.id,
+          pjesmaID: songId,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+      }
+      return { songId, wasLiked };
+    },
     onSuccess: () => {
-      Alert.alert(t('success'), t('unfollowed_artist'));
+      queryClient.invalidateQueries({ queryKey: ['likedSongs', korisnik?.id] });
+    },
+    onError: () => {
+      Alert.alert(t('error'), t('error_removing_favorite'));
     },
   });
 
-  const unlikeSongMutation = useMutation({
-    mutationFn: async (songId: number) => {
+  const toggleAlbumLikeMutation = useMutation({
+    mutationFn: async ({ albumId, wasLiked }: { albumId: number; wasLiked: boolean }) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await apiClient.delete(`/korisnik_pjesma/${korisnik.id}/${songId}`);
-      return songId;
-    },
-    onMutate: async (songId) => {
-      await queryClient.cancelQueries({ queryKey: ['likedSongs', korisnik?.id] });
-      const previousData = queryClient.getQueryData(['likedSongs', korisnik?.id]);
-      
-      queryClient.setQueryData(['likedSongs', korisnik?.id], (old: Pjesma[] = []) =>
-        old.filter(s => s.id !== songId)
-      );
-      
-      return { previousData };
-    },
-    onError: (err, songId, context) => {
-      queryClient.setQueryData(['likedSongs', korisnik?.id], context?.previousData);
-      Alert.alert(t('error'), t('error_removing_favorite'));
+      if (wasLiked) {
+        await apiClient.delete(`/korisnik_album/${korisnik.id}/${albumId}`);
+      } else {
+        await apiClient.post(`/korisnik_album/`, {
+          korisnikID: korisnik.id,
+          albumID: albumId,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+      }
+      return { albumId, wasLiked };
     },
     onSuccess: () => {
-      Alert.alert(t('success'), t('removed_from_favorites'));
+      queryClient.invalidateQueries({ queryKey: ['likedAlbums', korisnik?.id] });
+    },
+    onError: () => {
+      Alert.alert(t('error'), t('error_removing_favorite'));
     },
   });
 
-  const unlikeAlbumMutation = useMutation({
-    mutationFn: async (albumId: number) => {
+  const togglePlaylistLikeMutation = useMutation({
+    mutationFn: async ({ playlistId, wasLiked }: { playlistId: number; wasLiked: boolean }) => {
       if (!korisnik?.id) throw new Error('No user ID');
-      await apiClient.delete(`/korisnik_album/${korisnik.id}/${albumId}`);
-      return albumId;
-    },
-    onMutate: async (albumId) => {
-      await queryClient.cancelQueries({ queryKey: ['likedAlbums', korisnik?.id] });
-      const previousData = queryClient.getQueryData(['likedAlbums', korisnik?.id]);
-      
-      queryClient.setQueryData(['likedAlbums', korisnik?.id], (old: Album[] = []) =>
-        old.filter(a => a.id !== albumId)
-      );
-      
-      return { previousData };
-    },
-    onError: (err, albumId, context) => {
-      queryClient.setQueryData(['likedAlbums', korisnik?.id], context?.previousData);
-      Alert.alert(t('error'), t('error_removing_favorite'));
+      if (wasLiked) {
+        await apiClient.delete(`/korisnik_playlista/${korisnik.id}/${playlistId}`);
+      } else {
+        await apiClient.post(`/korisnik_playlista/`, {
+          korisnikID: korisnik.id,
+          playlistaID: playlistId,
+          kreiranDatumVrijeme: new Date().toISOString(),
+        });
+      }
+      return { playlistId, wasLiked };
     },
     onSuccess: () => {
-      Alert.alert(t('success'), t('removed_from_favorites'));
+      queryClient.invalidateQueries({ queryKey: ['likedPlaylists', korisnik?.id] });
     },
-  });
-
-  const unlikePlaylistMutation = useMutation({
-    mutationFn: async (playlistId: number) => {
-      if (!korisnik?.id) throw new Error('No user ID');
-      await apiClient.delete(`/korisnik_playlista/${korisnik.id}/${playlistId}`);
-      return playlistId;
-    },
-    onMutate: async (playlistId) => {
-      await queryClient.cancelQueries({ queryKey: ['likedPlaylists', korisnik?.id] });
-      const previousData = queryClient.getQueryData(['likedPlaylists', korisnik?.id]);
-      
-      queryClient.setQueryData(['likedPlaylists', korisnik?.id], (old: Playlista[] = []) =>
-        old.filter(p => p.id !== playlistId)
-      );
-      
-      return { previousData };
-    },
-    onError: (err, playlistId, context) => {
-      queryClient.setQueryData(['likedPlaylists', korisnik?.id], context?.previousData);
+    onError: () => {
       Alert.alert(t('error'), t('error_removing_favorite'));
-    },
-    onSuccess: () => {
-      Alert.alert(t('success'), t('removed_from_favorites'));
     },
   });
 
@@ -399,8 +439,8 @@ const useLikedAlbums = (userId?: string) => useQuery({
           .sort((a, b) => a.id - b.id);
       },
       enabled,
-      staleTime: 15 * 60 * 1000, 
-      gcTime: 60 * 60 * 1000, 
+      staleTime: 15 * 60 * 1000,
+      gcTime: 60 * 60 * 1000,
       retry: 2,
     });
   };
@@ -428,32 +468,21 @@ const useLikedAlbums = (userId?: string) => useQuery({
     setActiveFilter(filter);
   }, []);
 
-  const handleUnfollow = useCallback((artistId: string) => {
-    Alert.alert(
-      t('confirm_action'),
-      t('confirm_unfollow'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('unfollow'),
-          style: 'destructive',
-          onPress: () => unfollowMutation.mutate(artistId)
-        }
-      ]
-    );
-  }, [unfollowMutation, t]);
+  const handleToggleFollow = useCallback((artistId: string, isFollowing: boolean) => {
+    toggleFollowMutation.mutate({ artistId, wasFollowing: isFollowing });
+  }, [toggleFollowMutation]);
 
-  const handleUnlikeSong = useCallback((songId: number) => {
-    unlikeSongMutation.mutate(songId);
-  }, [unlikeSongMutation]);
+  const handleToggleSongLike = useCallback((songId: number, isLiked: boolean) => {
+    toggleSongLikeMutation.mutate({ songId, wasLiked: isLiked });
+  }, [toggleSongLikeMutation]);
 
-  const handleUnlikeAlbum = useCallback((albumId: number) => {
-    unlikeAlbumMutation.mutate(albumId);
-  }, [unlikeAlbumMutation]);
+  const handleToggleAlbumLike = useCallback((albumId: number, isLiked: boolean) => {
+    toggleAlbumLikeMutation.mutate({ albumId, wasLiked: isLiked });
+  }, [toggleAlbumLikeMutation]);
 
-  const handleUnlikePlaylist = useCallback((playlistId: number) => {
-    unlikePlaylistMutation.mutate(playlistId);
-  }, [unlikePlaylistMutation]);
+  const handleTogglePlaylistLike = useCallback((playlistId: number, isLiked: boolean) => {
+    togglePlaylistLikeMutation.mutate({ playlistId, wasLiked: isLiked });
+  }, [togglePlaylistLikeMutation]);
 
   const albumSongsQuery = useAlbumSongs(playingAlbumId || 0, !!playingAlbumId);
   const playlistSongsQuery = usePlaylistSongs(playingPlaylistId || 0, !!playingPlaylistId);
@@ -522,7 +551,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
         {item.label}
       </Text>
     </TouchableOpacity>
-  ), [activeFilter, handleFilterChange]);
+  ), [activeFilter, handleFilterChange, styles.filterButton, styles.filterButtonActive, styles.filterButtonText, styles.filterButtonTextActive]);
 
   const OptimizedImage = React.memo(({ uri, style, ...props }: any) => (
     <Image
@@ -538,160 +567,173 @@ const useLikedAlbums = (userId?: string) => useQuery({
   ));
   OptimizedImage.displayName = "OptimizedImage";
 
-  const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
-    <View style={styles.itemCard}>
-      <TouchableOpacity 
-        style={styles.itemHeader}
-        onPress={() => router.replace(`/izvodjac/${item.id}?from=library`)}
-      >
-        <OptimizedImage
-          uri={item.putanjaProfilneSlike}
-          style={[styles.itemImage, styles.artistImage]}
-        />
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {item.korisnicko_ime}
-          </Text>
-          <Text style={styles.itemSubtitle} numberOfLines={1}>
-            {item.ime && item.prezime ? `${item.ime} ${item.prezime}` : t('artist')}
-          </Text>
+  const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => {
+    const isFollowing = true;
+    return (
+      <View style={styles.itemCard}>
+        <View style={[styles.itemHeader, { marginBottom: 0 }]}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+            onPress={() => router.replace(`/izvodjac/${item.id}?from=library`)}
+          >
+            <OptimizedImage
+              uri={item.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8'}
+            style={[styles.itemImage, styles.artistImage]}
+            />
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemTitle} numberOfLines={1}>
+                {item.korisnicko_ime}
+              </Text>
+              <Text style={styles.itemSubtitle} numberOfLines={1}>
+                {item.ime && item.prezime ? `${item.ime} ${item.prezime}` : t('artist')}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.unfollowButton]}
+            onPress={() => handleToggleFollow(item.id, isFollowing)}
+          >
+            <MaterialIcons name="person-remove" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-      <View style={styles.itemActions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.unfollowButton]}
-          onPress={() => handleUnfollow(item.id)}
-        >
-          <MaterialIcons name="person-remove" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-    </View>
-  ), [OptimizedImage, t, router, handleUnfollow]);
+    );
+  }, [OptimizedImage, t, router, handleToggleFollow, styles.itemCard, styles.itemHeader, styles.itemImage, styles.artistImage, styles.itemInfo, styles.itemTitle, styles.itemSubtitle, styles.actionButton, styles.unfollowButton]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     playAudio(song);
   }, [playAudio]);
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
-    console.log('Rendering song item:', {
-      id: item.id,
-      naziv: item.naziv,
-      putanjaSlika: item.putanjaSlika,
-      putanjaAudio: item.putanjaAudio,
-      korisnik: item.korisnik,
-      korisnikID: item.korisnikID
-    });
-    
+    const isLiked = true;
+    // Resolve performers using relation tables (exclude song owner if present)
+    const veze = allVezeQuery.data?.filter((v: any) => v.pjesmaID === item.id) || [];
+    const izvodjaci = veze
+      .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
+      .filter(Boolean);
+    const performers = izvodjaci.map((i: any) => i.korisnicko_ime).join(', ') || t('unknown_artist');
     return (
       <View style={styles.itemCard}>
-        <TouchableOpacity 
-          style={styles.itemHeader}
-          onPress={() => router.replace(`/pjesma/${item.id}?from=library`)}
-        >
-          <OptimizedImage
-            uri={item.putanjaSlika}
-            style={styles.itemImage}
-          />
-          <View style={styles.itemInfo}>
-            <Text style={styles.itemTitle} numberOfLines={1}>
-              {item.naziv || 'Unknown Song'}
-            </Text>
-            <Text style={styles.itemSubtitle} numberOfLines={1}>
-              {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <View style={styles.itemActions}>
-          {item.putanjaAudio && (
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => handlePlaySong(item)}
-            >
-              <MaterialIcons name="play-arrow" size={20} color="#fff" />
-            </TouchableOpacity>
-          )}
+        <View style={[styles.itemHeader, { marginBottom: 0 }]}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.likeButton]}
-            onPress={() => handleUnlikeSong(item.id)}
+            style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+            onPress={() => router.replace(`/pjesma/${item.id}?from=library`)}
           >
-            <MaterialIcons name="favorite" size={20} color="#fff" />
+            <OptimizedImage
+              uri={item.putanjaSlika}
+              style={styles.itemImage}
+            />
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemTitle} numberOfLines={1}>
+                {item.naziv || 'Unknown Song'}
+              </Text>
+              <Text style={styles.itemSubtitle} numberOfLines={1}>
+                {performers}
+              </Text>
+            </View>
           </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {item.putanjaAudio && (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => handlePlaySong(item)}
+              >
+                <MaterialIcons name="play-arrow" size={20} color="#fff" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.actionButton, isLiked ? styles.likeButton : { backgroundColor: '#333' }]}
+              onPress={() => handleToggleSongLike(item.id, isLiked)}
+            >
+              <MaterialIcons name="favorite" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
-  }, [OptimizedImage, t, router, handlePlaySong, handleUnlikeSong]);
+  }, [OptimizedImage, t, router, handlePlaySong, handleToggleSongLike, allVezeQuery, allKorisniciQuery, styles]);
 
-  const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
-    <View style={styles.itemCard}>
-      <TouchableOpacity 
-        style={styles.itemHeader}
-        onPress={() => router.replace(`/album/${item.id}?from=library`)}
-      >
-        <OptimizedImage
-          uri={item.putanjaSlika}
-          style={styles.itemImage}
-        />
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {item.naziv}
-          </Text>
-          <Text style={styles.itemSubtitle} numberOfLines={1}>
-            {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-          </Text>
+  const renderAlbumItem = useCallback(({ item }: { item: Album }) => {
+    const isLiked = true; // They are in the liked list
+    return (
+      <View style={styles.itemCard}>
+        <View style={[styles.itemHeader, { marginBottom: 0 }]}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+            onPress={() => router.replace(`/album/${item.id}?from=library`)}
+          >
+            <OptimizedImage
+              uri={item.putanjaSlika}
+              style={styles.itemImage}
+            />
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemTitle} numberOfLines={1}>
+                {item.naziv}
+              </Text>
+              <Text style={styles.itemSubtitle} numberOfLines={1}>
+                {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handlePlayAlbum(item)}
+            >
+              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, isLiked ? styles.likeButton : { backgroundColor: '#333' }]}
+              onPress={() => handleToggleAlbumLike(item.id, isLiked)}
+            >
+              <MaterialIcons name="favorite" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </TouchableOpacity>
-      <View style={styles.itemActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handlePlayAlbum(item)}
-        >
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.likeButton]}
-          onPress={() => handleUnlikeAlbum(item.id)}
-        >
-          <MaterialIcons name="favorite" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-    </View>
-  ), [OptimizedImage, t, router, handlePlayAlbum, handleUnlikeAlbum]);
+    );
+  }, [OptimizedImage, t, router, handlePlayAlbum, handleToggleAlbumLike, styles]);
 
-  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
-    <View style={styles.itemCard}>
-      <TouchableOpacity 
-        style={styles.itemHeader}
-        onPress={() => router.replace(`/playlista/${item.id}?from=library`)}
-      >
-        <OptimizedImage
-          uri={item.putanjaSlika}
-          style={styles.itemImage}
-        />
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {item.naziv}
-          </Text>
-          <Text style={styles.itemSubtitle} numberOfLines={1}>
-            {item.korisnik?.korisnicko_ime || t('unknown_user')}
-          </Text>
+  const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => {
+    const isLiked = true; // They are in the liked list
+    return (
+      <View style={styles.itemCard}>
+        <View style={[styles.itemHeader, { marginBottom: 0 }]}>
+          <TouchableOpacity
+            style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
+            onPress={() => router.replace(`/playlista/${item.id}?from=library`)}
+          >
+            <OptimizedImage
+              uri={item.putanjaSlika}
+              style={styles.itemImage}
+            />
+            <View style={styles.itemInfo}>
+              <Text style={styles.itemTitle} numberOfLines={1}>
+                {item.naziv}
+              </Text>
+              <Text style={styles.itemSubtitle} numberOfLines={1}>
+                {item.korisnik?.korisnicko_ime || t('unknown_user')}
+              </Text>
+            </View>
+          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => handlePlayPlaylist(item)}
+            >
+              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, isLiked ? styles.likeButton : { backgroundColor: '#333' }]}
+              onPress={() => handleTogglePlaylistLike(item.id, isLiked)}
+            >
+              <MaterialIcons name="favorite" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
-      </TouchableOpacity>
-      <View style={styles.itemActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handlePlayPlaylist(item)}
-        >
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.likeButton]}
-          onPress={() => handleUnlikePlaylist(item.id)}
-        >
-          <MaterialIcons name="favorite" size={20} color="#fff" />
-        </TouchableOpacity>
       </View>
-    </View>
-  ), [OptimizedImage, t, router, handlePlayPlaylist, handleUnlikePlaylist]);
+    );
+  }, [OptimizedImage, t, router, handlePlayPlaylist, handleTogglePlaylistLike, styles]);
 
   const getCurrentQuery = () => {
     switch (activeFilter) {
@@ -706,7 +748,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
   const currentQuery = getCurrentQuery();
   const isLoading = currentQuery.isLoading;
   const isError = currentQuery.isError;
-  
+
   const emptyStateConfig = useMemo(() => {
     const activeFilterData = filters.find(f => f.key === activeFilter);
     return {
@@ -730,7 +772,7 @@ const useLikedAlbums = (userId?: string) => useQuery({
     const currentData = currentQuery.data || [];
 
     if (isLoading) {
-      return <SkeletonLoader />;
+      return <SkeletonLoader styles={styles} />;
     }
 
     if (isError) {
@@ -752,11 +794,11 @@ const useLikedAlbums = (userId?: string) => useQuery({
     if (currentData.length === 0) {
       return (
         <View style={styles.emptyContainer}>
-          <MaterialIcons 
-            name={emptyStateConfig.icon as any} 
-            size={64} 
-            color="#444" 
-            style={styles.emptyIcon} 
+          <MaterialIcons
+            name={emptyStateConfig.icon as any}
+            size={64}
+            color="#444"
+            style={styles.emptyIcon}
           />
           <Text style={styles.emptyTitle}>
             {emptyStateConfig.title}
@@ -790,13 +832,13 @@ const useLikedAlbums = (userId?: string) => useQuery({
         windowSize={10}
         removeClippedSubviews={true}
         getItemLayout={(data, index) => ({
-          length: 80, 
+          length: 80,
           offset: 80 * index,
           index,
         })}
       />
     );
-  }, [isLoading, isError, activeFilter, emptyStateConfig, currentQuery, renderArtistItem, renderSongItem, renderAlbumItem, renderPlaylistItem, t]);
+  }, [isLoading, isError, activeFilter, emptyStateConfig, currentQuery, renderArtistItem, renderSongItem, renderAlbumItem, renderPlaylistItem, t, styles]);
 
   const onRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: [activeFilter.replace('e', 'ed'), korisnik?.id] });

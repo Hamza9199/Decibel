@@ -13,7 +13,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Back.styles';
+import { styles as darkStyles } from './Back.styles';
+import { styles as lightStyles } from './BackWhite.styles';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useBackPress } from '@/hooks/handleBackPress';
 
@@ -33,6 +34,22 @@ const Back: React.FC<BackProps> = React.memo(({
   const { ready } = useTranslation();
   const [userId, setUserId] = useState<string | null>(null);
   const { from } = useLocalSearchParams<{ from?: string }>();
+  
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
   
   const getCurrentRoute = useCallback(() => {
     const titleToRouteMap: { [key: string]: string } = {

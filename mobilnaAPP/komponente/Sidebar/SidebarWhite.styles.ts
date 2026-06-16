@@ -1,0 +1,130 @@
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+export const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    zIndex: 9999,
+  },
+  sidebar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: '100%',
+    width: Math.min(280, width * 0.8),
+    backgroundColor: '#ffffff',
+    zIndex: 10000,
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 0 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 15,
+  },
+  logoWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 30,
+    paddingHorizontal: 4,
+  },
+  logoImg: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    marginRight: 15,
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#181818',
+    letterSpacing: 2,
+  },
+  nav: {
+    flex: 1,
+  },
+  navBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  navBtnDisabled: {
+    opacity: 0.5,
+  },
+  navBtnText: {
+    color: '#181818',
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 12,
+  },
+  navBtnTextDisabled: {
+    color: '#aaa',
+  },
+  sectionTitle: {
+    color: '#b91d95',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginTop: 24,
+    marginBottom: 12,
+    paddingHorizontal: 4,
+  },
+  profileMenu: {
+    marginBottom: 8,
+  },
+  subMenu: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginLeft: 16,
+    marginTop: 4,
+    paddingVertical: 4,
+  },
+  subNavBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    marginVertical: 2,
+    marginHorizontal: 4,
+  },
+  subNavBtnDisabled: {
+    opacity: 0.5,
+  },
+  subNavBtnText: {
+    color: '#181818',
+    fontSize: 14,
+    fontWeight: '400',
+    marginLeft: 8,
+  },
+  subNavBtnTextDisabled: {
+    color: '#aaa',
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginTop: 20,
+    backgroundColor: '#ffe6ec',
+    borderWidth: 1,
+    borderColor: '#b91d95',
+    marginBottom: 15,
+  },
+  logoutBtnText: {
+    color: '#b91d95',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
+});

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList, Alert, ScrollView, Animated, Easing } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Slider } from '@miblanchard/react-native-slider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -34,8 +35,50 @@ interface AudioPlayerNewProps {
 
 const RATE_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
+const MarqueeText = ({ children, style }: { children: React.ReactNode, style?: any }) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [textWidth, setTextWidth] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    animatedValue.stopAnimation();
+    animatedValue.setValue(0);
+    if (textWidth > containerWidth && containerWidth > 0) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(1000),
+          Animated.timing(animatedValue, {
+            toValue: -textWidth,
+            duration: (textWidth / 30) * 1000,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          }),
+          Animated.timing(animatedValue, {
+            toValue: containerWidth,
+            duration: 0,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    }
+  }, [textWidth, containerWidth, animatedValue, children]);
+
+  return (
+    <View style={{ overflow: 'hidden', width: '100%' }} onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}>
+      <Animated.Text
+        numberOfLines={1}
+        onLayout={e => setTextWidth(e.nativeEvent.layout.width)}
+        style={[style, { transform: [{ translateX: animatedValue }] }]}
+      >
+        {children}
+      </Animated.Text>
+    </View>
+  );
+};
+
 const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title: propTitle, putanjaGif: propGif, putanjaSlika: propSlika, korisnikID: propKorisnikID, visible, minimized, onClose, onExpand }) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 65;
   const audioCtx = useAudio();
@@ -81,13 +124,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     return null;
   }, [globalPlaylist, playlistIdx, allSongs, effectiveSrc, id, effectiveTitle, effectiveGif, effectiveSlika, effectiveKorisnikID]);
 
-  const { data: likedSongs = [] } = useQuery({
-    queryKey: ['likedSongs', korisnik?.id],
-    queryFn: async () => { if (!korisnik?.id) return []; const r = await axios.get(`${API_BASE}/korisnik_pjesma/`); return r.data || []; },
-    enabled: !!korisnik?.id,
-    staleTime: 2 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
+
 
   const { data: playlists = [] } = useQuery({
     queryKey: ['playlists', korisnik?.id],
@@ -104,18 +141,74 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: izvodjaci = [] } = useQuery({
+    queryKey: ['izvodjaci', currentSong?.id],
+    queryFn: async () => {
+      if (!currentSong?.id) return [];
+      const res = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      const veze = res.data.filter((v: any) => v.pjesmaID === currentSong.id);
+      const korisnici = await Promise.all(
+        veze.map((v: any) =>
+          axios.get(`${API_BASE}/korisnici/${v.izvodjacID}`).then(r => r.data).catch(() => null)
+        )
+      );
+      return korisnici.filter(Boolean) as Korisnik[];
+    },
+    enabled: !!currentSong?.id,
+  });
+
   const likeMutation = useMutation({
-    mutationFn: async ({ action, pjesmaID }: { action: 'like' | 'unlike'; pjesmaID: number }) => action === 'like'
-      ? axios.post(`${API_BASE}/korisnik_pjesma/`, { korisnikID: korisnik?.id, pjesmaID, kreiranDatumVrijeme: new Date().toISOString() })
-      : axios.delete(`${API_BASE}/korisnik_pjesma/${korisnik?.id}/${pjesmaID}`),
-    onSuccess: (_, { action }) => { queryClient.invalidateQueries({ queryKey: ['likedSongs', korisnik?.id] }); Alert.alert(t('success'), action === 'like' ? t('added_to_favorites') : t('removed_from_favorites')); },
-    onError: () => Alert.alert(t('error'), t('error_favorites')),
+    mutationFn: async () => {
+      if (!currentSong || !korisnik?.id) return;
+      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        korisnikID: korisnik.id,
+        pjesmaID: currentSong.id,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      });
+    },
+    onSuccess: () => {
+      setLiked(true);
+      queryClient.invalidateQueries({
+        queryKey: ["korisnik_pjesma_liked", korisnik?.id, currentSong?.id],
+      });
+    },
+  });
+
+  const unlikeMutation = useMutation({
+    mutationFn: async () => {
+      if (!currentSong || !korisnik?.id) return;
+      await axios.delete(
+        `${API_BASE}/korisnik_pjesma/${korisnik.id}/${currentSong.id}`
+      );
+    },
+    onSuccess: () => {
+      setLiked(false);
+      queryClient.invalidateQueries({
+        queryKey: ["korisnik_pjesma_liked", korisnik?.id, currentSong?.id],
+      });
+    },
   });
 
   const addToPlaylistMutation = useMutation({
-    mutationFn: async ({ pjesmaID, playlistaID }: { pjesmaID: number; playlistaID: number }) => axios.post(`${API_BASE}/pjesna_playlista/dodaj-na-kraj/`, { pjesmaID, playlistaID }),
-    onSuccess: () => { setShowPlaylistModal(false); Alert.alert(t('success'), t('song_added_to_playlist')); },
-    onError: () => { setShowPlaylistModal(false); Alert.alert(t('error'), t('error_adding_to_playlist')); },
+    mutationFn: async (playlistaID: number) => {
+      if (!currentSong?.id) throw new Error("No song");
+      await axios.post(`${API_BASE}/pjesma_playlista/dodaj-na-kraj/`, {
+        pjesmaID: currentSong.id,
+        playlistaID,
+      });
+    },
+    onSuccess: () => {
+      setShowPlaylistModal(false);
+      Alert.alert(t('success'), t('song_added_to_playlist') || 'Pjesma dodana u playlistu!');
+    },
+    onError: (error: unknown) => {
+      const detail =
+        typeof error === "object" && error && "response" in error
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : undefined;
+      Alert.alert(t('error'), detail || t('error_adding_to_playlist') || 'Greška pri dodavanju pjesme u playlistu.');
+      setShowPlaylistModal(false);
+    },
   });
 
   const addToHistoryMutation = useMutation({
@@ -172,9 +265,38 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
   useEffect(() => { if (!isSeeking) setSeekValue(progress); }, [progress, isSeeking]);
 
-  useEffect(() => { if (status?.didJustFinish) { if (repeatOne) { player.seekTo(0).then(() => player.play()); } else if (globalPlaylist.length > 0 && playlistIdx >= 0) { const nextIdx = playlistIdx + 1; if (nextIdx < globalPlaylist.length) audioCtx.setPlaylistIdx(nextIdx); else if (playlistRepeat) audioCtx.setPlaylistIdx(0); } } }, [status?.didJustFinish, repeatOne, playlistIdx, globalPlaylist.length, playlistRepeat, audioCtx, player]);
+  useEffect(() => { 
+    if (status?.didJustFinish) { 
+      if (repeatOne) { 
+        player.seekTo(0).then(() => player.play()); 
+      } else if (globalPlaylist.length > 0 && playlistIdx >= 0) { 
+        const nextIdx = playlistIdx + 1; 
+        if (nextIdx < globalPlaylist.length) {
+          audioCtx.setPlaylistIdx(nextIdx); 
+        } else if (playlistRepeat) {
+          audioCtx.setPlaylistIdx(0); 
+        } else {
+          audioCtx.setGlobalPlaylist([]);
+          audioCtx.setPlaylistIdx(-1);
+        }
+      } 
+    } 
+  }, [status?.didJustFinish, repeatOne, playlistIdx, globalPlaylist.length, playlistRepeat, audioCtx, player]);
 
-  useEffect(() => { if (!currentSong?.id || !korisnik?.id) { setLiked(false); return; } setLiked(likedSongs.some((it: any) => it.korisnikID === korisnik.id && it.pjesmaID === currentSong.id)); }, [currentSong?.id, korisnik?.id, likedSongs]);
+  useEffect(() => {
+    if (korisnik?.id && currentSong?.id) {
+      axios
+        .get(`${API_BASE}/korisnik_pjesma/${korisnik.id}/${currentSong.id}`)
+        .then((res) => {
+          setLiked(res.data.liked);
+        })
+        .catch(() => {
+          setLiked(false);
+        });
+    } else {
+      setLiked(false);
+    }
+  }, [currentSong?.id, currentSong?.korisnikID, korisnik?.id]);
 
   const historyRef = useRef<{ korisnikID: string; pjesmaID: number } | null>(null);
   useEffect(() => { if (!currentSong?.id || !korisnik?.id) return; const params = { korisnikID: korisnik.id, pjesmaID: currentSong.id }; if (!historyRef.current || historyRef.current.pjesmaID !== params.pjesmaID) { historyRef.current = params; addToHistoryMutation.mutate(params); setStatistikaSent(false); } }, [currentSong?.id, korisnik?.id, addToHistoryMutation]);
@@ -183,28 +305,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   useEffect(() => { if (!currentSong?.id || !korisnik?.id || !playing) return; if (progress < 30 || statistikaSent) return; const params = { korisnikID: korisnik.id, pjesmaID: currentSong.id, sent: true }; if (!statistikaRef.current || statistikaRef.current.pjesmaID !== params.pjesmaID || !statistikaRef.current.sent) { statistikaRef.current = params; statistikaMutation.mutate({ korisnikID: params.korisnikID, pjesmaID: params.pjesmaID }); setStatistikaSent(true); } }, [progress, statistikaSent, playing, currentSong?.id, korisnik?.id, statistikaMutation]);
   useEffect(() => { setStatistikaSent(false); if (statistikaRef.current) statistikaRef.current.sent = false; }, [effectiveSrc]);
 
-  const lastPlaylistIdxRef = useRef<number | null>(null);
-  const lastPlaylistRepeatRef = useRef<boolean | null>(null);
-  useEffect(() => {
-    if (
-      globalPlaylist.length > 0 &&
-      playlistIdx >= 0 &&
-      playlistIdx < globalPlaylist.length
-    ) {
-      if (
-        lastPlaylistIdxRef.current !== playlistIdx ||
-        lastPlaylistRepeatRef.current !== playlistRepeat
-      ) {
-        const song = globalPlaylist[playlistIdx];
-        if (song?.putanjaAudio) {
-          setStatistikaSent(false);
-          audioCtx.playPlaylist(globalPlaylist, playlistIdx, playlistRepeat);
-        }
-        lastPlaylistIdxRef.current = playlistIdx;
-        lastPlaylistRepeatRef.current = playlistRepeat;
-      }
-    }
-  }, [playlistIdx, globalPlaylist, playlistRepeat, audioCtx]);
+
 
 
 
@@ -291,9 +392,21 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     }
   }, [currentSong, currentOwner, effectiveTitle, effectiveSlika, isLoaded, player, t, goPrev, goNext]);
 
-  const handleLike = useCallback(async () => { if (!currentSong?.id || !korisnik?.id || likeMutation.isPending) return; const action: 'like' | 'unlike' = liked ? 'unlike' : 'like'; setLiked(!liked); try { await likeMutation.mutateAsync({ action, pjesmaID: currentSong.id }); } catch { setLiked(liked); } }, [currentSong?.id, korisnik?.id, liked, likeMutation]);
+  const handleLike = useCallback(async () => {
+    if (!currentSong?.id || !korisnik?.id) return;
+    if (liked) {
+      setLiked(false);
+      unlikeMutation.mutate();
+    } else {
+      setLiked(true);
+      likeMutation.mutate();
+    }
+  }, [currentSong?.id, korisnik?.id, liked, unlikeMutation, likeMutation]);
 
-  const handleAddToPlaylist = useCallback(async (playlistaID: number) => { if (!currentSong?.id || !korisnik?.id || addToPlaylistMutation.isPending) return; try { await addToPlaylistMutation.mutateAsync({ pjesmaID: currentSong.id, playlistaID }); } catch { } }, [currentSong?.id, korisnik?.id, addToPlaylistMutation]);
+  const handleAddToPlaylist = useCallback((playlistaID: number) => {
+    if (!effectiveSrc || !currentSong?.id) return;
+    addToPlaylistMutation.mutate(playlistaID);
+  }, [effectiveSrc, currentSong?.id, addToPlaylistMutation]);
 
   const handleClosePress = useCallback(() => {
     onClose?.();
@@ -388,12 +501,30 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
         <View style={styles.audioMeta}>
           <View style={styles.audioDetails}>
-            <Text style={styles.audioArtist} numberOfLines={1}>
-              {currentOwner?.korisnicko_ime || t('unknown_user')}
-            </Text>
-            <Text style={styles.audioTitle} numberOfLines={1}>
-              {currentSong?.naziv || t('no_current_song')}
-            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {izvodjaci.length > 0 ? (
+                  izvodjaci.map((izv: Korisnik, idx: number) => (
+                    <TouchableOpacity key={izv.id} onPress={() => { handleClosePress(); router.push(`/izvodjac/${izv.id}?from=player`); }} activeOpacity={0.7}>
+                      <Text style={styles.audioArtist}>
+                        {izv.korisnicko_ime}{idx < izvodjaci.length - 1 ? ' & ' : ''}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                ) : (
+                  <TouchableOpacity onPress={() => { if (currentOwner?.id) { handleClosePress(); router.push(`/izvodjac/${currentOwner.id}?from=player`); } }} activeOpacity={0.7}>
+                    <Text style={styles.audioArtist}>
+                      {currentOwner?.korisnicko_ime || t('unknown_user')}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </ScrollView>
+            <TouchableOpacity onPress={() => { if (currentSong?.id) { handleClosePress(); router.push(`/pjesma/${currentSong.id}?from=player`); } }} activeOpacity={0.7} style={{ width: '100%', flex: 1, paddingRight: 10 }}>
+              <MarqueeText style={styles.audioTitle}>
+                {currentSong?.naziv || t('no_current_song')}
+              </MarqueeText>
+            </TouchableOpacity>
           </View>
           <Text style={styles.audioTime}>
             {formatTime(isSeeking ? seekValue : progress)} / {formatTime(duration)}
@@ -527,7 +658,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
           <View style={styles.speedContainer}>
             <TouchableOpacity
-              onPress={() => setShowSpeedModal(true)}
+              onPress={() => setShowSpeedModal(prev => !prev)}
               disabled={!isLoaded || isBuffering}
               style={styles.speedSelector}
             >

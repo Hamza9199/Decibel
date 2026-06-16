@@ -16,11 +16,11 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Search.styles';
 import { useQuery } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { router } from 'expo-router';
-
+import { styles as darkStyles } from './Search.styles';
+import { styles as lightStyles } from './SearchWhite.styles';
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
 
@@ -30,9 +30,13 @@ interface ResultItem {
   id: string;
 }
 
+
+
 const Search: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('sve');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -53,6 +57,19 @@ const Search: React.FC = React.memo(() => {
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    loadTheme();
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -79,36 +96,36 @@ const Search: React.FC = React.memo(() => {
       const termLower = debouncedSearchTerm.toLowerCase();
 
       const filteredSongs = (pjesmeRes.data as Pjesma[])
-        .filter(s => 
-          s.odobreno && 
+        .filter(s =>
+          s.odobreno &&
           (s.naziv?.toLowerCase().includes(termLower) ||
-           s.korisnik?.korisnicko_ime?.toLowerCase().includes(termLower) ||
-           s.zanr?.toLowerCase().includes(termLower))
+            s.korisnik?.korisnicko_ime?.toLowerCase().includes(termLower) ||
+            s.zanr?.toLowerCase().includes(termLower))
         )
         .sort((a, b) => (b.brojReprodukcija || 0) - (a.brojReprodukcija || 0));
 
       const filteredAlbums = (albumiRes.data as Album[])
-        .filter(a => 
-          a.odobreno && 
+        .filter(a =>
+          a.odobreno &&
           (a.naziv?.toLowerCase().includes(termLower) ||
-           a.korisnik?.korisnicko_ime?.toLowerCase().includes(termLower))
+            a.korisnik?.korisnicko_ime?.toLowerCase().includes(termLower))
         )
         .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0));
 
       const filteredPlaylists = (playlisteRes.data as Playlista[])
-        .filter(p => 
-          p.javno && 
+        .filter(p =>
+          p.javno &&
           (p.naziv?.toLowerCase().includes(termLower) ||
-           p.korisnik?.korisnicko_ime?.toLowerCase().includes(termLower))
+            p.korisnik?.korisnicko_ime?.toLowerCase().includes(termLower))
         )
         .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0));
 
       const filteredUsers = (korisniciceRes.data as Korisnik[])
-        .filter(k => 
+        .filter(k =>
           k.statusKorisnika !== 'suspendovan' &&
           (k.korisnicko_ime?.toLowerCase().includes(termLower) ||
-           k.ime?.toLowerCase().includes(termLower) ||
-           k.prezime?.toLowerCase().includes(termLower))
+            k.ime?.toLowerCase().includes(termLower) ||
+            k.prezime?.toLowerCase().includes(termLower))
         )
         .sort((a, b) => (b.brojPratilaca || 0) - (a.brojPratilaca || 0));
 
@@ -120,14 +137,14 @@ const Search: React.FC = React.memo(() => {
       };
     },
     enabled: true,
-    staleTime: 2 * 60 * 1000, 
+    staleTime: 2 * 60 * 1000,
   });
 
-  
 
-  
 
-  
+
+
+
 
   const clearSearch = useCallback(() => {
     setSearchTerm('');
@@ -152,47 +169,47 @@ const Search: React.FC = React.memo(() => {
 
     switch (activeFilter) {
       case 'pjesme':
-        results.pjesme.forEach(song => {
+        results.pjesme.forEach((song: Pjesma) => {
           items.push({ type: 'song', data: song, id: `song-${song.id}` });
         });
         break;
       case 'albumi':
-        results.albumi.forEach(album => {
+        results.albumi.forEach((album: Album) => {
           items.push({ type: 'album', data: album, id: `album-${album.id}` });
         });
         break;
       case 'playliste':
-        results.playliste.forEach(playlist => {
+        results.playliste.forEach((playlist: Playlista) => {
           items.push({ type: 'playlist', data: playlist, id: `playlist-${playlist.id}` });
         });
         break;
       case 'korisnici':
-        results.korisnici.forEach(user => {
+        results.korisnici.forEach((user: Korisnik) => {
           items.push({ type: 'user', data: user, id: `user-${user.id}` });
         });
         break;
       default:
         if (results.pjesme.length > 0) {
           items.push({ type: 'song', data: { id: -1, naziv: t('songs') } as Pjesma, id: 'header-songs' });
-          results.pjesme.forEach(song => {
+          results.pjesme.forEach((song: Pjesma) => {
             items.push({ type: 'song', data: song, id: `song-${song.id}` });
           });
         }
         if (results.albumi.length > 0) {
           items.push({ type: 'album', data: { id: -1, naziv: t('albums') } as Album, id: 'header-albums' });
-          results.albumi.forEach(album => {
+          results.albumi.forEach((album: Album) => {
             items.push({ type: 'album', data: album, id: `album-${album.id}` });
           });
         }
         if (results.playliste.length > 0) {
           items.push({ type: 'playlist', data: { id: -1, naziv: t('playlists') } as Playlista, id: 'header-playlists' });
-          results.playliste.forEach(playlist => {
+          results.playliste.forEach((playlist: Playlista) => {
             items.push({ type: 'playlist', data: playlist, id: `playlist-${playlist.id}` });
           });
         }
         if (results.korisnici.length > 0) {
           items.push({ type: 'user', data: { id: '-1', korisnicko_ime: t('users') } as Korisnik, id: 'header-users' });
-          results.korisnici.forEach(user => {
+          results.korisnici.forEach((user: Korisnik) => {
             items.push({ type: 'user', data: user, id: `user-${user.id}` });
           });
         }
@@ -210,23 +227,28 @@ const Search: React.FC = React.memo(() => {
   const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);
   const hasResults = useMemo(() => filteredResults.length > 0, [filteredResults]);
 
-  const renderSongItem = useCallback((item: Pjesma) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate(`pjesma/${item.id}`)}>
-      <Image
-        source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
-        style={styles.resultImage}
-      />
-      <View style={styles.resultContent}>
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {item.naziv}
-        </Text>
-        <Text style={styles.resultSubtitle} numberOfLines={1}>
-          {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {item.zanr || 'Unknown'}
-        </Text>
-      </View>
-     
-    </TouchableOpacity>
-  ), [handleNavigate, t]);
+  const renderSongItem = useCallback((item: Pjesma) => {
+    const izvodjaci = [item.korisnik?.korisnicko_ime, ...(item.feat_izvodjaci?.map((f: { korisnicko_ime: any; }) => f.korisnicko_ime) || [])]
+      .filter(Boolean)
+      .join(', ');
+
+    return (
+      <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate(`pjesma/${item.id}`)}>
+        <Image
+          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/60' }}
+          style={styles.resultImage}
+        />
+        <View style={styles.resultContent}>
+          <Text style={styles.resultTitle} numberOfLines={1}>
+            {item.naziv}
+          </Text>
+          <Text style={styles.resultSubtitle} numberOfLines={1}>
+            {izvodjaci || t('unknown_artist')} • {item.zanr || 'Unknown'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }, [handleNavigate, t]);
 
   const renderAlbumItem = useCallback((item: Album) => (
     <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("album/" + item.id)}>
@@ -242,7 +264,7 @@ const Search: React.FC = React.memo(() => {
           {item.korisnik?.korisnicko_ime || t('unknown_artist')} • {t('album')}
         </Text>
       </View>
-      
+
     </TouchableOpacity>
   ), [handleNavigate, t]);
 
@@ -260,14 +282,14 @@ const Search: React.FC = React.memo(() => {
           {item.korisnik?.korisnicko_ime || t('unknown_user')} • {t('playlist')}
         </Text>
       </View>
-      
+
     </TouchableOpacity>
   ), [handleNavigate, t]);
 
   const renderUserItem = useCallback((item: Korisnik) => (
     <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("izvodjac/" + item.id)}>
       <Image
-        source={{ uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/60' }}
+        source={{ uri: item.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' }}
         style={[styles.resultImage, styles.artistImage]}
       />
       <View style={styles.resultContent}>
@@ -294,8 +316,8 @@ const Search: React.FC = React.memo(() => {
             {'naziv' in item.data && item.data.naziv
               ? item.data.naziv
               : 'korisnicko_ime' in item.data
-              ? item.data.korisnicko_ime
-              : ''}
+                ? item.data.korisnicko_ime
+                : ''}
           </Text>
         </View>
       );

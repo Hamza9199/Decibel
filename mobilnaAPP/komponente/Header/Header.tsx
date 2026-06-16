@@ -12,7 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Header.styles';
+import { styles as darkStyles } from './Header.styles';
+import { styles as lightStyles } from './HeaderWhite.styles';
 import { router } from 'expo-router';
 import { useGlobalSidebar } from '@/app/_layout';
 
@@ -32,6 +33,22 @@ const Header: React.FC<HeaderProps> = React.memo(({
   const { ready } = useTranslation();
   const [userId, setUserId] = useState<string | null>(null);
   const { showSidebar } = useGlobalSidebar();
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   useEffect(() => {
     const loadUserId = async () => {
@@ -99,7 +116,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
         style={styles.menuButton}
         onPress={handleMenuPress}
       >
-        <MaterialIcons name="menu" size={24} color="#ffe6ec" />
+        <MaterialIcons name="menu" size={24} color={theme === 'light' ? '#181818' : '#ffe6ec'} />
       </TouchableOpacity>
 
       <TouchableOpacity  
@@ -120,7 +137,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
             style={styles.searchButton} 
             onPress={onSearchPress}
           >
-            <MaterialIcons name="search" size={24} color="#ffe6ec" />
+            <MaterialIcons name="search" size={24} color={theme === 'light' ? '#181818' : '#ffe6ec'} />
           </TouchableOpacity>
         )}
 

@@ -123,10 +123,26 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
   };
 
   const setPlaylistIdx = (idx: number) => {
-    setAudioState(prev => ({
-      ...prev,
-      playlistIdx: idx,
-    }));
+    setAudioState(prev => {
+      const song = prev.globalPlaylist?.[idx];
+      if (song) {
+        return {
+          ...prev,
+          id: song.id,
+          src: song.putanjaAudio,
+          title: song.naziv,
+          putanjaGif: song.putanjaGif,
+          putanjaSlika: song.putanjaSlika,
+          korisnikID: song.korisnikID,
+          currentSong: song,
+          playlistIdx: idx,
+        };
+      }
+      return {
+        ...prev,
+        playlistIdx: idx,
+      };
+    });
   };
 
   const setPlaylistRepeat = (repeat: boolean) => {

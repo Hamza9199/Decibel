@@ -15,13 +15,14 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Korisnik } from '@/types';
-import { styles } from './Sidebar.styles';
+import { styles as darkStyles } from './Sidebar.styles';
+import { styles as lightStyles } from './SidebarWhite.styles';
 import { navigateWithHistory, clearNavigationHistory } from '@/hooks/handleBackPress';
 
 interface SidebarProps {
   visible: boolean;
   onClose: () => void;
-  source?: string; 
+  source?: string;
 }
 
 type Role = 'korisnik' | 'izvodac' | 'admin';
@@ -36,7 +37,23 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
   const [showPlaylistMenu, setShowPlaylistMenu] = useState(false);
   const [showSongsMenu, setShowSongsMenu] = useState(false);
   const [showAlbumsMenu, setShowAlbumsMenu] = useState(false);
-  
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
   const translateX = useState(new Animated.Value(-280))[0];
 
   useEffect(() => {
@@ -65,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
   const onHandlerStateChange = useCallback((event: any) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
       const { translationX, velocityX } = event.nativeEvent;
-      
+
       if (translationX < -100 || velocityX < -500) {
         onClose();
       } else {
@@ -113,9 +130,9 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
           onPress: async () => {
             try {
               await AsyncStorage.removeItem('korisnik');
-              await clearNavigationHistory(); 
+              await clearNavigationHistory();
               onClose();
-              
+
               setTimeout(() => {
                 router.replace('/login');
               }, 300);
@@ -157,11 +174,11 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
         'novi-album': '/novi-album',
         'login': '/login',
         'register': '/register',
-  
+
       };
-      
+
       const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
-      
+
       if (route === '/settings') {
         await navigateWithHistory(`/settings?from=${source}`, currentRoute);
         onClose();
@@ -242,6 +259,11 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
         onClose();
         return;
       }
+      if (route === '/zahtjevi') {
+        await navigateWithHistory(`/zahtjevi?from=${source}`, currentRoute);
+        onClose();
+        return;
+      }
       Alert.alert(
         t('coming_soon') || 'Coming Soon',
         t('feature_coming_soon') || 'This feature is coming soon!'
@@ -250,9 +272,9 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
     onClose();
   }, [onClose, t, source]);
 
-  const renderIcon = useCallback((name: keyof typeof MaterialIcons.glyphMap, size = 22, color = '#ffe6ec') => (
+  const renderIcon = useCallback((name: keyof typeof MaterialIcons.glyphMap, size = 22, color = theme === 'light' ? '#181818' : '#ffe6ec') => (
     <MaterialIcons name={name} size={size} color={color} />
-  ), []);
+  ), [theme]);
 
   const handleProfileMenuToggle = useCallback(() => {
     setShowProfileMenu(!showProfileMenu);
@@ -284,7 +306,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
       'admin-panel': '/admin-panel',
       'pretplata': '/pretplata'
     };
-    
+
     const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
     await navigateWithHistory('/(tabs)?from=' + source, currentRoute);
   }, [source]);
@@ -302,7 +324,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
       'admin-panel': '/admin-panel',
       'pretplata': '/pretplata'
     };
-    
+
     const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
     await navigateWithHistory('/offline?from=' + source, currentRoute);
     onClose();
@@ -326,7 +348,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
           onGestureEvent={onGestureEvent}
           onHandlerStateChange={onHandlerStateChange}
         >
-          <Animated.View 
+          <Animated.View
             style={[
               styles.sidebar,
               {
@@ -380,6 +402,15 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
                       {renderIcon('card-membership', 18, '#ffe6ec')}
                       <Text style={styles.subNavBtnText}>
                         {t('subscription')}
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.subNavBtn}
+                      onPress={() => handleNavPress('/zahtjevi')}
+                    >
+                      {renderIcon('assignment', 18, '#ffe6ec')}
+                      <Text style={styles.subNavBtnText}>
+                        {t("zahtjevi")}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -441,7 +472,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
               {isArtistOrAdmin && (
                 <>
                   <Text style={styles.sectionTitle}>{t('artists') || 'Artists'}</Text>
-                  
+
                   <View style={styles.profileMenu}>
                     <TouchableOpacity
                       style={styles.navBtn}
@@ -511,7 +542,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
               {isAdmin && (
                 <>
                   <Text style={styles.sectionTitle}>Admin</Text>
-                  
+
                   <TouchableOpacity
                     style={styles.navBtn}
                     onPress={() => handleNavPress('/admin-panel')}

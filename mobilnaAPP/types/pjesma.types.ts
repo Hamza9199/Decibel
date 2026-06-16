@@ -1,4 +1,5 @@
 export type Pjesma = {
+  feat_izvodjaci: any;
   id: number;
   naziv: string;
   opis?: string;

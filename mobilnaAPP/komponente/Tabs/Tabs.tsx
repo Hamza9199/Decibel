@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter, useSegments } from 'expo-router';
+import { useSegments } from 'expo-router';
+import { getRoutePathFromSource, navigateWithHistory } from '@/hooks/handleBackPress';
 import { useTranslation } from 'react-i18next';
 import { styles } from './Tabs.styles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +12,6 @@ interface TabsProps {
 }
 
 const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
-  const router = useRouter();
   const segments = useSegments();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -27,15 +27,19 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
   const activeTab = getCurrentTab();
 
   const handleTabPress = (route: string) => {
+    const fromRoute = currentRoute || activeTab;
+    const currentPath = getRoutePathFromSource(fromRoute) || '/(tabs)';
+
     switch (route) {
       case 'home':
-        router.replace('/(tabs)/');
+        navigateWithHistory(`/(tabs)?from=${fromRoute}`, currentPath);
         break;
       case 'search':
-        router.replace('/(tabs)/search');
+        navigateWithHistory(`/(tabs)/search?from=${fromRoute}`, currentPath);
         break;
       case 'library':
-        router.replace('/(tabs)/library');
+        navigateWithHistory(`/(tabs)/library?from=${fromRoute}`, currentPath);
+        break;
     }
   };
 
@@ -77,7 +81,7 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
 
       <TouchableOpacity 
         style={styles.tabBarItem} 
-        onPress={() => router.push('/(tabs)/library')}
+        onPress={() => handleTabPress('library')}
       >
         <MaterialIcons 
           name="library-music" 

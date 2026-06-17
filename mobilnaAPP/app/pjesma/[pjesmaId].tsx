@@ -3,6 +3,6 @@ import PjesmePage from '@/screens/Pjesma/Pjesma';
 
 export default function PjesmaScreen() {
   return (
-      <PjesmePage />
+      <PjesmePage navigiranSa={''} />
   );
 }

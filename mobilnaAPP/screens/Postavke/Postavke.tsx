@@ -154,6 +154,8 @@ const Postavke: React.FC = React.memo(() => {
     }
   }, []);
 
+  const [downloadSize, setDownloadSize] = useState<string>('');
+
   const handleSendApplication = useCallback(() => {
     if (!poruka.trim()) {
       Alert.alert(t('error'), t('fill_all_fields') || 'Please enter a message');
@@ -191,8 +193,10 @@ const Postavke: React.FC = React.memo(() => {
     try {
       const response = await axios.get(`${API_BASE}/korisnici/${korisnikID}/izvoz-podataka`);
       const jsonStr = JSON.stringify(response.data, null, 2);
+      const sizeKB = Math.round((new TextEncoder().encode(jsonStr).length) / 1024);
+      setDownloadSize(`${sizeKB} KB`);
       const fileUri = `${FileSystem.documentDirectory}korisnik_${korisnikID}_podaci.json`;
-  await FileSystem.writeAsStringAsync(fileUri, jsonStr);
+      await FileSystem.writeAsStringAsync(fileUri, jsonStr);
       Alert.alert(t('success'), t('data_saved') || `Data saved to ${fileUri}`);
     } catch (error) {
       console.error(error);
@@ -272,9 +276,15 @@ const Postavke: React.FC = React.memo(() => {
           </View>
 
           <View style={styles.section}>
-            <TouchableOpacity style={styles.linkButton} onPress={handleDownloadData}>
-              <Text style={styles.linkText}>{t('download_my_data') || 'Download My Data'}</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+              <TouchableOpacity style={styles.linkButton} onPress={handleDownloadData}>
+                <Text style={styles.linkText}>{t('download_my_data') || 'Download My Data'}</Text>
+              </TouchableOpacity>
+              {downloadSize ? (
+                <Text style={[styles.linkText, { marginLeft: 8, fontSize: 12, color: '#888' }]}>({downloadSize})</Text>
+              ) : null}
+            </View>
           </View>
 
           

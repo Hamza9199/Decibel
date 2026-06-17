@@ -58,8 +58,8 @@ export const styles = StyleSheet.create({
   playButton: {
     backgroundColor: '#b91d95',
     borderRadius: 25,
-    width: 50,
-    height: 50,
+    width: 44,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
   songCard: {
     backgroundColor: '#232323',
     borderRadius: 12,
-    padding: 16,
+    padding: 5,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
@@ -164,6 +164,12 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     marginBottom: 12,
+  },
+  songImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
   },
   songInfo: {
     flex: 1,
@@ -180,6 +186,12 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 4,
   },
+  songArtistRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   songDuration: {
     color: '#ffe6ec',
     fontSize: 12,
@@ -190,11 +202,16 @@ export const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
+  songActionsHeader: {
+    flexDirection: 'row',
+    gap: 2,
+    marginLeft: 'auto',
+  },
   actionButton: {
     backgroundColor: '#b91d95',
     borderRadius: 20,
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     justifyContent: 'center',
     alignItems: 'center',
   },

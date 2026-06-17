@@ -16,7 +16,7 @@ import { API_BASE } from '@/config/api';
 import { styles as darkStyles } from './Back.styles';
 import { styles as lightStyles } from './BackWhite.styles';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { getRoutePathFromSource, useBackPress } from '@/hooks/handleBackPress';
 
 interface BackProps {
   title: string;
@@ -52,59 +52,8 @@ const Back: React.FC<BackProps> = React.memo(({
   }, [loadTheme]);
   
   const getCurrentRoute = useCallback(() => {
-    const titleToRouteMap: { [key: string]: string } = {
-      'History': '/history',
-      'Platform Statistics': '/statistika',
-      'Statistics': '/statistika', 
-      'Offline Mode': '/offline',
-      'Settings': '/settings',
-      'Edit Profile': '/edit-profile',
-      'Admin Panel': '/admin-panel',
-      'Subscription': '/pretplata',
-      'All Users': '/svi-korisnici',
-      'All Albums': '/svi-albumi',
-      'All Playlists': '/sve-playliste',
-      'New Song': '/nova-pjesma',
-      'New Album': '/novi-album',
-      'New Playlist': '/nova-playlista',
-      'New Subscription': '/nova-pretplata',
-      'Edit Song': '/uredi-pjesmu',
-      'Edit Album': '/uredi-album',
-      'Edit Playlist': '/uredi-playlistu',
-      'Favorites': '/omiljeno',
-      'All Songs': '/svepjesme'
-    };
-    
-    const routeFromTitle = titleToRouteMap[title];
-    if (routeFromTitle) {
-      return routeFromTitle;
-    }
-    
-    if (from === 'library') {
-      return '/(tabs)/library';
-    }
-    if (from === 'search') {
-      return '/(tabs)/search';
-    }
-    if (from === 'home') {
-      return '/(tabs)';
-    }
-    
-    const fromToRouteMap: { [key: string]: string } = {
-      'home': '/(tabs)',
-      'library': '/(tabs)/library',
-      'search': '/(tabs)/search',
-      'history': '/history',
-      'statistika': '/statistika',
-      'offline': '/offline',
-      'settings': '/settings',
-      'edit-profile': '/edit-profile',
-      'admin-panel': '/admin-panel',
-      'pretplata': '/pretplata'
-    };
-    
-    return fromToRouteMap[from || ''] || '/(tabs)';
-  }, [title, from]);
+    return getRoutePathFromSource(source) || getRoutePathFromSource(from) || '/(tabs)';
+  }, [source, from]);
   
   const currentRoute = getCurrentRoute();
   const defaultBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute });

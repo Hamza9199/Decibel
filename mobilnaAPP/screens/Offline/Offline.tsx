@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { MaterialIcons } from '@expo/vector-icons';
-import { styles } from './Offline.styles';
+import { styles as darkStyles } from './Offline.styles';
+import { styles as lightStyles } from './OfflineWhite.styles';
 import { useAudio } from '@/context/AudioContext';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress } from '@/hooks/handleBackPress';
@@ -23,6 +24,7 @@ const Offline: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [offlineSongs, setOfflineSongs] = useState<OfflineSong[]>([]);
   const [loading, setLoading] = useState(true);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const { playAudio } = useAudio();
 
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -43,6 +45,19 @@ const Offline: React.FC = React.memo(() => {
     setLoading(false);
   }, []);
 
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
   useEffect(() => {
     loadOfflineSongs();
   }, [loadOfflineSongs]);
@@ -54,8 +69,9 @@ const Offline: React.FC = React.memo(() => {
       putanjaAudio: song.putanjaAudio,
       putanjaSlika: song.putanjaSlika,
       korisnik: { id: '', korisnicko_ime: song.izvođač || '' },
-      korisnikID: '', 
+      korisnikID: '',
       odobreno: true,
+      feat_izvodjaci: undefined
     });
   }, [playAudio]);
 
@@ -83,57 +99,58 @@ const Offline: React.FC = React.memo(() => {
     );
   }, [offlineSongs, t]);
 
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const renderSongItem = useCallback(({ item }: { item: OfflineSong }) => (
-    <View style={styles.songCard}>
+    <View style={activeStyles.songCard}>
       <Image
         source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/80' }}
-        style={styles.songImage}
+        style={activeStyles.songImage}
       />
-      <View style={styles.songInfo}>
-        <Text style={styles.songTitle}>
+      <View style={activeStyles.songInfo}>
+        <Text style={activeStyles.songTitle}>
           {item.naziv}
         </Text>
-        <Text style={styles.songArtist}>
+        <Text style={activeStyles.songArtist}>
           {item.izvođač || t('unknown_artist')}
         </Text>
       </View>
       <TouchableOpacity
-        style={styles.playButton}
+        style={activeStyles.playButton}
         onPress={() => handlePlayOfflineSong(item)}
       >
         <MaterialIcons name="play-arrow" size={22} color="#fff" />
       </TouchableOpacity>
       <TouchableOpacity
-        style={styles.deleteButton}
+        style={activeStyles.deleteButton}
         onPress={() => handleDeleteOfflineSong(item.id)}
       >
         <MaterialIcons name="delete" size={22} color="#fff" />
       </TouchableOpacity>
     </View>
-  ), [handlePlayOfflineSong, handleDeleteOfflineSong, t]);
+  ), [handlePlayOfflineSong, handleDeleteOfflineSong, t, activeStyles]);
 
     useScreenCleanup();
   
 
   return (
-    <View style={styles.container}>
+  <View style={activeStyles.container}>
       <Back
         title={t('offline_mode') || 'Offline Mode'}
         onBackPress={handleBackPress}
         onProfilePress={() => router.replace('/edit-profile')}
         source={from}
         />
-      <View style={styles.content}>
-        <Text style={styles.title}>
+  <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>
           {t('offline_mode') || 'Offline Mode'}
         </Text>
-        <Text style={styles.description}>
+          <Text style={activeStyles.description}>
           {t('offline_description') || 'You are currently offline. Downloaded songs are available below.'}
         </Text>
         {loading ? (
-          <Text style={styles.loadingText}>{t('loading')}</Text>
+          <Text style={activeStyles.loadingText}>{t('loading')}</Text>
         ) : offlineSongs.length === 0 ? (
-          <Text style={styles.noSongsText}>
+            <Text style={activeStyles.noSongsText}>
             {t('no_offline_songs') || 'No songs downloaded for offline listening.'}
           </Text>
         ) : (
@@ -142,12 +159,12 @@ const Offline: React.FC = React.memo(() => {
             renderItem={renderSongItem}
             keyExtractor={item => item.id.toString()}
             showsVerticalScrollIndicator={false}
-            style={styles.songList}
+            style={activeStyles.songList}
           />
         )}
        
       </View>
-      <Tabs currentRoute="offline" />
+  <Tabs currentRoute="offline" />
     </View>
   );
 });

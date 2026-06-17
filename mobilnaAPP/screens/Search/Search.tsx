@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -18,9 +19,10 @@ import { Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { useQuery } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { router } from 'expo-router';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { styles as darkStyles } from './Search.styles';
 import { styles as lightStyles } from './SearchWhite.styles';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
 
@@ -34,6 +36,8 @@ interface ResultItem {
 
 const Search: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/(tabs)/search' });
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const styles = theme === 'light' ? lightStyles : darkStyles;
 
@@ -57,6 +61,17 @@ const Search: React.FC = React.memo(() => {
   useEffect(() => {
     loadUser();
   }, [loadUser]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleBackPress();
+        return true;
+      });
+
+      return () => backHandler.remove();
+    }, [handleBackPress])
+  );
 
   const loadTheme = useCallback(async () => {
     try {
@@ -140,7 +155,23 @@ const Search: React.FC = React.memo(() => {
     staleTime: 2 * 60 * 1000,
   });
 
+  const allVezeQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
+  const allKorisniciQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => {
+      const response = await axios.get(`${API_BASE}/korisnici/`);
+      return response.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
 
 
@@ -221,16 +252,20 @@ const Search: React.FC = React.memo(() => {
 
 
   const handleNavigate = useCallback((tip: string) => {
-    router.replace(`/${tip}?from=search`);
+    navigateWithHistory(`/${tip}?from=search`, `/(tabs)/search`);
   }, []);
 
   const filteredResults = useMemo(() => getFilteredResults(), [getFilteredResults]);
   const hasResults = useMemo(() => filteredResults.length > 0, [filteredResults]);
 
   const renderSongItem = useCallback((item: Pjesma) => {
-    const izvodjaci = [item.korisnik?.korisnicko_ime, ...(item.feat_izvodjaci?.map((f: { korisnicko_ime: any; }) => f.korisnicko_ime) || [])]
-      .filter(Boolean)
-      .join(', ');
+    const veze = allVezeQuery.data?.filter((v: any) => v.pjesmaID === item.id) || [];
+    const izvodjaci = veze
+      .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
+      .filter(Boolean);
+    const artistNames = izvodjaci.length > 0
+      ? izvodjaci.map((izv: any) => izv.korisnicko_ime).join(' & ')
+      : item.korisnik?.korisnicko_ime;
 
     return (
       <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate(`pjesma/${item.id}`)}>
@@ -243,12 +278,12 @@ const Search: React.FC = React.memo(() => {
             {item.naziv}
           </Text>
           <Text style={styles.resultSubtitle} numberOfLines={1}>
-            {izvodjaci || t('unknown_artist')} • {item.zanr || 'Unknown'}
+            {artistNames || t('unknown_artist')} • {item.zanr || 'Unknown'}
           </Text>
         </View>
       </TouchableOpacity>
     );
-  }, [handleNavigate, t]);
+  }, [allKorisniciQuery.data, allVezeQuery.data, handleNavigate, styles.resultContent, styles.resultImage, styles.resultItem, styles.resultSubtitle, styles.resultTitle, t]);
 
   const renderAlbumItem = useCallback((item: Album) => (
     <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("album/" + item.id)}>
@@ -266,7 +301,7 @@ const Search: React.FC = React.memo(() => {
       </View>
 
     </TouchableOpacity>
-  ), [handleNavigate, t]);
+  ), [handleNavigate, styles.resultContent, styles.resultImage, styles.resultItem, styles.resultSubtitle, styles.resultTitle, t]);
 
   const renderPlaylistItem = useCallback((item: Playlista) => (
     <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("playlista/" + item.id)}>
@@ -284,7 +319,7 @@ const Search: React.FC = React.memo(() => {
       </View>
 
     </TouchableOpacity>
-  ), [handleNavigate, t]);
+  ), [handleNavigate, styles.resultContent, styles.resultImage, styles.resultItem, styles.resultSubtitle, styles.resultTitle, t]);
 
   const renderUserItem = useCallback((item: Korisnik) => (
     <TouchableOpacity style={styles.resultItem} onPress={() => handleNavigate("izvodjac/" + item.id)}>
@@ -306,7 +341,7 @@ const Search: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
-  ), [t, handleNavigate]);
+  ), [styles.resultItem, styles.resultImage, styles.artistImage, styles.resultContent, styles.resultTitle, styles.resultSubtitle, styles.resultActions, styles.actionButton, t, handleNavigate]);
 
   const renderResultItem = useCallback(({ item }: { item: ResultItem }) => {
     if (item.id.startsWith('header-')) {
@@ -335,7 +370,7 @@ const Search: React.FC = React.memo(() => {
       default:
         return null;
     }
-  }, [renderSongItem, renderAlbumItem, renderPlaylistItem, renderUserItem]);
+  }, [styles.sectionHeader, styles.sectionTitle, renderSongItem, renderAlbumItem, renderPlaylistItem, renderUserItem]);
 
   const renderEmptyState = useCallback(() => {
     if (searchQuery.isLoading) {
@@ -371,7 +406,7 @@ const Search: React.FC = React.memo(() => {
     }
 
     return null;
-  }, [searchQuery.isLoading, searchTerm, hasResults, t]);
+  }, [searchQuery.isLoading, searchTerm, hasResults, styles.loadingContainer, styles.emptyContainer, styles.emptyIcon, styles.emptyTitle, styles.emptySubtitle, t]);
 
   const renderFilterButton = useCallback(({ item: filter }: { item: typeof filters[0] }) => (
     <TouchableOpacity
@@ -390,7 +425,7 @@ const Search: React.FC = React.memo(() => {
         {filter.label}
       </Text>
     </TouchableOpacity>
-  ), [activeFilter, handleFilterPress]);
+  ), [activeFilter, handleFilterPress, styles.filterButton, styles.filterButtonActive, styles.filterButtonText, styles.filterButtonTextActive]);
 
   useScreenCleanup();
 

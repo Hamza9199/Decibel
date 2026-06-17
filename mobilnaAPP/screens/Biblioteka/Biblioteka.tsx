@@ -8,11 +8,13 @@ import {
   Alert,
   RefreshControl,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import axios, { isCancel } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Header from '@/komponente/Header/Header';
@@ -57,7 +59,8 @@ const apiClient = axios.create({
 
 const Biblioteka: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/(tabs)/library' });
   const { playAudio, playPlaylist } = useAudio();
 
   const abortControllerRef = useRef<AbortController>(null);
@@ -69,6 +72,17 @@ const Biblioteka: React.FC = React.memo(() => {
 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleBackPress();
+        return true;
+      });
+
+      return () => backHandler.remove();
+    }, [handleBackPress])
+  );
 
   const loadTheme = useCallback(async () => {
     try {
@@ -574,7 +588,7 @@ const Biblioteka: React.FC = React.memo(() => {
         <View style={[styles.itemHeader, { marginBottom: 0 }]}>
           <TouchableOpacity
             style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
-            onPress={() => router.replace(`/izvodjac/${item.id}?from=library`)}
+            onPress={() => navigateWithHistory(`/izvodjac/${item.id}?from=library`, `/(tabs)/library`)}
           >
             <OptimizedImage
               uri={item.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8'}
@@ -598,7 +612,7 @@ const Biblioteka: React.FC = React.memo(() => {
         </View>
       </View>
     );
-  }, [OptimizedImage, t, router, handleToggleFollow, styles.itemCard, styles.itemHeader, styles.itemImage, styles.artistImage, styles.itemInfo, styles.itemTitle, styles.itemSubtitle, styles.actionButton, styles.unfollowButton]);
+  }, [OptimizedImage, t, handleToggleFollow, styles.itemCard, styles.itemHeader, styles.itemImage, styles.artistImage, styles.itemInfo, styles.itemTitle, styles.itemSubtitle, styles.actionButton, styles.unfollowButton]);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
     playAudio(song);
@@ -606,7 +620,6 @@ const Biblioteka: React.FC = React.memo(() => {
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
     const isLiked = true;
-    // Resolve performers using relation tables (exclude song owner if present)
     const veze = allVezeQuery.data?.filter((v: any) => v.pjesmaID === item.id) || [];
     const izvodjaci = veze
       .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
@@ -617,7 +630,7 @@ const Biblioteka: React.FC = React.memo(() => {
         <View style={[styles.itemHeader, { marginBottom: 0 }]}>
           <TouchableOpacity
             style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
-            onPress={() => router.replace(`/pjesma/${item.id}?from=library`)}
+            onPress={() => navigateWithHistory(`/pjesma/${item.id}?from=library`, `/(tabs)/library`)}
           >
             <OptimizedImage
               uri={item.putanjaSlika}
@@ -651,16 +664,16 @@ const Biblioteka: React.FC = React.memo(() => {
         </View>
       </View>
     );
-  }, [OptimizedImage, t, router, handlePlaySong, handleToggleSongLike, allVezeQuery, allKorisniciQuery, styles]);
+  }, [OptimizedImage, t, handlePlaySong, handleToggleSongLike, allVezeQuery, allKorisniciQuery, styles]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => {
-    const isLiked = true; // They are in the liked list
+    const isLiked = true; 
     return (
       <View style={styles.itemCard}>
         <View style={[styles.itemHeader, { marginBottom: 0 }]}>
           <TouchableOpacity
             style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
-            onPress={() => router.replace(`/album/${item.id}?from=library`)}
+            onPress={() => navigateWithHistory(`/album/${item.id}?from=library`, `/(tabs)/library`)}
           >
             <OptimizedImage
               uri={item.putanjaSlika}
@@ -692,16 +705,16 @@ const Biblioteka: React.FC = React.memo(() => {
         </View>
       </View>
     );
-  }, [OptimizedImage, t, router, handlePlayAlbum, handleToggleAlbumLike, styles]);
+  }, [OptimizedImage, t, handlePlayAlbum, handleToggleAlbumLike, styles]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => {
-    const isLiked = true; // They are in the liked list
+    const isLiked = true; 
     return (
       <View style={styles.itemCard}>
         <View style={[styles.itemHeader, { marginBottom: 0 }]}>
           <TouchableOpacity
             style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}
-            onPress={() => router.replace(`/playlista/${item.id}?from=library`)}
+            onPress={() => navigateWithHistory(`/playlista/${item.id}?from=library`, `/(tabs)/library`)}
           >
             <OptimizedImage
               uri={item.putanjaSlika}
@@ -733,7 +746,7 @@ const Biblioteka: React.FC = React.memo(() => {
         </View>
       </View>
     );
-  }, [OptimizedImage, t, router, handlePlayPlaylist, handleTogglePlaylistLike, styles]);
+  }, [OptimizedImage, t, handlePlayPlaylist, handleTogglePlaylistLike, styles]);
 
   const getCurrentQuery = () => {
     switch (activeFilter) {

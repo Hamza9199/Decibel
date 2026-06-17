@@ -349,6 +349,7 @@
   "song_already_downloaded": "Song is already downloaded for offline listening",
   "error_adding_to_playlist": "Error adding song to playlist",
   "follows": "Following",
-  "now_playing": "Now playing"
+  "now_playing": "Now playing",
+  "download_my_data": "Download My Data"
 }
 

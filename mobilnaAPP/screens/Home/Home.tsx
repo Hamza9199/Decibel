@@ -6,10 +6,10 @@ import {
   FlatList,
   ScrollView,
   RefreshControl,
+  BackHandler,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { Image } from 'expo-image';
 import { Album, Korisnik, Pjesma, Playlista } from '@/types';
@@ -22,10 +22,13 @@ import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 const Home: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/(tabs)' });
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
@@ -35,6 +38,17 @@ const Home: React.FC = React.memo(() => {
   const { playAudio, playPlaylist } = useAudio();
 
   useScreenCleanup();
+
+  useFocusEffect(
+    useCallback(() => {
+      const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+        handleBackPress();
+        return true;
+      });
+
+      return () => backHandler.remove();
+    }, [handleBackPress])
+  );
 
   const loadTheme = useCallback(async () => {
     try {
@@ -176,20 +190,20 @@ const Home: React.FC = React.memo(() => {
   }, [playAudio]);
 
   const handleNavigateToSong = useCallback((songId: number) => {
-    router.replace(`/pjesma/${songId}?from=home`);
-  }, [router]);
+    navigateWithHistory(`/pjesma/${songId}?from=home`, `/(tabs)`);
+  }, []);
 
   const handleNavigateToAlbum = useCallback((albumId: number) => {
-    router.replace(`/album/${albumId}?from=home`);
-  }, [router]);
+    navigateWithHistory(`/album/${albumId}?from=home`, `/(tabs)`);
+  }, []);
 
   const handleNavigateToPlaylist = useCallback((playlistaId: number) => {
-    router.replace(`/playlista/${playlistaId}?from=home`);
-  }, [router]);
+    navigateWithHistory(`/playlista/${playlistaId}?from=home`, `/(tabs)`);
+  }, []);
 
   const handleNavigateToArtist = useCallback((artistId: string) => {
-    router.replace(`/izvodjac/${artistId}?from=home`);
-  }, [router]);
+    navigateWithHistory(`/izvodjac/${artistId}?from=home`, `/(tabs)`);
+  }, []);
 
   const handlePlayAlbum = useCallback(async (album: Album) => {
     try {

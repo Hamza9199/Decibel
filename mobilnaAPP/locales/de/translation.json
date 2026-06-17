@@ -345,7 +345,8 @@
   "song_downloaded_offline": "Song wurde erfolgreich für das Offline-Hören heruntergeladen",
   "song_already_downloaded": "Song ist bereits für das Offline-Hören heruntergeladen",
   "follows": "Folgt",
-  "now_playing": "Jetzt wird gespielt"
+  "now_playing": "Jetzt wird gespielt",
+  "download_my_data": "Meine Daten herunterladen"
 
 }
 

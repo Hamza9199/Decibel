@@ -29,4 +29,29 @@ export const styles = StyleSheet.create({
     color: '#666',
     fontSize: 16,
   },
+  buttonRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+    justifyContent: 'flex-start',
+  },
+  acceptBtn: {
+    marginRight: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: '#81c784',
+    borderRadius: 4,
+  },
+  rejectBtn: {
+    marginRight: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: '#e57373',
+    borderRadius: 4,
+  },
+  playBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: '#b91d95',
+    borderRadius: 4,
+  },
 });

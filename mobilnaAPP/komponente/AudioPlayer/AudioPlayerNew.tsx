@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, Alert, ScrollView, Animated, Easing } from 'react-native';
-import { useRouter } from 'expo-router';
+// Navigation with history handling
+import { navigateWithHistory } from '@/hooks/handleBackPress';
 import { Slider } from '@miblanchard/react-native-slider';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -78,7 +79,6 @@ const MarqueeText = ({ children, style }: { children: React.ReactNode, style?: a
 
 const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title: propTitle, putanjaGif: propGif, putanjaSlika: propSlika, korisnikID: propKorisnikID, visible, minimized, onClose, onExpand }) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = 65;
   const audioCtx = useAudio();
@@ -505,14 +505,14 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 {izvodjaci.length > 0 ? (
                   izvodjaci.map((izv: Korisnik, idx: number) => (
-                    <TouchableOpacity key={izv.id} onPress={() => { handleClosePress(); router.push(`/izvodjac/${izv.id}?from=player`); }} activeOpacity={0.7}>
+                    <TouchableOpacity key={izv.id} onPress={() => { handleClosePress(); navigateWithHistory(`/izvodjac/${izv.id}?from=home`, `/(tabs)`); }} activeOpacity={0.7}>
                       <Text style={styles.audioArtist}>
                         {izv.korisnicko_ime}{idx < izvodjaci.length - 1 ? ' & ' : ''}
                       </Text>
                     </TouchableOpacity>
                   ))
                 ) : (
-                  <TouchableOpacity onPress={() => { if (currentOwner?.id) { handleClosePress(); router.push(`/izvodjac/${currentOwner.id}?from=player`); } }} activeOpacity={0.7}>
+                  <TouchableOpacity onPress={() => { if (currentOwner?.id) { handleClosePress(); navigateWithHistory(`/izvodjac/${currentOwner.id}?from=home`, `/(tabs)`); } }} activeOpacity={0.7}>
                     <Text style={styles.audioArtist}>
                       {currentOwner?.korisnicko_ime || t('unknown_user')}
                     </Text>
@@ -520,7 +520,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
                 )}
               </View>
             </ScrollView>
-            <TouchableOpacity onPress={() => { if (currentSong?.id) { handleClosePress(); router.push(`/pjesma/${currentSong.id}?from=player`); } }} activeOpacity={0.7} style={{ width: '100%', flex: 1, paddingRight: 10 }}>
+            <TouchableOpacity onPress={() => { if (currentSong?.id) { handleClosePress(); navigateWithHistory(`/pjesma/${currentSong.id}?from=home`, `/(tabs)`); } }} activeOpacity={0.7} style={{ width: '100%', flex: 1, paddingRight: 10 }}>
               <MarqueeText style={styles.audioTitle}>
                 {currentSong?.naziv || t('no_current_song')}
               </MarqueeText>

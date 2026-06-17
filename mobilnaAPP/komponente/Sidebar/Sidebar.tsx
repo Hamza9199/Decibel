@@ -17,7 +17,7 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Korisnik } from '@/types';
 import { styles as darkStyles } from './Sidebar.styles';
 import { styles as lightStyles } from './SidebarWhite.styles';
-import { navigateWithHistory, clearNavigationHistory } from '@/hooks/handleBackPress';
+import { navigateWithHistory, clearNavigationHistory, getRoutePathFromSource } from '@/hooks/handleBackPress';
 
 interface SidebarProps {
   visible: boolean;
@@ -150,34 +150,7 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
     if (action) {
       action();
     } else if (route) {
-      const sourceToRouteMap: { [key: string]: string } = {
-        'home': '/(tabs)',
-        'library': '/(tabs)/library',
-        'search': '/(tabs)/search',
-        'history': '/history',
-        'statistika': '/statistika',
-        'offline': '/offline',
-        'settings': '/settings',
-        'edit-profile': '/edit-profile',
-        'admin-panel': '/admin-panel',
-        'pretplata': '/pretplata',
-        'omiljeno/pjesme': '/omiljeno/pjesme',
-        'omiljeno/playliste': '/omiljeno/playliste',
-        'omiljeno/albumi': '/omiljeno/albumi',
-        'sve-playliste': '/sve-playliste',
-        'nova-playlista': '/nova-playlista',
-        'svepjesme': '/svepjesme',
-        'nova-pjesma': '/nova-pjesma',
-        'svi-albumi': '/svi-albumi',
-        'svi-korisnici': '/svi-korisnici',
-        'nova-pretplata': '/nova-pretplata',
-        'novi-album': '/novi-album',
-        'login': '/login',
-        'register': '/register',
-
-      };
-
-      const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
+      const currentRoute = getRoutePathFromSource(source) || '/(tabs)';
 
       if (route === '/settings') {
         await navigateWithHistory(`/settings?from=${source}`, currentRoute);
@@ -293,39 +266,12 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
   }, [showAlbumsMenu]);
 
   const handleLogoPress = useCallback(async () => {
-    // Map source to proper route for current route tracking
-    const sourceToRouteMap: { [key: string]: string } = {
-      'home': '/(tabs)',
-      'library': '/(tabs)/library',
-      'search': '/(tabs)/search',
-      'history': '/history',
-      'statistika': '/statistika',
-      'offline': '/offline',
-      'settings': '/settings',
-      'edit-profile': '/edit-profile',
-      'admin-panel': '/admin-panel',
-      'pretplata': '/pretplata'
-    };
-
-    const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
+    const currentRoute = getRoutePathFromSource(source) || '/(tabs)';
     await navigateWithHistory('/(tabs)?from=' + source, currentRoute);
   }, [source]);
 
   const handleOfflinePress = useCallback(async () => {
-    const sourceToRouteMap: { [key: string]: string } = {
-      'home': '/(tabs)',
-      'library': '/(tabs)/library',
-      'search': '/(tabs)/search',
-      'history': '/history',
-      'statistika': '/statistika',
-      'offline': '/offline',
-      'settings': '/settings',
-      'edit-profile': '/edit-profile',
-      'admin-panel': '/admin-panel',
-      'pretplata': '/pretplata'
-    };
-
-    const currentRoute = sourceToRouteMap[source || ''] || `/${source}`;
+    const currentRoute = getRoutePathFromSource(source) || '/(tabs)';
     await navigateWithHistory('/offline?from=' + source, currentRoute);
     onClose();
   }, [source, onClose]);

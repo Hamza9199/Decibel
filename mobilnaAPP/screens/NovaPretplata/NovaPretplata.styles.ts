@@ -179,5 +179,36 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickerContainer: {
+    backgroundColor: '#181818',
+    borderRadius: 12,
+    padding: 20,
+    width: '80%',
+    maxWidth: 300,
+  },
+  pickerCloseButton: {
+    marginTop: 12,
+    alignSelf: 'flex-end',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#b91d95',
+    borderRadius: 6,
+  },
+  pickerCloseText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  pickerTitle: {
+    color: '#fff',
+    marginBottom: 8,
+    fontSize: 16,
+    textAlign: 'center',
+  },
 });
   

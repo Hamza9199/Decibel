@@ -1,0 +1,107 @@
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    marginBottom: 50,
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(250, 250, 250, 0.97)',
+    borderRadius: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  title: {
+    color: '#000',
+    fontSize: 28,
+    fontWeight: '700',
+    marginBottom: 16,
+    textAlign: 'center',
+    letterSpacing: 1,
+  },
+  description: {
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  songList: {
+    marginTop: 8,
+    marginBottom: 50,
+  },
+  songCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f2f2f2',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  songImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  songInfo: {
+    flex: 1,
+  },
+  songTitle: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 2,
+  },
+  songArtist: {
+    color: '#555',
+    fontSize: 14,
+  },
+  playButton: {
+    backgroundColor: '#b91d95',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  deleteButton: {
+    backgroundColor: '#e754a2',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#000',
+    textAlign: 'center',
+    marginTop: 32,
+    fontSize: 16,
+  },
+  noSongsText: {
+    color: '#666',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 32,
+    fontStyle: 'italic',
+  },
+});

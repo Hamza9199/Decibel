@@ -10,6 +10,74 @@ interface BackPressOptions {
 
 const NAVIGATION_HISTORY_KEY = 'navigation_history';
 const MAX_HISTORY_SIZE = 10;
+const INVALID_DYNAMIC_BASE_ROUTES = new Set([
+  '/pjesma',
+  '/album',
+  '/playlista',
+  '/izvodjac',
+  '/nova-pretplata',
+  '/uredi-pjesmu',
+  '/uredi-album',
+  '/uredi-playlistu',
+  '/omiljeno',
+]);
+
+export const ROUTE_MAPPING: { [key: string]: string } = {
+  '(tabs)': '(tabs)/home',
+  '(tabs)/library': '(tabs)/library',
+  '(tabs)/search': '(tabs)/search',
+  'pjesma/[pjesmaId]': 'pjesma/[pjesmaId]',
+  'album/[albumId]': 'album/[albumId]',
+  'playlista/[playlistaId]': 'playlista/[playlistaId]',
+  'izvodjac/[izvodjacId]': 'izvodjac/[izvodjacId]',
+  'history': 'history',
+  'statistika': 'statistika',
+  'edit-profile': 'edit-profile',
+  'settings': 'settings',
+  'pretplata': 'pretplata',
+  'admin-panel': 'admin-panel',
+  'offline': 'offline',
+  'svi-korisnici': 'svi-korisnici',
+  'svi-albumi': 'svi-albumi',
+  'sve-playliste': 'sve-playliste',
+  'nova-pjesma': 'nova-pjesma',
+  'novi-album': 'novi-album',
+  'nova-playlista': 'nova-playlista',
+  'nova-pretplata/[pretplataId]': 'nova-pretplata/[pretplataId]',
+  'uredi-pjesmu/[pjesmaId]': 'uredi-pjesmu/[pjesmaId]',
+  'uredi-album/[albumId]': 'uredi-album/[albumId]',
+  'uredi-playlistu/[playlistaId]': 'uredi-playlistu/[playlistaId]',
+  'omiljeno/[tip]': 'omiljeno/[tip]',
+  'svepjesme': 'svepjesme',
+  'login': 'login',
+  'register': 'register',
+  'zahtjevi': 'zahtjevi',
+};
+
+export const getRoutePathFromSource = (source?: string): string | undefined => {
+  if (!source || source === 'undefined') return undefined;
+
+  const cleanSource = source.split(/[?#]/)[0].replace(/^\/+/, '');
+  if (!cleanSource || cleanSource === 'undefined') return undefined;
+  if (cleanSource === 'home' || cleanSource === '(tabs)/home') return '/(tabs)';
+  if (cleanSource === 'library') return '/(tabs)/library';
+  if (cleanSource === 'search') return '/(tabs)/search';
+
+  const route = Object.entries(ROUTE_MAPPING).find(([, value]) => value === cleanSource)?.[0];
+  return `/${route || cleanSource}`;
+};
+
+const isInvalidHistoryRoute = (route?: string): boolean => (
+  !route ||
+  route === '/undefined' ||
+  route.includes('[') ||
+  INVALID_DYNAMIC_BASE_ROUTES.has(route)
+);
+
+const normalizeHistoryRoute = (route?: string): string | undefined => {
+  const normalizedRoute = getRoutePathFromSource(route);
+  return isInvalidHistoryRoute(normalizedRoute) ? undefined : normalizedRoute;
+};
 
 const getNavigationHistory = async (): Promise<string[]> => {
   try {
@@ -29,34 +97,41 @@ const saveNavigationHistory = async (history: string[]): Promise<void> => {
 };
 
 export const addToNavigationHistory = async (route: string): Promise<void> => {
+  const normalizedRoute = normalizeHistoryRoute(route);
+  if (!normalizedRoute) return;
+
   const history = await getNavigationHistory();
   
-  const filteredHistory = history.filter(r => r !== route);
+  const filteredHistory = history.filter(r => r !== normalizedRoute);
   
-  const newHistory = [route, ...filteredHistory].slice(0, MAX_HISTORY_SIZE);
+  const newHistory = [normalizedRoute, ...filteredHistory].slice(0, MAX_HISTORY_SIZE);
   
   await saveNavigationHistory(newHistory);
 };
 
 export const removeFromNavigationHistory = async (route: string): Promise<void> => {
+  const normalizedRoute = normalizeHistoryRoute(route);
+  const routePath = getRoutePathFromSource(route);
+
   const history = await getNavigationHistory();
-  const filteredHistory = history.filter(r => r !== route);
+  const filteredHistory = history.filter(r => r !== normalizedRoute && r !== routePath);
   await saveNavigationHistory(filteredHistory);
 };
 
 const getPreviousRoute = async (currentRoute?: string): Promise<string | null> => {
   const history = await getNavigationHistory();
+  const normalizedCurrentRoute = normalizeHistoryRoute(currentRoute);
   console.log('Navigation history:', history);
-  console.log('Current route:', currentRoute);
+  console.log('Current route:', normalizedCurrentRoute);
   
   let availableHistory = history;
-  if (currentRoute) {
-    availableHistory = history.filter(r => r !== currentRoute);
+  if (normalizedCurrentRoute) {
+    availableHistory = history.filter(r => r !== normalizedCurrentRoute);
   }
   
   console.log('Available history after filtering:', availableHistory);
   
-  const result = availableHistory.length > 0 ? availableHistory[0] : null;
+  const result = availableHistory.find(route => !isInvalidHistoryRoute(getRoutePathFromSource(route))) || null;
   console.log('Previous route result:', result);
   
   return result;
@@ -86,108 +161,27 @@ export const useBackPress = ({ from, defaultRoute = "/", currentRoute }: BackPre
         await removeFromNavigationHistory(currentRoute);
       }
       
-      if (previousRoute === 'undefined' || !previousRoute) {
+      const safePreviousRoute = normalizeHistoryRoute(previousRoute);
+
+      if (!safePreviousRoute) {
+        await removeFromNavigationHistory(previousRoute);
         router.replace('/(tabs)');
       } else {
-        router.replace(previousRoute);
+        router.replace(safePreviousRoute);
       }
       return;
     }
     
-    switch (from) {
-      case 'home':
-        router.replace('/(tabs)');
-        break;
-      case 'library':
-        router.replace('/(tabs)/library');
-        break;
-      case 'search':
-        router.replace('/(tabs)/search');
-        break;
-      case 'profile':
-        router.replace('/edit-profile');
-        break;
-      case 'playlista':
-        router.replace('/playlista');
-        break;
-      case 'album':
-        router.replace('/album');
-        break;
-      case 'izvodjac':
-        router.replace('/izvodjac');
-        break;
-      case 'settings':
-        router.replace('/settings');
-        break;
-      case 'admin-panel':
-        router.replace('/admin-panel');
-        break;
-      case 'edit-profile':
-        router.replace('/edit-profile');
-        break;
-      case 'history':
-        router.replace('/history');
-        break;
-      case 'offline':
-        router.replace('/offline');
-        break;
-      case 'pretplata':
-        router.replace('/pretplata');
-        break;
-      case 'statistika':
-        router.replace('/statistika');
-        break;
-      case 'svi-korisnici':
-        router.replace('/svi-korisnici');
-        break;
-      case 'svi-albumi':
-        router.replace('/svi-albumi');
-        break;
-      case 'sve-playliste':
-        router.replace('/sve-playliste');
-        break;
-      case 'nova-pjesma':
-      case 'add-song':
-        router.replace('/nova-pjesma');
-        break;
-      case 'novi-album':
-        router.replace('/novi-album');
-        break;
-      case 'nova-playlista':
-        router.replace('/nova-playlista');
-        break;
-      case 'nova-pretplata':
-        router.replace('/nova-pretplata');
-        break;
-      case 'uredi-pjesmu':
-        router.replace('/uredi-pjesmu');
-        break;
-      case 'uredi-album':
-        router.replace('/uredi-album');
-        break;
-      case 'uredi-playlistu':
-        router.replace('/uredi-playlistu');
-        break;
-      case 'omiljeno':
-        router.replace('/omiljeno');
-        break;
-      case 'login':
-        router.replace('/login');
-        break;
-      case 'register':
-        router.replace('/register');
-        break;
-      case 'svepjesme':
-      case 'pjesme':
-        router.replace('/(tabs)');
-        break;
-      default:
-        if (defaultRoute) {
-          router.replace(defaultRoute);
-        } else {
-          router.back();
-        }
-        break;
+    const routeFromSource = getRoutePathFromSource(from);
+    if (routeFromSource) {
+      router.replace(routeFromSource);
+      return;
+    }
+
+    if (defaultRoute) {
+      router.replace(defaultRoute);
+    } else {
+      router.back();
     }
   }, [from, defaultRoute, currentRoute]);
 

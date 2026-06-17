@@ -9,23 +9,25 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'expo-router';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
-import { KorisnikPretplata, Pretplata } from '@/types';
+import { useFocusEffect } from '@react-navigation/native';
+import { Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Pretplata.styles';
+import { styles as darkStyles } from './Pretplata.styles';
+import { styles as lightStyles } from './PretplataWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useLocalSearchParams } from 'expo-router';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'dark' ? darkStyles : lightStyles;
   const [refreshing, setRefreshing] = useState(false);
   const [kupovinaLoading] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
@@ -34,6 +36,15 @@ const PretplataScreen: React.FC = React.memo(() => {
   const handleBackPress = useBackPress({ from, defaultRoute: '/pretplata' });
 
   useScreenCleanup();
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
 
 
   const getKorisnikID = useCallback(async (): Promise<string> => {
@@ -63,13 +74,18 @@ const PretplataScreen: React.FC = React.memo(() => {
     queryKey: ['userSubscription', korisnikID],
     queryFn: async () => {
       if (!korisnikID) return null;
-      
-      const response = await axios.get(`${API_BASE}/korisnik_pretplata/`);
-      const pretplate: KorisnikPretplata[] = response.data || [];
-      return pretplate.find((p) => p.korisnikID === korisnikID) || null;
+      try {
+        const response = await axios.get(`${API_BASE}/korisnik_pretplata/korisnik/${korisnikID}`);
+        return response.data || null;
+      } catch (err) {
+  if (isAxiosError(err) && err.response?.status === 404) {
+          return null;
+        }
+        throw err;
+      }
     },
     enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000, 
+    staleTime: 5 * 60 * 1000,
   });
 
   const offersQuery = useQuery({
@@ -78,8 +94,8 @@ const PretplataScreen: React.FC = React.memo(() => {
       const response = await axios.get(`${API_BASE}/pretplate/`);
       return (response.data || []).filter((p: Pretplata) => p.dostupno);
     },
-    enabled: !subscriptionQuery.data, 
-    staleTime: 10 * 60 * 1000, 
+    enabled: !!korisnikID && !subscriptionQuery.isLoading && !subscriptionQuery.error && !subscriptionQuery.data,
+    staleTime: 10 * 60 * 1000,
   });
 
   const cancelSubscriptionMutation = useMutation({
@@ -134,12 +150,12 @@ const PretplataScreen: React.FC = React.memo(() => {
   const handleObnoviPretplatu = useCallback(() => {
     const korisnikPretplata = subscriptionQuery.data;
     if (!korisnikPretplata?.pretplataID) return;
-    router.push(`/nova-pretplata/${korisnikPretplata.pretplataID}`);
-  }, [subscriptionQuery.data, router]);
+    navigateWithHistory(`/nova-pretplata/${korisnikPretplata.pretplataID}`, '/pretplata');
+  }, [subscriptionQuery.data]);
 
   const handleKupiPretplatu = useCallback((pretplataId: string) => {
-    router.push(`/nova-pretplata/${pretplataId}`);
-  }, [router]);
+    navigateWithHistory(`/nova-pretplata/${pretplataId}`, '/pretplata');
+  }, []);
 
   const subscriptionStatus = useMemo(() => {
     const korisnikPretplata = subscriptionQuery.data;
@@ -166,6 +182,15 @@ const PretplataScreen: React.FC = React.memo(() => {
   const error = subscriptionQuery.error || offersQuery.error;
   const ponude = offersQuery.data || [];
 
+  useFocusEffect(
+    useCallback(() => {
+      if (korisnikID) {
+        queryClient.invalidateQueries({ queryKey: ['userSubscription', korisnikID] });
+        queryClient.invalidateQueries({ queryKey: ['subscriptionOffers'] });
+      }
+    }, [korisnikID])
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -180,7 +205,7 @@ const PretplataScreen: React.FC = React.memo(() => {
       <Back
         title={t('subscription') || 'Subscription'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+  onProfilePress={() => navigateWithHistory('/profile', '/pretplata')}
         />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -220,24 +245,28 @@ const PretplataScreen: React.FC = React.memo(() => {
               )}
               
               <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonRenew]}
-                  onPress={handleObnoviPretplatu}
-                  disabled={cancelSubscriptionMutation.isPending}
-                >
-                  <Text style={styles.buttonText}>
-                    {t('renew_subscription') || 'Renew'}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.button, styles.buttonCancel]}
-                  onPress={handleOtkaziPretplatu}
-                  disabled={cancelSubscriptionMutation.isPending}
-                >
-                  <Text style={styles.buttonText}>
-                    {cancelSubscriptionMutation.isPending ? t('cancelling') : t('cancel_subscription') || 'Cancel'}
-                  </Text>
-                </TouchableOpacity>
+                {(subscriptionStatus.status === 'istekla' || subscriptionStatus.status === 'neaktivna') && (
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonRenew]}
+                    onPress={handleObnoviPretplatu}
+                    disabled={cancelSubscriptionMutation.isPending}
+                  >
+                    <Text style={styles.buttonText}>
+                      {t('renew_subscription') || 'Renew'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {(subscriptionStatus.status === 'aktivna' || subscriptionStatus.status === 'pauzirana') && (
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonCancel]}
+                    onPress={handleOtkaziPretplatu}
+                    disabled={cancelSubscriptionMutation.isPending}
+                  >
+                    <Text style={styles.buttonText}>
+                      {cancelSubscriptionMutation.isPending ? t('cancelling') : t('cancel_subscription') || 'Cancel'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
               
               <View style={styles.successContainer}>

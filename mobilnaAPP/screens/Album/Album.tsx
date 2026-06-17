@@ -24,7 +24,7 @@ import { API_BASE } from '@/config/api';
 import { styles } from './Album.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 
@@ -110,6 +110,18 @@ const AlbumScreen: React.FC = React.memo(() => {
     },
     enabled: !!userData?.id,
     staleTime: 30 * 1000, 
+  });
+
+  const { data: allVeze = [] } = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/izvodjac_pjesma/`)).data ?? [],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/korisnici/`)).data ?? [],
+    staleTime: 5 * 60 * 1000,
   });
 
   const albumLikeMutation = useMutation({
@@ -240,6 +252,10 @@ const AlbumScreen: React.FC = React.memo(() => {
     setShowPlaylistModal(true);
   }, []);
 
+  const handleNavigateToArtist = useCallback((artistId: string | number) => {
+    navigateWithHistory(`/izvodjac/${artistId}?from=album`, '/album/[albumId]');
+  }, []);
+
   const handleSelectPlaylist = useCallback(async (playlistId: number) => {
     if (!selectedSong) return;
     
@@ -251,65 +267,75 @@ const AlbumScreen: React.FC = React.memo(() => {
     setShowPlaylistModal(false);
   }, []);
 
-  const formatDuration = useCallback((seconds?: number): string => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }, []);
+
 
   const renderSongItem = useCallback(({ item, index }: { item: Pjesma; index: number }) => (
     <View style={styles.songCard}>
       <View style={styles.songHeader}>
+        <Image
+          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/50' }}
+          style={styles.songImage}
+        />
         <View style={styles.songInfo}>
           <Text style={styles.songTitle} numberOfLines={1}>
-            {index + 1}. {item.naziv}
+            {item.naziv}
           </Text>
-          <Text style={styles.songArtist} numberOfLines={1}>
-            {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-          </Text>
-          <Text style={styles.songDuration}>
-            {formatDuration(item.trajanjeSekunde)}
-          </Text>
+          <View style={styles.songArtistRow}>
+            {(
+              allVeze
+                .filter((v: any) => String(v.pjesmaID) === String(item.id))
+                .map((v: any) => allUsers.find((u: any) => u.id === v.izvodjacID))
+                .filter(Boolean) as any[]
+            ).length > 0 ? (
+              (allVeze
+                .filter((v: any) => String(v.pjesmaID) === String(item.id))
+                .map((v: any) => allUsers.find((u: any) => u.id === v.izvodjacID))
+                .filter(Boolean) as any[]).map((izv: any, idx: number, arr: any[]) => (
+                <TouchableOpacity key={izv.id} onPress={() => handleNavigateToArtist(izv.id)}>
+                  <Text style={styles.songArtist} numberOfLines={1}>
+                    {izv.korisnicko_ime}{idx < arr.length - 1 ? ' & ' : ''}
+                  </Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.songArtist} numberOfLines={1}>
+                {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+              </Text>
+            )}
+          </View>
+        </View>
+        <View style={styles.songActionsHeader}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handlePlaySong(item)}
+          >
+            <MaterialIcons name="play-arrow" size={20} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.actionButton,
+              songLikes[item.id] && styles.actionButtonLiked
+            ]}
+            onPress={() => handleLikeSong(item.id)}
+          >
+            <MaterialIcons
+              name={songLikes[item.id] ? "favorite" : "favorite-border"}
+              size={18}
+              color="#fff"
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleAddToPlaylist(item)}
+          >
+            <MaterialIcons name="playlist-add" size={20} color="#fff" />
+          </TouchableOpacity>
         </View>
       </View>
-      
-      <View style={styles.songActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handlePlaySong(item)}
-        >
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[
-            styles.actionButton,
-            songLikes[item.id] && styles.actionButtonLiked
-          ]}
-          onPress={() => handleLikeSong(item.id)}
-        >
-          <MaterialIcons 
-            name={songLikes[item.id] ? "favorite" : "favorite-border"} 
-            size={18} 
-            color="#fff" 
-          />
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handleAddToPlaylist(item)}
-        >
-          <MaterialIcons name="playlist-add" size={20} color="#fff" />
-        </TouchableOpacity>
-      </View>
     </View>
-  ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, songLikes, formatDuration, t]);
+  ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, songLikes, t, allVeze, allUsers, handleNavigateToArtist]);
 
-  const albumMeta = useMemo(() => [
-    { label: t('songs'), value: songs.length },
-    { label: t('likes'), value: album?.brojLajkova || 0 },
-  ], [songs.length, album?.brojLajkova, t]);
+
 
   const refreshControl = useMemo(() => (
     <RefreshControl
@@ -405,18 +431,7 @@ const AlbumScreen: React.FC = React.memo(() => {
               <Text style={styles.albumTitle} numberOfLines={2}>
                 {album?.naziv}
               </Text>
-              {album?.opis && (
-                <Text style={styles.albumDescription} numberOfLines={3}>
-                  {album.opis}
-                </Text>
-              )}
-              <View style={styles.albumMeta}>
-                {albumMeta.map((meta, index) => (
-                  <Text key={index} style={styles.metaItem}>
-                    {meta.label}: {meta.value}
-                  </Text>
-                ))}
-              </View>
+             
             </View>
           </View>
 

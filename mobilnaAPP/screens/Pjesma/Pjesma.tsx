@@ -20,11 +20,13 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Korisnik, Komentar } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Pjesma.styles';
+import { styles as darkStyles } from './Pjesma.styles';
+import { styles as lightStyles } from './PjesmaWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import Back from '@/komponente/Back/Back';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { getRoutePathFromSource, navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
+import { useAudio } from '@/context/AudioContext';
 
 
 interface PjesmaProps {
@@ -36,6 +38,10 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
 })=> {
   const { t } = useTranslation();
   const { pjesmaId, from } = useLocalSearchParams<{ pjesmaId: string; from?: string }>();
+  const { playAudio } = useAudio();
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+  const currentRoute = useMemo(() => pjesmaId ? `/pjesma/${pjesmaId}` : '/pjesma/[pjesmaId]', [pjesmaId]);
   
   const [refreshing, setRefreshing] = useState(false);
   const [noviKomentar, setNoviKomentar] = useState('');
@@ -44,7 +50,11 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   const [komentarError, setKomentarError] = useState<string | null>(null);
   const [mojID, setMojID] = useState<string>('');
 
-  const handleBackPress = useBackPress({ from, defaultRoute: '/pjesma/[pjesmaId]', currentRoute: '/pjesma/[pjesmaId]' });
+  const handleBackPress = useBackPress({
+    from,
+    defaultRoute: getRoutePathFromSource(from) || '/(tabs)',
+    currentRoute,
+  });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -59,6 +69,13 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     return '';
   }, []);
 
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
   useEffect(() => {
     const initializeUser = async () => {
       const userId = await loadUserData();
@@ -67,6 +84,12 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     
     initializeUser();
   }, [loadUserData]);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const songQuery = useQuery({
     queryKey: ['song', pjesmaId],
@@ -110,6 +133,24 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     },
     enabled: !!pjesmaId,
     staleTime: 10 * 60 * 1000, 
+  });
+
+  const allVezeQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/izvodjac_pjesma/`);
+      return r.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allKorisniciQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => {
+      const r = await axios.get(`${API_BASE}/korisnici/`);
+      return r.data;
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   const recommendedQuery = useQuery({
@@ -243,6 +284,8 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
       queryClient.invalidateQueries({ queryKey: ['song', pjesmaId] }),
       queryClient.invalidateQueries({ queryKey: ['publisher'] }),
       queryClient.invalidateQueries({ queryKey: ['songArtists', pjesmaId] }),
+      queryClient.invalidateQueries({ queryKey: ['izvodjac_pjesma_all'] }),
+      queryClient.invalidateQueries({ queryKey: ['sviKorisnici_all'] }),
       queryClient.invalidateQueries({ queryKey: ['recommendedSongs', pjesmaId] }),
       queryClient.invalidateQueries({ queryKey: ['comments', pjesmaId] }),
       queryClient.invalidateQueries({ queryKey: ['songLike', pjesmaId, mojID] }),
@@ -256,9 +299,16 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
     }
+      playAudio(song);
+
     
     console.log('Playing song:', song.naziv);
-  }, [t]);
+  }, [t, playAudio]);
+
+  const handleNavigateToArtist = useCallback((artistId?: string | number) => {
+    if (!artistId) return;
+    navigateWithHistory(`/izvodjac/${artistId}?from=${currentRoute.replace(/^\/+/, '')}`, currentRoute);
+  }, [currentRoute]);
 
   const handleLike = useCallback(() => {
     const isLiked = likeQuery.data || false;
@@ -295,38 +345,40 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     setEditKomentarTekst(text);
   }, []);
 
-  const formatDuration = useCallback((seconds?: number): string => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }, []);
 
-  const renderRecommendedItem = useCallback(({ item }: { item: Pjesma }) => (
-    <View style={styles.recommendedCard}>
-      <View style={styles.recommendedImageWrap}>
-        <Image
-          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
-          style={styles.recommendedImage}
-          contentFit="cover"
-        />
-        {item.putanjaAudio && (
-          <TouchableOpacity
-            style={styles.recommendedPlayBtn}
-            onPress={() => handlePlay(item)}
-          >
-            <MaterialIcons name="play-arrow" size={20} color="#fff" />
-          </TouchableOpacity>
-        )}
+  const renderRecommendedItem = useCallback(({ item }: { item: Pjesma }) => {
+    const connections = allVezeQuery.data?.filter((v: any) => v.pjesmaID === item.id) || [];
+    const artists = connections
+      .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
+      .filter(Boolean) as any[];
+    const artistNames = artists.map(a => a.korisnicko_ime).join(' & ');
+
+    return (
+      <View style={styles.recommendedCard}>
+        <View style={styles.recommendedImageWrap}>
+          <Image
+            source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
+            style={styles.recommendedImage}
+            contentFit="cover"
+          />
+          {item.putanjaAudio && (
+            <TouchableOpacity
+              style={styles.recommendedPlayBtn}
+              onPress={() => handlePlay(item)}
+            >
+              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={styles.recommendedTitle} numberOfLines={2}>
+          {item.naziv}
+        </Text>
+        <Text style={styles.recommendedArtist} numberOfLines={1}>
+          {artistNames || item.korisnik?.korisnicko_ime || t('unknown_artist')}
+        </Text>
       </View>
-      <Text style={styles.recommendedTitle} numberOfLines={2}>
-        {item.naziv}
-      </Text>
-      <Text style={styles.recommendedArtist} numberOfLines={1}>
-        {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-      </Text>
-    </View>
-  ), [handlePlay, t]);
+    );
+  }, [handlePlay, t, allVezeQuery.data, allKorisniciQuery.data]);
 
   const renderCommentItem = useCallback(({ item }: { item: Komentar }) => {
     const user = commentsQuery.data?.users[item.korisnikID];
@@ -401,16 +453,6 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
   }, [commentsQuery.data?.comments, mojID]);
 
-  const songMeta = useMemo(() => {
-    const pjesma = songQuery.data;
-    const likeCount = pjesma?.brojLajkova || 0;
-    
-    return [
-      { label: t('duration'), value: formatDuration(pjesma?.trajanjeSekunde) },
-      ...(pjesma?.zanr ? [{ label: t('genre'), value: pjesma.zanr }] : []),
-      { label: t('likes'), value: likeCount.toString() },
-    ];
-  }, [songQuery.data, formatDuration, t]);
 
   const refreshControl = useMemo(() => (
     <RefreshControl
@@ -423,7 +465,18 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   const loading = songQuery.isLoading || publisherQuery.isLoading || artistsQuery.isLoading || recommendedQuery.isLoading || commentsQuery.isLoading;
   const pjesma = songQuery.data;
   const izdavac = publisherQuery.data;
-  const izvodjaci = artistsQuery.data || [];
+  const izvodjaci = useMemo(() => {
+    if (!pjesma?.id) return [];
+
+    const veze = allVezeQuery.data?.filter((v: any) => String(v.pjesmaID) === String(pjesma.id)) || [];
+    const artists = veze
+      .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
+      .filter(Boolean);
+
+    return artists.filter((artist: any, index: number, array: any[]) =>
+      array.findIndex((a: any) => a.id === artist.id) === index
+    );
+  }, [allVezeQuery.data, allKorisniciQuery.data, pjesma?.id]);
   const topPjesme = recommendedQuery.data || [];
   const liked = likeQuery.data || false;
   const likeCount = pjesma?.brojLajkova || 0;
@@ -438,11 +491,11 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
           title={t('song_loading') || 'Loading Song...'}
           onBackPress={handleBackPress}
           onProfilePress={() => router.replace('/edit-profile')}
-          source={from}
+          source={currentRoute}
         />
         <ActivityIndicator size="large" color="#b91d95" />
         <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="/pjesma/[pjesmaId]" />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }
@@ -454,14 +507,14 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
           title={t('song_not_found') || 'Song Not Found'}
           onBackPress={handleBackPress}
           onProfilePress={() => router.replace('/edit-profile')}
-          source={from}
+          source={currentRoute}
         />
         
         <MaterialIcons name="music-note" size={64} color="#666" />
         <Text style={styles.notFoundText}>
           {t('song_not_found') || 'Song not found'}
         </Text>
-        <Tabs currentRoute="/pjesma/[pjesmaId]" />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }
@@ -474,7 +527,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
         title={pjesma.naziv} 
         onBackPress={handleBackPress} 
         onProfilePress={() => router.replace('/edit-profile')}
-        source={from}
+        source={currentRoute}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -515,18 +568,9 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
             <View style={styles.songInfo}>
               <Text style={styles.songTitle}>{pjesma.naziv}</Text>
               
-              {pjesma.opis && (
-                <Text style={styles.songDescription}>{pjesma.opis}</Text>
-              )}
+            
 
-              <View style={styles.songMeta}>
-                {songMeta.map((meta, index) => (
-                  <View key={index} style={styles.metaRow}>
-                    <Text style={styles.metaLabel}>{meta.label}:</Text>
-                    <Text style={styles.metaValue}>{meta.value}</Text>
-                  </View>
-                ))}
-              </View>
+             
 
               <View style={styles.artistsSection}>
                 <View style={styles.artistsRow}>
@@ -534,7 +578,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                   {izdavac ? (
                     <View style={styles.artistItem}>
                       <Image
-                        source={{ uri: izdavac.putanjaProfilneSlike || 'https://via.placeholder.com/50' }}
+                        source={{ uri: izdavac.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' }}
                         style={styles.artistImage}
                         contentFit="cover"
                       />
@@ -548,17 +592,21 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                 <View style={styles.artistsRow}>
                   <Text style={styles.artistsLabel}>{t('artists')}:</Text>
                   {izvodjaci.length === 0 ? (
-                    <Text style={styles.artistName}>{t('unknown')}</Text>
+                    <TouchableOpacity
+                      onPress={() => handleNavigateToArtist(pjesma.korisnikID || izdavac?.id)}
+                      disabled={!pjesma.korisnikID && !izdavac?.id}
+                    >
+                      <Text style={styles.artistName}>
+                        {pjesma.korisnik?.korisnicko_ime || izdavac?.korisnicko_ime || t('unknown_artist')}
+                      </Text>
+                    </TouchableOpacity>
                   ) : (
-                    izvodjaci.map(artist => (
-                      <View key={artist.id} style={styles.artistItem}>
-                        <Image
-                          source={{ uri: artist.putanjaProfilneSlike || 'https://via.placeholder.com/50' }}
-                          style={styles.artistImage}
-                          contentFit="cover"
-                        />
-                        <Text style={styles.artistName}>{artist.korisnicko_ime}</Text>
-                      </View>
+                    izvodjaci.map((artist: any, idx: number) => (
+                      <TouchableOpacity key={artist.id} onPress={() => handleNavigateToArtist(artist.id)}>
+                        <Text style={styles.artistName}>
+                          {artist.korisnicko_ime}{idx < izvodjaci.length - 1 ? ' & ' : ''}
+                        </Text>
+                      </TouchableOpacity>
                     ))
 )}
                 </View>
@@ -617,7 +665,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="/pjesma/[pjesmaId]" />
+      <Tabs currentRoute={currentRoute} />
     </View>
   );
 });

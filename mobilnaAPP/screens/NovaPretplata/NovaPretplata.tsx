@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
@@ -17,13 +18,16 @@ import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pretplata } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './NovaPretplata.styles';
+import { styles as darkStyles } from './NovaPretplata.styles';
+import { styles as lightStyles } from './NovaPretplataWhite.styles';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const NovaPretplata: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'dark' ? darkStyles : lightStyles;
   const router = useRouter();
   const { pretplataId } = useLocalSearchParams();
   
@@ -33,17 +37,30 @@ const NovaPretplata: React.FC = React.memo(() => {
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [cardExp, setCardExp] = useState('');
+  const [cardExpLabel, setCardExpLabel] = useState(''); 
+  const [isDateSelected, setIsDateSelected] = useState(false);
   const [cardCvc, setCardCvc] = useState('');
   
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [showExpPicker, setShowExpPicker] = useState(false);
 
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/nova-pretplata', currentRoute: '/nova-pretplata' });
 
 
   useScreenCleanup();
+
+  // Load stored theme (same key used in Home screen)
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
  
 
   const loadUserData = useCallback(async () => {
@@ -152,13 +169,6 @@ const NovaPretplata: React.FC = React.memo(() => {
     return value.replace(/\D/g, '').slice(0, 16);
   }, []);
 
-  const formatCardExp = useCallback((value: string): string => {
-    const cleanValue = value.replace(/\D/g, '');
-    if (cleanValue.length >= 2) {
-      return cleanValue.slice(0, 2) + '/' + cleanValue.slice(2, 4);
-    }
-    return cleanValue;
-  }, []);
 
   const formatCardCvc = useCallback((value: string): string => {
     return value.replace(/\D/g, '').slice(0, 4);
@@ -168,9 +178,7 @@ const NovaPretplata: React.FC = React.memo(() => {
     setCardNumber(formatCardNumber(text));
   }, [formatCardNumber]);
 
-  const handleCardExpChange = useCallback((text: string) => {
-    setCardExp(formatCardExp(text));
-  }, [formatCardExp]);
+  // Card expiry is now selected via month/year picker, so direct text input handler is removed.
 
   const handleCardCvcChange = useCallback((text: string) => {
     setCardCvc(formatCardCvc(text));
@@ -195,6 +203,22 @@ const NovaPretplata: React.FC = React.memo(() => {
   const handleBack = useCallback(() => {
     router.back();
   }, [router]);
+
+  const monthOptions = useMemo(() => {
+    const options: { label: string; value: string }[] = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    for (let year = currentYear; year <= currentYear + 10; year++) {
+      const startMonth = year === currentYear ? currentMonth : 1;
+      for (let month = startMonth; month <= 12; month++) {
+        const value = `${month.toString().padStart(2, '0')}/${year.toString().slice(-2)}`;
+        const label = `${month.toString().padStart(2, '0')}/${year}`;
+        options.push({ label, value });
+      }
+    }
+    return options;
+  }, []);
 
   const subscriptionDetails = useMemo(() => {
     if (!subscriptionQuery.data) return [];
@@ -304,20 +328,65 @@ const NovaPretplata: React.FC = React.memo(() => {
             <View style={styles.inputRow}>
               <View style={[styles.inputHalf]}>
                 <Text style={styles.label}>{t('card_exp')} *:</Text>
-                <TextInput
+                <TouchableOpacity
                   style={[
                     styles.input,
                     focusedField === 'cardExp' && styles.inputFocused,
                   ]}
-                  value={cardExp}
-                  onChangeText={handleCardExpChange}
-                  onFocus={() => handleFocus('cardExp')}
-                  onBlur={handleBlur}
-                  placeholder="MM/YY"
-                  placeholderTextColor="#888"
-                  keyboardType="numeric"
-                  maxLength={5}
-                />
+                  onPress={() => {
+                    setFocusedField('cardExp');
+                    setShowExpPicker(true);
+                  }}
+                >
+                  <Text style={{ color: isDateSelected ? '#f2ececff' : '#888', fontSize: 16 }}>
+                    {cardExpLabel || t('select_month_year') || 'MM/YY'}
+                  </Text>
+                </TouchableOpacity>
+                <Modal
+                  visible={showExpPicker}
+                  transparent={true}
+                  animationType="slide"
+                  onRequestClose={() => {
+                    setShowExpPicker(false);
+                    setFocusedField(null);
+                  }}
+                >
+                  <View style={styles.modalOverlay}>
+                    <View style={styles.pickerContainer}>
+                      <Text style={styles.pickerTitle}>
+                        {t('selected_month_year') || 'Selected'}: {cardExp || t('none_selected') || 'None'}
+                      </Text>
+                      <ScrollView style={{ maxHeight: 300 }}>
+                        {monthOptions.map((opt) => (
+                          <TouchableOpacity
+                            key={opt.value}
+                            style={{ paddingVertical: 8, paddingHorizontal: 12 }}
+                            onPress={() => {
+                              setCardExp(opt.value);
+                              setCardExpLabel(opt.label);
+                              setIsDateSelected(true);
+                              setShowExpPicker(false);
+                              setFocusedField(null);
+                            }}
+                          >
+                            <Text style={{ color: '#fff', fontSize: 16 }}>{opt.label}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                      <TouchableOpacity
+                        style={styles.pickerCloseButton}
+                        onPress={() => {
+                          setShowExpPicker(false);
+                          setFocusedField(null);
+                        }}
+                      >
+                        <Text style={styles.pickerCloseText}>
+                          {t('close') || 'Close'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </Modal>
               </View>
               
               <View style={[styles.inputHalf]}>

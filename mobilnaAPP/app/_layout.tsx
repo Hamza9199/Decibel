@@ -1,18 +1,19 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState, createContext, useContext, type ReactNode, type ReactElement, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, useSegments, Stack } from 'expo-router';
+import { usePathname, useRouter, useSegments, Stack } from 'expo-router';
 import { AppState, InteractionManager, View, Text, TouchableOpacity } from 'react-native';
 import { PanGestureHandler, State, GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../i18n';
 import { AudioProvider, useAudio } from '@/context/AudioContext';
-import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
+//import AudioPlayer from '@/komponente/AudioPlayer/AudioPlayer';
 import Sidebar from '@/komponente/Sidebar/Sidebar';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import axios from 'axios';
 import { API_BASE } from '@/config/api';
 import AudioPlayerNew from '@/komponente/AudioPlayer/AudioPlayerNew';
+import { ROUTE_MAPPING } from '@/hooks/handleBackPress';
 
 interface SidebarContextType {
   showSidebar: () => void;
@@ -32,6 +33,7 @@ export const useGlobalSidebar = () => {
 function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement {
   const [showSidebar, setShowSidebar] = useState(false);
   const segments = useSegments();
+  const pathname = usePathname();
 
   const isAuthScreen = segments.includes('login') || segments.includes('register');
 
@@ -67,39 +69,13 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
 
   const getCurrentSource = () => {
     const currentRoute = segments.join('/');
+    const currentPath = pathname.replace(/^\/+/, '');
 
-    const routeMapping: { [key: string]: string } = {
-      '(tabs)': 'home',
-      '(tabs)/library': 'library',
-      '(tabs)/search': 'search',
-      'pjesma/[pjesmaId]': 'pjesme',
-      'album/[albumId]': 'album',
-      'playlista/[playlistaId]': 'playlista',
-      'izvodjac/[artistId]': 'izvodjac',
-      'history': 'history',
-      'statistika': 'statistika',
-      'edit-profile': 'edit-profile',
-      'settings': 'settings',
-      'pretplata': 'pretplata',
-      'admin-panel': 'admin-panel',
-      'offline': 'offline',
-      'svi-korisnici': 'svi-korisnici',
-      'svi-albumi': 'svi-albumi',
-      'sve-playliste': 'sve-playliste',
-      'nova-pjesma': 'nova-pjesma',
-      'novi-album': 'novi-album',
-      'nova-playlista': 'nova-playlista',
-      'nova-pretplata': 'nova-pretplata',
-      'uredi-pjesmu': 'uredi-pjesmu',
-      'uredi-album': 'uredi-album',
-      'uredi-playlistu': 'uredi-playlistu',
-      'omiljeno': 'omiljeno',
-      'svepjesme': 'svepjesme',
-      'login': 'login',
-      'register': 'register'
-    };
+    if (currentRoute.includes('[') && currentPath) {
+      return currentPath;
+    }
 
-    return routeMapping[currentRoute] || 'home';
+    return ROUTE_MAPPING[currentRoute] || currentPath || '(tabs)/home';
   };
 
   const currentSource = getCurrentSource();
@@ -394,4 +370,3 @@ function AudioPlayerWrapper() {
     />
   );
 }
-

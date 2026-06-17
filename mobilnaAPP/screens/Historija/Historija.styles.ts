@@ -10,7 +10,7 @@ export const styles = StyleSheet.create({
   },
   scrollContainer: {
     flexGrow: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 10,
     paddingVertical: 20,
     paddingBottom: 100,
   },
@@ -46,6 +46,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#232323',
     borderRadius: 12,
     padding: 16,
+    paddingHorizontal:0,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
@@ -76,6 +77,12 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 4,
   },
+  songArtistRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   songDate: {
     color: '#ffe6ec',
     fontSize: 12,
@@ -86,11 +93,16 @@ export const styles = StyleSheet.create({
     gap: 8,
     marginTop: 8,
   },
+  songActionsHeader: {
+    flexDirection: 'row',
+    gap: 2,
+    marginLeft: 'auto',
+  },
   actionButton: {
     backgroundColor: '#b91d95',
     borderRadius: 20,
-    width: 40,
-    height: 40,
+    width: 31,
+    height: 31,
     justifyContent: 'center',
     alignItems: 'center',
   },

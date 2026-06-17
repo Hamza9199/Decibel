@@ -14,7 +14,7 @@ import { Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
 import { styles as darkStyles } from './Header.styles';
 import { styles as lightStyles } from './HeaderWhite.styles';
-import { router } from 'expo-router';
+import { navigateWithHistory } from '@/hooks/handleBackPress';
 import { useGlobalSidebar } from '@/app/_layout';
 
 interface HeaderProps {
@@ -87,7 +87,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
     if (onProfilePress) {
       onProfilePress();
     } else {
-      router.replace('/edit-profile?from=' + source);
+      navigateWithHistory('/edit-profile?from=' + source, `/${source}`);
     }
   }, [onProfilePress, source]);
 
@@ -95,7 +95,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
     if (onLogoPress) {
       onLogoPress();
     } else {
-      router.replace('/(tabs)?from=' + source);
+      navigateWithHistory('/(tabs)?from=' + source, `/${source}`);
     }
   }, [onLogoPress, source]);
 

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Modal,
   FlatList,
   Alert,
   RefreshControl,
@@ -17,24 +16,37 @@ import { router, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Album, Pjesma, Playlista, KorisnikPjesma } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Album.styles';
+import { styles as darkStyles } from './Album.styles';
+import { styles as lightStyles } from './AlbumWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress, getRoutePathFromSource } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { useAudio } from '@/context/AudioContext';
 
 
 const AlbumScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const { playAudio, playPlaylist } = useAudio();
   const { albumId } = useLocalSearchParams();
-  const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [selectedSong, setSelectedSong] = useState<Pjesma | null>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/album/[albumId]', currentRoute: '/album/[albumId]' });
+  const currentRoute = useMemo(() => albumId ? `/album/${albumId}` : '/album/[albumId]', [albumId]);
+  const bottomSheetRef = React.useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ['25%', '50%'], []);
+  
+const handleBackPress = useBackPress({
+    from,
+    defaultRoute: getRoutePathFromSource(from) || '/(tabs)',
+    currentRoute,
+  });
 
   const { data: userData } = useQuery({
     queryKey: ['user'],
@@ -47,6 +59,19 @@ const AlbumScreen: React.FC = React.memo(() => {
     },
     staleTime: 5 * 60 * 1000, 
   });
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const { data: album, isLoading: albumLoading } = useQuery({
     queryKey: ['album', albumId],
@@ -84,33 +109,44 @@ const AlbumScreen: React.FC = React.memo(() => {
     staleTime: 2 * 60 * 1000, 
   });
 
+    const [albumLikedLocal, setAlbumLikedLocal] = useState<boolean | null>(null);
+    const [songLikesLocal, setSongLikesLocal] = useState<Record<number, boolean>>({});
+    const [albumLikeCountLocal, setAlbumLikeCountLocal] = useState<number | null>(null);
+
   const { data: albumLiked = false } = useQuery({
     queryKey: ['album-like', albumId, userData?.id],
     queryFn: async () => {
       if (!albumId || !userData?.id) return false;
-      const albumLikesRes = await axios.get(`${API_BASE}/korisnik_album/`);
-      const albumLikes = albumLikesRes.data as { korisnikID: string; albumID: number }[];
-      return !!albumLikes.find(v => v.korisnikID === userData.id && String(v.albumID) === String(albumId));
+      const res = await axios.get(`${API_BASE}/korisnik_album/${userData.id}/${albumId}`);
+      return !!res.data?.liked;
     },
     enabled: !!albumId && !!userData?.id,
     staleTime: 30 * 1000, 
   });
+  const albumLikedValue = albumLikedLocal ?? albumLiked;
+  const albumLikeCountValue = albumLikeCountLocal ?? album?.brojLajkova ?? 0;
 
   const { data: songLikes = {} } = useQuery({
     queryKey: ['song-likes', userData?.id],
     queryFn: async () => {
       if (!userData?.id) return {};
-      const songLikesRes = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const songLikes = songLikesRes.data as KorisnikPjesma[];
       const map: { [pjesmaId: number]: boolean } = {};
-      songLikes.filter(v => v.korisnikID === userData.id).forEach(v => {
-        map[v.pjesmaID] = true;
-      });
+      await Promise.all(
+        songs.map(async (p: Pjesma) => {
+          try {
+            const res = await axios.get(`${API_BASE}/korisnik_pjesma/${userData.id}/${p.id}`);
+            map[p.id] = !!res.data?.liked;
+          } catch {
+            map[p.id] = false;
+          }
+        })
+      );
       return map;
     },
-    enabled: !!userData?.id,
+    enabled: !!userData?.id && songs.length > 0,
     staleTime: 30 * 1000, 
   });
+  const songLikesValue = useMemo(() => ({ ...songLikes, ...songLikesLocal }), [songLikes, songLikesLocal]);
 
   const { data: allVeze = [] } = useQuery({
     queryKey: ['izvodjac_pjesma_all'],
@@ -124,17 +160,28 @@ const AlbumScreen: React.FC = React.memo(() => {
     staleTime: 5 * 60 * 1000,
   });
 
+
+
   const albumLikeMutation = useMutation({
     mutationFn: async ({ action, albumId, userId }: { action: 'like' | 'unlike', albumId: string, userId: string }) => {
+      if (!userId) throw new Error('No user ID');
       if (action === 'like') {
-        return axios.post(`${API_BASE}/korisnik_album/`, {
+        await axios.post(`${API_BASE}/korisnik_album/`, {
           korisnikID: userId,
-          albumID: albumId,
+          albumID: Number(albumId),
           kreiranDatumVrijeme: new Date().toISOString(),
         });
       } else {
-        return axios.delete(`${API_BASE}/korisnik_album/${userId}/${albumId}`);
+        await axios.delete(`${API_BASE}/korisnik_album/${userId}/${albumId}`);
       }
+      return { action, albumId, userId };
+    },
+    onMutate: ({ action }) => {
+      setAlbumLikedLocal(action === 'like');
+      setAlbumLikeCountLocal(prev => {
+        const base = prev ?? album?.brojLajkova ?? 0;
+        return Math.max(0, base + (action === 'like' ? 1 : -1));
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['album-like', variables.albumId, variables.userId] });
@@ -143,22 +190,27 @@ const AlbumScreen: React.FC = React.memo(() => {
         variables.action === 'like' ? t('added_to_favorites') : t('removed_from_favorites')
       );
     },
-    onError: () => {
-      Alert.alert(t('error'), t('error_liking_album') || 'Error updating favorites');
+    onError: (error) => {
+      console.warn('Album like error:', error);
     },
   });
 
   const songLikeMutation = useMutation({
     mutationFn: async ({ action, songId, userId }: { action: 'like' | 'unlike', songId: number, userId: string }) => {
+      if (!userId) throw new Error('No user ID');
       if (action === 'like') {
-        return axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
           korisnikID: userId,
           pjesmaID: songId,
           kreiranDatumVrijeme: new Date().toISOString(),
         });
       } else {
-        return axios.delete(`${API_BASE}/korisnik_pjesma/${userId}/${songId}`);
+        await axios.delete(`${API_BASE}/korisnik_pjesma/${userId}/${songId}`);
       }
+      return { action, songId, userId };
+    },
+    onMutate: ({ songId, action }) => {
+      setSongLikesLocal(prev => ({ ...prev, [songId]: action === 'like' }));
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['song-likes', variables.userId] });
@@ -167,8 +219,8 @@ const AlbumScreen: React.FC = React.memo(() => {
         variables.action === 'like' ? t('added_to_favorites') : t('removed_from_favorites')
       );
     },
-    onError: () => {
-      Alert.alert(t('error'), t('error_liking_song') || 'Error updating favorites');
+    onError: (error) => {
+      console.warn('Song like error:', error);
     },
   });
 
@@ -180,15 +232,12 @@ const AlbumScreen: React.FC = React.memo(() => {
       });
     },
     onSuccess: () => {
-      setShowPlaylistModal(false);
       setSelectedSong(null);
       Alert.alert(t('success'), t('song_added_to_playlist') || 'Song added to playlist!');
     },
     onError: (error: any) => {
-      console.error('Error adding song to playlist:', error);
       const errorMsg = error.response?.data?.detail || t('error_adding_to_playlist') || 'Error adding song to playlist';
       Alert.alert(t('error'), errorMsg);
-      setShowPlaylistModal(false);
       setSelectedSong(null);
     },
   });
@@ -217,44 +266,45 @@ const AlbumScreen: React.FC = React.memo(() => {
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
     }
+
+    playAudio(song);
+
     
     console.log('Playing song:', song.naziv);
-  }, [t]);
+  }, [playAudio, t]);
 
   const handlePlayAlbum = useCallback(() => {
-    if (songs.length === 0) {
+    const albumSongs = songs.filter((s: Pjesma) => s.putanjaAudio);
+    if (albumSongs.length === 0) {
       Alert.alert(t('error'), t('no_songs_in_album') || 'No songs in this album');
       return;
     }
-    
-    const firstSong = songs[0];
-    if (firstSong?.putanjaAudio) {
-      handlePlaySong(firstSong);
-    }
-  }, [songs, handlePlaySong, t]);
+    playPlaylist(albumSongs, 0);
+  }, [songs, playPlaylist, t]);
 
   const handleLikeAlbum = useCallback(async () => {
     if (!album || !userData?.id) return;
     
-    const action = albumLiked ? 'unlike' : 'like';
+    const action = albumLikedValue ? 'unlike' : 'like';
     albumLikeMutation.mutate({ action, albumId: String(album.id), userId: userData.id });
-  }, [album, userData, albumLiked, albumLikeMutation]);
+  }, [album, userData, albumLikedValue, albumLikeMutation]);
 
   const handleLikeSong = useCallback(async (songId: number) => {
     if (!userData?.id) return;
     
-    const action = songLikes[songId] ? 'unlike' : 'like';
+    const action = songLikesValue[songId] ? 'unlike' : 'like';
     songLikeMutation.mutate({ action, songId, userId: userData.id });
-  }, [userData, songLikes, songLikeMutation]);
+  }, [userData, songLikesValue, songLikeMutation]);
 
-  const handleAddToPlaylist = useCallback((song: Pjesma) => {
-    setSelectedSong(song);
-    setShowPlaylistModal(true);
-  }, []);
 
-  const handleNavigateToArtist = useCallback((artistId: string | number) => {
-    navigateWithHistory(`/izvodjac/${artistId}?from=album`, '/album/[albumId]');
-  }, []);
+
+  const handleNavigateToArtist = useCallback((artistId: string | undefined) => {
+    navigateWithHistory(`/izvodjac/${artistId}?from=album`, `/album/${albumId}`);
+  }, [albumId]);
+
+  const handleNavigateToSong = useCallback((songId: string | number) => {
+    navigateWithHistory(`/pjesma/${songId}?from=album`, `/album/${albumId}`);
+  }, [albumId]);
 
   const handleSelectPlaylist = useCallback(async (playlistId: number) => {
     if (!selectedSong) return;
@@ -262,11 +312,10 @@ const AlbumScreen: React.FC = React.memo(() => {
     addToPlaylistMutation.mutate({ songId: selectedSong.id, playlistId });
   }, [selectedSong, addToPlaylistMutation]);
 
-
-  const handleModalClose = useCallback(() => {
-    setShowPlaylistModal(false);
+  const handleOpenPlaylistSheet = useCallback((song: Pjesma) => {
+    setSelectedSong(song);
+    bottomSheetRef.current?.expand();
   }, []);
-
 
 
   const renderSongItem = useCallback(({ item, index }: { item: Pjesma; index: number }) => (
@@ -277,9 +326,11 @@ const AlbumScreen: React.FC = React.memo(() => {
           style={styles.songImage}
         />
         <View style={styles.songInfo}>
-          <Text style={styles.songTitle} numberOfLines={1}>
-            {item.naziv}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToSong(item.id)}>
+            <Text style={styles.songTitle} numberOfLines={1}>
+              {item.naziv}
+            </Text>
+          </TouchableOpacity>
           <View style={styles.songArtistRow}>
             {(
               allVeze
@@ -298,9 +349,11 @@ const AlbumScreen: React.FC = React.memo(() => {
                 </TouchableOpacity>
               ))
             ) : (
-              <Text style={styles.songArtist} numberOfLines={1}>
-                {item.korisnik?.korisnicko_ime || t('unknown_artist')}
-              </Text>
+              <TouchableOpacity onPress={() => handleNavigateToArtist(item.korisnik?.id)}>
+                <Text style={styles.songArtist} numberOfLines={1}>
+                  {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
         </View>
@@ -314,26 +367,26 @@ const AlbumScreen: React.FC = React.memo(() => {
           <TouchableOpacity
             style={[
               styles.actionButton,
-              songLikes[item.id] && styles.actionButtonLiked
+              songLikesValue[item.id] && styles.actionButtonLiked
             ]}
             onPress={() => handleLikeSong(item.id)}
           >
             <MaterialIcons
-              name={songLikes[item.id] ? "favorite" : "favorite-border"}
+              name={songLikesValue[item.id] ? "favorite" : "favorite-border"}
               size={18}
               color="#fff"
             />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => handleAddToPlaylist(item)}
+            onPress={() => handleOpenPlaylistSheet(item)}
           >
             <MaterialIcons name="playlist-add" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
       </View>
     </View>
-  ), [handlePlaySong, handleLikeSong, handleAddToPlaylist, songLikes, t, allVeze, allUsers, handleNavigateToArtist]);
+  ), [styles.songCard, styles.songHeader, styles.songImage, styles.songInfo, styles.songTitle, styles.songArtistRow, styles.songArtist, styles.songActionsHeader, styles.actionButton, styles.actionButtonLiked, allVeze, t, songLikesValue, handleNavigateToSong, allUsers, handleNavigateToArtist, handlePlaySong, handleLikeSong, handleOpenPlaylistSheet]);
 
 
 
@@ -412,15 +465,15 @@ const AlbumScreen: React.FC = React.memo(() => {
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
-                  style={[styles.likeButton, albumLiked && styles.likeButtonLiked]} 
+                  style={[styles.likeButton, albumLikedValue && styles.likeButtonLiked]} 
                   onPress={handleLikeAlbum}
                 >
                   <MaterialIcons 
-                    name={albumLiked ? "favorite" : "favorite-border"} 
+                    name={albumLikedValue ? "favorite" : "favorite-border"} 
                     size={20} 
                     color="#fff" 
                   />
-                  <Text style={styles.likeCount}>{album?.brojLajkova || 0}</Text>
+                  <Text style={styles.likeCount}>{albumLikeCountValue}</Text>
                 </TouchableOpacity>
                 
                 
@@ -445,10 +498,10 @@ const AlbumScreen: React.FC = React.memo(() => {
                 {t('no_songs_on_album') || 'No songs on this album'}
               </Text>
             ) : (
-              <FlatList
+              <FlatList<Pjesma>
                 data={songs}
                 renderItem={renderSongItem}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item: Pjesma) => item.id.toString()}
                 scrollEnabled={false}
               />
             )}
@@ -456,38 +509,35 @@ const AlbumScreen: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Modal
-        visible={showPlaylistModal}
-        transparent
-        animationType="fade"
-        onRequestClose={handleModalClose}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.bottomSheetIndicator}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t('add_to_playlist') || 'Add to Playlist'}
-            </Text>
-            <FlatList
-              data={playlists}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.playlistItem}
-                  onPress={() => handleSelectPlaylist(item.id)}
-                >
+        <BottomSheetView style={styles.bottomSheetContent}>
+          <Text style={styles.bottomSheetTitle}>{t('add_to_playlist') || 'Add to Playlist'}</Text>
+          <BottomSheetFlatList
+            data={playlists}
+            keyExtractor={(item: Playlista) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.playlistItem} onPress={() => handleSelectPlaylist(item.id)}>
+                <View style={styles.playlistItemContent}>
+                  <Image
+                    source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/40' }}
+                    style={styles.playlistItemImage}
+                  />
                   <Text style={styles.playlistItemText}>{item.naziv}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={handleModalClose}
-            >
-              <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color="#b3b3b3" />
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.bottomSheetList}
+          />
+        </BottomSheetView>
+      </BottomSheet>
 
       <Tabs currentRoute="album" />
     </View>

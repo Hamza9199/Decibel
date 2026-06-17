@@ -434,7 +434,14 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       style={styles.playlistItem}
       onPress={() => handleAddToPlaylist(item.id)}
     >
-      <Text style={styles.playlistItemText}>{item.naziv}</Text>
+      <View style={styles.playlistItemContent}>
+        <Image
+          source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/40' }}
+          style={styles.playlistItemImage}
+        />
+        <Text style={styles.playlistItemText}>{item.naziv}</Text>
+      </View>
+      <MaterialIcons name="chevron-right" size={24} color="#b3b3b3" />
     </TouchableOpacity>
   ), [handleAddToPlaylist]);
 

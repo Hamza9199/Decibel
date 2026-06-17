@@ -298,12 +298,17 @@ export const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
+  playlistItemContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  playlistItemImage: { width: 40, height: 40, borderRadius: 8, marginRight: 12 },
   playlistItemText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-    textAlign: 'center',
+    flex: 1,
   },
   modalCloseBtn: {
     backgroundColor: '#181818',
@@ -318,6 +323,27 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  bottomSheetBackground: {
+    backgroundColor: '#232323',
+  },
+  bottomSheetIndicator: {
+    backgroundColor: '#b91d95',
+  },
+  bottomSheetContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  bottomSheetTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  bottomSheetList: {
+    paddingBottom: 100,
   },
 
   subscriptionContainer: {

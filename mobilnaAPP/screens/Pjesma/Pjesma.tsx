@@ -310,6 +310,11 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     navigateWithHistory(`/izvodjac/${artistId}?from=${currentRoute.replace(/^\/+/, '')}`, currentRoute);
   }, [currentRoute]);
 
+  const handleNavigateToSong = useCallback((songId?: string | number) => {
+    if (!songId) return;
+    navigateWithHistory(`/pjesma/${songId}?from=${currentRoute.replace(/^\/+/, '')}`, currentRoute);
+  }, [currentRoute]);
+
   const handleLike = useCallback(() => {
     const isLiked = likeQuery.data || false;
     likeMutation.mutate({ isLiked });
@@ -351,10 +356,9 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     const artists = connections
       .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
       .filter(Boolean) as any[];
-    const artistNames = artists.map(a => a.korisnicko_ime).join(' & ');
 
     return (
-      <View style={styles.recommendedCard}>
+      <TouchableOpacity style={styles.recommendedCard}>
         <View style={styles.recommendedImageWrap}>
           <Image
             source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
@@ -370,15 +374,27 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.recommendedTitle} numberOfLines={2}>
+        <Text style={styles.recommendedTitle} numberOfLines={2} onPress={() => handleNavigateToSong(item.id)}>
           {item.naziv}
         </Text>
-        <Text style={styles.recommendedArtist} numberOfLines={1}>
-          {artistNames || item.korisnik?.korisnicko_ime || t('unknown_artist')}
-        </Text>
-      </View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' }}>
+          {artists.length > 0 ? artists.map((artist: any, idx: number) => (
+            <TouchableOpacity key={artist.id} onPress={() => handleNavigateToArtist(artist.id)}>
+              <Text style={styles.recommendedArtist}>
+                {artist.korisnicko_ime}{idx < artists.length - 1 ? ' & ' : ''}
+              </Text>
+            </TouchableOpacity>
+          )) : (
+            <TouchableOpacity onPress={() => handleNavigateToArtist(item.korisnikID || item.korisnik?.id)}>
+              <Text style={styles.recommendedArtist}>
+                {item.korisnik?.korisnicko_ime || t('unknown_artist')}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
     );
-  }, [handlePlay, t, allVezeQuery.data, allKorisniciQuery.data]);
+  }, [allVezeQuery.data, styles.recommendedCard, styles.recommendedImageWrap, styles.recommendedImage, styles.recommendedPlayBtn, styles.recommendedTitle, styles.recommendedArtist, t, allKorisniciQuery.data, handlePlay, handleNavigateToSong, handleNavigateToArtist]);
 
   const renderCommentItem = useCallback(({ item }: { item: Komentar }) => {
     const user = commentsQuery.data?.users[item.korisnikID];
@@ -393,10 +409,12 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
             contentFit="cover"
           />
           <View style={styles.commentUserInfo}>
-            <Text style={styles.commentUserName}>
+            <TouchableOpacity onPress={() => handleNavigateToArtist(user?.id)}>
+              <Text style={styles.commentUserName}>
               {user?.korisnicko_ime || t('user')}
               {isOwn && ` (${t('you')})`}
-            </Text>
+              </Text>
+            </TouchableOpacity>
             <Text style={styles.commentDate}>
               {item.kreiranDatumVrijeme ? new Date(item.kreiranDatumVrijeme).toLocaleString() : ''}
             </Text>
@@ -443,7 +461,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
         )}
       </View>
     );
-  }, [commentsQuery.data?.users, mojID, editKomentarId, editKomentarTekst, handleUrediKomentar, handleEditCancel, handleEditStart, t]);
+  }, [commentsQuery.data?.users, mojID, styles.commentItem, styles.commentItemOwn, styles.commentHeader, styles.commentUserImage, styles.commentUserInfo, styles.commentUserName, styles.commentDate, styles.commentEditInput, styles.commentEditActions, styles.saveButton, styles.saveButtonText, styles.cancelButton, styles.cancelButtonText, styles.commentText, styles.editButton, styles.editButtonText, t, editKomentarId, editKomentarTekst, handleEditCancel, handleUrediKomentar, handleEditStart, handleNavigateToArtist]);
 
   const komentariSortirani = useMemo(() => {
     const komentari = commentsQuery.data?.comments || [];
@@ -576,14 +594,14 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                 <View style={styles.artistsRow}>
                   <Text style={styles.artistsLabel}>{t('publisher')}:</Text>
                   {izdavac ? (
-                    <View style={styles.artistItem}>
+                    <TouchableOpacity style={styles.artistItem} onPress={() => handleNavigateToArtist(izdavac.id)}>
                       <Image
                         source={{ uri: izdavac.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' }}
                         style={styles.artistImage}
                         contentFit="cover"
                       />
                       <Text style={styles.artistName}>{izdavac.korisnicko_ime}</Text>
-                    </View>
+                    </TouchableOpacity>
                   ) : (
                     <Text style={styles.artistName}>{t('unknown')}</Text>
                   )}
@@ -596,6 +614,12 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                       onPress={() => handleNavigateToArtist(pjesma.korisnikID || izdavac?.id)}
                       disabled={!pjesma.korisnikID && !izdavac?.id}
                     >
+                      <Image
+                        source={{ uri: pjesma.korisnik?.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' }}
+                        style={styles.artistImage}
+                        contentFit="cover"
+                      />
+
                       <Text style={styles.artistName}>
                         {pjesma.korisnik?.korisnicko_ime || izdavac?.korisnicko_ime || t('unknown_artist')}
                       </Text>

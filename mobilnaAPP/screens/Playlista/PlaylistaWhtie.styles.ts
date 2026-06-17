@@ -1,0 +1,301 @@
+import { StyleSheet, Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',   
+    marginBottom: 50,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    paddingBottom: 100,
+  },
+  songImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  content: {
+    maxWidth: 480,
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: '#f9f9f9',  
+    borderRadius: 18,
+    padding: 24,
+    shadowColor: '#b91d95',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.13,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+
+  playlistMain: {
+    marginBottom: 32,
+  },
+  playlistImageWrap: {
+    position: 'relative',
+    width: 200,
+    height: 200,
+    borderRadius: 18,
+    alignSelf: 'center',
+    marginBottom: 24,
+    overflow: 'hidden',
+  },
+  playlistImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
+  },
+  actionButtons: {
+    position: 'absolute',
+    bottom: 16,
+    left: 16,
+    right: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  playButton: {
+    backgroundColor: '#b91d95',
+    borderRadius: 27,
+    width: 54,
+    height: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  likeButton: {
+    backgroundColor: '#b91d95',
+    borderRadius: 27,
+    width: 54,
+    height: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  likeButtonLiked: {
+    backgroundColor: '#e754a2',
+  },
+  likeCount: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
+    marginLeft: 2,
+  },
+
+  playlistInfo: {
+    alignItems: 'center',
+  },
+  playlistTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000',        
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  playlistDescription: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+    marginBottom: 16,
+    lineHeight: 22,
+  },
+
+  sectionTitle: {
+    color: '#000',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 16,
+    marginTop: 32,
+    letterSpacing: 1,
+    paddingLeft: 8,
+    borderLeftWidth: 4,
+    borderLeftColor: '#b91d95',
+  },
+
+  noSongs: {
+    color: '#555',
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 40,
+    fontStyle: 'italic',
+  },
+
+  songItem: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  draggingSong: { opacity: 0.7, borderColor: '#b91d95' },
+  songHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  songNumber: {
+    color: '#b91d95',
+    fontSize: 16,
+    fontWeight: '600',
+    width: 30,
+  },
+  songInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  songTitle: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  songArtist: {
+    color: '#555',
+    fontSize: 14,
+  },
+  songArtistRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  songDuration: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  songActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  actionButton: {
+    backgroundColor: '#b91d95',
+    borderRadius: 20,
+    width: 38,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionButtonLiked: {
+    backgroundColor: '#e754a2',
+  },
+  actionButtonRemove: {
+    backgroundColor: '#e754a2',
+  },
+  actionButtonDisabled: { opacity: 0.4 },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    padding: 24,
+    minWidth: 300,
+    maxWidth: '90%',
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  playlistItem: {
+    backgroundColor: '#b91d95',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  playlistItemText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  modalCloseBtn: {
+    backgroundColor: '#181818',
+    borderColor: '#b91d95',
+    borderWidth: 1,
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  modalCloseBtnText: {
+    color: '#ffe6ec',
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+   bottomSheetBackground: {
+    backgroundColor: '#232323',
+  },
+    playlistItemContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  playlistItemImage: { width: 40, height: 40, borderRadius: 8, marginRight: 12 },
+  bottomSheetIndicator: {
+    backgroundColor: '#b91d95',
+  },
+  bottomSheetContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    backgroundColor: '#232323',
+  },
+  bottomSheetTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  bottomSheetList: {
+    paddingBottom: 20,
+  },
+
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    height: '100%',
+    width: '100%',
+  },
+  loadingText: {
+    color: '#000',
+    fontSize: 16,
+    marginTop: 16,
+  },
+  notFoundContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 20,
+  },
+  notFoundText: {
+    color: '#000',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 16,
+  },
+});

@@ -31,7 +31,6 @@ const Home: React.FC = React.memo(() => {
   const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/(tabs)' });
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
-  const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const activeStyles = theme === 'light' ? lightStyles : darkStyles;
 
@@ -129,44 +128,6 @@ const Home: React.FC = React.memo(() => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const playlistSongsQuery = useQuery({
-    queryKey: ['playlistSongs', playingPlaylistId],
-    queryFn: async () => {
-      if (!playingPlaylistId) return [];
-
-      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playingPlaylistId}`);
-      const songIds: number[] = res.data || [];
-
-      if (songIds.length === 0) return [];
-
-      const songResponses = await Promise.all(
-        songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`))
-      );
-      return songResponses
-        .map(r => r.data)
-        .filter(s => s && s.putanjaAudio && s.odobreno);
-    },
-    enabled: !!playingPlaylistId,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-
-  });
-
-  useEffect(() => {
-    if (playlistSongsQuery.data && playingPlaylistId) {
-      if (playlistSongsQuery.data.length === 0) {
-        console.warn('No playable songs in playlist');
-      } else {
-        playPlaylist(playlistSongsQuery.data, 0);
-      }
-      setPlayingPlaylistId(null);
-    }
-    if (playlistSongsQuery.error && playingPlaylistId) {
-      console.error('Failed to play playlist:', playlistSongsQuery.error);
-      setPlayingPlaylistId(null);
-    }
-  }, [playlistSongsQuery.data, playlistSongsQuery.error, playingPlaylistId, playPlaylist]);
-
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.all([
@@ -223,9 +184,27 @@ const Home: React.FC = React.memo(() => {
     }
   }, [songsQuery.data, playPlaylist]);
 
-  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
-    setPlayingPlaylistId(playlist.id);
-  }, []);
+  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
+    try {
+      const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlist.id}`);
+      const songIds: number[] = res.data || [];
+      if (songIds.length === 0) {
+        console.warn('No playable songs in playlist');
+        return;
+      }
+      const songResponses = await Promise.all(songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`)));
+      const playable = songResponses
+        .map(r => r.data)
+        .filter((s: Pjesma) => s && s.putanjaAudio && s.odobreno);
+      if (playable.length === 0) {
+        console.warn('No playable songs in playlist');
+        return;
+      }
+      playPlaylist(playable, 0);
+    } catch (error) {
+      console.error('Failed to play playlist:', error);
+    }
+  }, [playPlaylist]);
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => {
     if (!item.odobreno) return null;

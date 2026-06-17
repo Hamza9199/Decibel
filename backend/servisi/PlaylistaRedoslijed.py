@@ -308,12 +308,19 @@ async def promjeni_redoslijed(session: AsyncSession, playlistaID: int, pjesmaID:
                 preth_obj.pokazivacNaSljedecuPjesmuID = og_sljedbenik_id
                 session.add(preth_obj)
         
-        if og_sljedbenik_id:
-            sljed_obj = next((v for v in veze if v.pjesmaID == og_sljedbenik_id), None)
-            if sljed_obj:
-                print(f"Ažuriram sljedeću {og_sljedbenik_id}: prev {sljed_obj.pokazivacNaPrethodnuPjesmuID} -> {og_prethodnik_id}")
-                sljed_obj.pokazivacNaPrethodnuPjesmuID = og_prethodnik_id
-                session.add(sljed_obj)
+            if og_sljedbenik_id:
+                sljed_obj = next((v for v in veze if v.pjesmaID == og_sljedbenik_id), None)
+
+                if sljed_obj:
+
+                    if og_sljedbenik_id == prva_id:
+                        print(f"Ažuriram sljedeću {og_sljedbenik_id}: prev -> NULL")
+                        sljed_obj.pokazivacNaPrethodnuPjesmuID = None
+                    else:
+                        print(f"Ažuriram sljedeću {og_sljedbenik_id}: prev {sljed_obj.pokazivacNaPrethodnuPjesmuID} -> {og_prethodnik_id}")
+                        sljed_obj.pokazivacNaPrethodnuPjesmuID = og_prethodnik_id
+
+                    session.add(sljed_obj)
         
         # Posebno rukovanje ako je target bila prva pjesma
         if pjesmaID == prva_id and og_sljedbenik_id:

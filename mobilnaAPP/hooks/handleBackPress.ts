@@ -12,7 +12,9 @@ const NAVIGATION_HISTORY_KEY = 'navigation_history';
 const MAX_HISTORY_SIZE = 10;
 const INVALID_DYNAMIC_BASE_ROUTES = new Set([
   '/pjesma',
+  '/pjesme',
   '/album',
+  '/artist',
   '/playlista',
   '/izvodjac',
   '/nova-pretplata',
@@ -74,9 +76,20 @@ const isInvalidHistoryRoute = (route?: string): boolean => (
   INVALID_DYNAMIC_BASE_ROUTES.has(route)
 );
 
+const isConcreteRoute = (route?: string): boolean => {
+  if (!route) return false;
+  if (route.includes('[') || route.includes(']')) return false;
+  if (route.startsWith('//')) return false;
+  if (route === '/pjesma' || route === '/album' || route === '/playlista' || route === '/izvodjac' || route === '/pjesme' || route === '/artist') return false;
+  if (route === '/(tabs)' || route === '/(tabs)/home' || route === '/(tabs)/library' || route === '/(tabs)/search') return true;
+  if (/^\/(pjesma|album|playlista|izvodjac|nova-pretplata|uredi-pjesmu|uredi-album|uredi-playlistu)\/[^/]+$/.test(route)) return true;
+  if (/^\/(history|statistika|edit-profile|settings|pretplata|admin-panel|offline|svi-korisnici|svi-albumi|sve-playliste|nova-pjesma|novi-album|nova-playlista|svepjesme|login|register|zahtjevi)$/.test(route)) return true;
+  return false;
+};
+
 const normalizeHistoryRoute = (route?: string): string | undefined => {
   const normalizedRoute = getRoutePathFromSource(route);
-  return isInvalidHistoryRoute(normalizedRoute) ? undefined : normalizedRoute;
+  return isInvalidHistoryRoute(normalizedRoute) || !isConcreteRoute(normalizedRoute) ? undefined : normalizedRoute;
 };
 
 const getNavigationHistory = async (): Promise<string[]> => {
@@ -137,10 +150,16 @@ const getPreviousRoute = async (currentRoute?: string): Promise<string | null> =
   return result;
 };
 
+const popInvalidHistoryRoute = async (route?: string): Promise<void> => {
+  if (!route) return;
+  await removeFromNavigationHistory(route);
+};
+
 export const navigateWithHistory = async (newRoute: string, currentRoute?: string) => {
   if (currentRoute) {
     await addToNavigationHistory(currentRoute);
     console.log('Added to history:', currentRoute);
+    console.log('Current navigation history:', await getNavigationHistory());
   }
   console.log('Navigating to:', newRoute);
   router.replace(newRoute);
@@ -152,24 +171,17 @@ export const clearNavigationHistory = async (): Promise<void> => {
 
 export const useBackPress = ({ from, defaultRoute = "/", currentRoute }: BackPressOptions = {}) => {
   const handleBackPress = useCallback(async () => {
-    const previousRoute = await getPreviousRoute(currentRoute);
-    
-    console.log('Back press - Current route:', currentRoute, 'Previous route:', previousRoute, 'From:', from);
-    
-    if (previousRoute) {
-      if (currentRoute) {
-        await removeFromNavigationHistory(currentRoute);
-      }
-      
-      const safePreviousRoute = normalizeHistoryRoute(previousRoute);
+    if (currentRoute) await removeFromNavigationHistory(currentRoute);
 
-      if (!safePreviousRoute) {
-        await removeFromNavigationHistory(previousRoute);
-        router.replace('/(tabs)');
-      } else {
+    let previousRoute = await getPreviousRoute(currentRoute);
+    while (previousRoute) {
+      const safePreviousRoute = normalizeHistoryRoute(previousRoute);
+      if (safePreviousRoute) {
         router.replace(safePreviousRoute);
+        return;
       }
-      return;
+      await popInvalidHistoryRoute(previousRoute);
+      previousRoute = await getPreviousRoute(currentRoute);
     }
     
     const routeFromSource = getRoutePathFromSource(from);
@@ -179,9 +191,9 @@ export const useBackPress = ({ from, defaultRoute = "/", currentRoute }: BackPre
     }
 
     if (defaultRoute) {
-      router.replace(defaultRoute);
+      router.replace(defaultRoute || '/(tabs)');
     } else {
-      router.back();
+      router.replace('/(tabs)');
     }
   }, [from, defaultRoute, currentRoute]);
 

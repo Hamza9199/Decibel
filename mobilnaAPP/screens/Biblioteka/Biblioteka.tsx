@@ -68,7 +68,6 @@ const Biblioteka: React.FC = React.memo(() => {
   const [activeFilter, setActiveFilter] = useState<LibraryFilter>('prateci');
   const [korisnik, setKorisnik] = useState<Korisnik | null>(null);
   const [playingAlbumId, setPlayingAlbumId] = useState<number | null>(null);
-  const [playingPlaylistId, setPlayingPlaylistId] = useState<number | null>(null);
 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const styles = theme === 'light' ? lightStyles : darkStyles;
@@ -499,15 +498,30 @@ const Biblioteka: React.FC = React.memo(() => {
   }, [togglePlaylistLikeMutation]);
 
   const albumSongsQuery = useAlbumSongs(playingAlbumId || 0, !!playingAlbumId);
-  const playlistSongsQuery = usePlaylistSongs(playingPlaylistId || 0, !!playingPlaylistId);
-
   const handlePlayAlbum = useCallback((album: Album) => {
     setPlayingAlbumId(album.id);
   }, []);
 
-  const handlePlayPlaylist = useCallback((playlist: Playlista) => {
-    setPlayingPlaylistId(playlist.id);
-  }, []);
+  const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
+    try {
+      const response = await apiClient.get(`/pjesma_playlista/redoslijed/${playlist.id}`);
+      const songIds: number[] = response.data || [];
+      if (songIds.length === 0) {
+        Alert.alert(t('error'), t('empty_playlist'));
+        return;
+      }
+      const songResponses = await Promise.all(songIds.map(id => apiClient.get(`/pjesme/${id}`)));
+      const playable = songResponses.map(r => r.data).filter((p: Pjesma) => p && p.putanjaAudio);
+      if (playable.length === 0) {
+        Alert.alert(t('error'), t('empty_playlist'));
+        return;
+      }
+      playPlaylist(playable, 0);
+    } catch (error) {
+      console.error('Error playing playlist:', error);
+      Alert.alert(t('error'), t('error_playing_playlist'));
+    }
+  }, [playPlaylist, t]);
 
   useEffect(() => {
     if (albumSongsQuery.data && playingAlbumId) {
@@ -524,22 +538,6 @@ const Biblioteka: React.FC = React.memo(() => {
       setPlayingAlbumId(null);
     }
   }, [albumSongsQuery.data, albumSongsQuery.error, playingAlbumId, playPlaylist, t]);
-
-  useEffect(() => {
-    if (playlistSongsQuery.data && playingPlaylistId) {
-      if (playlistSongsQuery.data.length === 0) {
-        Alert.alert(t('error'), t('empty_playlist'));
-      } else {
-        playPlaylist(playlistSongsQuery.data, 0);
-      }
-      setPlayingPlaylistId(null);
-    }
-    if (playlistSongsQuery.error && playingPlaylistId) {
-      console.error('Error playing playlist:', playlistSongsQuery.error);
-      Alert.alert(t('error'), t('error_playing_playlist'));
-      setPlayingPlaylistId(null);
-    }
-  }, [playlistSongsQuery.data, playlistSongsQuery.error, playingPlaylistId, playPlaylist, t]);
 
   const filters = useMemo(() => [
     { key: 'prateci' as LibraryFilter, label: t('following'), icon: 'people' },

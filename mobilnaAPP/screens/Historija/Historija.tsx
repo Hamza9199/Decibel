@@ -348,7 +348,7 @@ const Historija: React.FC = React.memo(() => {
         </View>
       </View>
     </View>
-  ), [handlePlaySong, handleLikeSong, likedSongs, t, handleOpenPlaylistSheet, artistsMap, activeStyles, handleNavigateToArtist, handleNavigateToSong]);
+  ), [handlePlaySong, handleLikeSong, likedSongs, handleOpenPlaylistSheet, artistsMap, activeStyles, handleNavigateToArtist, handleNavigateToSong]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: any }) => (
     <TouchableOpacity

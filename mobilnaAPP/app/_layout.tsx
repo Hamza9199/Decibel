@@ -13,7 +13,7 @@ import { queryClient } from '@/config/queryClient';
 import axios from 'axios';
 import { API_BASE } from '@/config/api';
 import AudioPlayerNew from '@/komponente/AudioPlayer/AudioPlayerNew';
-import { ROUTE_MAPPING } from '@/hooks/handleBackPress';
+import { ROUTE_MAPPING, clearNavigationHistory } from '@/hooks/handleBackPress';
 
 interface SidebarContextType {
   showSidebar: () => void;
@@ -212,6 +212,10 @@ export default function RootLayout() {
       subscription.remove();
     };
   }, [checkAccountFlags, isLoggedIn]);
+
+  useEffect(() => {
+    clearNavigationHistory();
+  }, []);
 
   useEffect(() => {
     checkAuthState();

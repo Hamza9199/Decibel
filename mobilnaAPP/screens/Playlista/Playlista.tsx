@@ -7,8 +7,7 @@ import {
   ActivityIndicator,
   Alert,
   RefreshControl,
-  Modal,
-  FlatList,
+
 } from 'react-native';
 import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import { Image } from 'expo-image';
@@ -19,24 +18,81 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
-import { Pjesma, KorisnikPjesma, Playlista as PlaylistaType } from '@/types';
+import { Pjesma, Playlista as PlaylistaType } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Playlista.styles';
+import { styles as darkStyles } from './Playlista.styles';
+import { styles as lightStyles } from './PlaylistaWhtie.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { useBackPress, navigateWithHistory, getRoutePathFromSource } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { useAudio } from '@/context/AudioContext';
+import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 
 const Playlista: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const { playAudio, playPlaylist } = useAudio();
   const { playlistaId } = useLocalSearchParams<{ playlistaId: string }>();
   
   const [refreshing, setRefreshing] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState<number | null>(null);
+  const bottomSheetRef = React.useRef<BottomSheet>(null);
+  const snapPoints = React.useMemo(() => ['30%', '60%'], []);
   const [korisnikID, setKorisnikID] = useState<string>('');
   const [localSongs, setLocalSongs] = useState<Pjesma[]>([]);
+  const [playlistLocked, setPlaylistLocked] = useState(false);
+  const [songLikesLocal, setSongLikesLocal] = useState<
+  Record<number, boolean>
+>({});
+const [playlistLikedLocal, setPlaylistLikedLocal] =
+  useState<boolean | null>(null);
+
+  const [playlistLikeCountLocal, setPlaylistLikeCountLocal] =
+  useState<number | null>(null);
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/playlista/[playlistaId]', currentRoute: '/playlista/[playlistaId]' });
+  const currentRoute = useMemo(() => playlistaId ? `/playlista/${playlistaId}` : '/playlista/[playlistaId]', [playlistaId]);
+  const handleBackPress = useBackPress({
+    from,
+    defaultRoute: getRoutePathFromSource(from) || currentRoute,
+    currentRoute,
+  });
+
+  const handleNavigateToArtist = useCallback((artistId: string | undefined) => {
+    navigateWithHistory(`/izvodjac/${artistId}?from=playlista`, `/playlista/${playlistaId}`);
+  }, [playlistaId]);
+
+  const handleNavigateToSong = useCallback((songId: string | number) => {
+    navigateWithHistory(`/pjesma/${songId}?from=playlista`, `/playlista/${playlistaId}`);
+  }, [playlistaId]);
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
+  const styles = activeStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    loadTheme();
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
+  const allArtistsQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/izvodjac_pjesma/`)).data ?? [],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allUsersQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/korisnici/`)).data ?? [],
+    staleTime: 5 * 60 * 1000,
+  });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -93,22 +149,37 @@ const Playlista: React.FC = React.memo(() => {
     staleTime: 5 * 60 * 1000, 
   });
 
-  const likedSongsQuery = useQuery({
-    queryKey: ['likedSongs', korisnikID],
-    queryFn: async () => {
-      if (!korisnikID) return {};
-      
-      const response = await axios.get(`${API_BASE}/korisnik_pjesma/`);
-      const userLikedSongs = response.data as KorisnikPjesma[];
-      const likeMap: { [pjesmaId: number]: boolean } = {};
-      userLikedSongs
-        .filter(v => v.korisnikID === korisnikID)
-        .forEach(v => { likeMap[v.pjesmaID] = true; });
-      return likeMap;
-    },
-    enabled: !!korisnikID,
-    staleTime: 5 * 60 * 1000,
-  });
+  useEffect(() => {
+    setLocalSongs(songsQuery.data || []);
+  }, [songsQuery.data]);
+
+  const pjesme = localSongs.length > 0 ? localSongs : (songsQuery.data || []);
+
+const likedSongsQuery = useQuery({
+  queryKey: ['song-likes', korisnikID, pjesme.length],
+  queryFn: async () => {
+    if (!korisnikID) return {};
+
+    const map: Record<number, boolean> = {};
+
+    await Promise.all(
+      pjesme.map(async (p) => {
+        try {
+          const res = await axios.get(
+            `${API_BASE}/korisnik_pjesma/${korisnikID}/${p.id}`
+          );
+          map[p.id] = !!res.data?.liked;
+        } catch {
+          map[p.id] = false;
+        }
+      })
+    );
+
+    return map;
+  },
+  enabled: !!korisnikID && pjesme.length > 0,
+  staleTime: 30000,
+});
 
   const playlistsQuery = useQuery({
     queryKey: ['playlists'],
@@ -120,53 +191,74 @@ const Playlista: React.FC = React.memo(() => {
   });
 
   const playlistLikeQuery = useQuery({
-    queryKey: ['playlistLike', playlistaId, korisnikID],
-    queryFn: async () => {
-      if (!korisnikID || !playlistaId) return false;
-      
-      const response = await axios.get(`${API_BASE}/korisnik_playlista/`);
-      const userLikedPlaylists = response.data as { korisnikID: string; playlistaID: number }[];
-      return !!userLikedPlaylists.find(v => 
-        v.korisnikID === korisnikID && String(v.playlistaID) === String(playlistaId)
-      );
-    },
-    enabled: !!(korisnikID && playlistaId),
-    staleTime: 5 * 60 * 1000, 
-  });
+  queryKey: ['playlistLike', playlistaId, korisnikID],
 
-  const likeSongMutation = useMutation({
-    mutationFn: async ({ pjesmaId, isLiked }: { pjesmaId: number; isLiked: boolean }) => {
-      if (!korisnikID) throw new Error('No user ID');
-      
-      if (isLiked) {
-        await axios.delete(`${API_BASE}/korisnik_pjesma/${korisnikID}/${pjesmaId}`);
-        return { pjesmaId, liked: false };
-      } else {
-        await axios.post(`${API_BASE}/korisnik_pjesma/`, {
-          korisnikID,
-          pjesmaID: pjesmaId,
-          kreiranDatumVrijeme: new Date().toISOString(),
-        });
-        return { pjesmaId, liked: true };
-      }
-    },
-    onSuccess: ({ pjesmaId, liked }) => {
-      queryClient.setQueryData(['likedSongs', korisnikID], (old: any) => ({
-        ...old,
-        [pjesmaId]: liked
-      }));
-      
-    },
-    onError: (error) => {
-      console.error('Error liking/unliking song:', error);
-      Alert.alert(t('error'), t('error_favorites'));
+  queryFn: async () => {
+    if (!korisnikID || !playlistaId) return false;
+
+    const res = await axios.get(
+      `${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`
+    );
+
+    return !!res.data?.liked;
+  },
+
+  enabled: !!korisnikID && !!playlistaId,
+  staleTime: 30000,
+});
+
+
+  useEffect(() => {
+    if (playlistLikeQuery.data !== undefined) {
+      setPlaylistLikedLocal(playlistLikeQuery.data);
     }
-  });
+    if (playlistQuery.data?.brojLajkova !== undefined) {
+      setPlaylistLikeCountLocal(playlistQuery.data.brojLajkova);
+    }
+  }, [playlistLikeQuery.data, playlistQuery.data?.brojLajkova]);
+
+ const likeSongMutation = useMutation({
+  mutationFn: async ({
+    action,
+    songId,
+    userId,
+  }: {
+    action: 'like' | 'unlike';
+    songId: number;
+    userId: string;
+  }) => {
+    if (action === 'like') {
+      await axios.post(`${API_BASE}/korisnik_pjesma/`, {
+        korisnikID: userId,
+        pjesmaID: songId,
+        kreiranDatumVrijeme: new Date().toISOString(),
+      });
+    } else {
+      await axios.delete(
+        `${API_BASE}/korisnik_pjesma/${userId}/${songId}`
+      );
+    }
+
+    return { action, songId, userId };
+  },
+
+  onMutate: ({ songId, action }) => {
+    setSongLikesLocal(prev => ({
+      ...prev,
+      [songId]: action === 'like',
+    }));
+  },
+
+  onSuccess: (_, variables) => {
+    queryClient.invalidateQueries({
+      queryKey: ['likedSongs', variables.userId],
+    });
+  },
+});
 
   const likePlaylistMutation = useMutation({
     mutationFn: async ({ isLiked }: { isLiked: boolean }) => {
       if (!korisnikID || !playlistaId) throw new Error('Missing data');
-      
       if (isLiked) {
         await axios.delete(`${API_BASE}/korisnik_playlista/${korisnikID}/${playlistaId}`);
         return false;
@@ -179,18 +271,25 @@ const Playlista: React.FC = React.memo(() => {
         return true;
       }
     },
+    onMutate: ({ isLiked }) => {
+      const nextLiked = !isLiked;
+      setPlaylistLikedLocal(nextLiked);
+      setPlaylistLikeCountLocal(prev => {
+        const base = prev ?? playlistQuery.data?.brojLajkova ?? 0;
+        return Math.max(0, base + (nextLiked ? 1 : -1));
+      });
+    },
     onSuccess: (liked) => {
       queryClient.setQueryData(['playlistLike', playlistaId, korisnikID], liked);
       queryClient.setQueryData(['playlist', playlistaId], (old: any) => ({
         ...old,
-        brojLajkova: (old?.brojLajkova || 0) + (liked ? 1 : -1)
+        brojLajkova: (old?.brojLajkova || 0) + (liked ? 1 : -1),
       }));
-      
-    },
-    onError: (error) => {
-      console.error('Error liking/unliking playlist:', error);
-      Alert.alert(t('error'), t('error_favorites'));
+      queryClient.invalidateQueries({ queryKey: ['playlistLike', playlistaId, korisnikID] });
+      queryClient.invalidateQueries({ queryKey: ['playlist', playlistaId] });
     }
+    
+
   });
 
   const addToPlaylistMutation = useMutation({
@@ -239,11 +338,20 @@ const Playlista: React.FC = React.memo(() => {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['playlistSongs', playlistaId] });
     },
     onError: (error) => {
-      console.error('Error reordering song:', error);
-      Alert.alert(t('error'), t('error_reordering_song') || 'Error reordering song');
+      console.error('Reorder failed, reverting list', error);
+      const original = queryClient.getQueryData<any>(['playlistSongs', playlistaId]);
+      if (original) {
+        setLocalSongs(original);
+      }
+      setPlaylistLocked(false);
+    },
+
+    onSettled: () => {
+      setTimeout(() => {
+        setPlaylistLocked(false);
+      }, 3000);
     }
   });
 
@@ -265,28 +373,54 @@ const Playlista: React.FC = React.memo(() => {
       Alert.alert(t('error'), t('no_audio_file') || 'This song has no audio file');
       return;
     }
-    
-    console.log('Playing song:', song.naziv);
-  }, [t]);
+    playAudio(song);
+  }, [t, playAudio]);
 
   const handlePlayPlaylist = useCallback(() => {
-    const pjesme = songsQuery.data || [];
-    if (pjesme.length === 0) {
-      Alert.alert(t('error'), t('empty_playlist') || 'Playlist is empty');
-      return;
-    }
-    
-    const firstSong = pjesme[0];
-    if (firstSong?.putanjaAudio) {
-      handlePlaySong(firstSong);
-    }
-  }, [songsQuery.data, handlePlaySong, t]);
+    const loadAndPlay = async () => {
+      try {
+        if (!playlistaId) return;
+        const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistaId}`);
+        const songIds: number[] = res.data || [];
+        if (songIds.length === 0) {
+          Alert.alert(t('error'), t('empty_playlist') || 'Playlist is empty');
+          return;
+        }
+        const songResponses = await Promise.all(songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`)));
+        const playable = songResponses.map(r => r.data).filter((p: Pjesma) => p && p.putanjaAudio);
+        if (playable.length === 0) {
+          Alert.alert(t('error'), t('empty_playlist') || 'Playlist is empty');
+          return;
+        }
+        playPlaylist(playable, 0);
+      } catch {
+        Alert.alert(t('error'), t('error_playing_playlist'));
+      }
+    };
+    loadAndPlay();
+  }, [playlistaId, playPlaylist, t]);
 
-  const handleLikeSong = useCallback((pjesmaId: number) => {
-    const likeMap = likedSongsQuery.data || {};
-    const isLiked = likeMap[pjesmaId] || false;
-    likeSongMutation.mutate({ pjesmaId, isLiked });
-  }, [likedSongsQuery.data, likeSongMutation]);
+ const handleLikeSong = useCallback((pjesmaId: number) => {
+  const likeMap = {
+    ...(likedSongsQuery.data || {}),
+    ...songLikesLocal,
+  };
+
+  const action = likeMap[pjesmaId]
+    ? 'unlike'
+    : 'like';
+
+  likeSongMutation.mutate({
+    action,
+    songId: pjesmaId,
+    userId: korisnikID,
+  });
+}, [
+  likedSongsQuery.data,
+  songLikesLocal,
+  korisnikID,
+  likeSongMutation,
+]);
 
   const handleLikeThisPlaylist = useCallback(() => {
     const isLiked = playlistLikeQuery.data || false;
@@ -314,43 +448,68 @@ const Playlista: React.FC = React.memo(() => {
 
   const handleModalClose = useCallback(() => {
     setShowPlaylistModal(null);
+    bottomSheetRef.current?.close();
   }, []);
 
-  const formatDuration = useCallback((seconds?: number): string => {
-    if (!seconds) return '0:00';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  }, []);
+  useEffect(() => {
+    if (showPlaylistModal !== null) {
+      bottomSheetRef.current?.expand();
+    }
+  }, [showPlaylistModal]);
 
+
+
+  const [isDragging, setIsDragging] = useState(false);
   const onDragEnd = useCallback(({ data, from, to }: { data: Pjesma[]; from: number; to: number }) => {
+    setIsDragging(false);
+    if (playlistLocked) return;
     setLocalSongs(data);
     if (from === to) return;
     const moved = data[to];
-    let prevId: number | null = null;
-    if (to !== 0) prevId = data[to - 1].id;
+    const prevId = to === 0 ? null : data[to - 1].id;
+    setPlaylistLocked(true);
     reorderSongMutation.mutate({ pjesmaId: moved.id, prevId });
-  }, [reorderSongMutation]);
+  }, [reorderSongMutation, playlistLocked]);
 
   const renderDraggableItem = useCallback((params: RenderItemParams<Pjesma> & { getIndex?: () => number | undefined }) => {
     const { item, drag, isActive } = params;
-    const index = (params as any).index ?? (typeof params.getIndex === 'function' ? params.getIndex() ?? 0 : localSongs.findIndex(s => s.id === item.id));
-    const likeMap = likedSongsQuery.data || {};
+    const likeMap = {
+      ...(likedSongsQuery.data || {}),
+      ...songLikesLocal,
+    };
     const isOwner = playlistQuery.data?.korisnikID === korisnikID;
+    const artistConnections = allArtistsQuery.data || [];
+    const users = allUsersQuery.data || [];
+    const artists = artistConnections
+      .filter((v: any) => v.pjesmaID === item.id)
+      .map((v: any) => users.find((u: any) => u.id === v.izvodjacID))
+      .filter(Boolean);
     return (
-      <TouchableOpacity
+    <TouchableOpacity
         style={[styles.songItem, isActive && styles.draggingSong]}
         activeOpacity={0.9}
         onLongPress={isOwner ? drag : undefined}
-        delayLongPress={120}
+        delayLongPress={700}
       >
         <View style={styles.songHeader}>
-          <Text style={styles.songNumber}>{index + 1}</Text>
+           <Image
+                    source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/50' }}
+                    style={styles.songImage}
+                  />
           <View style={styles.songInfo}>
-            <Text style={styles.songTitle} numberOfLines={1}>{item.naziv}</Text>
-            <Text style={styles.songArtist} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
+            <TouchableOpacity onPress={() => handleNavigateToSong(item.id)}>
+              <Text style={styles.songTitle} numberOfLines={1}>{item.naziv}</Text>
+            </TouchableOpacity>
+            {artists.length > 0 && (
+                <Text style={styles.songArtist} numberOfLines={1}>
+                  {artists.map((a: any, idx: number) => (
+                    <TouchableOpacity key={a.id} onPress={() => handleNavigateToArtist(a.id)}>
+                      <Text style={styles.songArtist} numberOfLines={1}>{a.korisnicko_ime || a.ime || 'Artist'}{idx < artists.length - 1 ? ' & ' : ''}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </Text>
+            )}
           </View>
-          <Text style={styles.songDuration}>{formatDuration(item.trajanjeSekunde)}</Text>
         </View>
         <View style={styles.songActions}>
           <TouchableOpacity style={styles.actionButton} onPress={() => handlePlaySong(item)}>
@@ -370,18 +529,9 @@ const Playlista: React.FC = React.memo(() => {
         </View>
       </TouchableOpacity>
     );
-  }, [likedSongsQuery.data, playlistQuery.data, korisnikID, handlePlaySong, handleLikeSong, handleRemoveSong, formatDuration, t, localSongs]);
+  }, [likedSongsQuery.data, songLikesLocal, playlistQuery.data?.korisnikID, korisnikID, allArtistsQuery.data, allUsersQuery.data, styles.songItem, styles.draggingSong, styles.songHeader, styles.songImage, styles.songInfo, styles.songTitle, styles.songArtist, styles.songActions, styles.actionButton, styles.actionButtonLiked, styles.actionButtonRemove, handlePlaySong, handleLikeSong, handleRemoveSong, handleNavigateToArtist, handleNavigateToSong]);
 
-  const playlistMeta = useMemo(() => {
-    const pjesme = songsQuery.data || [];
-    const likeCount = playlistQuery.data?.brojLajkova || 0;
-    
-    return [
-      { label: t('number_of_songs'), value: pjesme.length },
-      { label: t('number_of_likes'), value: likeCount },
-      { label: t('public_playlist'), value: playlistQuery.data?.javno ? t('yes') : t('no') },
-    ];
-  }, [songsQuery.data, playlistQuery.data, t]);
+
 
   const refreshControl = useMemo(() => (
     <RefreshControl
@@ -398,8 +548,13 @@ const Playlista: React.FC = React.memo(() => {
 
   const loading = playlistQuery.isLoading || songsQuery.isLoading || likedSongsQuery.isLoading || playlistsQuery.isLoading || playlistLikeQuery.isLoading;
   const playlista = playlistQuery.data;
-  const likePlaylist = playlistLikeQuery.data || false;
-  const likeCount = playlista?.brojLajkova || 0;
+  const likePlaylist =
+  playlistLikedLocal ??
+  (playlistLikeQuery.data || false);
+
+const likeCount =
+  playlistLikeCountLocal ??
+  (playlista?.brojLajkova || 0);
 
     useScreenCleanup();
   
@@ -447,9 +602,10 @@ const Playlista: React.FC = React.memo(() => {
         source={from}
       />
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        refreshControl={refreshControl}
-      >
+            contentContainerStyle={styles.scrollContainer}
+            refreshControl={refreshControl}
+            scrollEnabled={!isDragging}
+          >
         <View style={styles.content}>
           <View style={styles.playlistMain}>
             <View style={styles.playlistImageWrap}>
@@ -484,75 +640,74 @@ const Playlista: React.FC = React.memo(() => {
 
             <View style={styles.playlistInfo}>
               <Text style={styles.playlistTitle}>{playlista.naziv}</Text>
-              
-              {playlista.opis && (
-                <Text style={styles.playlistDescription}>{playlista.opis}</Text>
-              )}
-
-              <View style={styles.playlistMeta}>
-                {playlistMeta.map((meta, index) => (
-                  <View key={index} style={styles.metaRow}>
-                    <Text style={styles.metaLabel}>{meta.label}:</Text>
-                    <Text style={styles.metaValue}>{meta.value}</Text>
-                  </View>
-                ))}
-              </View>
+             
+             
             </View>
           </View>
 
           <Text style={styles.sectionTitle}>
             {t('songs_in_playlist') || 'Songs in Playlist'}
           </Text>
-          {localSongs.length === 0 ? (
+          {pjesme.length === 0 ? (
             <Text style={styles.noSongs}>
               {t('no_songs_in_playlist') || 'No songs in this playlist'}
             </Text>
           ) : (
             <DraggableFlatList
-              data={localSongs}
+              data={pjesme}
               keyExtractor={(item: Pjesma) => item.id.toString()}
               renderItem={renderDraggableItem}
               onDragEnd={onDragEnd}
+              onDragBegin={() => setIsDragging(true)}
               containerStyle={{ flexGrow: 0 }}
-              activationDistance={12}
+              activationDistance={30}
               scrollEnabled={false}
             />
           )}
         </View>
       </ScrollView>
 
-      <Modal
-        visible={showPlaylistModal !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={handleModalClose}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={showPlaylistModal !== null ? 0 : -1}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.bottomSheetIndicator}
+        onClose={handleModalClose}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
-              {t('add_to_playlist') || 'Add to Playlist'}
-            </Text>
-            <FlatList<PlaylistaType>
-              data={filteredPlaylists as PlaylistaType[]}
-              keyExtractor={(item: PlaylistaType) => item.id.toString()}
-              renderItem={({ item }: { item: PlaylistaType }) => (
-                <TouchableOpacity
-                  style={styles.playlistItem}
-                  onPress={() => showPlaylistModal && handleAddToPlaylist(showPlaylistModal, item.id)}
-                >
+        <BottomSheetView style={styles.bottomSheetContent}>
+          <Text style={styles.bottomSheetTitle}>
+            {t('add_to_playlist') || 'Add to Playlist'}
+          </Text>
+          <BottomSheetFlatList
+            data={filteredPlaylists as PlaylistaType[]}
+            keyExtractor={(item: PlaylistaType) => item.id.toString()}
+            renderItem={({ item }: { item: PlaylistaType }) => (
+              <TouchableOpacity
+                style={styles.playlistItem}
+                onPress={() => showPlaylistModal && handleAddToPlaylist(showPlaylistModal, item.id)}
+              >
+                <View style={styles.playlistItemContent}>
+                  <Image
+                    source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/40' }}
+                    style={styles.playlistItemImage}
+                  />
                   <Text style={styles.playlistItemText}>{item.naziv}</Text>
-                </TouchableOpacity>
-              )}
-            />
-            <TouchableOpacity
-              style={styles.modalCloseBtn}
-              onPress={handleModalClose}
-            >
-              <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color="#b3b3b3" />
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.bottomSheetList}
+          />
+          <TouchableOpacity
+            style={styles.modalCloseBtn}
+            onPress={handleModalClose}
+          >
+            <Text style={styles.modalCloseBtnText}>{t('close')}</Text>
+          </TouchableOpacity>
+        </BottomSheetView>
+      </BottomSheet>
 
       <Tabs currentRoute="playlista/[playlistaId]" />
     </View>

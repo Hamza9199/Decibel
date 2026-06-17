@@ -13,12 +13,14 @@ import axios from 'axios';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAudio } from '@/context/AudioContext';
 import { IzvodjacPjesmaVeza, Pjesma } from '@/types';
+import { API_BASE } from '@/config/api';
+
 
 const Zahtjevi: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/home', currentRoute: '/zahtjevi' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/zahtjevi' });
 
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const activeStyles = theme === 'light' ? lightStyles : darkStyles;
@@ -39,7 +41,7 @@ const Zahtjevi: React.FC = React.memo(() => {
     enabled: Boolean(korisnikID),
     queryFn: async () => {
       const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_API_BASE_URL}/izvodjac_pjesma/izvodjac/${korisnikID}`
+        `${API_BASE}/izvodjac_pjesma/izvodjac/${korisnikID}`
       );
       return res.data ?? [];
     },
@@ -48,7 +50,7 @@ const Zahtjevi: React.FC = React.memo(() => {
   const prihvatiMut = useMutation({
     mutationFn: async (pjesmaID: number) => {
       await axios.patch(
-        `${process.env.EXPO_PUBLIC_API_BASE_URL}/izvodjac_pjesma/${korisnikID}/${pjesmaID}`,
+        `${API_BASE}/izvodjac_pjesma/${korisnikID}/${pjesmaID}`,
         { potvrdjeno: true }
       );
     },
@@ -58,7 +60,7 @@ const Zahtjevi: React.FC = React.memo(() => {
   const odbijMut = useMutation({
     mutationFn: async (pjesmaID: number) => {
       await axios.delete(
-        `${process.env.EXPO_PUBLIC_API_BASE_URL}/izvodjac_pjesma/${korisnikID}/${pjesmaID}`
+        `${API_BASE}/izvodjac_pjesma/${korisnikID}/${pjesmaID}`
       );
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['zahtjevi', korisnikID] }),
@@ -75,7 +77,7 @@ const Zahtjevi: React.FC = React.memo(() => {
   const allSongsQuery = useQuery<Pjesma[]>({
     queryKey: ['allSongs'],
     queryFn: async () => {
-      const res = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/pjesme/`);
+      const res = await axios.get(`${API_BASE}/pjesme/`);
       return res.data ?? [];
     },
     staleTime: 5 * 60 * 1000,
@@ -84,7 +86,7 @@ const Zahtjevi: React.FC = React.memo(() => {
   const { playAudio } = useAudio();
   const handlePlay = useCallback(async (pjesmaID: number) => {
     try {
-      const res = await axios.get(`${process.env.EXPO_PUBLIC_API_BASE_URL}/pjesme/${pjesmaID}`);
+      const res = await axios.get(`${API_BASE}/pjesme/${pjesmaID}`);
       const song: Pjesma = res.data;
       if (song && song.putanjaAudio) {
         playAudio(song);

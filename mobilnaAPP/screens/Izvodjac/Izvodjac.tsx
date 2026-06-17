@@ -20,19 +20,32 @@ import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Korisnik, Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Izvodjac.styles';
+import { styles as darkStyles } from './Izvodjac.styles';
+import { styles as lightStyles } from './IzvodjacWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { useAudio } from '@/context/AudioContext';
 
 const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const { playAudio, playPlaylist } = useAudio();
   const { izvodjacId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/izvodjac/[izvodjacId]', currentRoute: '/izvodjac/[izvodjacId]' });
+  const currentRoute = useMemo(() => izvodjacId ? `/izvodjac/${izvodjacId}` : '/izvodjac/[izvodjacId]', [izvodjacId]);
+  const handleBackPress = useBackPress({ from, defaultRoute: currentRoute, currentRoute });
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { }
+  }, []);
   
 
   const loadUserData = useCallback(async () => {
@@ -56,6 +69,12 @@ const Izvodjac: React.FC = React.memo(() => {
     
     initializeUser();
   }, [loadUserData]);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const artistQuery = useQuery({
     queryKey: ['artist', izvodjacId],
@@ -174,8 +193,9 @@ const Izvodjac: React.FC = React.memo(() => {
         return false;
       }
     },
-    onSuccess: (isFollowing) => {
-      queryClient.setQueryData(['followStatus', izvodjacId, currentUserId], isFollowing);
+    onSuccess: (_, vars) => {
+      queryClient.setQueryData(['followStatus', izvodjacId, currentUserId], vars.follow);
+      queryClient.invalidateQueries({ queryKey: ['artist', izvodjacId] });
     },
     onError: (error) => {
       console.error('Error following/unfollowing artist:', error);
@@ -206,9 +226,8 @@ const Izvodjac: React.FC = React.memo(() => {
       Alert.alert(t('error'), t('no_audio_file'));
       return;
     }
-    
-    console.log('Playing song:', song.naziv);
-  }, [t]);
+    playAudio(song);
+  }, [t, playAudio]);
 
   const handlePlayAlbum = useCallback((album: Album) => {
     const albumSongs = songs.filter((s: Pjesma) => s.albumID === album.id && s.putanjaAudio);
@@ -216,10 +235,8 @@ const Izvodjac: React.FC = React.memo(() => {
       Alert.alert(t('error'), t('no_songs_in_album'));
       return;
     }
-    
-    console.log('Playing album:', album.naziv);
-    handlePlaySong(albumSongs[0]);
-  }, [songs, handlePlaySong, t]);
+    playPlaylist(albumSongs, 0);
+  }, [songs, playPlaylist, t]);
 
   const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
     try {
@@ -230,18 +247,30 @@ const Izvodjac: React.FC = React.memo(() => {
         Alert.alert(t('error'), t('empty_playlist'));
         return;
       }
-
-      const firstSongRes = await axios.get(`${API_BASE}/pjesme/${songIds[0]}`);
-      const firstSong = firstSongRes.data;
-      
-      if (firstSong && firstSong.putanjaAudio) {
-        handlePlaySong(firstSong);
+      const songResponses = await Promise.all(songIds.map((id: number) => axios.get(`${API_BASE}/pjesme/${id}`)));
+      const playlistSongs = songResponses.map(r => r.data).filter((p: Pjesma) => p && p.putanjaAudio);
+      if (playlistSongs.length === 0) {
+        Alert.alert(t('error'), t('empty_playlist'));
+        return;
       }
+      playPlaylist(playlistSongs, 0);
     } catch (error) {
       console.error('Error playing playlist:', error);
       Alert.alert(t('error'), t('error_playing_playlist'));
     }
-  }, [handlePlaySong, t]);
+  }, [playPlaylist, t]);
+
+  const handleNavigateToSong = useCallback((songId: number) => {
+    navigateWithHistory(`/pjesma/${songId}?from=izvodjac`, currentRoute);
+  }, [currentRoute]);
+
+  const handleNavigateToAlbum = useCallback((albumId: number) => {
+    navigateWithHistory(`/album/${albumId}?from=izvodjac`, currentRoute);
+  }, [currentRoute]);
+
+  const handleNavigateToPlaylist = useCallback((playlistId: number) => {
+    navigateWithHistory(`/playlista/${playlistId}?from=izvodjac`, currentRoute);
+  }, [currentRoute]);
 
    useScreenCleanup();
  
@@ -255,22 +284,16 @@ const Izvodjac: React.FC = React.memo(() => {
         />
         
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={2}>
-            {item.naziv}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToSong(item.id)}>
+            <Text style={styles.itemTitle} numberOfLines={2}>{item.naziv}</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-      
-      <View style={styles.itemActions}>
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => handlePlaySong(item)}
-        >
+        <TouchableOpacity style={[styles.actionButton, styles.actionButtonRight]} onPress={() => handlePlaySong(item)}>
           <MaterialIcons name="play-arrow" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlaySong]);
+  ), [handlePlaySong, handleNavigateToSong]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <View style={styles.itemCard}>
@@ -281,22 +304,19 @@ const Izvodjac: React.FC = React.memo(() => {
         />
         
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={2}>
-            {item.naziv}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToAlbum(item.id)}>
+            <Text style={styles.itemTitle} numberOfLines={2}>{item.naziv}</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-      
-      <View style={styles.itemActions}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.actionButtonRight]}
           onPress={() => handlePlayAlbum(item)}
         >
           <MaterialIcons name="play-arrow" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlayAlbum]);
+  ), [handlePlayAlbum, handleNavigateToAlbum]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <View style={styles.itemCard}>
@@ -307,32 +327,28 @@ const Izvodjac: React.FC = React.memo(() => {
         />
         
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={2}>
-            {item.naziv}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToPlaylist(item.id)}>
+            <Text style={styles.itemTitle} numberOfLines={2}>{item.naziv}</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-      
-      <View style={styles.itemActions}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.actionButtonRight]}
           onPress={() => handlePlayPlaylist(item)}
         >
           <MaterialIcons name="play-arrow" size={20} color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlayPlaylist]);
+  ), [handlePlayPlaylist, handleNavigateToPlaylist]);
 
   const artistMeta = useMemo(() => {
     if (!artistQuery.data) return [];
     const artist = artistQuery.data;
     return [
-      { label: t('name'), value: artist.ime },
-      { label: t('surname'), value: artist.prezime },
-      { label: t('followers'), value: artist.brojPratilaca || 0 },
+      { value: artist.ime },
+      { value: artist.prezime },
     ];
-  }, [artistQuery.data, t]);
+  }, [artistQuery.data]);
 
   const showFollowButton = useMemo(() => {
     return currentUserId && currentUserId !== artistQuery.data?.id;
@@ -371,8 +387,8 @@ const Izvodjac: React.FC = React.memo(() => {
       <View style={styles.notFoundContainer}>
         <Back 
           title={t('artist_not_found') || 'Artist Not Found'}
-          onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+        onBackPress={handleBackPress}
+        onProfilePress={() => router.replace('/edit-profile')}
                   source={from}
         />
         <MaterialIcons name="person" size={64} color="#666" />
@@ -401,7 +417,7 @@ const Izvodjac: React.FC = React.memo(() => {
         <View style={styles.content}>
           <View style={styles.artistMain}>
             <Image
-              source={{ uri: artist.putanjaProfilneSlike || 'https://via.placeholder.com/120' }}
+              source={{ uri: artist.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' }}
               style={styles.artistImage}
             />
             
@@ -411,16 +427,12 @@ const Izvodjac: React.FC = React.memo(() => {
               <View style={styles.artistMeta}>
                 {artistMeta.map((meta, index) => (
                   <Text key={index} style={styles.metaItem}>
-                    {meta.label}: {meta.value}
+                    {meta.value}
                   </Text>
                 ))}
               </View>
               
-              {artist.bio && (
-                <Text style={styles.artistBio} numberOfLines={3}>
-                  {artist.bio}
-                </Text>
-              )}
+             
               
               {showFollowButton && (
                 <TouchableOpacity
@@ -432,7 +444,7 @@ const Izvodjac: React.FC = React.memo(() => {
                   disabled={followMutation.isPending}
                 >
                   <Text style={styles.followButtonText}>
-                    {following ? t('follows') : t('follow')}
+                    {following ? t('follows') : t('follow')} ( {artist.brojPratilaca || 0} )
                   </Text>
                 </TouchableOpacity>
               )}
@@ -483,7 +495,7 @@ const Izvodjac: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="artist" />
+      <Tabs currentRoute="izvodjac" />
     </View>
   );
 });

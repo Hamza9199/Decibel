@@ -14,6 +14,12 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingBottom: 100,
   },
+  songImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+  },
   content: {
     maxWidth: 480,
     width: '100%',
@@ -162,7 +168,7 @@ export const styles = StyleSheet.create({
   songItem: {
     backgroundColor: '#232323',
     borderRadius: 12,
-    padding: 16,
+    padding: 10,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
@@ -192,6 +198,14 @@ export const styles = StyleSheet.create({
   songArtist: {
     color: '#b3b3b3',
     fontSize: 14,
+  },
+  playlistItemContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  playlistItemImage: { width: 40, height: 40, borderRadius: 8, marginRight: 12 },
+  songArtistRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    marginTop: 2,
   },
   songDuration: {
     color: '#ffe6ec',
@@ -264,6 +278,28 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  bottomSheetBackground: {
+    backgroundColor: '#232323',
+  },
+  bottomSheetIndicator: {
+    backgroundColor: '#b91d95',
+  },
+  bottomSheetContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    backgroundColor: '#232323',
+  },
+  bottomSheetTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  bottomSheetList: {
+    paddingBottom: 20,
   },
   loadingContainer: {
     flex: 1,

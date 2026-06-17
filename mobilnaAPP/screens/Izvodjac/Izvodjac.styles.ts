@@ -104,7 +104,7 @@ export const styles = StyleSheet.create({
   itemCard: {
     backgroundColor: '#232323',
     borderRadius: 12,
-    padding: 16,
+    padding: 10,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
@@ -130,11 +130,6 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 4,
   },
-  itemActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
   actionButton: {
     backgroundColor: '#b91d95',
     borderRadius: 20,
@@ -142,6 +137,9 @@ export const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  actionButtonRight: {
+    marginLeft: 'auto',
   },
   loadingContainer: {
     flex: 1,

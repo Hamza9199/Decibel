@@ -5,7 +5,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#181818',
-    marginBottom: 50, // Adjusted to avoid overlap with bottom tab bar
+    marginBottom: 50,
   },
   scrollContainer: {
     flexGrow: 1,

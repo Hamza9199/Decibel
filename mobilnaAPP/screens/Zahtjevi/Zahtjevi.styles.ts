@@ -8,6 +8,7 @@ export const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: 16,
+    paddingBottom: 100,
   },
   headerRow: {
     marginBottom: 20,
@@ -53,5 +54,55 @@ export const styles = StyleSheet.create({
     paddingVertical: 4,
     backgroundColor: '#b91d95',
     borderRadius: 4,
+  },
+  songItem: {
+    backgroundColor: '#232323',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  songHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  songImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  songInfo: {
+    flex: 1,
+  },
+  songTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  songArtist: {
+    color: '#b3b3b3',
+    fontSize: 14,
+  },
+  songActions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  actionButton: {
+    backgroundColor: '#b91d95',
+    borderRadius: 20,
+    width: 38,
+    height: 38,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  acceptAction: {
+    backgroundColor: '#4caf50',
+  },
+  rejectAction: {
+    backgroundColor: '#e754a2',
   },
 });

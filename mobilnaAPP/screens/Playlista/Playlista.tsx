@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   Alert,
   RefreshControl,
@@ -459,9 +458,7 @@ const likedSongsQuery = useQuery({
 
 
 
-  const [isDragging, setIsDragging] = useState(false);
   const onDragEnd = useCallback(({ data, from, to }: { data: Pjesma[]; from: number; to: number }) => {
-    setIsDragging(false);
     if (playlistLocked) return;
     setLocalSongs(data);
     if (from === to) return;
@@ -485,29 +482,29 @@ const likedSongsQuery = useQuery({
       .map((v: any) => users.find((u: any) => u.id === v.izvodjacID))
       .filter(Boolean);
     return (
-    <TouchableOpacity
-        style={[styles.songItem, isActive && styles.draggingSong]}
-        activeOpacity={0.9}
-        onLongPress={isOwner ? drag : undefined}
-        delayLongPress={700}
-      >
+      <View style={[styles.songItem, isActive && styles.draggingSong]}>
         <View style={styles.songHeader}>
-           <Image
-                    source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/50' }}
-                    style={styles.songImage}
-                  />
+          {isOwner && (
+            <TouchableOpacity onLongPress={drag} delayLongPress={150} style={styles.dragHandle}>
+              <MaterialIcons name="drag-handle" size={24} color="#b3b3b3" />
+            </TouchableOpacity>
+          )}
+          <Image
+            source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/50' }}
+            style={styles.songImage}
+          />
           <View style={styles.songInfo}>
             <TouchableOpacity onPress={() => handleNavigateToSong(item.id)}>
               <Text style={styles.songTitle} numberOfLines={1}>{item.naziv}</Text>
             </TouchableOpacity>
             {artists.length > 0 && (
-                <Text style={styles.songArtist} numberOfLines={1}>
-                  {artists.map((a: any, idx: number) => (
-                    <TouchableOpacity key={a.id} onPress={() => handleNavigateToArtist(a.id)}>
-                      <Text style={styles.songArtist} numberOfLines={1}>{a.korisnicko_ime || a.ime || 'Artist'}{idx < artists.length - 1 ? ' & ' : ''}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </Text>
+              <Text style={styles.songArtist} numberOfLines={1}>
+                {artists.map((a: any, idx: number) => (
+                  <TouchableOpacity key={a.id} onPress={() => handleNavigateToArtist(a.id)}>
+                    <Text style={styles.songArtist} numberOfLines={1}>{a.korisnicko_ime || a.ime || 'Artist'}{idx < artists.length - 1 ? ' & ' : ''}</Text>
+                  </TouchableOpacity>
+                ))}
+              </Text>
             )}
           </View>
         </View>
@@ -518,18 +515,18 @@ const likedSongsQuery = useQuery({
           <TouchableOpacity style={[styles.actionButton, likeMap[item.id] && styles.actionButtonLiked]} onPress={() => handleLikeSong(item.id)}>
             <MaterialIcons name={likeMap[item.id] ? 'favorite' : 'favorite-border'} size={18} color="#fff" />
           </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => setShowPlaylistModal(item.id)}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => setShowPlaylistModal(item.id)}>
             <MaterialIcons name="playlist-add" size={20} color="#fff" />
           </TouchableOpacity>
-          {playlistQuery.data?.korisnikID === korisnikID && (
+          {isOwner && (
             <TouchableOpacity style={[styles.actionButton, styles.actionButtonRemove]} onPress={() => handleRemoveSong(item.id)}>
               <MaterialIcons name="delete" size={18} color="#fff" />
             </TouchableOpacity>
           )}
         </View>
-      </TouchableOpacity>
+      </View>
     );
-  }, [likedSongsQuery.data, songLikesLocal, playlistQuery.data?.korisnikID, korisnikID, allArtistsQuery.data, allUsersQuery.data, styles.songItem, styles.draggingSong, styles.songHeader, styles.songImage, styles.songInfo, styles.songTitle, styles.songArtist, styles.songActions, styles.actionButton, styles.actionButtonLiked, styles.actionButtonRemove, handlePlaySong, handleLikeSong, handleRemoveSong, handleNavigateToArtist, handleNavigateToSong]);
+  }, [likedSongsQuery.data, songLikesLocal, playlistQuery.data?.korisnikID, korisnikID, allArtistsQuery.data, allUsersQuery.data, styles, handlePlaySong, handleLikeSong, handleRemoveSong, handleNavigateToArtist, handleNavigateToSong]);
 
 
 
@@ -601,71 +598,47 @@ const likeCount =
         onProfilePress={() => router.replace('/edit-profile')}
         source={from}
       />
-      <ScrollView
-            contentContainerStyle={styles.scrollContainer}
-            refreshControl={refreshControl}
-            scrollEnabled={!isDragging}
-          >
-        <View style={styles.content}>
-          <View style={styles.playlistMain}>
-            <View style={styles.playlistImageWrap}>
-              <Image
-                source={{ uri: playlista.putanjaSlika || 'https://via.placeholder.com/300' }}
-                style={styles.playlistImage}
-                contentFit="cover"
-              />
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.playButton}
-                  onPress={handlePlayPlaylist}
-                >
-                  <MaterialIcons name="play-arrow" size={32} color="#fff" />
-                </TouchableOpacity>
-                
-                <TouchableOpacity
-                  style={[styles.likeButton, likePlaylist && styles.likeButtonLiked]}
-                  onPress={handleLikeThisPlaylist}
-                >
-                  <MaterialIcons 
-                    name={likePlaylist ? 'favorite' : 'favorite-border'} 
-                    size={24} 
-                    color="#fff" 
-                  />
-                  <Text style={styles.likeCount}>{likeCount}</Text>
-                </TouchableOpacity>
-                
-               
+      <DraggableFlatList
+        data={pjesme}
+        keyExtractor={(item: Pjesma) => item.id.toString()}
+        renderItem={renderDraggableItem}
+        onDragEnd={onDragEnd}
+        activationDistance={10}
+        refreshControl={refreshControl}
+        contentContainerStyle={styles.scrollContainer}
+        ListHeaderComponent={
+          <View style={styles.content}>
+            <View style={styles.playlistMain}>
+              <View style={styles.playlistImageWrap}>
+                <Image
+                  source={{ uri: playlista.putanjaSlika || 'https://via.placeholder.com/300' }}
+                  style={styles.playlistImage}
+                  contentFit="cover"
+                />
+                <View style={styles.actionButtons}>
+                  <TouchableOpacity style={styles.playButton} onPress={handlePlayPlaylist}>
+                    <MaterialIcons name="play-arrow" size={32} color="#fff" />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.likeButton, likePlaylist && styles.likeButtonLiked]}
+                    onPress={handleLikeThisPlaylist}
+                  >
+                    <MaterialIcons name={likePlaylist ? 'favorite' : 'favorite-border'} size={24} color="#fff" />
+                    <Text style={styles.likeCount}>{likeCount}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.playlistInfo}>
+                <Text style={styles.playlistTitle}>{playlista.naziv}</Text>
               </View>
             </View>
-
-            <View style={styles.playlistInfo}>
-              <Text style={styles.playlistTitle}>{playlista.naziv}</Text>
-             
-             
-            </View>
+            <Text style={styles.sectionTitle}>{t('songs_in_playlist') || 'Songs in Playlist'}</Text>
           </View>
-
-          <Text style={styles.sectionTitle}>
-            {t('songs_in_playlist') || 'Songs in Playlist'}
-          </Text>
-          {pjesme.length === 0 ? (
-            <Text style={styles.noSongs}>
-              {t('no_songs_in_playlist') || 'No songs in this playlist'}
-            </Text>
-          ) : (
-            <DraggableFlatList
-              data={pjesme}
-              keyExtractor={(item: Pjesma) => item.id.toString()}
-              renderItem={renderDraggableItem}
-              onDragEnd={onDragEnd}
-              onDragBegin={() => setIsDragging(true)}
-              containerStyle={{ flexGrow: 0 }}
-              activationDistance={30}
-              scrollEnabled={false}
-            />
-          )}
-        </View>
-      </ScrollView>
+        }
+        ListEmptyComponent={
+          <Text style={styles.noSongs}>{t('no_songs_in_playlist') || 'No songs in this playlist'}</Text>
+        }
+      />
 
       <BottomSheet
         ref={bottomSheetRef}

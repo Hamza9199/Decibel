@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Alert } from 'react-native';
+import { Image } from 'expo-image';
+import { MaterialIcons } from '@expo/vector-icons';
 import { styles as darkStyles } from './Zahtjevi.styles';
 import { styles as lightStyles } from './ZahtjeviWhite.styles';
 import Back from '@/komponente/Back/Back';
@@ -16,6 +18,7 @@ import { IzvodjacPjesmaVeza, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
 
 
+
 const Zahtjevi: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const router = useRouter();
@@ -26,15 +29,49 @@ const Zahtjevi: React.FC = React.memo(() => {
   const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
+  const [korisnikID, setKorisnikID] = useState<string>('');
+  
 
-  const korisnikID = useMemo(() => {
+  const loadUserFromStorage = useCallback(async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('korisnik') || '');
-      return user?.id?.toString() ?? '';
-    } catch {
+      const userData = await AsyncStorage.getItem('korisnik');
+      if (!userData) {
+        Alert.alert(t('error'), 'You must be logged in');
+        return '';
+      }
+
+      const user = JSON.parse(userData);
+      const userId = user?.id || '';
+
+      if (!userId) {
+        Alert.alert(t('error'), 'You must be logged in');
+        return '';
+      }
+
+      return userId;
+    } catch (error) {
+      console.error('Error loading user from storage:', error);
       return '';
     }
-  }, []);
+  }, [t]);
+
+   useEffect(() => {
+      let isMounted = true;
+      
+      const initializeUser = async () => {
+        if (!isMounted) return;
+        const userId = await loadUserFromStorage();
+        if (isMounted && userId) {
+          setKorisnikID(userId);
+        }
+      };
+      
+      initializeUser();
+      
+      return () => {
+        isMounted = false;
+      };
+    }, [loadUserFromStorage]); 
 
   const zahtjeviQuery = useQuery<IzvodjacPjesmaVeza[]>({
     queryKey: ['zahtjevi', korisnikID],
@@ -83,18 +120,79 @@ const Zahtjevi: React.FC = React.memo(() => {
     staleTime: 5 * 60 * 1000,
   });
 
+  const allArtistsQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/izvodjac_pjesma/`)).data ?? [],
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allUsersQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/korisnici/`)).data ?? [],
+    staleTime: 5 * 60 * 1000,
+  });
+
   const { playAudio } = useAudio();
-  const handlePlay = useCallback(async (pjesmaID: number) => {
-    try {
-      const res = await axios.get(`${API_BASE}/pjesme/${pjesmaID}`);
-      const song: Pjesma = res.data;
-      if (song && song.putanjaAudio) {
-        playAudio(song);
-      }
-    } catch (e) {
-      console.warn('Failed to load song for playback', e);
-    }
+  const handlePlaySong = useCallback((song: Pjesma) => {
+    if (!song.putanjaAudio) return;
+    playAudio(song);
   }, [playAudio]);
+
+  const getSong = useCallback((pjesmaID: number) =>
+    allSongsQuery.data?.find(s => s.id === pjesmaID), [allSongsQuery.data]);
+
+  const getArtists = useCallback((pjesmaID: number) => {
+    const users = allUsersQuery.data || [];
+    return (allArtistsQuery.data || [])
+      .filter((v: any) => v.pjesmaID === pjesmaID)
+      .map((v: any) => users.find((u: any) => u.id === v.izvodjacID))
+      .filter(Boolean);
+  }, [allArtistsQuery.data, allUsersQuery.data]);
+
+  const renderSongItem = useCallback((v: IzvodjacPjesmaVeza, pending = false) => {
+    const song = getSong(v.pjesmaID);
+    if (!song) return null;
+    const artists = getArtists(v.pjesmaID);
+    return (
+      <View key={`${v.izvodjacID}-${v.pjesmaID}`} style={activeStyles.songItem}>
+        <View style={activeStyles.songHeader}>
+          <Image
+            source={{ uri: song.putanjaSlika || 'https://via.placeholder.com/50' }}
+            style={activeStyles.songImage}
+          />
+          <View style={activeStyles.songInfo}>
+            <Text style={activeStyles.songTitle} numberOfLines={1}>{song.naziv}</Text>
+            {artists.length > 0 && (
+              <Text style={activeStyles.songArtist} numberOfLines={1}>
+                {artists.map((a: any, idx: number) =>
+                  `${a.korisnicko_ime || a.ime || 'Artist'}${idx < artists.length - 1 ? ' & ' : ''}`
+                ).join('')}
+              </Text>
+            )}
+          </View>
+          <TouchableOpacity style={activeStyles.actionButton} onPress={() => handlePlaySong(song)}>
+            <MaterialIcons name="play-arrow" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
+        {pending && (
+          <View style={activeStyles.songActions}>
+            <TouchableOpacity
+              style={[activeStyles.actionButton, activeStyles.acceptAction]}
+              onPress={() => prihvatiMut.mutate(v.pjesmaID)}
+            >
+              <MaterialIcons name="check" size={20} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[activeStyles.actionButton, activeStyles.rejectAction]}
+              onPress={() => odbijMut.mutate(v.pjesmaID)}
+            >
+              <MaterialIcons name="close" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    );
+  }, [activeStyles, getSong, getArtists, handlePlaySong, prihvatiMut, odbijMut]);
 
   const loadTheme = useCallback(async () => {
     try {
@@ -139,28 +237,7 @@ const Zahtjevi: React.FC = React.memo(() => {
             <Text style={activeStyles.label}>{t('no_requests') || 'Trenutno nema zahtjeva'}</Text>
           </View>
         ) : (
-          pending.map((v: any) => (
-            <View key={`${v.izvodjacID}-${v.pjesmaID}`} style={activeStyles.section}>
-              <Text style={activeStyles.label}>ID: {v.pjesmaID}</Text>
-              <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                <TouchableOpacity
-                  style={{ marginRight: 8 }}
-                  onPress={() => prihvatiMut.mutate(v.pjesmaID)}
-                >
-                  <Text>{t('accept') || 'Prihvati'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={{ marginRight: 8 }}
-                  onPress={() => odbijMut.mutate(v.pjesmaID)}
-                >
-                  <Text>{t('reject') || 'Odbij'}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handlePlay(v.pjesmaID)}>
-                  <Text>{t('play') || 'Play'}</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          ))
+          pending.map(v => renderSongItem(v, true))
         )}
         <View style={activeStyles.headerRow}>
           <Text style={activeStyles.title}>{t('accepted_collaborations') || 'Prihvaćeni'}</Text>
@@ -170,17 +247,7 @@ const Zahtjevi: React.FC = React.memo(() => {
             <Text style={activeStyles.label}>{t('no_accepted_songs') || 'Nema prihvaćenih'}</Text>
           </View>
         ) : (
-          accepted.map((v: any) => {
-            const songName = v.pjesma?.naziv ?? allSongsQuery.data?.find((s: Pjesma) => s.id === v.pjesmaID)?.naziv;
-            return (
-              <View key={`${v.izvodjacID}-${v.pjesmaID}`} style={activeStyles.section}>
-                <Text style={activeStyles.label}>{songName ?? `ID: ${v.pjesmaID}`}</Text>
-                <TouchableOpacity onPress={() => handlePlay(v.pjesmaID)}>
-                  <Text>{t('play') || 'Play'}</Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })
+          accepted.map(v => renderSongItem(v))
         )}
       </ScrollView>
       <Tabs currentRoute="zahtjevi" />

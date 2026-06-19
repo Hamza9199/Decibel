@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingVertical: 20,
-    paddingBottom: 100,
+    paddingBottom: 150,
   },
   songImage: {
     width: 50,
@@ -178,6 +178,10 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  dragHandle: {
+    paddingRight: 8,
+    justifyContent: 'center',
   },
   songNumber: {
     color: '#b91d95',

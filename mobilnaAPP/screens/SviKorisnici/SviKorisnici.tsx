@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,10 +19,12 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Korisnik, PrijavaIzvodjaca } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './SviKorisnici.styles';
+import { styles as darkStyles } from './SviKorisnici.styles';
+import { styles as lightStyles } from './SviKorisniciWhite.styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import { router, useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 
@@ -46,6 +48,21 @@ const SviKorisnici: React.FC = React.memo(() => {
 
   useScreenCleanup();
 
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const usersQuery = useQuery({
     queryKey: ['users'],
@@ -233,7 +250,6 @@ const SviKorisnici: React.FC = React.memo(() => {
 
   const handleCancelSuspension = useCallback(() => {
     if (!suspendModal) return;
-    // Reset select to "active" without sending to backend
     queryClient.setQueryData(['users'], (old: any) =>
       old ? old.map((k: Korisnik) =>
         k.id === suspendModal.korisnik.id
@@ -273,10 +289,19 @@ const SviKorisnici: React.FC = React.memo(() => {
 
   const filtriraniKorisnici = useMemo(() => {
     const korisnici = usersQuery.data || [];
-    return korisnici.filter((k: Korisnik) =>
-      k.korisnicko_ime.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [usersQuery.data, search]);
+    const prijave = applicationsQuery.data || [];
+    const idsSaPrijavom = new Set(prijave.map((p: PrijavaIzvodjaca) => p.korisnikID));
+
+    return korisnici
+      .filter((k: Korisnik) => k.korisnicko_ime.toLowerCase().includes(search.toLowerCase()))
+      .sort((a: Korisnik, b: Korisnik) =>
+        (idsSaPrijavom.has(b.id) ? 1 : 0) - (idsSaPrijavom.has(a.id) ? 1 : 0)
+      );
+  }, [usersQuery.data, applicationsQuery.data, search]);
+
+  const handleNavigateToUser = useCallback((korisnikId: string) => {
+    navigateWithHistory(`/izvodjac/${korisnikId}?from=svi-korisnici`, `/svi-korisnici`);
+  }, []);
 
   const renderUserItem = useCallback(({ item }: { item: Korisnik }) => {
     const prijave = applicationsQuery.data || [];
@@ -284,10 +309,10 @@ const SviKorisnici: React.FC = React.memo(() => {
     
     return (
       <View style={styles.userCard}>
-        <View style={styles.userHeader}>
+        <TouchableOpacity style={styles.userHeader} onPress={() => handleNavigateToUser(item.id)}>
           <Image
             source={{ 
-              uri: item.putanjaProfilneSlike || 'https://via.placeholder.com/150' 
+              uri: item.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' 
             }}
             style={styles.profileImage}
             contentFit="cover"
@@ -296,7 +321,7 @@ const SviKorisnici: React.FC = React.memo(() => {
             <Text style={styles.username}>{item.korisnicko_ime}</Text>
             <Text style={styles.userEmail}>{item.email}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.userDetails}>
           <View style={styles.detailRow}>
@@ -363,7 +388,7 @@ const SviKorisnici: React.FC = React.memo(() => {
         </View>
       </View>
     );
-  }, [applicationsQuery.data, handleChange, t]);
+  }, [applicationsQuery.data, handleChange, handleNavigateToUser, styles.applicationButton, styles.applicationButtonText, styles.detailLabel, styles.detailRow, styles.detailValue, styles.noApplicationText, styles.picker, styles.profileImage, styles.userCard, styles.userDetails, styles.userEmail, styles.userHeader, styles.userInfo, styles.username, t]);
 
   const modalUser = useMemo(() => {
     if (!prijavaModal) return null;

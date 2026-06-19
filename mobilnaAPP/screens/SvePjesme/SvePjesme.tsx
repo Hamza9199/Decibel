@@ -24,6 +24,7 @@ import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { useAudio } from '@/context/AudioContext';
 
 const SvePjesme: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ const SvePjesme: React.FC = React.memo(() => {
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const { playAudio } = useAudio();
 
   
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -105,8 +107,10 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
     }
     
     setActiveSongId(song.id);
+    playAudio(song);
+
     console.log('Playing song:', song.naziv);
-  }, [t]);
+  }, [playAudio, t]);
 
   const handleEdit = useCallback((songId: number) => {
     router.replace(`/uredi-pjesmu/${songId}`);

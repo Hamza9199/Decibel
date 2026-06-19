@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -16,7 +17,8 @@ import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Statistika, Pjesma, Album, Playlista, Korisnik } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './Statistika.styles';
+import { styles as darkStyles } from './Statistika.styles';
+import { styles as lightStyles } from './StatistikaWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress } from '@/hooks/handleBackPress';
@@ -29,6 +31,22 @@ const chartWidth = screenWidth - 70;
 const StatistikaScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
   const [refreshing, setRefreshing] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
 
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/statistika', currentRoute: '/statistika' });

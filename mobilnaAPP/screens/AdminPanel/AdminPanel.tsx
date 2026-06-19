@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -16,10 +17,11 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma, Album, Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './AdminPanel.styles';
+import { styles as darkStyles } from './AdminPanel.styles';
+import { styles as lightStyles } from './AdminPanelWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import { router, useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 
@@ -32,8 +34,38 @@ const AdminPanel: React.FC = React.memo(() => {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('songs');
   const [search, setSearch] = useState('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const styles = theme === 'light' ? lightStyles : darkStyles;
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
+
   const {from } = useLocalSearchParams<{ pjesmaId: string; from?: string }>();
   const handleBackPress  = useBackPress({ from, defaultRoute: '/admin-panel', currentRoute: '/admin-panel' });
+  const currentRoute = '/admin-panel';
+
+  const handleNavigateToSong = useCallback((songId: number) => {
+    navigateWithHistory(`/pjesma/${songId}?from=admin-panel`, currentRoute);
+  }, []);
+  const handleNavigateToAlbum = useCallback((albumId: number) => {
+    navigateWithHistory(`/album/${albumId}?from=admin-panel`, currentRoute);
+  }, []);
+  const handleNavigateToPlaylist = useCallback((playlistId: number) => {
+    navigateWithHistory(`/playlista/${playlistId}?from=admin-panel`, currentRoute);
+  }, []);
+  const handleNavigateToArtist = useCallback((artistId: string) => {
+    navigateWithHistory(`/izvodjac/${artistId}?from=admin-panel`, currentRoute);
+  }, []);
 
   const { data: songs = [], isLoading: songsLoading, refetch: refetchSongs } = useQuery({
     queryKey: ['admin-songs'],
@@ -60,6 +92,18 @@ const AdminPanel: React.FC = React.memo(() => {
       return res.data || [];
     },
     staleTime: 2 * 60 * 1000, 
+  });
+
+  const allVezeQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/izvodjac_pjesma/`)).data,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allKorisniciQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => (await axios.get(`${API_BASE}/korisnici/`)).data,
+    staleTime: 5 * 60 * 1000,
   });
 
   const songApprovalMutation = useMutation({
@@ -208,12 +252,16 @@ const AdminPanel: React.FC = React.memo(() => {
   }, [t, deletePlaylistMutation]);
 
   const filteredSongs = useMemo(() => 
-    songs.filter((s: Pjesma) => s.naziv.toLowerCase().includes(search.toLowerCase())),
+    songs
+      .filter((s: Pjesma) => s.naziv.toLowerCase().includes(search.toLowerCase()))
+      .sort((a: Pjesma, b: Pjesma) => Number(a.odobreno) - Number(b.odobreno)),
     [songs, search]
   );
 
   const filteredAlbums = useMemo(() => 
-    albums.filter((a: Album) => a.naziv.toLowerCase().includes(search.toLowerCase())),
+    albums
+      .filter((a: Album) => a.naziv.toLowerCase().includes(search.toLowerCase()))
+      .sort((a: Album, b: Album) => Number(a.odobreno) - Number(b.odobreno)),
     [albums, search]
   );
 
@@ -222,16 +270,40 @@ const AdminPanel: React.FC = React.memo(() => {
     [playlists, search]
   );
 
-  const renderSongItem = useCallback((song: Pjesma) => (
+  const renderSongItem = useCallback((song: Pjesma) => {
+    const veze = allVezeQuery.data?.filter((v: any) => v.pjesmaID === song.id) || [];
+    const izvodjaci = veze
+      .map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID))
+      .filter(Boolean);
+    const artistText = izvodjaci.length > 0
+      ? izvodjaci.map((izv: any) => izv.korisnicko_ime).join(' & ')
+      : (song.korisnik?.korisnicko_ime || song.korisnikID);
+
+    return (
     <View key={song.id} style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {song.naziv}
-          </Text>
-          <Text style={styles.itemArtist} numberOfLines={1}>
-            {song.korisnik?.korisnicko_ime || song.korisnikID}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToSong(song.id)}>
+            <Text style={styles.itemTitle} numberOfLines={1}>{song.naziv}</Text>
+          </TouchableOpacity>
+          {izvodjaci.length > 0 ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+              {izvodjaci.map((izv: any, idx: number) => (
+                <TouchableOpacity key={izv.id} onPress={() => handleNavigateToArtist(izv.id.toString())}>
+                  <Text style={styles.itemArtist} numberOfLines={1}>
+                    {izv.korisnicko_ime}{idx < izvodjaci.length - 1 ? ' & ' : ''}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => { if (song.korisnikID) handleNavigateToArtist(song.korisnikID.toString()); }}
+              disabled={!song.korisnikID}
+            >
+              <Text style={styles.itemArtist} numberOfLines={1}>{artistText}</Text>
+            </TouchableOpacity>
+          )}
           <Text style={[
             styles.itemStatus,
             song.odobreno ? styles.approvedStatus : styles.unapprovedStatus
@@ -270,18 +342,24 @@ const AdminPanel: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [t, handleApproveSong, handleDeleteSong]);
+    );
+  }, [allVezeQuery.data, styles.itemCard, styles.itemHeader, styles.itemInfo, styles.itemTitle, styles.itemArtist, styles.itemStatus, styles.approvedStatus, styles.unapprovedStatus, styles.actionButtons, styles.actionButton, styles.playButton, styles.buttonText, styles.revokeButton, styles.approveButton, styles.deleteButton, t, allKorisniciQuery.data, handleNavigateToSong, handleNavigateToArtist, handleApproveSong, handleDeleteSong]);
 
   const renderAlbumItem = useCallback((album: Album) => (
     <View key={album.id} style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {album.naziv}
-          </Text>
-          <Text style={styles.itemArtist} numberOfLines={1}>
-            {album.korisnik?.korisnicko_ime || album.korisnikID}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToAlbum(album.id)}>
+            <Text style={styles.itemTitle} numberOfLines={1}>{album.naziv}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => { if (album.korisnikID) handleNavigateToArtist(album.korisnikID.toString()); }}
+            disabled={!album.korisnikID}
+          >
+            <Text style={styles.itemArtist} numberOfLines={1}>
+              {album.korisnik?.korisnicko_ime || album.korisnikID}
+            </Text>
+          </TouchableOpacity>
           <Text style={styles.itemArtist}>
             {t('likes')}: {album.brojLajkova || 0}
           </Text>
@@ -321,18 +399,23 @@ const AdminPanel: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [t, handleApproveAlbum, handleDeleteAlbum]);
+  ), [styles.itemCard, styles.itemHeader, styles.itemInfo, styles.itemTitle, styles.itemArtist, styles.itemStatus, styles.approvedStatus, styles.unapprovedStatus, styles.actionButtons, styles.actionButton, styles.playButton, styles.buttonText, styles.revokeButton, styles.approveButton, styles.deleteButton, t, handleNavigateToAlbum, handleNavigateToArtist, handleApproveAlbum, handleDeleteAlbum]);
 
   const renderPlaylistItem = useCallback((playlist: Playlista) => (
     <View key={playlist.id} style={styles.itemCard}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle} numberOfLines={1}>
-            {playlist.naziv}
-          </Text>
-          <Text style={styles.itemArtist} numberOfLines={1}>
-            {playlist.korisnik?.korisnicko_ime || playlist.korisnikID}
-          </Text>
+          <TouchableOpacity onPress={() => handleNavigateToPlaylist(playlist.id)}>
+            <Text style={styles.itemTitle} numberOfLines={1}>{playlist.naziv}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => { if (playlist.korisnikID) handleNavigateToArtist(playlist.korisnikID.toString()); }}
+            disabled={!playlist.korisnikID}
+          >
+            <Text style={styles.itemArtist} numberOfLines={1}>
+              {playlist.korisnik?.korisnicko_ime || playlist.korisnikID}
+            </Text>
+          </TouchableOpacity>
           <Text style={styles.itemArtist}>
             {t('likes')}: {playlist.brojLajkova || 0}
           </Text>
@@ -354,7 +437,7 @@ const AdminPanel: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [t, handleDeletePlaylist]);
+  ), [styles.itemCard, styles.itemHeader, styles.itemInfo, styles.itemTitle, styles.itemArtist, styles.actionButtons, styles.actionButton, styles.playButton, styles.buttonText, styles.deleteButton, t, handleNavigateToPlaylist, handleNavigateToArtist, handleDeletePlaylist]);
 
   const handleTabChange = useCallback((tab: ActiveTab) => {
     setActiveTab(tab);

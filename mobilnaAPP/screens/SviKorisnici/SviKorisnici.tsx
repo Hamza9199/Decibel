@@ -412,7 +412,7 @@ const SviKorisnici: React.FC = React.memo(() => {
         <Back
           title={t('loading_users') || 'Loading Users...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>   navigateWithHistory('/edit-profile?from=svi-korisnici', '/svi-korisnici')}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -427,7 +427,7 @@ const SviKorisnici: React.FC = React.memo(() => {
       <Back
         title={t('all_users') || 'All Users'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=svi-korisnici', '/svi-korisnici')}
         source={from}
       />
       <ScrollView

@@ -21,8 +21,9 @@ import { styles as lightStyles } from './UrediProfilWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+
 
 const UrediProfil: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -307,7 +308,7 @@ const UrediProfil: React.FC = React.memo(() => {
         <Back
           title={t('loading_profile') || 'Loading Profile'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>   navigateWithHistory('/edit-profile?from=edit-profile', '/edit-profile')}
           source={from}
         />
 
@@ -323,7 +324,7 @@ const UrediProfil: React.FC = React.memo(() => {
       <Back
         title={t('edit_profile') || 'Edit Profile'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=edit-profile', '/edit-profile')}
         source={from}
         />
       <ScrollView contentContainerStyle={styles.scrollContainer}>

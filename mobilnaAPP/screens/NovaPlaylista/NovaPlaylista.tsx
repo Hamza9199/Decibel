@@ -16,15 +16,15 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
-import { styles } from './NovaPlaylista.styles';
+import { styles as darkStyles } from './NovaPlaylista.styles';
+import { styles as lightStyles } from './NovaPlaylistaWhite.styles';
 import { useMutation } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const NovaPlaylista: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [imageFile, setImageFile] = useState<any>(null);
@@ -35,8 +35,23 @@ const NovaPlaylista: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/nova-playlista', currentRoute: '/nova-playlista' });
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -73,7 +88,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
       setJavno(false);
 
       setTimeout(() => {
-        router.back();
+        navigateWithHistory('/sve-playliste');
       }, 2000);
     },
     onError: (error: any) => {
@@ -162,8 +177,19 @@ const NovaPlaylista: React.FC = React.memo(() => {
   }, [javno]);
 
   const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
+    if (createPlaylistMutation.isPending) {
+      Alert.alert(
+        t('cancel_creation') || 'Cancel Creation',
+        t('cancel_creation_confirmation') || 'Are you sure you want to cancel creating this playlist?',
+        [
+          { text: t('no') || 'No', style: 'cancel' },
+          { text: t('yes') || 'Yes', onPress: () => navigateWithHistory('/sve-playliste') },
+        ]
+      );
+    } else {
+      navigateWithHistory('/sve-playliste');
+    }
+  }, [createPlaylistMutation.isPending, t]);
 
   const handleFocus = useCallback((field: string) => {
     setFocusedField(field);
@@ -183,40 +209,40 @@ const NovaPlaylista: React.FC = React.memo(() => {
 
   const imagePickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('image')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {imageFile ? t('change_image') : t('select_image')}
       </Text>
     </TouchableOpacity>
-  ), [imageFile, handleFilePicker, t]);
+  ), [imageFile, handleFilePicker, t, activeStyles]);
 
   const gifPickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('gif')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {gifFile ? t('change_gif') : t('select_gif')}
       </Text>
     </TouchableOpacity>
-  ), [gifFile, handleFilePicker, t]);
+  ), [gifFile, handleFilePicker, t, activeStyles]);
 
    useScreenCleanup();
  
 
   if (createPlaylistMutation.isPending) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back 
           title={t('creating_playlist') || 'Creating Playlist'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile?from=nova-playlista', '/nova-playlista')}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('creating_playlist')}</Text>
+        <Text style={activeStyles.loadingText}>{t('creating_playlist')}</Text>
         
         <Tabs currentRoute="nova-playlista" />
       </View>
@@ -224,24 +250,24 @@ const NovaPlaylista: React.FC = React.memo(() => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={t('new_playlist') || 'New Playlist'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile?from=nova-playlista', '/nova-playlista')}
         source={from}
         />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('new_playlist')}</Text>
+      <ScrollView contentContainerStyle={activeStyles.scrollContainer}>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('new_playlist')}</Text>
 
-          <View style={styles.form}>
+          <View style={activeStyles.form}>
             <View>
-              <Text style={styles.label}>{t('playlist_name')} *:</Text>
+              <Text style={activeStyles.label}>{t('playlist_name')} *:</Text>
               <TextInput
                 style={[
-                  styles.input,
-                  focusedField === 'naziv' && styles.inputFocused,
+                  activeStyles.input,
+                  focusedField === 'naziv' && activeStyles.inputFocused,
                 ]}
                 value={naziv}
                 onChangeText={setNaziv}
@@ -255,11 +281,11 @@ const NovaPlaylista: React.FC = React.memo(() => {
             </View>
 
             <View>
-              <Text style={styles.label}>{t('description')} ({t('optional')}):</Text>
+              <Text style={activeStyles.label}>{t('description')} ({t('optional')}):</Text>
               <TextInput
                 style={[
-                  styles.textArea,
-                  focusedField === 'opis' && styles.inputFocused,
+                  activeStyles.textArea,
+                  focusedField === 'opis' && activeStyles.inputFocused,
                 ]}
                 value={opis}
                 onChangeText={setOpis}
@@ -272,48 +298,48 @@ const NovaPlaylista: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>{t('image')}:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>{t('image')}:</Text>
               {imagePickerButton}
               {imageFile && (
-                <Text style={styles.fileName}>{imageFile.name}</Text>
+                <Text style={activeStyles.fileName}>{imageFile.name}</Text>
               )}
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>GIF:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>GIF:</Text>
               {gifPickerButton}
               {gifFile && (
-                <Text style={styles.fileName}>{gifFile.name}</Text>
+                <Text style={activeStyles.fileName}>{gifFile.name}</Text>
               )}
             </View>
 
-            <TouchableOpacity style={styles.checkboxContainer} onPress={toggleCheckbox}>
-              <View style={[styles.checkbox, javno && styles.checkboxChecked]}>
+            <TouchableOpacity style={activeStyles.checkboxContainer} onPress={toggleCheckbox}>
+              <View style={[activeStyles.checkbox, javno && activeStyles.checkboxChecked]}>
                 {javno && (
                   <MaterialIcons name="check" size={16} color="#fff" />
                 )}
               </View>
-              <Text style={styles.checkboxLabel}>{t('public_playlist')}</Text>
+              <Text style={activeStyles.checkboxLabel}>{t('public_playlist')}</Text>
             </TouchableOpacity>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={activeStyles.errorContainer}>
+                <Text style={activeStyles.errorText}>{error}</Text>
               </View>
             )}
 
             {success && (
-              <View style={styles.successContainer}>
-                <Text style={styles.successText}>{success}</Text>
+              <View style={activeStyles.successContainer}>
+                <Text style={activeStyles.successText}>{success}</Text>
               </View>
             )}
 
             <TouchableOpacity
               style={[
-                styles.button,
-                buttonPressed && styles.buttonPressed,
-                createPlaylistMutation.isPending && styles.buttonDisabled,
+                activeStyles.button,
+                buttonPressed && activeStyles.buttonPressed,
+                createPlaylistMutation.isPending && activeStyles.buttonDisabled,
               ]}
               onPress={handleSubmit}
               onPressIn={handleButtonPressIn}
@@ -321,17 +347,17 @@ const NovaPlaylista: React.FC = React.memo(() => {
               disabled={createPlaylistMutation.isPending}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>
+              <Text style={activeStyles.buttonText}>
                 {createPlaylistMutation.isPending ? t('creating') || 'Creating...' : t('create_playlist')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={activeStyles.cancelButton}
               onPress={handleBack}
               disabled={createPlaylistMutation.isPending}
             >
-              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+              <Text style={activeStyles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -11,22 +11,22 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './NoviAlbum.styles';
+import { styles as darkStyles } from './NoviAlbum.styles';
+import { styles as lightStyles } from './NoviAlbumWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const NoviAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [imageFile, setImageFile] = useState<any>(null);
@@ -37,8 +37,23 @@ const NoviAlbum: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/novi-album', currentRoute: '/novi-album' });
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -67,10 +82,13 @@ const NoviAlbum: React.FC = React.memo(() => {
     queryFn: async () => {
       if (!korisnikID) return [];
       
-      const response = await axios.get(`${API_BASE}/pjesme/`);
-      return (response.data || []).filter(
-        (p: Pjesma) => p.korisnikID === korisnikID && !p.albumID
-      );
+      const response = await axios.get(
+          `${API_BASE}/pjesme/korisnik/${korisnikID}`
+        );
+
+        return (response.data || []).filter(
+          (p: Pjesma) => !p.albumID
+        );
     },
     enabled: !!korisnikID,
     staleTime: 5 * 60 * 1000, 
@@ -86,21 +104,15 @@ const NoviAlbum: React.FC = React.memo(() => {
 
       const albumId = albumRes.data.id;
 
-      if (albumId && albumSongs.length > 0) {
-        const svePjesme = userSongsQuery.data || [];
-        await Promise.all(
-          albumSongs.map(pjesmaId => {
-            const pjesma = svePjesme.find((p: Pjesma) => p.id === pjesmaId);
-            if (pjesma) {
-              return axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
-                ...pjesma,
-                albumID: albumId,
-              });
-            }
-            return Promise.resolve();
-          })
-        );
-      }
+        if (albumId && albumSongs.length > 0) {
+            await Promise.all(
+              albumSongs.map((pjesmaId) =>
+                axios.post(
+                  `${API_BASE}/albumi/${albumId}/pjesme/${pjesmaId}`
+                )
+              )
+            );
+        }
 
       return albumRes.data;
     },
@@ -115,7 +127,7 @@ const NoviAlbum: React.FC = React.memo(() => {
       setOdabranePjesme([]);
 
       setTimeout(() => {
-        router.back();
+        navigateWithHistory('/svi-albumi');
       }, 2000);
     },
     onError: (error: any) => {
@@ -207,8 +219,8 @@ const NoviAlbum: React.FC = React.memo(() => {
   }, [t]);
 
   const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
+    navigateWithHistory('/svi-albumi');
+  }, []);
 
   const handleFocus = useCallback((field: string) => {
     setFocusedField(field);
@@ -238,62 +250,62 @@ const NoviAlbum: React.FC = React.memo(() => {
     
     return (
       <TouchableOpacity
-        style={[styles.songItem, isSelected && styles.songItemSelected]}
+        style={[activeStyles.songItem, isSelected && activeStyles.songItemSelected]}
         onPress={() => handleTogglePjesma(item.id)}
       >
-        <View style={[styles.checkbox, isSelected && styles.checkboxChecked]}>
+        <View style={[activeStyles.checkbox, isSelected && activeStyles.checkboxChecked]}>
           {isSelected && (
             <MaterialIcons name="check" size={16} color="#fff" />
           )}
         </View>
-        <View style={styles.songInfo}>
-          <Text style={styles.songTitle} numberOfLines={1}>
+        <View style={activeStyles.songInfo}>
+          <Text style={activeStyles.songTitle} numberOfLines={1}>
             {item.naziv}
           </Text>
-          <Text style={styles.songDuration}>
+          <Text style={activeStyles.songDuration}>
             {formatDuration(item.trajanjeSekunde)}
           </Text>
         </View>
       </TouchableOpacity>
     );
-  }, [odabranePjesme, handleTogglePjesma, formatDuration]);
+  }, [odabranePjesme, activeStyles.songItem, activeStyles.songItemSelected, activeStyles.checkbox, activeStyles.checkboxChecked, activeStyles.songInfo, activeStyles.songTitle, activeStyles.songDuration, formatDuration, handleTogglePjesma]);
 
   const imagePickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('image')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {imageFile ? t('change_image') : t('select_image')}
       </Text>
     </TouchableOpacity>
-  ), [imageFile, handleFilePicker, t]);
+  ), [activeStyles.fileButton, activeStyles.fileButtonText, imageFile, t, handleFilePicker]);
 
   const gifPickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('gif')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {gifFile ? t('change_gif') : t('select_gif')}
       </Text>
     </TouchableOpacity>
-  ), [gifFile, handleFilePicker, t]);
+  ), [activeStyles.fileButton, activeStyles.fileButtonText, gifFile, handleFilePicker, t]);
 
     useScreenCleanup();
   
 
   if (createAlbumMutation.isPending) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('new_album') || 'New Album'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile?from=novi-album', '/novi-album')}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('creating_album')}</Text>
+        <Text style={activeStyles.loadingText}>{t('creating_album')}</Text>
         <Tabs currentRoute="novi-album" />
       </View>
     );
@@ -302,24 +314,24 @@ const NoviAlbum: React.FC = React.memo(() => {
   const svePjesme = userSongsQuery.data || [];
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={t('new_album') || 'New Album'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile?from=novi-album', '/novi-album')}
         source={from}
       />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('new_album')}</Text>
+      <ScrollView contentContainerStyle={activeStyles.scrollContainer}>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('new_album')}</Text>
 
-          <View style={styles.form}>
+          <View style={activeStyles.form}>
             <View>
-              <Text style={styles.label}>{t('album_name')} *:</Text>
+              <Text style={activeStyles.label}>{t('album_name')} *:</Text>
               <TextInput
                 style={[
-                  styles.input,
-                  focusedField === 'naziv' && styles.inputFocused,
+                  activeStyles.input,
+                  focusedField === 'naziv' && activeStyles.inputFocused,
                 ]}
                 value={naziv}
                 onChangeText={setNaziv}
@@ -333,11 +345,11 @@ const NoviAlbum: React.FC = React.memo(() => {
             </View>
 
             <View>
-              <Text style={styles.label}>{t('description')} ({t('optional')}):</Text>
+              <Text style={activeStyles.label}>{t('description')} ({t('optional')}):</Text>
               <TextInput
                 style={[
-                  styles.textArea,
-                  focusedField === 'opis' && styles.inputFocused,
+                  activeStyles.textArea,
+                  focusedField === 'opis' && activeStyles.inputFocused,
                 ]}
                 value={opis}
                 onChangeText={setOpis}
@@ -350,30 +362,30 @@ const NoviAlbum: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>{t('image')}:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>{t('image')}:</Text>
               {imagePickerButton}
               {imageFile && (
-                <Text style={styles.fileName}>{imageFile.name}</Text>
+                <Text style={activeStyles.fileName}>{imageFile.name}</Text>
               )}
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>GIF:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>GIF:</Text>
               {gifPickerButton}
               {gifFile && (
-                <Text style={styles.fileName}>{gifFile.name}</Text>
+                <Text style={activeStyles.fileName}>{gifFile.name}</Text>
               )}
             </View>
 
-            <View style={styles.songsSection}>
-              <Text style={styles.sectionTitle}>
+            <View style={activeStyles.songsSection}>
+              <Text style={activeStyles.sectionTitle}>
                 {t('add_existing_songs') || 'Add Existing Songs'}
               </Text>
               {userSongsQuery.isLoading ? (
                 <ActivityIndicator size="small" color="#b91d95" />
               ) : svePjesme.length === 0 ? (
-                <Text style={styles.noSongs}>
+                <Text style={activeStyles.noSongs}>
                   {t('no_available_songs') || 'No available songs'}
                 </Text>
               ) : (
@@ -388,22 +400,22 @@ const NoviAlbum: React.FC = React.memo(() => {
             </View>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={activeStyles.errorContainer}>
+                <Text style={activeStyles.errorText}>{error}</Text>
               </View>
             )}
 
             {success && (
-              <View style={styles.successContainer}>
-                <Text style={styles.successText}>{success}</Text>
+              <View style={activeStyles.successContainer}>
+                <Text style={activeStyles.successText}>{success}</Text>
               </View>
             )}
 
             <TouchableOpacity
               style={[
-                styles.button,
-                buttonPressed && styles.buttonPressed,
-                createAlbumMutation.isPending && styles.buttonDisabled,
+                activeStyles.button,
+                buttonPressed && activeStyles.buttonPressed,
+                createAlbumMutation.isPending && activeStyles.buttonDisabled,
               ]}
               onPress={handleSubmit}
               onPressIn={handleButtonPressIn}
@@ -411,17 +423,17 @@ const NoviAlbum: React.FC = React.memo(() => {
               disabled={createAlbumMutation.isPending}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>
+              <Text style={activeStyles.buttonText}>
                 {createAlbumMutation.isPending ? t('creating') || 'Creating...' : t('create_album')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={activeStyles.cancelButton}
               onPress={handleBack}
               disabled={createAlbumMutation.isPending}
             >
-              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+              <Text style={activeStyles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

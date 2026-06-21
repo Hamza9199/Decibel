@@ -21,7 +21,7 @@ import { styles as darkStyles } from './Statistika.styles';
 import { styles as lightStyles } from './StatistikaWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { router, useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 
@@ -233,7 +233,7 @@ const StatistikaScreen: React.FC = React.memo(() => {
       <Back
         title={t('platform_statistics') || 'Platform Statistics'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() =>   navigateWithHistory('/profile?from=statistika', '/statistika')}
       />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

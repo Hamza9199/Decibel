@@ -16,7 +16,7 @@ import { API_BASE } from '@/config/api';
 import { styles as darkStyles } from './Back.styles';
 import { styles as lightStyles } from './BackWhite.styles';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { getRoutePathFromSource, useBackPress } from '@/hooks/handleBackPress';
+import { getRoutePathFromSource, navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 
 interface BackProps {
   title: string;
@@ -114,13 +114,13 @@ const Back: React.FC<BackProps> = React.memo(({
     }
   }, [onBackPress, defaultBackPress]);
 
-  const handleProfilePress = useCallback(() => {
+ const handleProfilePress = useCallback(() => {
     if (onProfilePress) {
-      router.replace('/edit-profile?from=' + source);
-
-    } else {
-      router.replace('/edit-profile?from=' + source);
+      onProfilePress();
+      return;
     }
+
+    navigateWithHistory('/edit-profile?from=' + source);
   }, [onProfilePress, source]);
 
   const profileImageUri = korisnik?.putanjaProfilneSlike || 

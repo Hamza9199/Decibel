@@ -407,7 +407,7 @@ const handleBackPress = useBackPress({
         <Back 
           title={t('loading_album') || 'Loading Album...'}
           onBackPress={handleBackPress} 
-           onProfilePress={() => router.replace('/edit-profile')}
+           onProfilePress={() => navigateWithHistory(`/edit-profile?from=album/${albumId}`, `/album/${albumId}`)}
                           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -423,7 +423,7 @@ const handleBackPress = useBackPress({
          <Back 
         title={t('album_not_found') || 'Album Not Found'}
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory(`/edit-profile?from=album/${albumId}`, `/album/${albumId}`)}
                           source={from}
                 />
       
@@ -441,7 +441,7 @@ const handleBackPress = useBackPress({
        <Back 
         title={album.naziv}
         onBackPress={handleBackPress} 
-         onProfilePress={() => router.replace('/edit-profile')}
+         onProfilePress={() => navigateWithHistory(`/edit-profile?from=album/${albumId}`, `/album/${albumId}`)}
                           source={from}
       />
       <ScrollView

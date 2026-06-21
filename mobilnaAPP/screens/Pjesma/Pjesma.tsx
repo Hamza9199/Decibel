@@ -508,7 +508,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
         <Back 
           title={t('song_loading') || 'Loading Song...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>   navigateWithHistory('/edit-profile?from=' + currentRoute.replace(/^\/+/, ''), currentRoute)}
           source={currentRoute}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -524,7 +524,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
         <Back 
           title={t('song_not_found') || 'Song Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>   navigateWithHistory('/edit-profile?from=' + currentRoute.replace(/^\/+/, ''), currentRoute)}
           source={currentRoute}
         />
         
@@ -544,7 +544,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
       <Back 
         title={pjesma.naziv} 
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=' + currentRoute.replace(/^\/+/, ''), currentRoute)}
         source={currentRoute}
       />
       <ScrollView

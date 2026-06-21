@@ -562,7 +562,7 @@ const likeCount =
         <Back
           title={t('loading_playlist') || 'Loading Playlist...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>   navigateWithHistory('/edit-profile?from=playlista', currentRoute)}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -578,7 +578,7 @@ const likeCount =
         <Back
           title={t('playlist_not_found') || 'Playlist Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/profile')}
+          onProfilePress={() =>   navigateWithHistory('/profile?from=playlista', currentRoute)}
           source={from}
         />
         <MaterialIcons name="queue-music" size={64} color="#666" />
@@ -595,7 +595,7 @@ const likeCount =
       <Back
         title={playlista.naziv}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=playlista', currentRoute)}
         source={from}
       />
       <DraggableFlatList

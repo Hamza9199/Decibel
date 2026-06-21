@@ -21,7 +21,7 @@ import { API_BASE } from '@/config/api';
 import { styles as darkStyles } from './NovaPretplata.styles';
 import { styles as lightStyles } from './NovaPretplataWhite.styles';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { getRoutePathFromSource, navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const NovaPretplata: React.FC = React.memo(() => {
@@ -47,12 +47,15 @@ const NovaPretplata: React.FC = React.memo(() => {
   const [showExpPicker, setShowExpPicker] = useState(false);
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/nova-pretplata', currentRoute: '/nova-pretplata' });
-
+  const currentRoute = useMemo(() => pretplataId ? `/nova-pretplata/${pretplataId}` : '/nova-pretplata/[pretplataId]', [pretplataId]);
+  const handleBackPress = useBackPress({
+      from,
+      defaultRoute: getRoutePathFromSource(from) || '/(tabs)',
+      currentRoute,
+    });
 
   useScreenCleanup();
 
-  // Load stored theme (same key used in Home screen)
   const loadTheme = useCallback(async () => {
     try {
       const stored = await AsyncStorage.getItem('decibel_tema');
@@ -111,7 +114,6 @@ const NovaPretplata: React.FC = React.memo(() => {
       setSuccess(t('subscription_purchased_successfully') || 'Subscription purchased successfully!');
       setError(null);
       
-      // Clear form
       setCardNumber('');
       setCardName('');
       setCardExp('');
@@ -178,7 +180,6 @@ const NovaPretplata: React.FC = React.memo(() => {
     setCardNumber(formatCardNumber(text));
   }, [formatCardNumber]);
 
-  // Card expiry is now selected via month/year picker, so direct text input handler is removed.
 
   const handleCardCvcChange = useCallback((text: string) => {
     setCardCvc(formatCardCvc(text));
@@ -238,7 +239,12 @@ const NovaPretplata: React.FC = React.memo(() => {
         <Back
           title={t('new_subscription') || 'New Subscription'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>
+        navigateWithHistory(
+          `/edit-profile?from=/nova-pretplata/${pretplataId}`,
+          currentRoute
+        )
+          }
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -254,7 +260,7 @@ const NovaPretplata: React.FC = React.memo(() => {
         <Back
           title={t('subscription_not_found') || 'Subscription Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory(`/edit-profile?from=/nova-pretplata/${pretplataId}`, currentRoute)}
           />
         <MaterialIcons name="credit-card" size={64} color="#666" />
         <Text style={styles.notFoundText}>
@@ -270,7 +276,7 @@ const NovaPretplata: React.FC = React.memo(() => {
       <Back
         title={t('new_subscription') || 'New Subscription'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory(`/edit-profile?from=/nova-pretplata/${pretplataId}`, currentRoute)}
         source={from}
       />
       <ScrollView contentContainerStyle={styles.scrollContainer}>

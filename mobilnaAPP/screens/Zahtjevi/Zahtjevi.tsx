@@ -8,7 +8,7 @@ import Back from '@/komponente/Back/Back';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -220,7 +220,7 @@ const Zahtjevi: React.FC = React.memo(() => {
       <Back
         title={t('zahtjevi') || 'Zahtjevi'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=zahtjevi', '/zahtjevi')}
         source={from}
       />
       <ScrollView

@@ -12,32 +12,47 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './SvePjesme.styles';
+import { styles as darkStyles } from './SvePjesme.styles';
+import { styles as lightStyles } from './SvePjesmeWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
 
 const SvePjesme: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [activeSongId, setActiveSongId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const { playAudio } = useAudio();
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   
   const { from } = useLocalSearchParams<{ from?: string }>();
-const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', currentRoute: '/sve-pjesme' });
+const handleBackPress = useBackPress({ from, defaultRoute: '/svepjesme', currentRoute: '/svepjesme' });
 
   const loadUserData = useCallback(async () => {
     try {
@@ -74,6 +89,18 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
     },
     enabled: !!korisnikID,
     staleTime: 5 * 60 * 1000, 
+  });
+
+  const allVezeQuery = useQuery({
+    queryKey: ['izvodjac_pjesma_all'],
+    queryFn: async () => { const r = await axios.get(`${API_BASE}/izvodjac_pjesma/`); return r.data; },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const allKorisniciQuery = useQuery({
+    queryKey: ['sviKorisnici_all'],
+    queryFn: async () => { const r = await axios.get(`${API_BASE}/korisnici/`); return r.data; },
+    staleTime: 5 * 60 * 1000,
   });
 
   const deleteSongMutation = useMutation({
@@ -113,8 +140,8 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
   }, [playAudio, t]);
 
   const handleEdit = useCallback((songId: number) => {
-    router.replace(`/uredi-pjesmu/${songId}`);
-  }, [router]);
+    navigateWithHistory(`/uredi-pjesmu/${songId}?from=svepjesme`, '/svepjesme');
+  }, []);
 
   const handleDelete = useCallback((id: number) => {
     Alert.alert(
@@ -132,12 +159,12 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
   }, [deleteSongMutation, t]);
 
   const handleNavigateToSong = useCallback((songId: number) => {
-    router.replace(`/pjesma/${songId}`);
-  }, [router]);
+    navigateWithHistory(`/pjesma/${songId}?from=svepjesme`, '/svepjesme');
+  }, []);
 
   const handleNavigateToArtist = useCallback((artistId: string) => {
-    router.replace(`/izvodjac/${artistId}`);
-  }, [router]);
+    navigateWithHistory(`/izvodjac/${artistId}?from=svepjesme`, '/svepjesme');
+  }, []);
 
   const filtriranePjesme = useMemo(() => {
     const pjesme = songsQuery.data || [];
@@ -162,37 +189,37 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('loading_songs') || 'Loading Songs...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile?from=svepjesme', '/svepjesme')}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
         <Tabs currentRoute="sve-pjesme" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={t('my_songs') || 'My Songs'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=svepjesme', '/svepjesme')}
         source={from}
         />
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={activeStyles.scrollContainer}
         refreshControl={refreshControl}
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('my_songs') || 'My Songs'}</Text>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('my_songs') || 'My Songs'}</Text>
           
           <TextInput
-            style={styles.searchInput}
+            style={activeStyles.searchInput}
             placeholder={t('search_songs') || 'Search songs...'}
             placeholderTextColor="#888"
             value={search}
@@ -200,29 +227,32 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
           />
 
           {filtriranePjesme.length === 0 ? (
-            <Text style={styles.noSongs}>
+            <Text style={activeStyles.noSongs}>
               {pjesme.length === 0
                 ? t('no_songs_user') || 'You have no songs'
                 : t('no_results') || 'No results found'}
             </Text>
           ) : (
-            <View style={styles.songGrid}>
-              {filtriranePjesme.map((song: Pjesma) => (
+            <View style={activeStyles.songGrid}>
+              {filtriranePjesme.map((song: Pjesma) => {
+                const veze = allVezeQuery.data?.filter((v: any) => v.pjesmaID === song.id) || [];
+                const izvodjaci = veze.map((v: any) => allKorisniciQuery.data?.find((k: any) => k.id === v.izvodjacID)).filter(Boolean);
+                return (
                 <View
                   key={song.id}
-                  style={[styles.card, activeSongId === song.id && styles.activeCard]}
+                  style={[activeStyles.card, activeSongId === song.id && activeStyles.activeCard]}
                 >
-                  <View style={styles.cardImageWrap}>
+                  <View style={activeStyles.cardImageWrap}>
                     <Image
                       source={{ 
                         uri: song.putanjaSlika || 'https://via.placeholder.com/150' 
                       }}
-                      style={styles.cardImage}
+                      style={activeStyles.cardImage}
                       contentFit="cover"
                     />
                     {song.putanjaAudio && (
                       <TouchableOpacity
-                        style={styles.playButton}
+                        style={activeStyles.playButton}
                         onPress={() => handlePlay(song)}
                       >
                         <MaterialIcons name="play-arrow" size={24} color="#fff" />
@@ -231,48 +261,61 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/sve-pjesme', curren
                   </View>
                   
                   <TouchableOpacity onPress={() => handleNavigateToSong(song.id)}>
-                    <Text style={styles.cardTitle} numberOfLines={2}>
+                    <Text style={activeStyles.cardTitle} numberOfLines={2}>
                       {song.naziv}
                     </Text>
                   </TouchableOpacity>
                   
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (song.korisnikID) handleNavigateToArtist(song.korisnikID);
-                    }}
-                    disabled={!song.korisnikID}
-                  >
-                    <Text style={styles.cardDesc} numberOfLines={1}>
-                      {song.korisnik?.korisnicko_ime || t('unknown_artist')}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {izvodjaci.length > 0 ? (
+                      izvodjaci.map((izv: any, idx: number) => (
+                        <TouchableOpacity key={izv.id} onPress={() => handleNavigateToArtist(izv.id.toString())}>
+                          <Text style={activeStyles.cardDesc} numberOfLines={1}>
+                            {izv.korisnicko_ime}{idx < izvodjaci.length - 1 ? ' & ' : ''}
+                          </Text>
+                        </TouchableOpacity>
+                      ))
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => {
+                          if (song.korisnikID) handleNavigateToArtist(song.korisnikID);
+                        }}
+                        disabled={!song.korisnikID}
+                      >
+                        <Text style={activeStyles.cardDesc} numberOfLines={1}>
+                          {song.korisnik?.korisnicko_ime || t('unknown_artist')}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
 
-                  <View style={styles.cardActions}>
+                  <View style={activeStyles.cardActions}>
                     <TouchableOpacity
-                      style={styles.editButton}
+                      style={activeStyles.editButton}
                       onPress={() => handleEdit(song.id)}
                     >
-                      <Text style={styles.buttonText}>{t('edit')}</Text>
+                      <Text style={activeStyles.buttonText}>{t('edit')}</Text>
                     </TouchableOpacity>
                     
                     <TouchableOpacity
-                      style={styles.deleteButton}
+                      style={activeStyles.deleteButton}
                       onPress={() => handleDelete(song.id)}
                       disabled={deleteSongMutation.isPending}
                     >
-                      <Text style={styles.buttonText}>
+                      <Text style={activeStyles.buttonText}>
                         {deleteSongMutation.isPending ? t('deleting') : t('delete')}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
-              ))}
+                );
+              })}
             </View>
           )}
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="sve-pjesme" />
+      <Tabs currentRoute="svepjesme" />
     </View>
   );
 });

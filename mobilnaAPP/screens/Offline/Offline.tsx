@@ -8,7 +8,7 @@ import { styles as darkStyles } from './Offline.styles';
 import { styles as lightStyles } from './OfflineWhite.styles';
 import { useAudio } from '@/context/AudioContext';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { router,useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 
@@ -137,7 +137,7 @@ const Offline: React.FC = React.memo(() => {
       <Back
         title={t('offline_mode') || 'Offline Mode'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=/offline', "/offline")}
         source={from}
         />
   <View style={activeStyles.content}>

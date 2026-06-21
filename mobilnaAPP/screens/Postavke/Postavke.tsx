@@ -19,7 +19,7 @@ import { styles as darkStyles } from './Postavke.styles';
 import { styles as lightStyles } from './PostavkeWhite.styles';
 import { useRouter,useLocalSearchParams } from 'expo-router';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import * as FileSystem from 'expo-file-system';
 
@@ -223,7 +223,7 @@ const Postavke: React.FC = React.memo(() => {
       <Back
         title={t('settings') || 'Settings'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>   navigateWithHistory('/edit-profile?from=settings', '/settings')}
         source={from}
         />
       <ScrollView contentContainerStyle={styles.scrollContainer}>

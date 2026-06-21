@@ -467,7 +467,7 @@ const AdminPanel: React.FC = React.memo(() => {
         <Back 
           title={t('admin_panel') || 'Admin Panel'} 
           onBackPress={handleBackPress} 
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile?from=admin-panel', currentRoute)}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -482,7 +482,7 @@ const AdminPanel: React.FC = React.memo(() => {
        <Back 
         title={t('admin_panel') || 'Admin Panel'} 
         onBackPress={handleBackPress} 
-         onProfilePress={() => router.replace('/edit-profile')}
+         onProfilePress={() => navigateWithHistory('/edit-profile?from=admin-panel', currentRoute)}
         source={from}
       />
       <ScrollView
@@ -605,7 +605,7 @@ const AdminPanel: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="admin" />
+      <Tabs currentRoute="admin-panel" />
     </View>
   );
 });

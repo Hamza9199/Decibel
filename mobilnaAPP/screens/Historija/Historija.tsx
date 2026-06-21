@@ -398,7 +398,7 @@ const Historija: React.FC = React.memo(() => {
       <Back
         title={t('history') || 'History'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile?from=/history', '/history')}
                 source={from}
       />
   <ScrollView

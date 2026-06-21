@@ -12,31 +12,48 @@ import {
 import { Image } from 'expo-image';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter,useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Playlista } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './SvePlayliste.styles';
+import { styles as darkStyles } from './SvePlayliste.styles';
+import { styles as lightStyles } from './SvePlaylisteWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { useAudio } from '@/context/AudioContext';
 
 const SvePlayliste: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
+  const { playPlaylist } = useAudio();
 
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/sve-playliste', currentRoute: '/sve-playliste' });
   
 
   useScreenCleanup();
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
 
   const loadUserData = useCallback(async () => {
@@ -104,38 +121,37 @@ const SvePlayliste: React.FC = React.memo(() => {
     try {
       const res = await axios.get(`${API_BASE}/pjesma_playlista/redoslijed/${playlistId}`);
       const songIds: number[] = res.data || [];
-      
+
       if (songIds.length === 0) {
         Alert.alert(t('info'), t('empty_playlist') || 'Playlist is empty');
         return;
       }
-      
+
       const songsPromises = songIds.map(id =>
         axios.get(`${API_BASE}/pjesme/${id}`)
           .then(r => r.data)
           .catch(() => null)
       );
-      
-      const playlistSongs = (await Promise.all(songsPromises)).filter(Boolean);
-      
+
+      const playlistSongs = (await Promise.all(songsPromises)).filter(
+        (s) => s && s.putanjaAudio
+      );
+
       if (playlistSongs.length === 0) {
         Alert.alert(t('info'), t('no_playable_songs') || 'No playable songs in playlist');
         return;
       }
-      
-      const firstSong = playlistSongs[0];
-      if (firstSong?.putanjaAudio) {
-        console.log('Playing playlist:', playlistId, 'First song:', firstSong.naziv);
-      }
+
+      playPlaylist(playlistSongs, 0);
     } catch (error) {
       console.error('Error playing playlist:', error);
       Alert.alert(t('error'), t('error_playing_playlist') || 'Error playing playlist');
     }
-  }, [t]);
+  }, [t, playPlaylist]);
 
   const handleEdit = useCallback((playlistId: number) => {
-    router.replace(`/uredi-playlistu/${playlistId}`);
-  }, [router]);
+    navigateWithHistory(`/uredi-playlistu/${playlistId}?from=sve-playliste`, '/sve-playliste');
+  }, []);
 
   const handleDelete = useCallback((playlistId: number) => {
     Alert.alert(
@@ -153,12 +169,12 @@ const SvePlayliste: React.FC = React.memo(() => {
   }, [deletePlaylistMutation, t]);
 
   const handleNavigateToPlaylist = useCallback((playlistId: number) => {
-    router.replace(`/playlista/${playlistId}`);
-  }, [router]);
+    navigateWithHistory(`/playlista/${playlistId}?from=sve-playliste`, '/sve-playliste');
+  }, []);
 
   const handleNavigateToUser = useCallback((userId: string) => {
-    router.replace(`/izvodjac/${userId}`);
-  }, [router]);
+    navigateWithHistory(`/izvodjac/${userId}?from=sve-playliste`, '/sve-playliste');
+  }, []);
 
   const filtriranePlayliste = useMemo(() => {
     const playliste = playlistsQuery.data || [];
@@ -180,37 +196,37 @@ const SvePlayliste: React.FC = React.memo(() => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('loading_playlists') || 'Loading Playlists...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile?from=sve-pjesme', '/sve-pjesme')}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
         <Tabs currentRoute="sve-playliste" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={t('all_playlists') || 'All Playlists'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile?from=sve-playliste', '/sve-playliste')}
         source={from}
         />
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={activeStyles.scrollContainer}
         refreshControl={refreshControl}
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('my_playlists') || 'My Playlists'}</Text>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('my_playlists') || 'My Playlists'}</Text>
           
           <TextInput
-            style={styles.searchInput}
+            style={activeStyles.searchInput}
             placeholder={t('search_playlists') || 'Search playlists...'}
             placeholderTextColor="#888"
             value={search}
@@ -218,25 +234,25 @@ const SvePlayliste: React.FC = React.memo(() => {
           />
 
           {filtriranePlayliste.length === 0 ? (
-            <Text style={styles.noPlaylists}>
+            <Text style={activeStyles.noPlaylists}>
               {playliste.length === 0
                 ? t('no_playlists_user') || 'You have no playlists'
                 : t('no_results') || 'No results found'}
             </Text>
           ) : (
-            <View style={styles.playlistGrid}>
+            <View style={activeStyles.playlistGrid}>
               {filtriranePlayliste.map((playlist: Playlista) => (
-                <View key={playlist.id} style={styles.card}>
-                  <View style={styles.cardImageWrap}>
+                <View key={playlist.id} style={activeStyles.card}>
+                  <View style={activeStyles.cardImageWrap}>
                     <Image
                       source={{ 
                         uri: playlist.putanjaSlika || 'https://via.placeholder.com/150' 
                       }}
-                      style={styles.cardImage}
+                      style={activeStyles.cardImage}
                       contentFit="cover"
                     />
                     <TouchableOpacity
-                      style={styles.playButton}
+                      style={activeStyles.playButton}
                       onPress={() => handlePlayPlaylist(playlist.id)}
                     >
                       <MaterialIcons name="play-arrow" size={24} color="#fff" />
@@ -244,31 +260,31 @@ const SvePlayliste: React.FC = React.memo(() => {
                   </View>
                   
                   <TouchableOpacity onPress={() => handleNavigateToPlaylist(playlist.id)}>
-                    <Text style={styles.cardTitle} numberOfLines={2}>
+                    <Text style={activeStyles.cardTitle} numberOfLines={2}>
                       {playlist.naziv}
                     </Text>
                   </TouchableOpacity>
                   
                   <TouchableOpacity onPress={() => handleNavigateToUser(playlist.korisnikID ?? '')} disabled={!playlist.korisnikID}>
-                    <Text style={styles.cardDesc} numberOfLines={1}>
+                    <Text style={activeStyles.cardDesc} numberOfLines={1}>
                       {playlist.korisnik?.korisnicko_ime || t('unknown_user')}
                     </Text>
                   </TouchableOpacity>
 
-                  <View style={styles.cardActions}>
+                  <View style={activeStyles.cardActions}>
                     <TouchableOpacity
-                      style={styles.editButton}
+                      style={activeStyles.editButton}
                       onPress={() => handleEdit(playlist.id)}
                     >
-                      <Text style={styles.buttonText}>{t('edit')}</Text>
+                      <Text style={activeStyles.buttonText}>{t('edit')}</Text>
                     </TouchableOpacity>
                     
                     <TouchableOpacity
-                      style={styles.deleteButton}
+                      style={activeStyles.deleteButton}
                       onPress={() => handleDelete(playlist.id)}
                       disabled={deletePlaylistMutation.isPending}
                     >
-                      <Text style={styles.buttonText}>
+                      <Text style={activeStyles.buttonText}>
                         {deletePlaylistMutation.isPending ? t('deleting') : t('delete')}
                       </Text>
                     </TouchableOpacity>

@@ -271,7 +271,6 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
 
-  // Modal Styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(24, 24, 24, 0.85)',
@@ -382,5 +381,10 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
   },
 });

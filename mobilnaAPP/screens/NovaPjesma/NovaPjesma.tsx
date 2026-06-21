@@ -10,21 +10,21 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
-import { styles } from './NovaPjesma.styles';
+import { styles as darkStyles } from './NovaPjesma.styles';
+import { styles as lightStyles } from './NovaPjesmaWhite.styles';
 import { useMutation } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const NovaPjesma: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
   const [trajanjeSekunde, setTrajanjeSekunde] = useState('');
@@ -38,8 +38,23 @@ const NovaPjesma: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/nova-pjesma', currentRoute: '/nova-pjesma' });
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -59,11 +74,20 @@ const NovaPjesma: React.FC = React.memo(() => {
 
   const createSongMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return await axios.post(`${API_BASE}/pjesme/`, formData, {
+      const res = await axios.post(`${API_BASE}/pjesme/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      const pjesmaId = res.data?.id;
+      if (pjesmaId && korisnikID) {
+        await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
+          izvodjacID: korisnikID,
+          pjesmaID: pjesmaId,
+          potvrdjeno: true,
+        }).catch(() => {});
+      }
+      return res;
     },
     onSuccess: () => {
       setSuccess(t('song_created_successfully') || 'Song created successfully!');
@@ -79,7 +103,7 @@ const NovaPjesma: React.FC = React.memo(() => {
       setJavno(false);
 
       setTimeout(() => {
-        router.back();
+        navigateWithHistory('/sve-pjesme');
       }, 2000);
     },
     onError: (error: any) => {
@@ -109,6 +133,7 @@ const NovaPjesma: React.FC = React.memo(() => {
     formData.append('opis', opis.trim());
     formData.append('genre', genre.trim());
     formData.append('javno', String(javno));
+    formData.append('datumObjave', new Date().toISOString().split('T')[0]);
     
     if (trajanjeSekunde) {
       formData.append('trajanjeSekunde', trajanjeSekunde);
@@ -187,8 +212,8 @@ const NovaPjesma: React.FC = React.memo(() => {
   }, [javno]);
 
   const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
+    navigateWithHistory('/sve-pjesme');
+  }, []);
 
   const handleFocus = useCallback((field: string) => {
     setFocusedField(field);
@@ -208,75 +233,75 @@ const NovaPjesma: React.FC = React.memo(() => {
 
   const audioPickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('audio')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {audioFile ? t('change_audio') : t('select_audio')}
       </Text>
     </TouchableOpacity>
-  ), [audioFile, handleFilePicker, t]);
+  ), [activeStyles.fileButton, activeStyles.fileButtonText, audioFile, handleFilePicker, t]);
 
   const imagePickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('image')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {imageFile ? t('change_image') : t('select_image')}
       </Text>
     </TouchableOpacity>
-  ), [imageFile, handleFilePicker, t]);
+  ), [activeStyles.fileButton, activeStyles.fileButtonText, imageFile, t, handleFilePicker]);
 
   const gifPickerButton = useMemo(() => (
     <TouchableOpacity
-      style={styles.fileButton}
+      style={activeStyles.fileButton}
       onPress={() => handleFilePicker('gif')}
     >
-      <Text style={styles.fileButtonText}>
+      <Text style={activeStyles.fileButtonText}>
         {gifFile ? t('change_gif') : t('select_gif')}
       </Text>
     </TouchableOpacity>
-  ), [gifFile, handleFilePicker, t]);
+  ), [activeStyles.fileButton, activeStyles.fileButtonText, gifFile, handleFilePicker, t]);
 
     useScreenCleanup();
   
 
   if (createSongMutation.isPending) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('creating_song') || 'Creating Song...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile?from=nova-pjesma', '/nova-pjesma')}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('creating_song')}</Text>
+        <Text style={activeStyles.loadingText}>{t('creating_song')}</Text>
         <Tabs currentRoute="nova-pjesma" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={t('new_song') || 'New Song'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile?from=nova-pjesma', '/nova-pjesma')}
         source={from}
       />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('new_song')}</Text>
+      <ScrollView contentContainerStyle={activeStyles.scrollContainer}>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('new_song')}</Text>
 
-          <View style={styles.form}>
+          <View style={activeStyles.form}>
             <View>
-              <Text style={styles.label}>{t('song_name')} *:</Text>
+              <Text style={activeStyles.label}>{t('song_name')} *:</Text>
               <TextInput
                 style={[
-                  styles.input,
-                  focusedField === 'naziv' && styles.inputFocused,
+                  activeStyles.input,
+                  focusedField === 'naziv' && activeStyles.inputFocused,
                 ]}
                 value={naziv}
                 onChangeText={setNaziv}
@@ -290,11 +315,11 @@ const NovaPjesma: React.FC = React.memo(() => {
             </View>
 
             <View>
-              <Text style={styles.label}>{t('description')}:</Text>
+              <Text style={activeStyles.label}>{t('description')}:</Text>
               <TextInput
                 style={[
-                  styles.textArea,
-                  focusedField === 'opis' && styles.inputFocused,
+                  activeStyles.textArea,
+                  focusedField === 'opis' && activeStyles.inputFocused,
                 ]}
                 value={opis}
                 onChangeText={setOpis}
@@ -308,11 +333,11 @@ const NovaPjesma: React.FC = React.memo(() => {
             </View>
 
             <View>
-              <Text style={styles.label}>{t('genre')}:</Text>
+              <Text style={activeStyles.label}>{t('genre')}:</Text>
               <TextInput
                 style={[
-                  styles.input,
-                  focusedField === 'genre' && styles.inputFocused,
+                  activeStyles.input,
+                  focusedField === 'genre' && activeStyles.inputFocused,
                 ]}
                 value={genre}
                 onChangeText={setGenre}
@@ -326,11 +351,11 @@ const NovaPjesma: React.FC = React.memo(() => {
             </View>
 
             <View>
-              <Text style={styles.label}>{t('duration_seconds')}:</Text>
+              <Text style={activeStyles.label}>{t('duration_seconds')}:</Text>
               <TextInput
                 style={[
-                  styles.input,
-                  focusedField === 'trajanje' && styles.inputFocused,
+                  activeStyles.input,
+                  focusedField === 'trajanje' && activeStyles.inputFocused,
                 ]}
                 value={trajanjeSekunde}
                 onChangeText={setTrajanjeSekunde}
@@ -342,56 +367,56 @@ const NovaPjesma: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>{t('audio_file')} *:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>{t('audio_file')} *:</Text>
               {audioPickerButton}
               {audioFile && (
-                <Text style={styles.fileName}>{audioFile.name}</Text>
+                <Text style={activeStyles.fileName}>{audioFile.name}</Text>
               )}
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>{t('image')}:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>{t('image')}:</Text>
               {imagePickerButton}
               {imageFile && (
-                <Text style={styles.fileName}>{imageFile.name}</Text>
+                <Text style={activeStyles.fileName}>{imageFile.name}</Text>
               )}
             </View>
 
-            <View style={styles.fileInputContainer}>
-              <Text style={styles.label}>GIF:</Text>
+            <View style={activeStyles.fileInputContainer}>
+              <Text style={activeStyles.label}>GIF:</Text>
               {gifPickerButton}
               {gifFile && (
-                <Text style={styles.fileName}>{gifFile.name}</Text>
+                <Text style={activeStyles.fileName}>{gifFile.name}</Text>
               )}
             </View>
 
-            <TouchableOpacity style={styles.checkboxContainer} onPress={toggleCheckbox}>
-              <View style={[styles.checkbox, javno && styles.checkboxChecked]}>
+            <TouchableOpacity style={activeStyles.checkboxContainer} onPress={toggleCheckbox}>
+              <View style={[activeStyles.checkbox, javno && activeStyles.checkboxChecked]}>
                 {javno && (
                   <MaterialIcons name="check" size={16} color="#fff" />
                 )}
               </View>
-              <Text style={styles.checkboxLabel}>{t('public_song')}</Text>
+              <Text style={activeStyles.checkboxLabel}>{t('public_song')}</Text>
             </TouchableOpacity>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={activeStyles.errorContainer}>
+                <Text style={activeStyles.errorText}>{error}</Text>
               </View>
             )}
 
             {success && (
-              <View style={styles.successContainer}>
-                <Text style={styles.successText}>{success}</Text>
+              <View style={activeStyles.successContainer}>
+                <Text style={activeStyles.successText}>{success}</Text>
               </View>
             )}
 
             <TouchableOpacity
               style={[
-                styles.button,
-                buttonPressed && styles.buttonPressed,
-                createSongMutation.isPending && styles.buttonDisabled,
+                activeStyles.button,
+                buttonPressed && activeStyles.buttonPressed,
+                createSongMutation.isPending && activeStyles.buttonDisabled,
               ]}
               onPress={handleSubmit}
               onPressIn={handleButtonPressIn}
@@ -399,17 +424,17 @@ const NovaPjesma: React.FC = React.memo(() => {
               disabled={createSongMutation.isPending}
               activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>
+              <Text style={activeStyles.buttonText}>
                 {createSongMutation.isPending ? t('creating') || 'Creating...' : t('create_song')}
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.cancelButton}
+              style={activeStyles.cancelButton}
               onPress={handleBack}
               disabled={createSongMutation.isPending}
             >
-              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
+              <Text style={activeStyles.cancelButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -527,7 +527,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
                 )}
               </View>
             </ScrollView>
-            <TouchableOpacity onPress={() => { if (currentSong?.id) { handleClosePress(); navigateWithHistory(`/pjesma/${currentSong.id}?from=home`, `/(tabs)`); } }} activeOpacity={0.7} style={{ width: '100%', flex: 1, paddingRight: 10 }}>
+            <TouchableOpacity onPress={() => { if (currentSong?.id) { handleClosePress(); navigateWithHistory(`/pjesma/${currentSong.id}?from=home`, `/(tabs)`); } }} activeOpacity={0.7} style={{ alignSelf: 'flex-start', paddingRight: 10 }}>
               <MarqueeText style={styles.audioTitle}>
                 {currentSong?.naziv || t('no_current_song')}
               </MarqueeText>
@@ -536,17 +536,12 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           <Text style={styles.audioTime}>
             {formatTime(isSeeking ? seekValue : progress)} / {formatTime(duration)}
           </Text>
-          {isBuffering && (
-            <Text style={styles.loadingText}>
-              {t('loading')}...
-            </Text>
-          )}
+          
         </View>
-
         <TouchableOpacity
           onPress={handleLike}
           disabled={!isLoaded || isBuffering || !korisnik?.id || likeMutation.isPending}
-          style={styles.likeButton}
+          style={[styles.likeButton, { left: 250, backgroundColor: '#f383bfff' }]}
         >
           <MaterialIcons
             name={liked ? 'favorite' : 'favorite-border'}
@@ -558,10 +553,11 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
         <TouchableOpacity
           onPress={handleDownload}
           disabled={!isLoaded || isBuffering}
-          style={[styles.likeButton, { left: 180, backgroundColor: '#e754a2' }]}
+          style={[styles.likeButton, { left: 200, backgroundColor: '#e754a2' }]}
         >
           <MaterialIcons name="download" size={20} color="#fff" />
         </TouchableOpacity>
+       
       </View>
 
       <View style={styles.controlsRow}>

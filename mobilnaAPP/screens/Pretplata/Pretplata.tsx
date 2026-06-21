@@ -205,7 +205,7 @@ const PretplataScreen: React.FC = React.memo(() => {
       <Back
         title={t('subscription') || 'Subscription'}
         onBackPress={handleBackPress}
-  onProfilePress={() => navigateWithHistory('/profile', '/pretplata')}
+  onProfilePress={() => navigateWithHistory('/profile?from=pretplata', '/pretplata')}
         />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}

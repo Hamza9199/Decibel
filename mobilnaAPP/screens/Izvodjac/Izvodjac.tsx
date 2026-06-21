@@ -293,7 +293,7 @@ const Izvodjac: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlaySong, handleNavigateToSong]);
+  ), [styles.itemCard, styles.itemHeader, styles.itemImage, styles.itemInfo, styles.itemTitle, styles.actionButton, styles.actionButtonRight, handleNavigateToSong, handlePlaySong]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
     <View style={styles.itemCard}>
@@ -316,7 +316,7 @@ const Izvodjac: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlayAlbum, handleNavigateToAlbum]);
+  ), [styles.itemCard, styles.itemHeader, styles.itemImage, styles.itemInfo, styles.itemTitle, styles.actionButton, styles.actionButtonRight, handleNavigateToAlbum, handlePlayAlbum]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <View style={styles.itemCard}>
@@ -339,7 +339,7 @@ const Izvodjac: React.FC = React.memo(() => {
         </TouchableOpacity>
       </View>
     </View>
-  ), [handlePlayPlaylist, handleNavigateToPlaylist]);
+  ), [styles.itemCard, styles.itemHeader, styles.itemImage, styles.itemInfo, styles.itemTitle, styles.actionButton, styles.actionButtonRight, handleNavigateToPlaylist, handlePlayPlaylist]);
 
   const artistMeta = useMemo(() => {
     if (!artistQuery.data) return [];
@@ -371,7 +371,7 @@ const Izvodjac: React.FC = React.memo(() => {
          <Back 
           title={t('artist_not_found') || 'Artist Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory(`/edit-profile?from=izvodjac/${izvodjacId}`, currentRoute)}
                   source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
@@ -388,7 +388,7 @@ const Izvodjac: React.FC = React.memo(() => {
         <Back 
           title={t('artist_not_found') || 'Artist Not Found'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() =>  navigateWithHistory(`/edit-profile?from=izvodjac/${izvodjacId}`, currentRoute)}
                   source={from}
         />
         <MaterialIcons name="person" size={64} color="#666" />
@@ -407,7 +407,7 @@ const Izvodjac: React.FC = React.memo(() => {
       <Back 
         title={artistQuery.data.korisnicko_ime || t('artist')}
         onBackPress={handleBackPress}
-       onProfilePress={() => router.replace('/edit-profile')}
+       onProfilePress={() => navigateWithHistory(`/edit-profile?from=izvodjac/${izvodjacId}`, currentRoute)}
                source={from}
       />
       <ScrollView

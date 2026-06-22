@@ -17,18 +17,18 @@ import * as DocumentPicker from 'expo-document-picker';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './UrediAlbum.styles';
+import { styles as darkStyles } from './UrediAlbum.styles';
+import { styles as lightStyles } from './UrediAlbumWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
 
 const UrediAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const { albumId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +36,9 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [removing, setRemoving] = useState<number | null>(null);
   const [dodajuci, setDodajuci] = useState<number | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
 
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-album/${albumId}`, currentRoute: `/uredi-album/${albumId}` });
@@ -46,6 +49,19 @@ const UrediAlbum: React.FC = React.memo(() => {
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
   useScreenCleanup();
+
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -81,9 +97,10 @@ const UrediAlbum: React.FC = React.memo(() => {
   });
 
   const songsQuery = useQuery({
-    queryKey: ['songs'],
+    queryKey: ['songs', korisnikID],
+    enabled: !!korisnikID,
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE}/pjesme/`);
+      const response = await axios.get(`${API_BASE}/pjesme/korisnik/${korisnikID}`);
       return response.data || [];
     },
     staleTime: 10 * 60 * 1000, 
@@ -108,7 +125,7 @@ const UrediAlbum: React.FC = React.memo(() => {
       setSuccess(t('album_updated_successfully') || 'Album updated successfully');
       
       setTimeout(() => {
-        router.replace(`/album/${albumQuery.data?.id}`);
+        navigateWithHistory('/svi-albumi', `/uredi-album/${albumId}`);
       }, 1500);
     },
     onError: (error) => {
@@ -119,15 +136,8 @@ const UrediAlbum: React.FC = React.memo(() => {
 
   const removeSongMutation = useMutation({
     mutationFn: async (pjesmaId: number) => {
-      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      const pjesma = pjesmaRes.data;
-      
-      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
-        ...pjesma,
-        albumID: null,
-      });
-      
-      return { pjesmaId, pjesma };
+      await axios.delete(`${API_BASE}/albumi/${albumId}/pjesme/${pjesmaId}`);
+      return { pjesmaId };
     },
     onSuccess: ({ pjesmaId }) => {
       queryClient.invalidateQueries({ queryKey: ['songs'] });
@@ -142,15 +152,8 @@ const UrediAlbum: React.FC = React.memo(() => {
 
   const addSongMutation = useMutation({
     mutationFn: async (pjesmaId: number) => {
-      const pjesmaRes = await axios.get(`${API_BASE}/pjesme/${pjesmaId}`);
-      const pjesma = pjesmaRes.data;
-      
-      await axios.put(`${API_BASE}/pjesme/${pjesmaId}`, {
-        ...pjesma,
-        albumID: Number(albumId),
-      });
-      
-      return { pjesmaId, pjesma };
+      await axios.post(`${API_BASE}/albumi/${albumId}/pjesme/${pjesmaId}`);
+      return { pjesmaId };
     },
     onSuccess: ({ pjesmaId }) => {
       queryClient.invalidateQueries({ queryKey: ['songs'] });
@@ -269,9 +272,9 @@ const UrediAlbum: React.FC = React.memo(() => {
   const { pjesmeAlbuma, svePjesme } = useMemo(() => {
     const allSongs = songsQuery.data || [];
     
-    const albumSongs = allSongs.filter((p: Pjesma) => String(p.albumID) === String(albumId));
+    const albumSongs = allSongs.filter((p: Pjesma) => String(p.albumID) === String(albumId) && p.odobreno);
     const availableSongs = allSongs.filter((p: Pjesma) => 
-      p.korisnikID === korisnikID && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
+      p.korisnikID === korisnikID && p.odobreno && (!p.albumID || String(p.albumID) === 'null' || p.albumID === null)
     );
     
     return {
@@ -280,6 +283,10 @@ const UrediAlbum: React.FC = React.memo(() => {
     };
   }, [songsQuery.data, albumId, korisnikID]);
 
+  const handleNavigateToSong = useCallback((songId: number) => {
+    navigateWithHistory(`/pjesma/${songId}?from=uredi-album`, `/uredi-album/${albumId}`);
+  }, [albumId]);
+
   const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -287,26 +294,26 @@ const UrediAlbum: React.FC = React.memo(() => {
   }, []);
 
   const renderSongItem = useCallback(({ item, isOnAlbum }: { item: Pjesma; isOnAlbum: boolean }) => (
-    <View style={styles.songItem}>
-      <View style={styles.songInfo}>
-        <Text style={styles.songName} numberOfLines={1}>
+    <TouchableOpacity style={activeStyles.songItem} onPress={() => handleNavigateToSong(item.id)}>
+      <View style={activeStyles.songInfo}>
+        <Text style={activeStyles.songName} numberOfLines={1}>
           {item.naziv}
         </Text>
         {item.trajanjeSekunde && (
-          <Text style={styles.songDuration}>
+          <Text style={activeStyles.songDuration}>
             {formatDuration(item.trajanjeSekunde)}
           </Text>
         )}
       </View>
       <TouchableOpacity
         style={[
-          styles.actionButton,
-          (removing === item.id || dodajuci === item.id) && styles.actionButtonDisabled
+          activeStyles.actionButton,
+          (removing === item.id || dodajuci === item.id) && activeStyles.actionButtonDisabled
         ]}
         onPress={() => isOnAlbum ? handleRemoveSong(item.id) : handleAddSong(item.id)}
         disabled={removing === item.id || dodajuci === item.id}
       >
-        <Text style={styles.actionButtonText}>
+        <Text style={activeStyles.actionButtonText}>
           {removing === item.id 
             ? (t('removing') || 'Removing...') 
             : dodajuci === item.id 
@@ -317,8 +324,8 @@ const UrediAlbum: React.FC = React.memo(() => {
           }
         </Text>
       </TouchableOpacity>
-    </View>
-  ), [removing, dodajuci, handleRemoveSong, handleAddSong, formatDuration, t]);
+    </TouchableOpacity>
+  ), [activeStyles.songItem, activeStyles.songInfo, activeStyles.songName, activeStyles.songDuration, activeStyles.actionButton, activeStyles.actionButtonDisabled, activeStyles.actionButtonText, formatDuration, removing, dodajuci, t, handleRemoveSong, handleAddSong, handleNavigateToSong]);
 
   const refreshControl = useMemo(() => (
     <RefreshControl
@@ -336,15 +343,15 @@ const UrediAlbum: React.FC = React.memo(() => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('loading_album') || 'Loading Album...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-album/${albumId}`)}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
         <Tabs currentRoute={`/uredi-album/${albumId}`} />
       </View>
     );
@@ -352,15 +359,15 @@ const UrediAlbum: React.FC = React.memo(() => {
 
   if (!albumQuery.data) {
     return (
-      <View style={styles.container}>
+      <View style={activeStyles.container}>
         <Back 
           title={t('album_not_found') || 'Album Not Found'}
           onBackPress={handleBackPress} 
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-album/${albumId}`)}
           source={from}
         />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.unauthorizedText}>
+        <View style={activeStyles.loadingContainer}>
+          <Text style={activeStyles.unauthorizedText}>
             {t('album_not_found') || 'Album not found'}
           </Text>
         </View>
@@ -371,15 +378,15 @@ const UrediAlbum: React.FC = React.memo(() => {
 
   if (!hasPermission) {
     return (
-      <View style={styles.container}>
+      <View style={activeStyles.container}>
         <Back
           title={t('no_permission_to_edit') || 'No Permission to Edit'}
           onBackPress={handleBackPress} 
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-album/${albumId}`)}
           source={from}
         />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.unauthorizedText}>
+        <View style={activeStyles.loadingContainer}>
+          <Text style={activeStyles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this album'}
           </Text>
         </View>
@@ -389,25 +396,25 @@ const UrediAlbum: React.FC = React.memo(() => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={naziv}
         onBackPress={handleBackPress} 
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-album/${albumId}`)}
         source={from}
         />
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={activeStyles.scrollContainer}
         refreshControl={refreshControl}
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('edit_album') || 'Edit Album'}</Text>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('edit_album') || 'Edit Album'}</Text>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('album_name') || 'Album Name'}</Text>
+          <View style={activeStyles.formContainer}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('album_name') || 'Album Name'}</Text>
               <TextInput
-                style={styles.input}
+                style={activeStyles.input}
                 value={naziv}
                 onChangeText={setNaziv}
                 placeholder={t('enter_album_name') || 'Enter album name'}
@@ -415,10 +422,10 @@ const UrediAlbum: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('description') || 'Description'}</Text>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('description') || 'Description'}</Text>
               <TextInput
-                style={styles.textArea}
+                style={activeStyles.textArea}
                 value={opis}
                 onChangeText={setOpis}
                 placeholder={t('enter_description') || 'Enter description'}
@@ -428,52 +435,52 @@ const UrediAlbum: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_image_optional') || 'New Image (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleImagePick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_image_optional') || 'New Image (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleImagePick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_image') || 'Select Image'}
                 </Text>
               </TouchableOpacity>
               {selectedImage && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedImage.name || t('image_selected')}
                 </Text>
               )}
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_gif_optional') || 'New GIF (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleGifPick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_gif_optional') || 'New GIF (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleGifPick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_gif') || 'Select GIF'}
                 </Text>
               </TouchableOpacity>
               {selectedGif && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedGif.name || t('gif_selected')}
                 </Text>
               )}
             </View>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={activeStyles.errorContainer}>
+                <Text style={activeStyles.errorText}>{error}</Text>
               </View>
             )}
 
             {success && (
-              <View style={styles.successContainer}>
-                <Text style={styles.successText}>{success}</Text>
+              <View style={activeStyles.successContainer}>
+                <Text style={activeStyles.successText}>{success}</Text>
               </View>
             )}
 
             <TouchableOpacity 
-              style={styles.submitButton} 
+              style={activeStyles.submitButton} 
               onPress={handleSubmit}
               disabled={updateAlbumMutation.isPending}
             >
-              <Text style={styles.submitButtonText}>
+              <Text style={activeStyles.submitButtonText}>
                 {updateAlbumMutation.isPending 
                   ? t('saving') || 'Saving...'
                   : t('save_changes') || 'Save Changes'
@@ -482,13 +489,13 @@ const UrediAlbum: React.FC = React.memo(() => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.songsSection}>
-            <Text style={styles.sectionTitle}>
+          <View style={activeStyles.songsSection}>
+            <Text style={activeStyles.sectionTitle}>
               {t('songs_on_album') || 'Songs on Album'}
             </Text>
-            <View style={styles.songsContainer}>
+            <View style={activeStyles.songsContainer}>
               {pjesmeAlbuma.length === 0 ? (
-                <Text style={styles.noSongsText}>
+                <Text style={activeStyles.noSongsText}>
                   {t('no_songs_on_album') || 'No songs on this album'}
                 </Text>
               ) : (
@@ -502,14 +509,14 @@ const UrediAlbum: React.FC = React.memo(() => {
               )}
             </View>
 
-            <View style={styles.separator} />
+            <View style={activeStyles.separator} />
 
-            <Text style={styles.sectionTitle}>
+            <Text style={activeStyles.sectionTitle}>
               {t('add_songs') || 'Add Songs'}
             </Text>
-            <View style={styles.songsContainer}>
+            <View style={activeStyles.songsContainer}>
               {svePjesme.length === 0 ? (
-                <Text style={styles.noSongsText}>
+                <Text style={activeStyles.noSongsText}>
                   {t('no_available_songs') || 'No available songs'}
                 </Text>
               ) : (

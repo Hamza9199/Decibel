@@ -11,7 +11,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
@@ -19,23 +19,28 @@ import { Checkbox } from 'expo-checkbox';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './UrediPlaylistu.styles';
+import { styles as darkStyles } from './UrediPlaylistu.styles';
+import { styles as lightStyles } from './UrediPlaylistuWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 
 const UrediPlaylistu: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const { playlistaId } = useLocalSearchParams();
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [korisnikID, setKorisnikID] = useState<string>('');
-  const [removing, setRemoving] = useState<number | null>(null);
+
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
+
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-playlistu/${playlistaId}`, currentRoute: `/uredi-playlistu/${playlistaId}` });
 
   const [naziv, setNaziv] = useState('');
   const [opis, setOpis] = useState('');
@@ -43,11 +48,20 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
-  const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-playlistu/${playlistaId}`, currentRoute: `/uredi-playlistu/${playlistaId}` });
-
   useScreenCleanup();
 
+  const loadTheme = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem('decibel_tema');
+      if (stored === 'light' || stored === 'dark') setTheme(stored);
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => { loadTheme(); }, [loadTheme]);
+  useEffect(() => {
+    const interval = setInterval(loadTheme, 3000);
+    return () => clearInterval(interval);
+  }, [loadTheme]);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -127,31 +141,13 @@ const UrediPlaylistu: React.FC = React.memo(() => {
       setError(null);
       
       setTimeout(() => {
-        router.push(`/playlista/${playlistQuery.data?.id}`);
+        navigateWithHistory(`/playlista/${playlistQuery.data?.id}`, `/uredi-playlistu/${playlistaId}`);
       }, 1500);
     },
     onError: (error) => {
       console.error('Error updating playlist:', error);
       setError(t('error_updating_playlist') || 'Error updating playlist');
       setSuccess(null);
-    }
-  });
-
-  const removeSongMutation = useMutation({
-    mutationFn: async (pjesmaId: number) => {
-      if (!playlistaId) throw new Error('No playlist ID');
-      await axios.delete(`${API_BASE}/pjesma_playlista/obrisi-iz-playliste/${pjesmaId}/${playlistaId}`);
-      return pjesmaId;
-    },
-    onSuccess: (pjesmaId) => {
-      queryClient.setQueryData(['playlistSongs', playlistaId], (old: any) => 
-        old ? old.filter((p: any) => p.id !== pjesmaId) : []
-      );
-      Alert.alert(t('success'), t('song_removed_from_playlist') || 'Song removed from playlist');
-    },
-    onError: (error) => {
-      console.error('Error removing song:', error);
-      Alert.alert(t('error'), t('error_removing_song') || 'Error removing song');
     }
   });
 
@@ -230,25 +226,9 @@ const UrediPlaylistu: React.FC = React.memo(() => {
     updatePlaylistMutation.mutate(formData);
   }, [playlistQuery.data, korisnikID, naziv, opis, javno, selectedImage, selectedGif, updatePlaylistMutation]);
 
-  const handleRemoveSong = useCallback((pjesmaId: number) => {
-    Alert.alert(
-      t('confirm_action') || 'Confirm Action',
-      t('remove_song_from_playlist') || 'Remove song from playlist?',
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('remove'),
-          style: 'destructive',
-          onPress: () => {
-            setRemoving(pjesmaId);
-            removeSongMutation.mutate(pjesmaId, {
-              onSettled: () => setRemoving(null)
-            });
-          }
-        }
-      ]
-    );
-  }, [removeSongMutation, t]);
+  const handleNavigateToSong = useCallback((songId: number) => {
+    navigateWithHistory(`/pjesma/${songId}?from=uredi-playlistu`, `/uredi-playlistu/${playlistaId}`);
+  }, [playlistaId]);
 
   const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -257,34 +237,19 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   }, []);
 
   const renderSongItem = useCallback(({ item }: { item: Pjesma }) => (
-    <View style={styles.songItem}>
-      <View style={styles.songInfo}>
-        <Text style={styles.songName} numberOfLines={1}>
+    <TouchableOpacity style={activeStyles.songItem} onPress={() => handleNavigateToSong(item.id)}>
+      <View style={activeStyles.songInfo}>
+        <Text style={activeStyles.songName} numberOfLines={1}>
           {item.naziv}
         </Text>
         {item.trajanjeSekunde && (
-          <Text style={styles.songDuration}>
+          <Text style={activeStyles.songDuration}>
             {formatDuration(item.trajanjeSekunde)}
           </Text>
         )}
       </View>
-      <TouchableOpacity
-        style={[
-          styles.removeButton,
-          removing === item.id && styles.removeButtonDisabled
-        ]}
-        onPress={() => handleRemoveSong(item.id)}
-        disabled={removing === item.id}
-      >
-        <Text style={styles.removeButtonText}>
-          {removing === item.id 
-            ? (t('removing') || 'Removing...') 
-            : (t('remove') || 'Remove')
-          }
-        </Text>
-      </TouchableOpacity>
-    </View>
-  ), [removing, handleRemoveSong, formatDuration, t]);
+    </TouchableOpacity>
+  ), [activeStyles.songItem, activeStyles.songInfo, activeStyles.songName, activeStyles.songDuration, formatDuration, handleNavigateToSong]);
 
   const hasPermission = useMemo(() => {
     return playlistQuery.data && playlistQuery.data.korisnikID === korisnikID;
@@ -304,15 +269,15 @@ const UrediPlaylistu: React.FC = React.memo(() => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('loading_playlist') || 'Loading Playlist...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-playlistu/${playlistaId}`)}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
         <Tabs currentRoute={`/uredi-playlistu/${playlistaId}`} />
       </View>
     );
@@ -320,15 +285,15 @@ const UrediPlaylistu: React.FC = React.memo(() => {
 
   if (!playlista) {
     return (
-      <View style={styles.container}>
+      <View style={activeStyles.container}>
         <Back
           title={t('playlist_not_found') || 'Playlist Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-playlistu/${playlistaId}`)}
           source={from}
           />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.unauthorizedText}>
+        <View style={activeStyles.loadingContainer}>
+          <Text style={activeStyles.unauthorizedText}>
             {t('playlist_not_found') || 'Playlist not found'}
           </Text>
         </View>
@@ -339,14 +304,15 @@ const UrediPlaylistu: React.FC = React.memo(() => {
 
   if (!hasPermission) {
     return (
-      <View style={styles.container}>
+      <View style={activeStyles.container}>
         <Back
           title={t('no_permission_to_edit') || 'No Permission to Edit'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-playlistu/${playlistaId}`)}
+          source={from}
           />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.unauthorizedText}>
+        <View style={activeStyles.loadingContainer}>
+          <Text style={activeStyles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this playlist'}
           </Text>
         </View>
@@ -356,25 +322,25 @@ const UrediPlaylistu: React.FC = React.memo(() => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={playlista.naziv || t('edit_playlist') || 'Edit Playlist'}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.replace('/edit-profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-playlistu/${playlistaId}`)}
         source={from}
        />
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={activeStyles.scrollContainer}
         refreshControl={refreshControl}
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('edit_playlist') || 'Edit Playlist'}</Text>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('edit_playlist') || 'Edit Playlist'}</Text>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('playlist_name') || 'Playlist Name'}</Text>
+          <View style={activeStyles.formContainer}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('playlist_name') || 'Playlist Name'}</Text>
               <TextInput
-                style={styles.input}
+                style={activeStyles.input}
                 value={naziv}
                 onChangeText={setNaziv}
                 placeholder={t('enter_playlist_name') || 'Enter playlist name'}
@@ -382,10 +348,10 @@ const UrediPlaylistu: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('description') || 'Description'}</Text>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('description') || 'Description'}</Text>
               <TextInput
-                style={styles.textArea}
+                style={activeStyles.textArea}
                 value={opis}
                 onChangeText={setOpis}
                 placeholder={t('enter_description') || 'Enter description'}
@@ -395,65 +361,65 @@ const UrediPlaylistu: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_image_optional') || 'New Image (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleImagePick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_image_optional') || 'New Image (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleImagePick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_image') || 'Select Image'}
                 </Text>
               </TouchableOpacity>
               {selectedImage && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedImage.name || t('image_selected')}
                 </Text>
               )}
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_gif_optional') || 'New GIF (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleGifPick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_gif_optional') || 'New GIF (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleGifPick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_gif') || 'Select GIF'}
                 </Text>
               </TouchableOpacity>
               {selectedGif && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedGif.name || t('gif_selected')}
                 </Text>
               )}
             </View>
 
-            <View style={styles.inputContainer}>
-              <View style={styles.checkboxContainer}>
+            <View style={activeStyles.inputContainer}>
+              <View style={activeStyles.checkboxContainer}>
                 <Checkbox
                   value={javno}
                   onValueChange={setJavno}
                   color={javno ? '#b91d95' : undefined}
                 />
-                <Text style={styles.checkboxLabel}>
+                <Text style={activeStyles.checkboxLabel}>
                   {t('public_playlist') || 'Public Playlist'}
                 </Text>
               </View>
             </View>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={activeStyles.errorContainer}>
+                <Text style={activeStyles.errorText}>{error}</Text>
               </View>
             )}
 
             {success && (
-              <View style={styles.successContainer}>
-                <Text style={styles.successText}>{success}</Text>
+              <View style={activeStyles.successContainer}>
+                <Text style={activeStyles.successText}>{success}</Text>
               </View>
             )}
 
             <TouchableOpacity 
-              style={styles.submitButton} 
+              style={activeStyles.submitButton} 
               onPress={handleSubmit}
               disabled={updatePlaylistMutation.isPending}
             >
-              <Text style={styles.submitButtonText}>
+              <Text style={activeStyles.submitButtonText}>
                 {updatePlaylistMutation.isPending 
                   ? t('saving') || 'Saving...'
                   : t('save_changes') || 'Save Changes'
@@ -462,13 +428,13 @@ const UrediPlaylistu: React.FC = React.memo(() => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.songsSection}>
-            <Text style={styles.sectionTitle}>
+          <View style={activeStyles.songsSection}>
+            <Text style={activeStyles.sectionTitle}>
               {t('songs_in_playlist') || 'Songs in Playlist'}
             </Text>
-            <View style={styles.songsContainer}>
+            <View style={activeStyles.songsContainer}>
               {pjesme.length === 0 ? (
-                <Text style={styles.noSongsText}>
+                <Text style={activeStyles.noSongsText}>
                   {t('no_songs_in_playlist') || 'No songs in this playlist'}
                 </Text>
               ) : (

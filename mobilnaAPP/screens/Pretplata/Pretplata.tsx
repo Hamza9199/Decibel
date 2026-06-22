@@ -33,7 +33,7 @@ const PretplataScreen: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/pretplata' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/pretplata', currentRoute: '/pretplata' });
 
   useScreenCleanup();
 

@@ -35,7 +35,7 @@ const SviAlbumi: React.FC = React.memo(() => {
   const activeStyles = theme === 'light' ? lightStyles : darkStyles;
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/svi-albumi' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/svi-albumi', currentRoute: '/svi-albumi' });
 
   useScreenCleanup();
 

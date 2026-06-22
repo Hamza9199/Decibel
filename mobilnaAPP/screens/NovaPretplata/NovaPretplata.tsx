@@ -457,7 +457,7 @@ const NovaPretplata: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="nova-pretplata" />
+      <Tabs currentRoute={currentRoute} />
     </View>
   );
 });

@@ -12,16 +12,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
-import axios from 'axios';
+import axios, { isAxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { API_BASE } from '@/config/api';
 import { styles as darkStyles } from './NovaPjesma.styles';
 import { styles as lightStyles } from './NovaPjesmaWhite.styles';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { Korisnik, Album } from '@/types';
+import { Picker } from '@react-native-picker/picker';
 
 const NovaPjesma: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -29,6 +31,7 @@ const NovaPjesma: React.FC = React.memo(() => {
   const [opis, setOpis] = useState('');
   const [trajanjeSekunde, setTrajanjeSekunde] = useState('');
   const [genre, setGenre] = useState('');
+  const [zanr, setZanr] = useState('');
   const [audioFile, setAudioFile] = useState<any>(null);
   const [imageFile, setImageFile] = useState<any>(null);
   const [gifFile, setGifFile] = useState<any>(null);
@@ -38,6 +41,12 @@ const NovaPjesma: React.FC = React.memo(() => {
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [buttonPressed, setButtonPressed] = useState(false);
   const [korisnikID, setKorisnikID] = useState<string>('');
+  const [albumID, setAlbumID] = useState<number | ''>('');
+  const [izabraniIzvodjaci, setIzabraniIzvodjaci] = useState<Korisnik[]>([]);
+  const [searchIzvodjac, setSearchIzvodjac] = useState('');
+  const [jezikPjesme, setJezikPjesme] = useState('');
+  const [eksplicitniSadrzaj, setEksplicitniSadrzaj] = useState(false);
+  const [datumObjave, setDatumObjave] = useState(new Date().toISOString().split('T')[0]);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const activeStyles = theme === 'light' ? lightStyles : darkStyles;
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -72,6 +81,109 @@ const NovaPjesma: React.FC = React.memo(() => {
     loadUserData();
   }, [loadUserData]);
 
+  const albumiQuery = useQuery<Album[]>({
+    queryKey: ['albumi', korisnikID],
+    enabled: !!korisnikID,
+    queryFn: async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/albumi/`);
+        return (response.data || []).filter((a: Album) => String(a.korisnikID) === String(korisnikID));
+      } catch (error) {
+        console.error('Error fetching albums:', error);
+        return [];
+      }
+    },
+    initialData: [],
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
+
+const sviIzvodjaciQuery = useQuery<Korisnik[]>({
+    queryKey: ['korisnici'],
+    queryFn: async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/korisnici/`);
+        
+       
+        return Array.isArray(response.data) ? response.data : [];
+      } catch (error) {
+        console.error('Error fetching korisnici:', error);
+  if (isAxiosError(error)) {
+          console.error('Axios error details:', {
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            data: error.response?.data,
+            message: error.message
+          });
+        }
+        return [];
+      }
+    },
+    initialData: [],
+    staleTime: 1000 * 60 * 5, 
+    refetchOnWindowFocus: false,
+    retry: 2,
+    retryDelay: 1000,
+    refetchInterval: 30000, 
+  });
+
+   
+
+  useEffect(() => {
+    if (!korisnikID) return;
+    setIzabraniIzvodjaci(prev => {
+      if (prev.length === 0) {
+        const self = (sviIzvodjaciQuery.data || []).find((k: Korisnik) => String(k.id) === String(korisnikID));
+        return self ? [self] : prev;
+      }
+      return prev;
+    });
+  }, [korisnikID, sviIzvodjaciQuery.data]);
+
+  const handleAddIzvodjac = useCallback((k: Korisnik) => {
+    setIzabraniIzvodjaci(prev =>
+      prev.find(x => x.id === k.id) ? prev : [...prev, k]
+    );
+
+    setSearchIzvodjac('');
+  }, []);
+
+  const handleRemoveIzvodjac = useCallback((id: string) => {
+    setIzabraniIzvodjaci(prev => prev.filter(k => k.id !== id));
+  }, []);
+
+  const availableIzvodjaci = useMemo(() => {
+    if (!searchIzvodjac.trim()) return [];
+
+    const search = searchIzvodjac.toLowerCase().trim();
+    const selectedIds = new Set(izabraniIzvodjaci.map(k => k.id));
+    const allUsers = sviIzvodjaciQuery.data || [];
+    
+    
+    const filteredUsers = (allUsers as Korisnik[])
+      .filter(k =>
+        k.statusKorisnika !== 'suspendovan' &&
+        (k.korisnicko_ime?.toLowerCase().includes(search) ||
+          k.ime?.toLowerCase().includes(search) ||
+          k.prezime?.toLowerCase().includes(search))
+      )
+      .sort((a, b) => (b.brojPratilaca || 0) - (a.brojPratilaca || 0));
+
+
+    return filteredUsers
+      .filter(k => !selectedIds.has(k.id))
+      .sort((a, b) => {
+        const aStarts = a.korisnicko_ime.toLowerCase().startsWith(search);
+        const bStarts = b.korisnicko_ime.toLowerCase().startsWith(search);
+
+        if (aStarts && !bStarts) return -1;
+        if (!aStarts && bStarts) return 1;
+
+        return a.korisnicko_ime.localeCompare(b.korisnicko_ime);
+      })
+      .slice(0, 5);
+  }, [sviIzvodjaciQuery.data, izabraniIzvodjaci, searchIzvodjac]);
+
   const createSongMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const res = await axios.post(`${API_BASE}/pjesme/`, formData, {
@@ -80,12 +192,17 @@ const NovaPjesma: React.FC = React.memo(() => {
         },
       });
       const pjesmaId = res.data?.id;
-      if (pjesmaId && korisnikID) {
-        await axios.post(`${API_BASE}/izvodjac_pjesma/`, {
-          izvodjacID: korisnikID,
-          pjesmaID: pjesmaId,
-          potvrdjeno: true,
-        }).catch(() => {});
+      if (pjesmaId) {
+        const unique = izabraniIzvodjaci.filter((izv, idx, arr) => arr.findIndex(x => x.id === izv.id) === idx);
+        await Promise.all(
+          unique.map(izv =>
+            axios.post(`${API_BASE}/izvodjac_pjesma/`, {
+              izvodjacID: izv.id,
+              pjesmaID: pjesmaId,
+              potvrdjeno: String(izv.id) === String(korisnikID),
+            }).catch(() => {})
+          )
+        );
       }
       return res;
     },
@@ -101,6 +218,10 @@ const NovaPjesma: React.FC = React.memo(() => {
       setImageFile(null);
       setGifFile(null);
       setJavno(false);
+      setAlbumID('');
+      setJezikPjesme('');
+      setEksplicitniSadrzaj(false);
+      setDatumObjave(new Date().toISOString().split('T')[0]);
 
       setTimeout(() => {
         navigateWithHistory('/sve-pjesme');
@@ -133,7 +254,10 @@ const NovaPjesma: React.FC = React.memo(() => {
     formData.append('opis', opis.trim());
     formData.append('genre', genre.trim());
     formData.append('javno', String(javno));
-    formData.append('datumObjave', new Date().toISOString().split('T')[0]);
+    formData.append('datumObjave', datumObjave);
+    formData.append('jezikPjesme', jezikPjesme.trim());
+    formData.append('eksplicitniSadrzaj', String(eksplicitniSadrzaj));
+    if (albumID) formData.append('albumID', String(albumID));
     
     if (trajanjeSekunde) {
       formData.append('trajanjeSekunde', trajanjeSekunde);
@@ -164,7 +288,7 @@ const NovaPjesma: React.FC = React.memo(() => {
     }
 
     createSongMutation.mutate(formData);
-  }, [naziv, audioFile, korisnikID, opis, genre, trajanjeSekunde, javno, imageFile, gifFile, createSongMutation, t]);
+  }, [naziv, audioFile, korisnikID, opis, genre, trajanjeSekunde, javno, imageFile, gifFile, datumObjave, jezikPjesme, eksplicitniSadrzaj, albumID, createSongMutation, t]);
 
   const handleFilePicker = useCallback(async (type: 'audio' | 'image' | 'gif') => {
     try {
@@ -332,22 +456,27 @@ const NovaPjesma: React.FC = React.memo(() => {
               />
             </View>
 
-            <View>
-              <Text style={activeStyles.label}>{t('genre')}:</Text>
-              <TextInput
-                style={[
-                  activeStyles.input,
-                  focusedField === 'genre' && activeStyles.inputFocused,
-                ]}
-                value={genre}
-                onChangeText={setGenre}
-                onFocus={() => handleFocus('genre')}
-                onBlur={handleBlur}
-                placeholder={t('genre')}
-                placeholderTextColor="#888"
-                autoCapitalize="words"
-                autoCorrect={false}
-              />
+          
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('genre') || 'Genre'}</Text>
+              <View style={activeStyles.picker}>
+                <Picker
+                  selectedValue={zanr}
+                  onValueChange={(value) => setZanr(value)}
+                  dropdownIconColor="#fff"
+                  selectionColor="#fff"
+                >
+                  <Picker.Item label={t('genre_pop') || 'Pop'} value="pop" color="#888" />
+                  <Picker.Item label={t('genre_rock') || 'Rock'} value="rock" color="#888" />
+                  <Picker.Item label={t('genre_hip_hop') || 'Hip Hop'} value="hip_hop" color="#888" />
+                  <Picker.Item label={t('genre_jazz') || 'Jazz'} value="jazz" color="#888" />
+                  <Picker.Item label={t('genre_electronic') || 'Electronic'} value="electronic" color="#888" />
+                  <Picker.Item label={t('genre_classical') || 'Klasična'} value="klasicna" color="#888" />
+                  <Picker.Item label={t('genre_metal') || 'Metal'} value="metal" color="#888" />
+                  <Picker.Item label={t('genre_alternative') || 'Alternativni'} value="alternativni" color="#888" />
+                  <Picker.Item label={t('genre_rap') || 'Rap'} value="rap" color="#888" />
+                </Picker>
+              </View>
             </View>
 
             <View>
@@ -365,6 +494,85 @@ const NovaPjesma: React.FC = React.memo(() => {
                 placeholderTextColor="#888"
                 keyboardType="numeric"
               />
+            </View>
+
+            <View>
+              <Text style={activeStyles.label}>{t('release_date') || 'Datum objave'}:</Text>
+              <TextInput
+                style={[
+                  activeStyles.input,
+                  focusedField === 'datum' && activeStyles.inputFocused,
+                ]}
+                value={datumObjave}
+                onChangeText={setDatumObjave}
+                onFocus={() => handleFocus('datum')}
+                onBlur={handleBlur}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor="#888"
+              />
+            </View>
+
+            <View>
+              <Text style={activeStyles.label}>{t('song_language') || 'Jezik pjesme'}:</Text>
+              <TextInput
+                style={[
+                  activeStyles.input,
+                  focusedField === 'jezik' && activeStyles.inputFocused,
+                ]}
+                value={jezikPjesme}
+                onChangeText={setJezikPjesme}
+                onFocus={() => handleFocus('jezik')}
+                onBlur={handleBlur}
+                placeholder={t('song_language') || 'Jezik pjesme'}
+                placeholderTextColor="#888"
+              />
+            </View>
+
+            <TouchableOpacity style={activeStyles.checkboxContainer} onPress={() => setEksplicitniSadrzaj(v => !v)}>
+              <View style={[activeStyles.checkbox, eksplicitniSadrzaj && activeStyles.checkboxChecked]}>
+                {eksplicitniSadrzaj && <MaterialIcons name="check" size={16} color="#fff" />}
+              </View>
+              <Text style={activeStyles.checkboxLabel}>{t('explicit_content') || 'Eksplicitni sadržaj'}</Text>
+            </TouchableOpacity>
+
+            <View>
+              <Text style={activeStyles.label}>{t('album_optional') || 'Album (opcionalno)'}:</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <TouchableOpacity style={activeStyles.fileButton} onPress={() => setAlbumID('')}>
+                  <Text style={activeStyles.fileButtonText}>{albumID === '' ? '✓ ' : ''}{t('no_album') || 'Bez albuma'}</Text>
+                </TouchableOpacity>
+                {(albumiQuery.data || []).map((a: Album) => (
+                  <TouchableOpacity key={a.id} style={activeStyles.fileButton} onPress={() => setAlbumID(a.id)}>
+                    <Text style={activeStyles.fileButtonText}>{albumID === a.id ? '✓ ' : ''}{a.naziv}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+
+            <View>
+              <Text style={activeStyles.label}>{t('song_artists') || 'Izvođači na pjesmi'}:</Text>
+              <View style={activeStyles.fileInputContainer}>
+                {izabraniIzvodjaci.map(k => (
+                  <View key={k.id} style={activeStyles.checkboxContainer}>
+                    <Text style={activeStyles.checkboxLabel}>{k.korisnicko_ime}</Text>
+                    <TouchableOpacity onPress={() => handleRemoveIzvodjac(k.id)}>
+                      <MaterialIcons name="close" size={18} color="#888" />
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+              <TextInput
+                style={activeStyles.input}
+                value={searchIzvodjac}
+                onChangeText={setSearchIzvodjac}
+                placeholder={t('search_artists') || 'Pretraži izvođače...'}
+                placeholderTextColor="#888"
+              />
+              {availableIzvodjaci.map((k: Korisnik) => (
+                <TouchableOpacity key={k.id} style={activeStyles.fileButton} onPress={() => handleAddIzvodjac(k)}>
+                  <Text style={activeStyles.fileButtonText}>{k.korisnicko_ime}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
             <View style={activeStyles.fileInputContainer}>

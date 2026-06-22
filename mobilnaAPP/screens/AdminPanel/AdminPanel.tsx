@@ -22,7 +22,7 @@ import { styles as lightStyles } from './AdminPanelWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 
 

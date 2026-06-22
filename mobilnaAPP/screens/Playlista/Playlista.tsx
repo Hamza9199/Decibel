@@ -682,7 +682,7 @@ const likeCount =
         </BottomSheetView>
       </BottomSheet>
 
-      <Tabs currentRoute="playlista/[playlistaId]" />
+      <Tabs currentRoute={currentRoute} />
     </View>
   );
 });

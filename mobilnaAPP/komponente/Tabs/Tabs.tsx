@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useSegments } from 'expo-router';
+import { useSegments, useLocalSearchParams } from 'expo-router'; 
 import { getRoutePathFromSource, navigateWithHistory } from '@/hooks/handleBackPress';
 import { useTranslation } from 'react-i18next';
 import { styles } from './Tabs.styles';
@@ -13,6 +13,8 @@ interface TabsProps {
 
 const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
   const segments = useSegments();
+  const params = useLocalSearchParams();
+  const history = String(params.history || '');
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const getCurrentTab = () => {
@@ -26,19 +28,34 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
 
   const activeTab = getCurrentTab();
 
-  const handleTabPress = (route: string) => {
+ const handleTabPress = (route: string) => {
     const fromRoute = currentRoute || activeTab;
     const currentPath = getRoutePathFromSource(fromRoute) || '/(tabs)';
 
+    const newHistory = history
+      ? `${history}|${currentPath}`
+      : currentPath;
+
     switch (route) {
       case 'home':
-        navigateWithHistory(`/(tabs)?from=${fromRoute}`, currentPath);
+        navigateWithHistory(
+          `/(tabs)?from=${fromRoute}&history=${encodeURIComponent(newHistory)}`,
+          currentPath
+        );
         break;
+
       case 'search':
-        navigateWithHistory(`/(tabs)/search?from=${fromRoute}`, currentPath);
+        navigateWithHistory(
+          `/(tabs)/search?from=${fromRoute}&history=${encodeURIComponent(newHistory)}`,
+          currentPath
+        );
         break;
+
       case 'library':
-        navigateWithHistory(`/(tabs)/library?from=${fromRoute}`, currentPath);
+        navigateWithHistory(
+          `/(tabs)/library?from=${fromRoute}&history=${encodeURIComponent(newHistory)}`,
+          currentPath
+        );
         break;
     }
   };

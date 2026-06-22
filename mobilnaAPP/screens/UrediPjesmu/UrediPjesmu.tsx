@@ -21,11 +21,12 @@ import Tabs from '@/komponente/Tabs/Tabs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Pjesma, Album, Korisnik, IzvodjacPjesmaVeza } from '@/types';
 import { API_BASE } from '@/config/api';
-import { styles } from './UrediPjesmu.styles';
+import { styles as darkStyles } from './UrediPjesmu.styles';
+import { styles as lightStyles } from './UrediPjesmuWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { useBackPress } from '@/hooks/handleBackPress';
+import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 
 const UrediPjesmu: React.FC = React.memo(() => {
@@ -41,9 +42,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const [opis, setOpis] = useState('');
   const [zanr, setZanr] = useState('');
   const [jezikPjesme, setJezikPjesme] = useState('');
-  const [licenca, setLicenca] = useState('');
   const [eksplicitniSadrzaj, setEksplicitniSadrzaj] = useState(false);
   const [albumID, setAlbumID] = useState<string>('');
+  const [trajanjeSekunde, setTrajanjeSekunde] = useState<string>('');
+  const [javno, setJavno] = useState<boolean>(false);
   
   const [selectedImage, setSelectedImage] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
   const [selectedGif, setSelectedGif] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
@@ -53,9 +55,25 @@ const UrediPjesmu: React.FC = React.memo(() => {
   const [search, setSearch] = useState('');
 
 
+   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const activeStyles = theme === 'light' ? lightStyles : darkStyles;
+
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: `/uredi-pjesmu/${pjesmaId}`, currentRoute: `/uredi-pjesmu/${pjesmaId}` });
 
+
+   const loadTheme = useCallback(async () => {
+      try {
+        const stored = await AsyncStorage.getItem('decibel_tema');
+        if (stored === 'light' || stored === 'dark') setTheme(stored);
+      } catch { /* ignore */ }
+    }, []);
+  
+    useEffect(() => { loadTheme(); }, [loadTheme]);
+    useEffect(() => {
+      const interval = setInterval(loadTheme, 3000);
+      return () => clearInterval(interval);
+    }, [loadTheme]);
 
   const loadUserData = useCallback(async () => {
     try {
@@ -135,9 +153,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
       setOpis(song.opis || '');
       setZanr(song.zanr || '');
       setJezikPjesme(song.jezikPjesme || '');
-      setLicenca(song.licenca || '');
       setEksplicitniSadrzaj(!!song.eksplicitniSadrzaj);
       setAlbumID(song.albumID ? song.albumID.toString() : '');
+      setTrajanjeSekunde(song.trajanjeSekunde ? String(song.trajanjeSekunde) : '');
+      setJavno(!!song.javno);
     }
   }, [songQuery.data]);
 
@@ -268,12 +287,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
     formData.append('korisnikID', korisnikID);
     formData.append('naziv', naziv);
     formData.append('opis', opis);
-    formData.append('datumObjave', songQuery.data.datumObjave || '');
-    formData.append('trajanjeSekunde', String(songQuery.data.trajanjeSekunde || 0));
-    formData.append('javno', String(songQuery.data.javno || false));
+    formData.append('trajanjeSekunde', trajanjeSekunde);
+    formData.append('javno', String(javno));
     formData.append('odobreno', String(songQuery.data.odobreno || false));
     formData.append('jezikPjesme', jezikPjesme);
-    formData.append('licenca', licenca);
     formData.append('eksplicitniSadrzaj', String(eksplicitniSadrzaj));
     formData.append('zanr', zanr);
     if (albumID) formData.append('albumID', albumID);
@@ -303,7 +320,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
     }
 
     updateSongMutation.mutate({ formData, artists: izabraniIzvodjaci });
-  }, [songQuery.data, korisnikID, naziv, opis, jezikPjesme, licenca, eksplicitniSadrzaj, zanr, albumID, selectedImage, selectedGif, selectedAudio, izabraniIzvodjaci, updateSongMutation]);
+  }, [songQuery.data, korisnikID, naziv, opis, jezikPjesme, eksplicitniSadrzaj, zanr, albumID, selectedImage, selectedGif, selectedAudio, izabraniIzvodjaci, updateSongMutation, javno, trajanjeSekunde]);
 
   const filteredArtists = useMemo(() => {
     const sviIzvodjaci = usersQuery.data || [];
@@ -315,10 +332,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
     <TouchableOpacity
-      style={styles.artistItem}
+      style={activeStyles.artistItem}
       onPress={() => handleAddIzvodjac(item)}
     >
-      <Text style={styles.artistItemText}>{item.korisnicko_ime}</Text>
+      <Text style={activeStyles.artistItemText}>{item.korisnicko_ime}</Text>
     </TouchableOpacity>
   ), [handleAddIzvodjac]);
 
@@ -343,15 +360,15 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={activeStyles.loadingContainer}>
         <Back
           title={t('loading_song') || 'Loading Song...'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() =>navigateWithHistory('/edit-profile', `/uredi-pjesmu/${pjesmaId}`)}
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
         <Tabs currentRoute={`/uredi-pjesmu/${pjesmaId}`} />
       </View>
     );
@@ -359,15 +376,15 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   if (!pjesma) {
     return (
-      <View style={styles.container}>
+      <View style={activeStyles.container}>
         <Back
           title={t('song_not_found') || 'Song Not Found'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-pjesmu/${pjesmaId}`)}
           source={from}
         />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.unauthorizedText}>
+        <View style={activeStyles.loadingContainer}>
+          <Text style={activeStyles.unauthorizedText}>
             {t('song_not_found') || 'Song not found'}
           </Text>
         </View>
@@ -378,15 +395,15 @@ const UrediPjesmu: React.FC = React.memo(() => {
 
   if (!hasPermission) {
     return (
-      <View style={styles.container}>
+      <View style={activeStyles.container}>
         <Back
           title={t('unauthorized_edit') || 'Unauthorized Edit'}
           onBackPress={handleBackPress}
-          onProfilePress={() => router.replace('/edit-profile')}
+          onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-pjesmu/${pjesmaId}`)}
           source={from}
           />
-        <View style={styles.loadingContainer}>
-          <Text style={styles.unauthorizedText}>
+        <View style={activeStyles.loadingContainer}>
+          <Text style={activeStyles.unauthorizedText}>
             {t('no_permission_to_edit') || 'You do not have permission to edit this song'}
           </Text>
         </View>
@@ -396,25 +413,25 @@ const UrediPjesmu: React.FC = React.memo(() => {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={activeStyles.container}>
       <Back
         title={pjesma.naziv}
         onBackPress={handleBackPress}
-        onProfilePress={() => router.push('/profile')}
+        onProfilePress={() => navigateWithHistory('/edit-profile', `/uredi-pjesmu/${pjesmaId}`)}
       />
       
       <ScrollView
-        contentContainerStyle={styles.scrollContainer}
+        contentContainerStyle={activeStyles.scrollContainer}
         refreshControl={refreshControl}
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>{t('edit_song') || 'Edit Song'}</Text>
+        <View style={activeStyles.content}>
+          <Text style={activeStyles.title}>{t('edit_song') || 'Edit Song'}</Text>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('song_name') || 'Song Name'}</Text>
+          <View style={activeStyles.formContainer}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('song_name') || 'Song Name'}</Text>
               <TextInput
-                style={styles.input}
+                style={activeStyles.input}
                 value={naziv}
                 onChangeText={setNaziv}
                 placeholder={t('enter_song_name') || 'Enter song name'}
@@ -422,10 +439,10 @@ const UrediPjesmu: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('description') || 'Description'}</Text>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('description') || 'Description'}</Text>
               <TextInput
-                style={styles.textArea}
+                style={activeStyles.textArea}
                 value={opis}
                 onChangeText={setOpis}
                 placeholder={t('enter_description') || 'Enter description'}
@@ -435,21 +452,32 @@ const UrediPjesmu: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('genre') || 'Genre'}</Text>
-              <TextInput
-                style={styles.input}
-                value={zanr}
-                onChangeText={setZanr}
-                placeholder={t('enter_genre') || 'Enter genre'}
-                placeholderTextColor="#888"
-              />
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('genre') || 'Genre'}</Text>
+              <View style={activeStyles.picker}>
+                <Picker
+                  selectedValue={zanr}
+                  onValueChange={(value) => setZanr(value)}
+                  dropdownIconColor="#fff"
+                  selectionColor="#fff"
+                >
+                  <Picker.Item label={t('genre_pop') || 'Pop'} value="pop" color="#888"   />
+                  <Picker.Item label={t('genre_rock') || 'Rock'} value="rock" color="#888"  />
+                  <Picker.Item label={t('genre_hip_hop') || 'Hip Hop'} value="hip_hop" color="#888" />
+                  <Picker.Item label={t('genre_jazz') || 'Jazz'} value="jazz" color="#888" />
+                  <Picker.Item label={t('genre_electronic') || 'Electronic'} value="electronic" color="#888" />
+                  <Picker.Item label={t('genre_classical') || 'Klasična'} value="klasicna" color="#888" />
+                  <Picker.Item label={t('genre_metal') || 'Metal'} value="metal" color="#888" />
+                  <Picker.Item label={t('genre_alternative') || 'Alternativni'} value="alternativni" color="#888" />
+                  <Picker.Item label={t('genre_rap') || 'Rap'} value="rap"  color="#888"/>
+                </Picker>
+              </View>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('song_language') || 'Song Language'}</Text>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('song_language') || 'Song Language'}</Text>
               <TextInput
-                style={styles.input}
+                style={activeStyles.input}
                 value={jezikPjesme}
                 onChangeText={setJezikPjesme}
                 placeholder={t('enter_language') || 'Enter language'}
@@ -457,20 +485,11 @@ const UrediPjesmu: React.FC = React.memo(() => {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('license') || 'License'}</Text>
-              <TextInput
-                style={styles.input}
-                value={licenca}
-                onChangeText={setLicenca}
-                placeholder={t('enter_license') || 'Enter license'}
-                placeholderTextColor="#888"
-              />
-            </View>
+          
 
-            <View style={styles.inputContainer}>
-              <View style={styles.checkboxContainer}>
-                <Text style={styles.checkboxLabel}>
+            <View style={activeStyles.inputContainer}>
+              <View style={activeStyles.checkboxContainer}>
+                <Text style={activeStyles.checkboxLabel}>
                   {t('explicit_content') || 'Explicit Content'}
                 </Text>
                 <Checkbox
@@ -481,9 +500,9 @@ const UrediPjesmu: React.FC = React.memo(() => {
               </View>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('album_optional') || 'Album (Optional)'}</Text>
-              <View style={styles.picker}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('album_optional') || 'Album (Optional)'}</Text>
+              <View style={activeStyles.picker}>
                 <Picker
                   selectedValue={albumID}
                   onValueChange={(value) => setAlbumID(value)}
@@ -491,79 +510,81 @@ const UrediPjesmu: React.FC = React.memo(() => {
                 >
                   <Picker.Item 
                     label={t('no_album') || 'No Album'} 
-                    value="" 
+                    value=""
+                    color="#888" 
                   />
                   {albumi.map((album: Album) => (
                     <Picker.Item 
                       key={album.id} 
                       label={album.naziv} 
                       value={album.id.toString()} 
+                      color="#fff"
                     />
                   ))}
                 </Picker>
               </View>
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_image_optional') || 'New Image (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleImagePick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_image_optional') || 'New Image (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleImagePick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_image') || 'Select Image'}
                 </Text>
               </TouchableOpacity>
               {selectedImage && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedImage.name || t('image_selected')}
                 </Text>
               )}
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_gif_optional') || 'New GIF (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleGifPick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_gif_optional') || 'New GIF (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleGifPick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_gif') || 'Select GIF'}
                 </Text>
               </TouchableOpacity>
               {selectedGif && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedGif.name || t('gif_selected')}
                 </Text>
               )}
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>{t('new_audio_optional') || 'New Audio (Optional)'}</Text>
-              <TouchableOpacity style={styles.fileButton} onPress={handleAudioPick}>
-                <Text style={styles.fileButtonText}>
+            <View style={activeStyles.inputContainer}>
+              <Text style={activeStyles.label}>{t('new_audio_optional') || 'New Audio (Optional)'}</Text>
+              <TouchableOpacity style={activeStyles.fileButton} onPress={handleAudioPick}>
+                <Text style={activeStyles.fileButtonText}>
                   {t('select_audio') || 'Select Audio'}
                 </Text>
               </TouchableOpacity>
               {selectedAudio && (
-                <Text style={styles.selectedFileText}>
+                <Text style={activeStyles.selectedFileText}>
                   {selectedAudio.name || t('audio_selected')}
                 </Text>
               )}
             </View>
 
             {error && (
-              <View style={styles.errorContainer}>
-                <Text style={styles.errorText}>{error}</Text>
+              <View style={activeStyles.errorContainer}>
+                <Text style={activeStyles.errorText}>{error}</Text>
               </View>
             )}
 
             {success && (
-              <View style={styles.successContainer}>
-                <Text style={styles.successText}>{success}</Text>
+              <View style={activeStyles.successContainer}>
+                <Text style={activeStyles.successText}>{success}</Text>
               </View>
             )}
 
             <TouchableOpacity 
-              style={styles.submitButton} 
+              style={activeStyles.submitButton} 
               onPress={handleSubmit}
               disabled={updateSongMutation.isPending}
             >
-              <Text style={styles.submitButtonText}>
+              <Text style={activeStyles.submitButtonText}>
                 {updateSongMutation.isPending 
                   ? t('saving') || 'Saving...'
                   : t('save_changes') || 'Save Changes'
@@ -572,38 +593,62 @@ const UrediPjesmu: React.FC = React.memo(() => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.artistsSection}>
-            <Text style={styles.sectionTitle}>
+          <View style={activeStyles.inputContainer}>
+            <Text style={activeStyles.label}>{t('duration_seconds') || 'Duration (seconds)'}</Text>
+            <TextInput
+              style={activeStyles.input}
+              value={trajanjeSekunde}
+              onChangeText={setTrajanjeSekunde}
+              placeholder={t('duration_seconds') || '180'}
+              placeholderTextColor="#888"
+              keyboardType="numeric"
+            />
+          </View>
+
+      
+          <View style={activeStyles.inputContainer}>
+            <View style={activeStyles.checkboxContainer}>
+              <Text style={activeStyles.checkboxLabel}>{t('public_song') || 'Public Song'}</Text>
+              <Checkbox
+                value={javno}
+                onValueChange={setJavno}
+                color={javno ? '#b91d95' : undefined}
+              />
+            </View>
+          </View>
+
+          <View style={activeStyles.artistsSection}>
+            <Text style={activeStyles.sectionTitle}>
               {t('song_artists') || 'Song Artists'}
             </Text>
             
             <TextInput
-              style={styles.searchInput}
+              style={activeStyles.searchInput}
               placeholder={t('search_artists') || 'Search artists...'}
               placeholderTextColor="#888"
               value={search}
               onChangeText={setSearch}
             />
 
-            <View style={styles.selectedArtistsContainer}>
+            <View style={activeStyles.selectedArtistsContainer}>
               {izabraniIzvodjaci.map((artist) => (
-                <View key={artist.id} style={styles.artistTag}>
-                  <Text style={styles.artistTagText}>{artist.korisnicko_ime}</Text>
+                <View key={artist.id} style={activeStyles.artistTag}>
+                  <Text style={activeStyles.artistTagText}>{artist.korisnicko_ime}</Text>
                   <TouchableOpacity
-                    style={styles.removeArtistButton}
+                    style={activeStyles.removeArtistButton}
                     onPress={() => handleRemoveIzvodjac(artist.id)}
                   >
-                    <Text style={styles.removeArtistText}>×</Text>
+                    <Text style={activeStyles.removeArtistText}>×</Text>
                   </TouchableOpacity>
                 </View>
               ))}
             </View>
 
-            <Text style={styles.artistNote}>
+            <Text style={activeStyles.artistNote}>
               {t('can_remove_self_artist') || 'You can remove any artist, including yourself.'}
             </Text>
 
-            <View style={styles.artistsList}>
+            <View style={activeStyles.artistsList}>
               <FlatList
                 data={filteredArtists}
                 renderItem={renderArtistItem}

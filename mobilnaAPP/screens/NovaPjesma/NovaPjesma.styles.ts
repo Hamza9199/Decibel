@@ -191,5 +191,16 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 16,
   },
+  inputContainer: {
+    marginBottom: 18,
+  },
+  picker: {
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#b91d95',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
 });
    

@@ -25,7 +25,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
-import { router, useLocalSearchParams } from 'expo-router';
+import {useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 
 const SviKorisnici: React.FC = React.memo(() => {
@@ -43,7 +43,7 @@ const SviKorisnici: React.FC = React.memo(() => {
 
 
   const { from } = useLocalSearchParams<{ from?: string }>();
-  const handleBackPress = useBackPress({ from, defaultRoute: '/svi-korisnici' });
+  const handleBackPress = useBackPress({ from, defaultRoute: '/svi-korisnici', currentRoute: '/svi-korisnici' });
 
 
   useScreenCleanup();

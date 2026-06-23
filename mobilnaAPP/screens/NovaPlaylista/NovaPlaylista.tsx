@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useRouter,useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -348,7 +348,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
               activeOpacity={0.8}
             >
               <Text style={activeStyles.buttonText}>
-                {createPlaylistMutation.isPending ? t('creating') || 'Creating...' : t('create_playlist')}
+                {createPlaylistMutation.isPending ? t('create_playlist') || 'Creating...' : t('create_playlist')}
               </Text>
             </TouchableOpacity>
 

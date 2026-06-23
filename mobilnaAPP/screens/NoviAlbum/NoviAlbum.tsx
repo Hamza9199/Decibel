@@ -424,7 +424,7 @@ const NoviAlbum: React.FC = React.memo(() => {
               activeOpacity={0.8}
             >
               <Text style={activeStyles.buttonText}>
-                {createAlbumMutation.isPending ? t('creating') || 'Creating...' : t('create_album')}
+                {createAlbumMutation.isPending ? t('create_album') || 'Creating...' : t('create_album')}
               </Text>
             </TouchableOpacity>
 

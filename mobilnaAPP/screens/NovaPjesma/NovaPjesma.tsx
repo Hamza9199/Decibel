@@ -633,7 +633,7 @@ const sviIzvodjaciQuery = useQuery<Korisnik[]>({
               activeOpacity={0.8}
             >
               <Text style={activeStyles.buttonText}>
-                {createSongMutation.isPending ? t('creating') || 'Creating...' : t('create_song')}
+                {createSongMutation.isPending ? t('create_song') || 'Creating...' : t('create_song')}
               </Text>
             </TouchableOpacity>
 

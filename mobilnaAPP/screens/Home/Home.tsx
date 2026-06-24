@@ -24,6 +24,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
+import Loading from '@/komponente/Loading/Loading';
 
 const Home: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -336,7 +337,7 @@ const Home: React.FC = React.memo(() => {
     return (
       <View style={activeStyles.loadingContainer}>
         <Header source="home" />
-        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
+        <Loading />
       </View>
     );
   }

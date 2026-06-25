@@ -9,8 +9,9 @@ import { styles as lightStyles } from './OfflineWhite.styles';
 import { useAudio } from '@/context/AudioContext';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
-import { router,useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 interface OfflineSong {
   id: number;
@@ -25,6 +26,7 @@ const Offline: React.FC = React.memo(() => {
   const [offlineSongs, setOfflineSongs] = useState<OfflineSong[]>([]);
   const [loading, setLoading] = useState(true);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
   const { playAudio } = useAudio();
 
   const { from } = useLocalSearchParams<{ from?: string }>();
@@ -61,6 +63,11 @@ const Offline: React.FC = React.memo(() => {
   useEffect(() => {
     loadOfflineSongs();
   }, [loadOfflineSongs]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowInitialLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handlePlayOfflineSong = useCallback((song: OfflineSong) => {
     playAudio({
@@ -133,7 +140,10 @@ const Offline: React.FC = React.memo(() => {
   
 
   return (
-  <View style={activeStyles.container}>
+    showInitialLoading ? (
+      <Loading />
+    ) : (
+      <View style={activeStyles.container}>
       <Back
         title={t('offline_mode') || 'Offline Mode'}
         onBackPress={handleBackPress}
@@ -164,9 +174,10 @@ const Offline: React.FC = React.memo(() => {
         )}
        
       </View>
-  <Tabs currentRoute="offline" />
+      <Tabs currentRoute="offline" />
     </View>
-  );
+    )
+    )
 });
 
 Offline.displayName = "Offline";

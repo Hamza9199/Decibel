@@ -350,6 +350,7 @@ const Home: React.FC = React.memo(() => {
         <TouchableOpacity onPress={onRefresh} style={{ marginTop: 10 }}>
           <Text style={activeStyles.cardDesc}>{t('retry')}</Text>
         </TouchableOpacity>
+
       </View>
     );
   }

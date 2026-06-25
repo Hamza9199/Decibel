@@ -24,6 +24,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const NoviAlbum: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -305,7 +306,7 @@ const NoviAlbum: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('creating_album')}</Text>
+        <Loading />
         <Tabs currentRoute="novi-album" />
       </View>
     );

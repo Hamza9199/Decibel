@@ -24,6 +24,7 @@ import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import { Korisnik, Album } from '@/types';
 import { Picker } from '@react-native-picker/picker';
+import Loading from '@/komponente/Loading/Loading';
 
 const NovaPjesma: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -401,7 +402,7 @@ const sviIzvodjaciQuery = useQuery<Korisnik[]>({
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('creating_song')}</Text>
+        <Loading />
         <Tabs currentRoute="nova-pjesma" />
       </View>
     );

@@ -23,6 +23,7 @@ import { styles as lightStyles } from './NovaPretplataWhite.styles';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { getRoutePathFromSource, navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const NovaPretplata: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -248,8 +249,8 @@ const NovaPretplata: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="nova-pretplata" />
+        <Loading />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }
@@ -266,7 +267,7 @@ const NovaPretplata: React.FC = React.memo(() => {
         <Text style={styles.notFoundText}>
           {t('subscription_not_found') || 'Subscription not found'}
         </Text>
-        <Tabs currentRoute="nova-pretplata" />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }

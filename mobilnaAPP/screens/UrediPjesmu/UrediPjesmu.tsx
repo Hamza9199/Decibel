@@ -28,6 +28,7 @@ import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const UrediPjesmu: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -337,7 +338,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
     >
       <Text style={activeStyles.artistItemText}>{item.korisnicko_ime}</Text>
     </TouchableOpacity>
-  ), [handleAddIzvodjac]);
+  ), [activeStyles.artistItem, activeStyles.artistItemText, handleAddIzvodjac]);
 
   const hasPermission = useMemo(() => {
     return songQuery.data && songQuery.data.korisnikID === korisnikID;
@@ -368,7 +369,7 @@ const UrediPjesmu: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
+        <Loading />
         <Tabs currentRoute={`/uredi-pjesmu/${pjesmaId}`} />
       </View>
     );

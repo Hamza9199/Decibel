@@ -23,6 +23,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useLocalSearchParams } from 'expo-router';
 import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -194,8 +195,13 @@ const PretplataScreen: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back 
+title={t('subscription') || 'Subscription'} onBackPress={handleBackPress}
+      onProfilePress={() => navigateWithHistory('/profile?from=pretplata', '/pretplata')}
+/>
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Loading />
+        <Tabs currentRoute="pretplata" />
       </View>
     );
   }
@@ -316,7 +322,7 @@ const PretplataScreen: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="subscription" />
+      <Tabs currentRoute="pretplata" />
     </View>
   );
 });

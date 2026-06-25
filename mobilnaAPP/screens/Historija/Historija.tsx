@@ -28,6 +28,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
+import Loading from '@/komponente/Loading/Loading';
 
 
 
@@ -386,7 +387,8 @@ const Historija: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-  <Text style={activeStyles.loadingText}>{t('loading')}</Text>
+        <Loading />
+  
         <Tabs currentRoute="history" />
       </View>
 

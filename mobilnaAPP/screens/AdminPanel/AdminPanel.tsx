@@ -24,6 +24,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import { useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 
 type ActiveTab = 'songs' | 'albums' | 'playlists';
@@ -471,8 +472,8 @@ const AdminPanel: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="admin" />
+        <Loading />
+        <Tabs currentRoute="admin-panel" />
       </View>
     );
   }

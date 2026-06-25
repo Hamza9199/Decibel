@@ -27,6 +27,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
+import Loading from '@/komponente/Loading/Loading';
 
 const Izvodjac: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -375,8 +376,8 @@ const Izvodjac: React.FC = React.memo(() => {
                   source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
-                <Tabs currentRoute="artist" />
+        <Loading />
+                <Tabs currentRoute={currentRoute} />
 
       </View>
     );
@@ -395,7 +396,7 @@ const Izvodjac: React.FC = React.memo(() => {
         <Text style={styles.notFoundText}>
           {t('artist_not_found') || 'Artist not found'}
         </Text>
-        <Tabs currentRoute="artist" />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }

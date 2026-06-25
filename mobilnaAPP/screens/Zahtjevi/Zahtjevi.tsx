@@ -7,7 +7,7 @@ import { styles as lightStyles } from './ZahtjeviWhite.styles';
 import Back from '@/komponente/Back/Back';
 import Tabs from '@/komponente/Tabs/Tabs';
 import { useTranslation } from 'react-i18next';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,12 +16,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAudio } from '@/context/AudioContext';
 import { IzvodjacPjesmaVeza, Pjesma } from '@/types';
 import { API_BASE } from '@/config/api';
+import Loading from '@/komponente/Loading/Loading';
 
 
 
 const Zahtjevi: React.FC = React.memo(() => {
   const { t } = useTranslation();
-  const router = useRouter();
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/zahtjevi' });
 
@@ -214,6 +214,26 @@ const Zahtjevi: React.FC = React.memo(() => {
     queryClient.invalidateQueries({ queryKey: ['zahtjevi', korisnikID] })
       .finally(() => setRefreshing(false));
   }, [queryClient, korisnikID]);
+
+
+  const loading = zahtjeviQuery.isLoading || allSongsQuery.isLoading || allArtistsQuery.isLoading || allUsersQuery.isLoading;
+
+    if (loading ) {
+    return (
+    <View style={activeStyles.container}>
+        <Back
+          title={t('zahtjevi') || 'Zahtjevi'}
+          onBackPress={handleBackPress}
+          onProfilePress={() =>   navigateWithHistory('/edit-profile?from=zahtjevi', '/zahtjevi')}
+          source={from}
+        />
+
+        <ActivityIndicator size="large" color="#b91d95" />
+        <Loading />
+        <Tabs currentRoute="edit-profile" />
+      </View>
+    );
+  }
 
   return (
     <View style={activeStyles.container}>

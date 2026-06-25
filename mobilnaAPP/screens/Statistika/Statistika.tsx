@@ -22,8 +22,9 @@ import { styles as lightStyles } from './StatistikaWhite.styles';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const { width: screenWidth } = Dimensions.get('window');
 const chartWidth = screenWidth - 70;
@@ -220,8 +221,14 @@ const StatistikaScreen: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
+        <Back
+          title={t('platform_statistics') || 'Platform Statistics'}
+          onBackPress={handleBackPress}
+          onProfilePress={() =>   navigateWithHistory('/profile?from=statistika', '/statistika')}
+        />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Loading />
+        <Tabs currentRoute="statistika" />
       </View>
     );
   }
@@ -501,7 +508,7 @@ const StatistikaScreen: React.FC = React.memo(() => {
         </View>
       </ScrollView>
 
-      <Tabs currentRoute="statistics" />
+      <Tabs currentRoute="statistika" />
     </View>
   );
 });

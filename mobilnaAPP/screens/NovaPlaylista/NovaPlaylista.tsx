@@ -22,6 +22,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const NovaPlaylista: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -242,7 +243,7 @@ const NovaPlaylista: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('creating_playlist')}</Text>
+        <Loading />
         
         <Tabs currentRoute="nova-playlista" />
       </View>

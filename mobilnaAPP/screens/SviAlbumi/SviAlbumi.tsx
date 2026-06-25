@@ -25,6 +25,8 @@ import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import { useAudio } from '@/context/AudioContext';
+import Loading from '@/komponente/Loading/Loading';
 
 const SviAlbumi: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -33,6 +35,8 @@ const SviAlbumi: React.FC = React.memo(() => {
   const [korisnikID, setKorisnikID] = useState<string>('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const activeStyles = theme === 'light' ? lightStyles : darkStyles;
+    const { playPlaylist } = useAudio();
+  
 
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/svi-albumi', currentRoute: '/svi-albumi' });
@@ -135,15 +139,16 @@ const SviAlbumi: React.FC = React.memo(() => {
         return;
       }
       
-      const firstSong = albumSongs[0];
-      if (firstSong?.putanjaAudio) {
-        console.log('Playing album:', albumId, 'First song:', firstSong.naziv);
-      }
+      
+
+       playPlaylist(albumSongs, 0);
+
+      
     } catch (error) {
       console.error('Error playing album:', error);
       Alert.alert(t('error'), t('error_playing_album') || 'Error playing album');
     }
-  }, [songsQuery.data, t]);
+  }, [playPlaylist, songsQuery.data, t]);
 
   const handleEdit = useCallback((albumId: number) => {
     navigateWithHistory(`/uredi-album/${albumId}?from=svi-albumi`, '/svi-albumi');
@@ -200,7 +205,7 @@ const SviAlbumi: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
+        <Loading />
         <Tabs currentRoute="svi-albumi" />
       </View>
     );

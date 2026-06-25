@@ -27,6 +27,7 @@ import { useBackPress, navigateWithHistory, getRoutePathFromSource } from '@/hoo
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
 import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import Loading from '@/komponente/Loading/Loading';
 
 const Playlista: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -566,8 +567,8 @@ const likeCount =
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="playlista/[playlistaId]" />
+        <Loading />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }
@@ -585,7 +586,7 @@ const likeCount =
         <Text style={styles.notFoundText}>
           {t('playlist_not_found') || 'Playlist not found'}
         </Text>
-        <Tabs currentRoute="playlista/[playlistaId]" />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }

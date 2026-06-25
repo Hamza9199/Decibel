@@ -27,6 +27,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import {useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 const SviKorisnici: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -416,7 +417,7 @@ const SviKorisnici: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Loading />
         <Tabs currentRoute="svi-korisnici" />
       </View>
     );

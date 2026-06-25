@@ -42,6 +42,7 @@ export default function TabsLayout() {
           },
           lazy: true,
           freezeOnBlur: true,
+          
         }}
       >
         <Tabs.Screen

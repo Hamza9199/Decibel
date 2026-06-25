@@ -22,6 +22,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { styles as darkStyles } from './Search.styles';
 import { styles as lightStyles } from './SearchWhite.styles';
+import Loading from '@/komponente/Loading/Loading';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 type SearchFilter = 'sve' | 'pjesme' | 'albumi' | 'playliste' | 'korisnici';
 
@@ -40,7 +41,8 @@ const Search: React.FC = React.memo(() => {
   const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/(tabs)/search' });
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const styles = theme === 'light' ? lightStyles : darkStyles;
-
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<SearchFilter>('sve');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -85,6 +87,12 @@ const Search: React.FC = React.memo(() => {
     const interval = setInterval(loadTheme, 3000);
     return () => clearInterval(interval);
   }, [loadTheme]);
+
+    useEffect(() => {
+      const timer = setTimeout(() => setShowInitialLoading(false), 2000);
+      return () => clearTimeout(timer);
+    }, []);
+  
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -430,6 +438,9 @@ const Search: React.FC = React.memo(() => {
   useScreenCleanup();
 
   return (
+      showInitialLoading ? (
+          <Loading />
+        ) : (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -475,6 +486,7 @@ const Search: React.FC = React.memo(() => {
         keyboardDismissMode="none"
       />
     </KeyboardAvoidingView>
+    )
   );
 });
 

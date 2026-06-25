@@ -27,6 +27,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import Back from '@/komponente/Back/Back';
 import { getRoutePathFromSource, navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import { useAudio } from '@/context/AudioContext';
+import Loading from '@/komponente/Loading/Loading';
 
 
 interface PjesmaProps {
@@ -512,7 +513,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
           source={currentRoute}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Loading />
         <Tabs currentRoute={currentRoute} />
       </View>
     );

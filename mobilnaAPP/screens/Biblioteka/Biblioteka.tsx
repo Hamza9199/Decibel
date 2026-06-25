@@ -26,6 +26,7 @@ import { styles as lightStyles } from './BibliotekaWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
+import Loading from '@/komponente/Loading/Loading';
 
 type LibraryFilter = 'prateci' | 'pjesme' | 'albumi' | 'playliste';
 
@@ -783,7 +784,12 @@ const Biblioteka: React.FC = React.memo(() => {
     const currentData = currentQuery.data || [];
 
     if (isLoading) {
-      return <SkeletonLoader styles={styles} />;
+      return ( <>
+      <Loading />
+      <SkeletonLoader styles={styles} />
+      </>
+      );
+       
     }
 
     if (isError) {
@@ -869,7 +875,7 @@ const Biblioteka: React.FC = React.memo(() => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Loading />
       </View>
     );
   }

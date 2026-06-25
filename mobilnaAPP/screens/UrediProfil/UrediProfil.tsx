@@ -23,6 +23,7 @@ import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 
 const UrediProfil: React.FC = React.memo(() => {
@@ -313,8 +314,8 @@ const UrediProfil: React.FC = React.memo(() => {
         />
 
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="/edit-profile" />
+        <Loading />
+        <Tabs currentRoute="edit-profile" />
       </View>
     );
   }

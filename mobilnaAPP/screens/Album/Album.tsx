@@ -28,6 +28,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress, getRoutePathFromSource } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
+import Loading from '@/komponente/Loading/Loading';
 
 
 const AlbumScreen: React.FC = React.memo(() => {
@@ -411,8 +412,8 @@ const handleBackPress = useBackPress({
                           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="album" />
+        <Loading />
+        <Tabs currentRoute={currentRoute} />
       </View>
     );
   }
@@ -431,7 +432,7 @@ const handleBackPress = useBackPress({
         <Text style={styles.notFoundText}>
           {t('album_not_found') || 'Album not found'}
         </Text>
-        <Tabs currentRoute="album" />
+        <Tabs currentRoute={currentRoute}/>
       </View>
     );
   }

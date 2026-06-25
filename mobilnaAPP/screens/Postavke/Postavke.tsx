@@ -21,6 +21,7 @@ import { useRouter,useLocalSearchParams } from 'expo-router';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 import * as FileSystem from 'expo-file-system';
 
 const Postavke: React.FC = React.memo(() => {
@@ -30,6 +31,7 @@ const Postavke: React.FC = React.memo(() => {
   const [brisanje, setBrisanje] = useState(false);
   const [jezik, setJezik] = useState(i18n.language || 'bs');
   const [tema, setTema] = useState('dark');
+  const [showInitialLoading, setShowInitialLoading] = useState(true);
   const styles = tema === 'light' ? lightStyles : darkStyles;
   const router = useRouter();
 
@@ -55,6 +57,11 @@ const Postavke: React.FC = React.memo(() => {
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowInitialLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const artistApplicationMutation = useMutation({
     mutationFn: async (message: string) => {
@@ -219,7 +226,10 @@ const Postavke: React.FC = React.memo(() => {
   
 
   return (
-    <View style={styles.container}>
+    showInitialLoading ? (
+      <Loading />
+    ) : (
+      <View style={styles.container}>
       <Back
         title={t('settings') || 'Settings'}
         onBackPress={handleBackPress}
@@ -372,6 +382,7 @@ const Postavke: React.FC = React.memo(() => {
         </View>
       </Modal>
     </View>
+    )
   );
 });
 

@@ -26,6 +26,7 @@ import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
+import Loading from '@/komponente/Loading/Loading';
 
 
 const UrediPlaylistu: React.FC = React.memo(() => {
@@ -277,7 +278,7 @@ const UrediPlaylistu: React.FC = React.memo(() => {
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
+        <Loading />
         <Tabs currentRoute={`/uredi-playlistu/${playlistaId}`} />
       </View>
     );

@@ -17,6 +17,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE } from '@/config/api';
 import { styles } from './Login.styles';
+import Loading from '@/komponente/Loading/Loading';
 
 const Login: React.FC = React.memo(() => {
   const [email, setEmail] = useState('');
@@ -120,7 +121,7 @@ const Login: React.FC = React.memo(() => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={styles.loadingText}>{t('loading')}</Text>
+        <Loading />
       </View>
     );
   }

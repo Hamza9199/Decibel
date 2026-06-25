@@ -26,6 +26,7 @@ import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
+import Loading from '@/komponente/Loading/Loading';
 
 const SvePjesme: React.FC = React.memo(() => {
   const { t } = useTranslation();
@@ -197,8 +198,8 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/svepjesme', current
           source={from}
         />
         <ActivityIndicator size="large" color="#b91d95" />
-        <Text style={activeStyles.loadingText}>{t('loading')}</Text>
-        <Tabs currentRoute="sve-pjesme" />
+        <Loading />
+        <Tabs currentRoute="svepjesme" />
       </View>
     );
   }

@@ -89,7 +89,7 @@ const Search: React.FC = React.memo(() => {
   }, [loadTheme]);
 
     useEffect(() => {
-      const timer = setTimeout(() => setShowInitialLoading(false), 2000);
+      const timer = setTimeout(() => setShowInitialLoading(false), 1000);
       return () => clearTimeout(timer);
     }, []);
   

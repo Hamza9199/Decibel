@@ -63,6 +63,8 @@ const Biblioteka: React.FC = React.memo(() => {
   const { from } = useLocalSearchParams<{ from?: string }>();
   const handleBackPress = useBackPress({ from, defaultRoute: '/(tabs)', currentRoute: '/(tabs)/library' });
   const { playAudio, playPlaylist } = useAudio();
+    const [showInitialLoading, setShowInitialLoading] = useState(true);
+  
 
   const abortControllerRef = useRef<AbortController>(null);
 
@@ -96,6 +98,12 @@ const Biblioteka: React.FC = React.memo(() => {
     const interval = setInterval(loadTheme, 3000);
     return () => clearInterval(interval);
   }, [loadTheme]);
+
+
+    useEffect(() => {
+      const timer = setTimeout(() => setShowInitialLoading(false), 1000);
+      return () => clearTimeout(timer);
+    }, []);
 
   useEffect(() => {
     const abortController = abortControllerRef.current;
@@ -785,7 +793,6 @@ const Biblioteka: React.FC = React.memo(() => {
 
     if (isLoading) {
       return ( <>
-      <Loading />
       <SkeletonLoader styles={styles} />
       </>
       );
@@ -881,6 +888,9 @@ const Biblioteka: React.FC = React.memo(() => {
   }
 
   return (
+    showInitialLoading ? (
+          <Loading />
+        ) : (
     <View style={styles.container}>
       <Header source="library" />
       <ScrollView
@@ -907,7 +917,9 @@ const Biblioteka: React.FC = React.memo(() => {
         </View>
       </ScrollView>
     </View>
+    )
   );
+  
 });
 
 Biblioteka.displayName = "Biblioteka";

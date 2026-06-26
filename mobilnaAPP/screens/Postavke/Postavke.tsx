@@ -59,7 +59,7 @@ const Postavke: React.FC = React.memo(() => {
   }, [loadSettings]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowInitialLoading(false), 2000);
+    const timer = setTimeout(() => setShowInitialLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 

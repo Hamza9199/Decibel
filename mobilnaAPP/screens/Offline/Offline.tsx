@@ -65,7 +65,7 @@ const Offline: React.FC = React.memo(() => {
   }, [loadOfflineSongs]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowInitialLoading(false), 2000);
+    const timer = setTimeout(() => setShowInitialLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
 

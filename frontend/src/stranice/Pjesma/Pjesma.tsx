@@ -269,7 +269,8 @@ const unlikeMutation = useMutation({
     mutationFn: async (id: number) => {
       await axios.delete(`${API_BASE}/komentari/${id}`);
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      setLocalComments((prev) => prev.filter((k) => k.id !== id));
       qc.invalidateQueries({ queryKey: ["komentari", pjesmaId] });
     },
   });
@@ -320,9 +321,12 @@ const unlikeMutation = useMutation({
   const komentariSortirani = useMemo(() => {
     const list = localComments;
     if (!mojID) return list;
-    const vlasnikKomentar = list.find((k) => k.korisnikID === mojID);
-    const ostali = list.filter((k) => k.korisnikID !== mojID);
-    return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
+    return [...list].sort((a, b) => {
+      const aOwn = a.korisnikID === mojID ? 1 : 0;
+      const bOwn = b.korisnikID === mojID ? 1 : 0;
+      if (aOwn !== bOwn) return bOwn - aOwn;
+      return new Date(b.kreiranDatumVrijeme || 0).getTime() - new Date(a.kreiranDatumVrijeme || 0).getTime();
+    });
   }, [mojID, localComments]);
 
   const loading = useMemo(() => pjesmaQ.isLoading || topPjesmeQ.isLoading || izvodjaciQ.isLoading || komentariQ.isLoading, [pjesmaQ.isLoading, topPjesmeQ.isLoading, izvodjaciQ.isLoading, komentariQ.isLoading]);

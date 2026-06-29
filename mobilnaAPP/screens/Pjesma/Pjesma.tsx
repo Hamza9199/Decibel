@@ -283,7 +283,11 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     mutationFn: async (id: number) => {
       await axios.delete(`${API_BASE}/komentari/${id}`);
     },
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      queryClient.setQueryData(['comments', pjesmaId], (old: any) => ({
+        ...old,
+        comments: (old?.comments || []).filter((k: Komentar) => k.id !== id),
+      }));
       queryClient.invalidateQueries({ queryKey: ['comments', pjesmaId] });
       Alert.alert(t('success'), t('comment_deleted') || 'Comment deleted successfully');
     },
@@ -500,9 +504,12 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
   const komentariSortirani = useMemo(() => {
     const komentari = commentsQuery.data?.comments || [];
     if (!mojID) return komentari;
-    const vlasnikKomentar = komentari.find(k => k.korisnikID === mojID);
-    const ostali = komentari.filter(k => k.korisnikID !== mojID);
-    return vlasnikKomentar ? [vlasnikKomentar, ...ostali] : ostali;
+    return [...komentari].sort((a, b) => {
+      const aOwn = a.korisnikID === mojID ? 1 : 0;
+      const bOwn = b.korisnikID === mojID ? 1 : 0;
+      if (aOwn !== bOwn) return bOwn - aOwn;
+      return new Date(b.kreiranDatumVrijeme || 0).getTime() - new Date(a.kreiranDatumVrijeme || 0).getTime();
+    });
   }, [commentsQuery.data?.comments, mojID]);
 
 

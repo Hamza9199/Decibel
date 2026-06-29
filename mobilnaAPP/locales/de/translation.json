@@ -412,7 +412,10 @@
   "song_already_downloaded": "Song ist bereits für das Offline-Hören heruntergeladen",
   "follows": "Folgt",
   "now_playing": "Jetzt wird gespielt",
-  "download_my_data": "Meine Daten herunterladen"
+  "download_my_data": "Meine Daten herunterladen",
+  "comment_deleted": "Kommentar wurde gelöscht",
+  "error_deleting_comment": "Fehler beim Löschen des Kommentars",
+  "delete_comment_confirm": "Sind Sie sicher, dass Sie diesen Kommentar löschen möchten?"
 
 }
 

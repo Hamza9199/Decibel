@@ -281,5 +281,6 @@
   "buySubscription": "Kupi pretplatu",
   "download_song_error": "Greška pri preuzimanju pjesme. Molimo pokušajte ponovo.",
   "offlinesongs": "Offline Pjesme",
-  "noofflinesongs": "Nemate offline pjesama."
+  "noofflinesongs": "Nemate offline pjesama.",
+  "delete_comment_confirm": "Jeste li sigurni da želite obrisati ovaj komentar?"
 }

@@ -132,6 +132,7 @@ const Pjesma: React.FC = () => {
     initialData: [],
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const topPjesme = topPjesmeQ.data || [];
 
 
@@ -264,6 +265,15 @@ const unlikeMutation = useMutation({
     onError: () => setKomentarError("Greška pri uređivanju komentara."),
   });
 
+  const deleteCommentMut = useMutation({
+    mutationFn: async (id: number) => {
+      await axios.delete(`${API_BASE}/komentari/${id}`);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["komentari", pjesmaId] });
+    },
+  });
+
   const handlePlay = useCallback((p: PjesmaType) => {
     if (!p.putanjaAudio) return;
     playPreview(p.putanjaAudio);
@@ -300,6 +310,12 @@ const unlikeMutation = useMutation({
     }
     editCommentMut.mutate({ id, text: editKomentarTekst });
   }, [editCommentMut, editKomentarTekst]);
+
+  const handleObrisiKomentar = useCallback((id: number) => {
+    if (window.confirm(t("delete_comment_confirm") || "Obrisati komentar?")) {
+      deleteCommentMut.mutate(id);
+    }
+  }, [deleteCommentMut, t]);
 
   const komentariSortirani = useMemo(() => {
     const list = localComments;
@@ -592,6 +608,7 @@ const handleLajk = () => {
                       <div style={{ color: "#fff", fontSize: "1.08rem", marginBottom: 2 }}>
                         {k.tekst}
                         {k.korisnikID === mojID && (
+                          <>
                           <button
                             style={{
                               marginLeft: 18,
@@ -611,6 +628,23 @@ const handleLajk = () => {
                           >
                             {t("edit") || "Uredi"}
                           </button>
+                          <button
+                            style={{
+                              marginLeft: 8,
+                              background: "#8b1e1e",
+                              color: "#fff",
+                              border: "1px solid #8b1e1e",
+                              borderRadius: 6,
+                              padding: "4px 12px",
+                              fontWeight: 600,
+                              fontSize: "0.98rem",
+                              cursor: "pointer",
+                            }}
+                            onClick={() => handleObrisiKomentar(k.id)}
+                          >
+                            {t("delete") || "Obriši"}
+                          </button>
+                          </>
                         )}
                       </div>
                     )}

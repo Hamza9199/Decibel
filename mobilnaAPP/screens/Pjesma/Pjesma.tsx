@@ -279,6 +279,20 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     }
   });
 
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await axios.delete(`${API_BASE}/komentari/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['comments', pjesmaId] });
+      Alert.alert(t('success'), t('comment_deleted') || 'Comment deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Error deleting comment:', error);
+      Alert.alert(t('error'), t('error_deleting_comment') || 'Error deleting comment');
+    }
+  });
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.all([
@@ -350,6 +364,17 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
     setEditKomentarId(id);
     setEditKomentarTekst(text);
   }, []);
+
+  const handleDeleteComment = useCallback((id: number) => {
+    Alert.alert(
+      t('delete') || 'Delete',
+      t('delete_comment_confirm') || 'Are you sure you want to delete this comment?',
+      [
+        { text: t('cancel'), style: 'cancel' },
+        { text: t('delete') || 'Delete', style: 'destructive', onPress: () => deleteCommentMutation.mutate(id) },
+      ]
+    );
+  }, [deleteCommentMutation, t]);
 
 
   const renderRecommendedItem = useCallback(({ item }: { item: Pjesma }) => {
@@ -451,18 +476,26 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
           <View>
             <Text style={styles.commentText}>{item.tekst}</Text>
             {isOwn && (
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditStart(item.id, item.tekst)}
-              >
-                <Text style={styles.editButtonText}>{t('edit')}</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => handleEditStart(item.id, item.tekst)}
+                >
+                  <Text style={styles.editButtonText}>{t('edit')}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => handleDeleteComment(item.id)}
+                >
+                  <Text style={styles.cancelButtonText}>{t('delete') || 'Delete'}</Text>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         )}
       </View>
     );
-  }, [commentsQuery.data?.users, mojID, styles.commentItem, styles.commentItemOwn, styles.commentHeader, styles.commentUserImage, styles.commentUserInfo, styles.commentUserName, styles.commentDate, styles.commentEditInput, styles.commentEditActions, styles.saveButton, styles.saveButtonText, styles.cancelButton, styles.cancelButtonText, styles.commentText, styles.editButton, styles.editButtonText, t, editKomentarId, editKomentarTekst, handleEditCancel, handleUrediKomentar, handleEditStart, handleNavigateToArtist]);
+  }, [commentsQuery.data?.users, mojID, styles.commentItem, styles.commentItemOwn, styles.commentHeader, styles.commentUserImage, styles.commentUserInfo, styles.commentUserName, styles.commentDate, styles.commentEditInput, styles.commentEditActions, styles.saveButton, styles.saveButtonText, styles.cancelButton, styles.cancelButtonText, styles.commentText, styles.editButton, styles.editButtonText, t, editKomentarId, editKomentarTekst, handleEditCancel, handleUrediKomentar, handleEditStart, handleNavigateToArtist, handleDeleteComment]);
 
   const komentariSortirani = useMemo(() => {
     const komentari = commentsQuery.data?.comments || [];

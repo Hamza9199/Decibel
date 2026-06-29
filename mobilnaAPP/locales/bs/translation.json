@@ -439,7 +439,11 @@
   "my_albums": "Moji albumi",
   "retry": "Pokušaj ponovo",
   "check_connection_retry": "Provjerite vezu i pokušajte ponovo",
-    "now_playing": "Sada se pušta",
-    "download_my_data": "Preuzmi moje podatke"
+  "now_playing": "Sada se pušta",
+  "download_my_data": "Preuzmi moje podatke",
+  "no_albums_user": "Nemate nijedan album.",
+  "comment_deleted": "Komentar je obrisan",
+  "error_deleting_comment": "Greška pri brisanju komentara",
+  "delete_comment_confirm": "Jeste li sigurni da želite obrisati ovaj komentar?"
     
 }

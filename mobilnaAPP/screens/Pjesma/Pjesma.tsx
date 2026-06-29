@@ -488,10 +488,10 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                   <Text style={styles.editButtonText}>{t('edit')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.cancelButton}
+                  style={styles.editButton}
                   onPress={() => handleDeleteComment(item.id)}
                 >
-                  <Text style={styles.cancelButtonText}>{t('delete') || 'Delete'}</Text>
+                  <Text style={styles.editButtonText}>{t('delete') || 'Delete'}</Text>
                 </TouchableOpacity>
               </View>
             )}

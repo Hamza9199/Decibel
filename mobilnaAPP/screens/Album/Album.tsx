@@ -103,7 +103,7 @@ const handleBackPress = useBackPress({
     queryKey: ['playlists', userData?.id],
     queryFn: async () => {
       if (!userData?.id) return [];
-      const playlistsRes = await axios.get(`${API_BASE}/playliste/`);
+      const playlistsRes = await axios.get(`${API_BASE}/playliste/korisnik/${userData.id}`);
       return playlistsRes.data || [];
     },
     enabled: !!userData?.id,

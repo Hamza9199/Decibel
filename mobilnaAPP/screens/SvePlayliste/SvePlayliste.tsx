@@ -84,7 +84,7 @@ const SvePlayliste: React.FC = React.memo(() => {
     queryFn: async () => {
       if (!korisnikID) return [];
       
-      const response = await axios.get(`${API_BASE}/playliste/`);
+      const response = await axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`);
       
       return (response.data || []).filter(
         (pl: Playlista) => pl.korisnikID === korisnikID

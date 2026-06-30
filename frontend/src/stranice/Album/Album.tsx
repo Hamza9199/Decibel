@@ -100,7 +100,7 @@ const Album: React.FC = () => {
     }
 
     axios
-      .get(`${API_BASE}/playliste/`)
+      .get(`${API_BASE}/playliste/korisnik/${korisnikID}`)
       .then((res) => setPlaylists(res.data || []))
       .catch(() => setPlaylists([]));
   }, [korisnikID]);
@@ -325,7 +325,7 @@ const Album: React.FC = () => {
         <Header />
         <Sidebar />
         <div className={styles.container}>
-          <h2>Album nije pronađen.</h2>
+          <h2>{t("album_not_found")}</h2>
         </div>
         <Footer />
       </div>

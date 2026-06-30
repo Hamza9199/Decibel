@@ -91,7 +91,7 @@ const Playlista: React.FC = () => {
   
   const playlistsQ = useQuery<PlaylistaType[]>({
     queryKey: ["playliste"],
-    queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
+    queryFn: async () => axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`).then((r) => r.data || []),
     initialData: [],
   });
 

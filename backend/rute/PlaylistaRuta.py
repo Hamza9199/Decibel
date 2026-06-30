@@ -42,12 +42,21 @@ async def sve_playliste(session: AsyncSession = Depends(get_session)):
     playliste = await get_all_playliste(session)
     return playliste
 
+@router.get("/korisnik/{korisnik_id}", response_model=List[Playlista])
+async def get_playliste_by_korisnik(korisnik_id: int, session: AsyncSession = Depends(get_session)):
+    playliste = await get_playliste_by_korisnik_id(session, korisnik_id)
+    if not playliste:
+        raise HTTPException(status_code=404, detail="Nema playlista za ovog korisnika")
+    return playliste
+
+
 @router.get("/{playlista_id}", response_model=Playlista)
 async def get_playlista(playlista_id: int, session: AsyncSession = Depends(get_session)):
     playlista = await get_playlista_by_id(session, playlista_id)
     if not playlista:
         raise HTTPException(status_code=404, detail="Playlista nije pronađena")
     return playlista
+
 
 @router.post("/", response_model=Playlista)
 async def nova_playlista(
@@ -150,11 +159,3 @@ async def obrisi_playlistu(playlista_id: int, session: AsyncSession = Depends(ge
     if not db_playlista:
         raise HTTPException(status_code=404, detail="Playlista nije pronađena")
     return db_playlista
-
-
-@router.get("/korisnik/{korisnik_id}", response_model=List[Playlista])
-async def get_playliste_by_korisnik(korisnik_id: int, session: AsyncSession = Depends(get_session)):
-    playliste = await get_playliste_by_korisnik_id(session, korisnik_id)
-    if not playliste:
-        raise HTTPException(status_code=404, detail="Nema playlista za ovog korisnika")
-    return playliste

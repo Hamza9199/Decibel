@@ -89,7 +89,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const effectiveSrc = propSrc ?? contextState.src;
   const effectiveTitle = propTitle ?? contextState.title;
   const effectiveSlika = propSlika ?? contextState.putanjaSlika;
-  const effectiveGif = propGif ?? contextState.putanjaGif; // reserved
+  const effectiveGif = propGif ?? contextState.putanjaGif; 
   const effectiveKorisnikID = propKorisnikID ?? contextState.korisnikID;
 
   const { data: korisnik } = useQuery({
@@ -128,7 +128,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
   const { data: playlists = [] } = useQuery({
     queryKey: ['playlists', korisnik?.id],
-    queryFn: async () => { if (!korisnik?.id) return []; const r = await axios.get(`${API_BASE}/playliste/`); return r.data || []; },
+    queryFn: async () => { if (!korisnik?.id) return []; const r = await axios.get(`${API_BASE}/playliste/korisnik/${korisnik.id}`); return r.data || []; },
     enabled: !!korisnik?.id,
     staleTime: 2 * 60 * 1000,
     gcTime: 30 * 60 * 1000,

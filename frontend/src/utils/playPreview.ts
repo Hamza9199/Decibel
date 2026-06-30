@@ -44,7 +44,7 @@ export const playPreview = async (
       previewAudio.currentTime = 0;
       previewAudio = null;
     }
-  }, 10000);
+  }, 5800);
 
   return true;
 };

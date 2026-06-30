@@ -52,7 +52,7 @@ const SvePlayliste: React.FC = () => {
     queryKey: ["mojePlayliste", korisnikID],
     enabled: Boolean(korisnikID),
     queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/playliste/`);
+      const res = await axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`);
       const all: Playlista[] = res.data || [];
       return all.filter((pl) => String(pl.korisnikID) === String(korisnikID));
     },

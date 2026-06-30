@@ -184,7 +184,7 @@ const likedSongsQuery = useQuery({
   const playlistsQuery = useQuery({
     queryKey: ['playlists'],
     queryFn: async () => {
-      const response = await axios.get(`${API_BASE}/playliste/`);
+      const response = await axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`);
       return response.data || [];
     },
     staleTime: 10 * 60 * 1000, 

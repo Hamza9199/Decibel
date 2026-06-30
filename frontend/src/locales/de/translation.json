@@ -276,5 +276,6 @@
   "download_song_error": "Fehler beim Herunterladen des Liedes. Bitte versuchen Sie es erneut.",
   "offlinesongs": "Offline-Lieder",
   "noofflinesongs": "Sie haben keine Offline-Lieder.",
-  "delete_comment_confirm": "Sind Sie sicher, dass Sie diesen Kommentar löschen möchten?"
+  "delete_comment_confirm": "Sind Sie sicher, dass Sie diesen Kommentar löschen möchten?",
+  "album_not_found": "Album nicht gefunden."
 }

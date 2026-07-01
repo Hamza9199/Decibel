@@ -121,7 +121,7 @@ const NovaPretplata: React.FC = React.memo(() => {
       setCardCvc('');
 
       setTimeout(() => {
-        router.back();
+        navigateWithHistory(`/pretplata`, "/(tabs)");
       }, 2000);
     },
     onError: (error: any) => {
@@ -361,7 +361,7 @@ const NovaPretplata: React.FC = React.memo(() => {
                   <View style={styles.modalOverlay}>
                     <View style={styles.pickerContainer}>
                       <Text style={styles.pickerTitle}>
-                        {t('selected_month_year') || 'Selected'}: {cardExp || t('none_selected') || 'None'}
+                        {t('select_month_year') || 'Selected'}: {cardExp || t('none_selected') || 'None'}
                       </Text>
                       <ScrollView style={{ maxHeight: 300 }}>
                         {monthOptions.map((opt) => (

@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import { API_BASE } from '@/config/api';
 import { queryClient } from '@/config/queryClient';
-import { Korisnik, Playlista, Pjesma } from '@/types';
+import { Korisnik, KorisnikPretplata, Playlista, Pjesma } from '@/types';
 
 interface AudioPlayerNewProps {
   id?: number;
@@ -103,6 +103,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const playlistIdx = contextState.playlistIdx ?? -1;
   const globalPlaylist = React.useMemo(() => contextState.globalPlaylist ?? [], [contextState.globalPlaylist]);
   const playlistRepeat = contextState.playlistRepeat ?? false;
+  const contextCurrentSong = contextState.currentSong ?? null;
   const effectiveSrc = propSrc ?? contextState.src;
   const effectiveTitle = propTitle ?? contextState.title;
   const effectiveSlika = propSlika ?? contextState.putanjaSlika;
@@ -116,6 +117,23 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     gcTime: 30 * 60 * 1000,
   }) as { data: Korisnik | null };
 
+  const slusacID = korisnik?.id || '';
+  const { data: pretplata } = useQuery({
+    queryKey: ['korisnik_pretplata', slusacID],
+    queryFn: async () => {
+      if (!slusacID) return null;
+      const res = await axios.get(`${API_BASE}/korisnik_pretplata/korisnik/${slusacID}/`);
+      return (res.data || null) as KorisnikPretplata | null;
+    },
+    enabled: !!slusacID,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: 'always',
+    refetchInterval: 5 * 1000,
+    
+  });
+  const pretplataValid = !!pretplata && (pretplata.pretplataStatus === 'aktivna' || pretplata.pretplataStatus === 'pauzirana');
+
   const { data: allSongs = [] } = useQuery({
     queryKey: ['songs'],
     queryFn: async () => { const r = await axios.get(`${API_BASE}/pjesme/`); return r.data as Pjesma[]; },
@@ -124,6 +142,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   });
 
   const currentSong: Pjesma | null = useMemo(() => {
+    if (contextCurrentSong && (contextCurrentSong.putanjaAudio === effectiveSrc || !effectiveSrc)) return contextCurrentSong;
     if (globalPlaylist.length > 0 && playlistIdx >= 0 && playlistIdx < globalPlaylist.length) return globalPlaylist[playlistIdx];
     if (effectiveSrc) {
       if (id) {
@@ -139,7 +158,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       return allSongs.find((p: Pjesma) => p.putanjaAudio === effectiveSrc) || null;
     }
     return null;
-  }, [globalPlaylist, playlistIdx, allSongs, effectiveSrc, id, effectiveTitle, effectiveGif, effectiveSlika, effectiveKorisnikID]);
+  }, [contextCurrentSong, globalPlaylist, playlistIdx, allSongs, effectiveSrc, id, effectiveTitle, effectiveGif, effectiveSlika, effectiveKorisnikID]);
 
 
 
@@ -248,8 +267,11 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const [showSpeedModal, setShowSpeedModal] = useState(false);
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [pretplataValid, setPretplataValid] = useState<boolean | null>(null);
   const [showNoSubMsg, setShowNoSubMsg] = useState(true);
+  const [isPreviewOnly, setIsPreviewOnly] = useState(false);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastPretplataValidRef = useRef<boolean | null>(null);
+  const previewTriggeredRef = useRef<string | null>(null);
   const [statistikaSent, setStatistikaSent] = useState(false);
 
   const duration = status?.duration ?? 0;
@@ -258,17 +280,88 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const isBuffering = !!status?.isBuffering || (!status?.isLoaded && !!effectiveSrc);
   const playing = !!status?.playing;
 
-  useEffect(() => { setPretplataValid(true); }, []);
-
   useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); }, []);
+
+  useEffect(() => {
+    if (pretplataValid) {
+      lastPretplataValidRef.current = true;
+      previewTriggeredRef.current = null;
+      if (previewTimerRef.current) {
+        clearTimeout(previewTimerRef.current);
+        previewTimerRef.current = null;
+      }
+      
+      audioCtx.stopAudio();
+      setIsPreviewOnly(false);
+      setShowNoSubMsg(false);
+    }
+  }, [audioCtx, pretplataValid]);
+
+  useEffect(() => {
+    const wasValid = lastPretplataValidRef.current;
+    lastPretplataValidRef.current = pretplataValid;
+    if (pretplataValid !== false || wasValid === false) return;
+    if (!effectiveSrc) return;
+    if (previewTriggeredRef.current === effectiveSrc) return;
+    previewTriggeredRef.current = effectiveSrc;
+    setIsPreviewOnly(true);
+    setShowNoSubMsg(true);
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
+    }
+    try {
+      player.pause();
+      player.seekTo(0);
+      player.replace({ uri: effectiveSrc || '' });
+      if (effectiveSrc) player.play();
+    } catch { }
+    previewTimerRef.current = setTimeout(() => {
+      try { player.pause(); player.seekTo(0); } catch { }
+      audioCtx.stopAudio();
+      onClose?.();
+    }, 5000);
+
+    setTimeout(() => {
+          setShowNoSubMsg(false);
+    }, 5000);
+
+    return () => {
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    };
+  }, [pretplataValid, effectiveSrc, player, onClose, audioCtx]);
 
   const lastLoadedSrcRef = useRef<string | null>(null);
   useEffect(() => {
     if (!effectiveSrc) return;
     if (lastLoadedSrcRef.current === effectiveSrc) return;
     lastLoadedSrcRef.current = effectiveSrc;
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    const shouldPreview = pretplataValid === false;
+    setIsPreviewOnly(shouldPreview);
+    if (shouldPreview) setShowNoSubMsg(true);
     try { player.replace({ uri: effectiveSrc }); player.play(); } catch { }
-  }, [effectiveSrc, player]);
+    if (shouldPreview) {
+      previewTimerRef.current = setTimeout(() => {
+        try { player.pause(); player.seekTo(0); } catch { }
+        audioCtx.stopAudio();
+        onClose?.();
+      }, 5000);
+    }
+
+    setTimeout(() => {
+          setShowNoSubMsg(false);
+    }, 5000);
+
+    return () => {
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    };
+  }, [effectiveSrc, player, pretplataValid, onClose, audioCtx]);
+
+  useEffect(() => {
+    if (!effectiveSrc || pretplataValid === false) return;
+    if (isPreviewOnly) setIsPreviewOnly(false);
+  }, [effectiveSrc, pretplataValid, isPreviewOnly]);
 
   const volumeRef = useRef(volume);
   useEffect(() => { if (!isLoaded) return; if (muted) { player.volume = 0; } else if (volumeRef.current !== volume) { volumeRef.current = volume; player.volume = volume; } }, [volume, muted, isLoaded, player]);
@@ -443,6 +536,12 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     }
   }, [showSpeedModal]);
 
+  const handleNavigateToSubscription = useCallback(() => {
+    handleClosePress();
+    navigateWithHistory('/pretplata', '/(tabs)');
+  }
+, [handleClosePress]);
+
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <TouchableOpacity
       style={styles.playlistItem}
@@ -461,7 +560,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
   const speedOptions = useMemo(() => RATE_OPTIONS, []);
 
-  if (pretplataValid === false) {
+  if (!pretplataValid && isPreviewOnly) {
     if (showNoSubMsg) {
       return (
         <View style={styles.subscriptionContainer}>
@@ -476,7 +575,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           </Text>
           <TouchableOpacity
             style={styles.subscriptionButton}
-            onPress={() => { }}
+            onPress={() => { handleNavigateToSubscription(); setShowNoSubMsg(false); }}
           >
             <Text style={styles.subscriptionButtonText}>{t('buy_subscription')}</Text>
           </TouchableOpacity>

@@ -15,6 +15,7 @@ interface AudioState {
   globalPlaylist?: Pjesma[];
   playlistIdx?: number;
   playlistRepeat?: boolean;
+  playerRefreshKey: number;
 }
 
 interface AudioContextType {
@@ -28,6 +29,7 @@ interface AudioContextType {
   setGlobalPlaylist: (playlist: Pjesma[]) => void;
   setPlaylistIdx: (idx: number) => void;
   setPlaylistRepeat: (repeat: boolean) => void;
+  refreshAudioPlayer: () => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -51,6 +53,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     globalPlaylist: [],
     playlistIdx: -1,
     playlistRepeat: false,
+    playerRefreshKey: 0,
   });
 
   const playAudio = (song: Pjesma) => {
@@ -114,6 +117,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       }
 
       return {
+      ...prev,
       visible: false,
       minimized: false,
       globalPlaylist: [],
@@ -176,6 +180,13 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     }));
   };
 
+  const refreshAudioPlayer = () => {
+    setAudioState(prev => ({
+      ...prev,
+      playerRefreshKey: prev.playerRefreshKey + 1,
+    }));
+  };
+
   return (
     <AudioContext.Provider value={{
       audioState,
@@ -188,6 +199,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       setGlobalPlaylist,
       setPlaylistIdx,
       setPlaylistRepeat,
+      refreshAudioPlayer,
     }}>
       {children}
     </AudioContext.Provider>

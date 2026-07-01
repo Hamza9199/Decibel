@@ -1708,4 +1708,3 @@ function formatTime(sec: number) {
 }
 
 export default memo(AudioPlayer);
-

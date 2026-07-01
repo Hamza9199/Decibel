@@ -30,6 +30,8 @@
   "success": "Uspješno",
   "error": "Greška",
   "confirm": "Potvrdi",
+  "ad": "Reklama",
+  "preview_ad_text": "Besplatni pregled traje 5 sekundi.",
   "subscription_required": "Za slušanje muzike morate imati aktivnu pretplatu.",
   "buy_subscription": "Kupi pretplatu",
   "add_to_playlist": "Dodaj u playlistu",

@@ -349,7 +349,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    bottom: 0,
+    bottom: 110,
     backgroundColor: '#232323',
     padding: 32,
     alignItems: 'center',
@@ -367,7 +367,7 @@ export const styles = StyleSheet.create({
   },
   subscriptionText: {
     color: '#ffe6ec',
-    fontSize: 16,
+    fontSize: 14,
     textAlign: 'center',
     marginBottom: 16,
   },

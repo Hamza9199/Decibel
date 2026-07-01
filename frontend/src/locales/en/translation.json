@@ -34,6 +34,8 @@
   "success": "Success",
   "error": "Error",
   "confirm": "Confirm",
+  "ad": "Ad",
+  "preview_ad_text": "Free preview lasts 5 seconds.",
   "subscription_required": "You must have an active subscription to listen to music.",
   "buy_subscription": "Buy subscription",
   "add_to_playlist": "Add to playlist",

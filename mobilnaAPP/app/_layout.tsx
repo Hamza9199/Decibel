@@ -374,6 +374,7 @@ function AudioPlayerWrapper() {
 
   return (
     <AudioPlayerNew
+      key={audio.audioState.playerRefreshKey}
       id={audio.audioState.id}
       src={audio.audioState.src}
       title={audio.audioState.title}

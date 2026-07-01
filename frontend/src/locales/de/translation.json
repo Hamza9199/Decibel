@@ -34,6 +34,8 @@
   "success": "Erfolg",
   "error": "Fehler",
   "confirm": "Bestätigen",
+  "ad": "Anzeige",
+  "preview_ad_text": "Die kostenlose Vorschau dauert 5 Sekunden.",
   "subscription_required": "Sie benötigen ein aktives Abonnement, um Musik zu hören.",
   "buy_subscription": "Abonnement kaufen",
   "add_to_playlist": "Zur Playlist hinzufügen",

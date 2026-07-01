@@ -24,9 +24,11 @@ import { useLocalSearchParams } from 'expo-router';
 import { useBackPress, navigateWithHistory } from '@/hooks/handleBackPress';
 import Back from '@/komponente/Back/Back';
 import Loading from '@/komponente/Loading/Loading';
+import { useAudio } from '@/context/AudioContext';
 
 const PretplataScreen: React.FC = React.memo(() => {
   const { t } = useTranslation();
+  const audio = useAudio();
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const styles = theme === 'dark' ? darkStyles : lightStyles;
   const [refreshing, setRefreshing] = useState(false);
@@ -104,8 +106,19 @@ const PretplataScreen: React.FC = React.memo(() => {
       await axios.delete(`${API_BASE}/korisnik_pretplata/${subscriptionId}`);
     },
     onSuccess: () => {
+      audio.stopAudio();
+      queryClient.setQueryData(['userSubscription', korisnikID], null);
+      queryClient.setQueryData(['korisnik_pretplata', korisnikID], null);
       queryClient.invalidateQueries({ queryKey: ['userSubscription', korisnikID] });
+      queryClient.invalidateQueries({ queryKey: ['korisnik_pretplata', korisnikID] });
+      queryClient.refetchQueries({ queryKey: ['korisnik_pretplata', korisnikID], type: 'active' });
       queryClient.invalidateQueries({ queryKey: ['subscriptionOffers'] });
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['userSubscription', korisnikID] });
+        queryClient.invalidateQueries({ queryKey: ['korisnik_pretplata', korisnikID] });
+        queryClient.refetchQueries({ queryKey: ['korisnik_pretplata', korisnikID], type: 'active' });
+        audio.refreshAudioPlayer();
+      }, 3000);
       Alert.alert(
         t('success') || 'Success',
         t('subscription_cancelled') || 'Subscription cancelled successfully'
@@ -124,6 +137,8 @@ const PretplataScreen: React.FC = React.memo(() => {
     setRefreshing(true);
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ['userSubscription', korisnikID] }),
+      queryClient.invalidateQueries({ queryKey: ['korisnik_pretplata', korisnikID] }),
+      queryClient.refetchQueries({ queryKey: ['korisnik_pretplata', korisnikID], type: 'active' }),
       queryClient.invalidateQueries({ queryKey: ['subscriptionOffers'] }),
     ]).finally(() => {
       setRefreshing(false);
@@ -187,6 +202,7 @@ const PretplataScreen: React.FC = React.memo(() => {
     useCallback(() => {
       if (korisnikID) {
         queryClient.invalidateQueries({ queryKey: ['userSubscription', korisnikID] });
+        queryClient.invalidateQueries({ queryKey: ['korisnik_pretplata', korisnikID] });
         queryClient.invalidateQueries({ queryKey: ['subscriptionOffers'] });
       }
     }, [korisnikID])

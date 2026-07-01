@@ -75,7 +75,7 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
       return currentPath;
     }
 
-    return ROUTE_MAPPING[currentRoute] || currentPath || '(tabs)/home';
+    return ROUTE_MAPPING[currentRoute] || currentPath || '/(tabs)';
   };
 
   const currentSource = getCurrentSource();
@@ -236,7 +236,7 @@ export default function RootLayout() {
     if (!isLoggedIn && !inAuthGroup) {
       router.replace('/login');
     } else if (isLoggedIn && inAuthGroup) {
-      router.replace('/(tabs)/');
+      router.replace('/(tabs)');
     }
   }, [isLoggedIn, router, segments, blocked]);
 

@@ -37,7 +37,7 @@ const Login: React.FC = React.memo(() => {
         if (userData) {
           const user = JSON.parse(userData);
           if (user && user.id) {
-            router.replace('/(tabs)/');
+            router.replace('/(tabs)');
           }
         }
       } catch (error) {
@@ -66,7 +66,7 @@ const Login: React.FC = React.memo(() => {
       if (response.data) {
         await AsyncStorage.setItem('korisnik', JSON.stringify(response.data));
         
-        router.replace('/(tabs)/');
+        router.replace('/(tabs)');
       } else {
         setError(t('login_failed') || 'Login failed');
       }

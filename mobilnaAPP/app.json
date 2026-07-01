@@ -20,7 +20,7 @@
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#333333"
+        "backgroundColor": "#000000ff"
       },
       "edgeToEdgeEnabled": false,
       "navigationBarBackgroundColor": "#232323",
@@ -45,7 +45,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#333"
+          "backgroundColor": "#000000ff"
         }
       ],
       [
@@ -59,7 +59,9 @@
       [
         "expo-audio",
         {
-          "enableBackgroundPlayback": true
+          "enableBackgroundPlayback": true,
+          "playbackCategory": "playback",
+          "playbackMode": "default"
         }
       ]
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, Alert, ScrollView, Animated, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, FlatList, Alert, ScrollView, Animated, Easing, Platform } from 'react-native';
 // Navigation with history handling
 import { navigateWithHistory } from '@/hooks/handleBackPress';
 import { Slider } from '@miblanchard/react-native-slider';
@@ -35,6 +35,23 @@ interface AudioPlayerNewProps {
 }
 
 const RATE_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
+type MediaSessionNavigator = Navigator & {
+  mediaSession?: {
+    metadata: MediaMetadata | null;
+    playbackState?: 'none' | 'paused' | 'playing';
+    setActionHandler: (
+      action: 'play' | 'pause' | 'previoustrack' | 'nexttrack',
+      handler: (() => void) | null
+    ) => void;
+  };
+};
+
+type MediaMetadataConstructor = new (metadata: {
+  title?: string;
+  artist?: string;
+  artwork?: { src: string; sizes?: string; type?: string }[];
+}) => MediaMetadata;
 
 const MarqueeText = ({ children, style }: { children: React.ReactNode, style?: any }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -353,44 +370,41 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   }, [globalPlaylist, playlistIdx, playlistRepeat, audioCtx]);
 
   useEffect(() => {
-    if (currentSong && isLoaded) {
-      const artistNames = currentOwner?.korisnicko_ime || t('unknown_user');
-      const songTitle = currentSong.naziv || effectiveTitle || t('no_current_song');
-      const artwork = currentSong.putanjaSlika || effectiveSlika || '';
+    if (!currentSong || !isLoaded || Platform.OS !== 'web') return;
+    if (typeof navigator === 'undefined' || typeof window === 'undefined') return;
 
-      try {
-        // @ts-ignore: updateLockScreenMetadata added per request
-        if (typeof (player as any).updateLockScreenMetadata === 'function') {
-          (player as any).updateLockScreenMetadata({
-            title: songTitle,
-            artist: artistNames,
-            artworkUrl: artwork,
-          });
-        } else if (typeof (player as any).setActiveForLockScreen === 'function') {
-          // @ts-ignore
-          (player as any).setActiveForLockScreen(true, {
-            title: songTitle,
-            artist: artistNames,
-            artworkUrl: artwork,
-          });
-        }
-      } catch (e) {
-        console.warn('Lock screen error', e);
-      }
+    const mediaNavigator = navigator as MediaSessionNavigator;
+    const MediaMetadataCtor = (window as Window & { MediaMetadata?: MediaMetadataConstructor }).MediaMetadata;
+    if (!mediaNavigator.mediaSession || !MediaMetadataCtor) return;
 
-      if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: songTitle,
-          artist: artistNames,
-          artwork: artwork ? [{ src: artwork, sizes: '512x512', type: 'image/jpeg' }] : []
-        });
-        navigator.mediaSession.setActionHandler('play', () => { player.play(); });
-        navigator.mediaSession.setActionHandler('pause', () => { player.pause(); });
-        navigator.mediaSession.setActionHandler('previoustrack', () => { goPrev(); });
-        navigator.mediaSession.setActionHandler('nexttrack', () => { goNext(); });
-      }
+    const artistNames = currentOwner?.korisnicko_ime || t('unknown_user');
+    const songTitle = currentSong.naziv || effectiveTitle || t('no_current_song');
+    const artwork = currentSong.putanjaSlika || effectiveSlika || '';
+
+    try {
+      mediaNavigator.mediaSession.metadata = new MediaMetadataCtor({
+        title: songTitle,
+        artist: artistNames,
+        artwork: artwork ? [{ src: artwork, sizes: '512x512', type: 'image/jpeg' }] : [],
+      });
+      mediaNavigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+      mediaNavigator.mediaSession.setActionHandler('play', () => player.play());
+      mediaNavigator.mediaSession.setActionHandler('pause', () => player.pause());
+      mediaNavigator.mediaSession.setActionHandler('previoustrack', goPrev);
+      mediaNavigator.mediaSession.setActionHandler('nexttrack', goNext);
+    } catch (e) {
+      console.warn('Media session error', e);
     }
-  }, [currentSong, currentOwner, effectiveTitle, effectiveSlika, isLoaded, player, t, goPrev, goNext]);
+
+    return () => {
+      try {
+        mediaNavigator.mediaSession?.setActionHandler('play', null);
+        mediaNavigator.mediaSession?.setActionHandler('pause', null);
+        mediaNavigator.mediaSession?.setActionHandler('previoustrack', null);
+        mediaNavigator.mediaSession?.setActionHandler('nexttrack', null);
+      } catch {}
+    };
+  }, [currentSong, currentOwner, effectiveTitle, effectiveSlika, isLoaded, playing, player, t, goPrev, goNext]);
 
   const handleLike = useCallback(async () => {
     if (!currentSong?.id || !korisnik?.id) return;

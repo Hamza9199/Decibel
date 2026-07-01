@@ -116,12 +116,9 @@ const AudioPlayer: React.FC<Props> = ({
   }, [korisnikQuery.data, korisnikQuery.isError]);
 
   const playlistsQuery = useQuery({
-    queryKey: ["playliste", korisnikID],
-    queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`);
-      return (res.data || []) as Playlista[];
-    },
-    enabled: !!korisnikID,
+    queryKey: ["playliste"],
+    queryFn: async () => axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`).then((r) => r.data || []),
+    initialData: [],
   });
   useEffect(() => {
     if (playlistsQuery.data) setPlaylists(playlistsQuery.data);

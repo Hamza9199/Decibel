@@ -51,11 +51,7 @@ const SvePlayliste: React.FC = () => {
   const playlistsQ = useQuery<Playlista[]>({
     queryKey: ["mojePlayliste", korisnikID],
     enabled: Boolean(korisnikID),
-    queryFn: async () => {
-      const res = await axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`);
-      const all: Playlista[] = res.data || [];
-      return all.filter((pl) => String(pl.korisnikID) === String(korisnikID));
-    },
+    queryFn: async () => axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`).then((r) => r.data || []),
     initialData: [],
   });
 

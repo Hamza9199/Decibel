@@ -74,8 +74,7 @@ const Historija: React.FC = () => {
   });
 
   const playlisteQ = useQuery<Playlista[]>({
-    queryKey: ["playliste", korisnikID],
-    enabled: Boolean(korisnikID),
+    queryKey: ["playliste"],
     queryFn: async () => axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`).then((r) => r.data || []),
     initialData: [],
   });

@@ -43,10 +43,8 @@ async def sve_playliste(session: AsyncSession = Depends(get_session)):
     return playliste
 
 @router.get("/korisnik/{korisnik_id}", response_model=List[Playlista])
-async def get_playliste_by_korisnik(korisnik_id: int, session: AsyncSession = Depends(get_session)):
+async def get_playliste_by_korisnik(korisnik_id: str, session: AsyncSession = Depends(get_session)):
     playliste = await get_playliste_by_korisnik_id(session, korisnik_id)
-    if not playliste:
-        raise HTTPException(status_code=404, detail="Nema playlista za ovog korisnika")
     return playliste
 
 

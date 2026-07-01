@@ -94,10 +94,7 @@ const Album: React.FC = () => {
   });
 
   useEffect(() => {
-    if (!korisnikID) {
-      setPlaylists([]);
-      return;
-    }
+    
 
     axios
       .get(`${API_BASE}/playliste/korisnik/${korisnikID}`)

@@ -236,7 +236,7 @@ export default function RootLayout() {
     if (!isLoggedIn && !inAuthGroup) {
       router.replace('/login');
     } else if (isLoggedIn && inAuthGroup) {
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/');
     }
   }, [isLoggedIn, router, segments, blocked]);
 
@@ -359,6 +359,19 @@ export default function RootLayout() {
 
 function AudioPlayerWrapper() {
   const audio = useAudio();
+  const segments = useSegments();
+  const isAuthScreen = segments.includes('login') || segments.includes('register');
+
+  useEffect(() => {
+    if (isAuthScreen) {
+      audio.stopAudio();
+    }
+  }, [isAuthScreen, audio]);
+
+  if (isAuthScreen) {
+    return null;
+  }
+
   return (
     <AudioPlayerNew
       id={audio.audioState.id}

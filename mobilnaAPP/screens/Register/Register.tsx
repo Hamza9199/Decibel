@@ -9,6 +9,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +26,7 @@ const Register: React.FC = React.memo(() => {
   const [korisnicko_ime, setKorisnickoIme] = useState('');
   const [email, setEmail] = useState('');
   const [lozinka, setLozinka] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ const Register: React.FC = React.memo(() => {
       if (userData) {
         const user = JSON.parse(userData);
         if (user && user.id) {
-          router.replace('/(tabs)');
+          router.replace('/(tabs)/');
         }
       }
     } catch (error) {
@@ -88,7 +90,7 @@ const Register: React.FC = React.memo(() => {
         await AsyncStorage.setItem('korisnik', JSON.stringify(response.data));
         
         setTimeout(() => {
-          router.replace('/(tabs)');
+          router.replace('/(tabs)/');
         }, 1500);
       } else {
         setError(t('registration_failed') || 'Registration failed');
@@ -144,11 +146,11 @@ const Register: React.FC = React.memo(() => {
       style={styles.gradient}
     >
       <KeyboardAvoidingView
+        style={styles.keyboardAvoiding}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -236,22 +238,35 @@ const Register: React.FC = React.memo(() => {
             </View>
 
             <View style={styles.inputContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  focusedField === 'password' && styles.inputFocused,
-                ]}
-                placeholder={t('password') || 'Password'}
-                placeholderTextColor="#888"
-                value={lozinka}
-                onChangeText={setLozinka}
-                onFocus={() => handleFocus('password')}
-                onBlur={handleBlur}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password"
-              />
+              <View style={[
+                styles.passwordRow,
+                focusedField === 'password' && styles.inputFocused,
+              ]}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder={t('password') || 'Password'}
+                  placeholderTextColor="#888"
+                  value={lozinka}
+                  onChangeText={setLozinka}
+                  onFocus={() => handleFocus('password')}
+                  onBlur={handleBlur}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="password"
+                />
+                <TouchableOpacity
+                  style={styles.passwordIconButton}
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialIcons
+                    name={showPassword ? 'visibility-off' : 'visibility'}
+                    size={22}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {error && (

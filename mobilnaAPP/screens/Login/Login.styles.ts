@@ -16,6 +16,17 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+   keyboardAvoiding: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 52,
+    paddingBottom: 32,
+  },
   logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
@@ -55,6 +66,22 @@ export const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: 20,
   },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#b91d95',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 14,
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
+  },
   input: {
     backgroundColor: '#181818',
     borderWidth: 1,
@@ -65,12 +92,13 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '500',
   },
-  inputFocused: {
-    borderColor: '#e754a2',
-    borderWidth: 2,
-  },
   inputPlaceholder: {
     color: '#888',
+  },
+  passwordIconButton: {
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
     backgroundColor: '#3a0d2e',

@@ -5,10 +5,10 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
+
 } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
@@ -22,10 +22,9 @@ import Loading from '@/komponente/Loading/Loading';
 const Login: React.FC = React.memo(() => {
   const [email, setEmail] = useState('');
   const [lozinka, setLozinka] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
   const [buttonPressed, setButtonPressed] = useState(false);
   
   const { t } = useTranslation();
@@ -38,7 +37,7 @@ const Login: React.FC = React.memo(() => {
         if (userData) {
           const user = JSON.parse(userData);
           if (user && user.id) {
-            router.replace('/(tabs)');
+            router.replace('/(tabs)/');
           }
         }
       } catch (error) {
@@ -67,7 +66,7 @@ const Login: React.FC = React.memo(() => {
       if (response.data) {
         await AsyncStorage.setItem('korisnik', JSON.stringify(response.data));
         
-        router.replace('/(tabs)');
+        router.replace('/(tabs)/');
       } else {
         setError(t('login_failed') || 'Login failed');
       }
@@ -88,22 +87,6 @@ const Login: React.FC = React.memo(() => {
   const navigateToRegister = useCallback(() => {
     router.replace('/register');
   }, [router]);
-
-  const handleEmailFocus = useCallback(() => {
-    setEmailFocused(true);
-  }, []);
-
-  const handleEmailBlur = useCallback(() => {
-    setEmailFocused(false);
-  }, []);
-
-  const handlePasswordFocus = useCallback(() => {
-    setPasswordFocused(true);
-  }, []);
-
-  const handlePasswordBlur = useCallback(() => {
-    setPasswordFocused(false);
-  }, []);
 
   const handleButtonPressIn = useCallback(() => {
     setButtonPressed(true);
@@ -133,12 +116,10 @@ const Login: React.FC = React.memo(() => {
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}
-      >
+      
+   
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -156,16 +137,11 @@ const Login: React.FC = React.memo(() => {
 
             <View style={styles.inputContainer}>
               <TextInput
-                style={[
-                  styles.input,
-                  emailFocused && styles.inputFocused,
-                ]}
+                style={styles.input}
                 placeholder={t('email') || 'Email'}
                 placeholderTextColor="#888"
                 value={email}
                 onChangeText={setEmail}
-                onFocus={handleEmailFocus}
-                onBlur={handleEmailBlur}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -174,22 +150,30 @@ const Login: React.FC = React.memo(() => {
             </View>
 
             <View style={styles.inputContainer}>
-              <TextInput
-                style={[
-                  styles.input,
-                  passwordFocused && styles.inputFocused,
-                ]}
-                placeholder={t('password') || 'Password'}
-                placeholderTextColor="#888"
-                value={lozinka}
-                onChangeText={setLozinka}
-                onFocus={handlePasswordFocus}
-                onBlur={handlePasswordBlur}
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="password"
-              />
+              <View style={styles.passwordRow}>
+                <TextInput
+                  style={styles.passwordInput}
+                  placeholder={t('password') || 'Password'}
+                  placeholderTextColor="#888"
+                  value={lozinka}
+                  onChangeText={setLozinka}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="password"
+                />
+                <TouchableOpacity
+                  style={styles.passwordIconButton}
+                  onPress={() => setShowPassword((prev) => !prev)}
+                  activeOpacity={0.8}
+                >
+                  <MaterialIcons
+                    name={showPassword ? 'visibility-off' : 'visibility'}
+                    size={22}
+                    color="#fff"
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
 
             {error && (
@@ -226,7 +210,6 @@ const Login: React.FC = React.memo(() => {
             </View>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
     </LinearGradient>
   );
 });

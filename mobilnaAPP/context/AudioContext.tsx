@@ -22,6 +22,7 @@ interface AudioContextType {
   playAudio: (song: Pjesma) => void;
   playPlaylist: (playlist: Pjesma[], startIdx: number, repeatAll?: boolean) => void;
   closeAudio: () => void;
+  stopAudio: () => void;
   minimizeAudio: () => void;
   expandAudio: () => void;
   setGlobalPlaylist: (playlist: Pjesma[]) => void;
@@ -99,6 +100,29 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
     }));
   };
 
+  const stopAudio = () => {
+    setAudioState(prev => {
+      if (
+        !prev.visible &&
+        !prev.minimized &&
+        !prev.src &&
+        (!prev.globalPlaylist || prev.globalPlaylist.length === 0) &&
+        (prev.playlistIdx ?? -1) === -1 &&
+        !prev.playlistRepeat
+      ) {
+        return prev;
+      }
+
+      return {
+      visible: false,
+      minimized: false,
+      globalPlaylist: [],
+      playlistIdx: -1,
+      playlistRepeat: false,
+      };
+    });
+  };
+
   const minimizeAudio = () => {
     setAudioState(prev => ({
       ...prev,
@@ -158,6 +182,7 @@ export const AudioProvider: React.FC<AudioProviderProps> = ({ children }) => {
       playAudio,
       playPlaylist,
       closeAudio,
+      stopAudio,
       minimizeAudio,
       expandAudio,
       setGlobalPlaylist,

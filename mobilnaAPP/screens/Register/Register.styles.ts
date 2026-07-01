@@ -3,21 +3,24 @@ import { StyleSheet, Dimensions } from 'react-native';
 const { width } = Dimensions.get('window');
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#181818',
-    paddingHorizontal: 20,
-    paddingVertical: 40,
-    justifyContent: 'center',
-  },
   gradient: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
+  },
+  keyboardAvoiding: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 40,
+    paddingBottom: 12,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 18,
   },
   logo: {
     width: 100,
@@ -34,7 +37,7 @@ export const styles = StyleSheet.create({
   formContainer: {
     backgroundColor: 'rgba(35, 35, 35, 0.95)',
     borderRadius: 18,
-    padding: 32,
+    padding: 26,
     width: width - 40,
     maxWidth: 400,
     shadowColor: '#b91d95',
@@ -48,11 +51,11 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 22,
     letterSpacing: 1,
   },
   inputContainer: {
-    marginBottom: 18,
+    marginBottom: 14,
   },
   inputRow: {
     flexDirection: 'row',
@@ -60,6 +63,22 @@ export const styles = StyleSheet.create({
   },
   inputHalf: {
     flex: 1,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#181818',
+    borderWidth: 1,
+    borderColor: '#b91d95',
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  passwordInput: {
+    flex: 1,
+    padding: 14,
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '500',
   },
   input: {
     backgroundColor: '#181818',
@@ -74,6 +93,11 @@ export const styles = StyleSheet.create({
   inputFocused: {
     borderColor: '#e754a2',
     borderWidth: 2,
+  },
+  passwordIconButton: {
+    paddingHorizontal: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
     backgroundColor: '#3a0d2e',

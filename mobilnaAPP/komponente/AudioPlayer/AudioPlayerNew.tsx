@@ -291,11 +291,10 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
         previewTimerRef.current = null;
       }
       
-      audioCtx.stopAudio();
       setIsPreviewOnly(false);
       setShowNoSubMsg(false);
     }
-  }, [audioCtx, pretplataValid]);
+  }, [pretplataValid]);
 
   useEffect(() => {
     const wasValid = lastPretplataValidRef.current;
@@ -318,7 +317,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     } catch { }
     previewTimerRef.current = setTimeout(() => {
       try { player.pause(); player.seekTo(0); } catch { }
-      audioCtx.stopAudio();
       onClose?.();
     }, 5000);
 
@@ -329,7 +327,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     return () => {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
-  }, [pretplataValid, effectiveSrc, player, onClose, audioCtx]);
+  }, [pretplataValid, effectiveSrc, player, onClose]);
 
   const lastLoadedSrcRef = useRef<string | null>(null);
   useEffect(() => {
@@ -344,7 +342,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     if (shouldPreview) {
       previewTimerRef.current = setTimeout(() => {
         try { player.pause(); player.seekTo(0); } catch { }
-        audioCtx.stopAudio();
         onClose?.();
       }, 5000);
     }
@@ -356,7 +353,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     return () => {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
-  }, [effectiveSrc, player, pretplataValid, onClose, audioCtx]);
+  }, [effectiveSrc, player, pretplataValid, onClose]);
 
   useEffect(() => {
     if (!effectiveSrc || pretplataValid === false) return;

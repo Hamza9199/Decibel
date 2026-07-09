@@ -73,7 +73,8 @@ const Home: React.FC = () => {
   const playlisteQ = useQuery<Playlista[]>({
     queryKey: ["playliste"],
     queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((res) => res.data || []),
-    staleTime: 30_000,
+    staleTime: 0,
+    initialData: [],
   });
   const korisniciQ = useQuery<Korisnik[]>({
     queryKey: ["korisnici"],

@@ -329,7 +329,7 @@ const unlikeMutation = useMutation({
     });
   }, [mojID, localComments]);
 
-  const loading = useMemo(() => pjesmaQ.isLoading || topPjesmeQ.isLoading || izvodjaciQ.isLoading || komentariQ.isLoading, [pjesmaQ.isLoading, topPjesmeQ.isLoading, izvodjaciQ.isLoading, komentariQ.isLoading]);
+  const loading = useMemo(() => pjesmaQ.isLoading || topPjesmeQ.isLoading || izvodjaciQ.isLoading || komentariQ.isLoading || topPjesmeIzvodjaci === null, [pjesmaQ.isLoading, topPjesmeQ.isLoading, izvodjaciQ.isLoading, komentariQ.isLoading, topPjesmeIzvodjaci]);
 
   if (loading) return <Loading />;
 

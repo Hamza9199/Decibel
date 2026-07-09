@@ -312,8 +312,8 @@ const Album: React.FC = () => {
     [likedSongs, likeSongMut]
   );
   const loading = useMemo(() => {
-    return albumQ.isLoading || pjesmeQ.isLoading;
-  }, [albumQ.isLoading, pjesmeQ.isLoading]);
+    return albumQ.isLoading || pjesmeQ.isLoading || songArtists === null;
+  }, [albumQ.isLoading, pjesmeQ.isLoading, songArtists]);
 
   if (loading) return <Loading />;
   if (!albumQ.data)

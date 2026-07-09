@@ -82,8 +82,8 @@ const Home: React.FC = () => {
   });
 
   const queriesLoading = useMemo(
-    () => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || korisniciQ.isLoading,
-    [pjesmeQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading, korisniciQ.isLoading]
+    () => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || korisniciQ.isLoading || pjesmaIzvodjaci === null,
+    [pjesmeQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading, korisniciQ.isLoading, pjesmaIzvodjaci]
   );
   const dataReady = useMemo(() => !queriesLoading, [queriesLoading]);
 

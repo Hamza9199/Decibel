@@ -180,7 +180,7 @@ const Historija: React.FC = () => {
   }, [historijaPjesme]);
 
   const loading = useMemo(() => {
-    const a = historijaQ.isLoading || pjesmeQ.isLoading;
+    const a = historijaQ.isLoading || pjesmeQ.isLoading || songArtists === null; 
     const b = korisnikID ? playlisteQ.isLoading : false;
     return a || b;
   }, [
@@ -188,6 +188,7 @@ const Historija: React.FC = () => {
     pjesmeQ.isLoading,
     playlisteQ.isLoading,
     korisnikID,
+    songArtists
   ]);
 
   const handleLike = useCallback(

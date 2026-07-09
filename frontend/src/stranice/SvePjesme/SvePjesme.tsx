@@ -154,7 +154,7 @@ const SvePjesme: React.FC = () => {
     [pjesme, search]
   );
 
-  const loading = songsQ.isLoading && Boolean(korisnikID);
+  const loading = songsQ.isLoading || songArtists === null && Boolean(korisnikID);
 
   return (
     <>

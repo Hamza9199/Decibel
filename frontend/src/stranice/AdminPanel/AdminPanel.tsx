@@ -68,13 +68,14 @@ const AdminPanel: React.FC = () => {
     setLocalAlbumi(albumiQ.data || []);
   }, [albumiQ.data]);
 
-  const loading = useMemo(() => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading, [pjesmeQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading]);
+   type Artist = { id: string; korisnicko_ime: string };
+  const [songArtists, setSongArtists] = useState<Record<number, Artist[]>>({});
+  const loading = useMemo(() => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || songArtists === null, [pjesmeQ.isLoading, albumiQ.isLoading, playlisteQ.isLoading, songArtists]);
   const pjesme = localPjesme;
   const albumi = localAlbumi;
   const playliste = useMemo(() => playlisteQ.data || [], [playlisteQ.data]);
 
-  type Artist = { id: string; korisnicko_ime: string };
-  const [songArtists, setSongArtists] = useState<Record<number, Artist[]>>({});
+ 
 
   useEffect(() => {
     if (!pjesme.length) {

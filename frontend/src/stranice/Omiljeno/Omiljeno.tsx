@@ -360,9 +360,9 @@ const Omiljeno: React.FC = () => {
 
   const loading = useMemo(() => {
     return (
-      likedSongsQ.isLoading || likedAlbumsQ.isLoading || likedPlaylistsQ.isLoading || korisniciQ.isLoading || allPlaylistsQ.isLoading
+      likedSongsQ.isLoading || likedAlbumsQ.isLoading || likedPlaylistsQ.isLoading || korisniciQ.isLoading || allPlaylistsQ.isLoading || songArtists === null
     );
-  }, [likedSongsQ.isLoading, likedAlbumsQ.isLoading, likedPlaylistsQ.isLoading, korisniciQ.isLoading, allPlaylistsQ.isLoading]);
+  }, [likedSongsQ.isLoading, likedAlbumsQ.isLoading, likedPlaylistsQ.isLoading, korisniciQ.isLoading, allPlaylistsQ.isLoading, songArtists]);
 
   if (loading) return <Loading />;
 

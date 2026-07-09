@@ -370,7 +370,7 @@ const Playlista: React.FC = () => {
     return `${m}:${s.toString().padStart(2, "0")}`;
   }, []);
 
-  const loading = playlistaQ.isLoading || songsQ.isLoading;
+  const loading = playlistaQ.isLoading || songsQ.isLoading || playlistsQ.isLoading || songArtists === null; 
   if (loading) return <Loading />;
   if (!playlistaQ.data) {
     return (

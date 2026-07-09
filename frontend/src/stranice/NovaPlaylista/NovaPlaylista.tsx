@@ -250,7 +250,7 @@ const NovaPlaylista: React.FC = () => {
 
             <div className={styles.buttonGroup}>
               <button className={styles.button} type="submit" disabled={loading}>
-                {loading ? t("creating") || "Kreiram..." : t("create_playlist")}
+                {loading ? t("creating_playlist") || "Kreiram..." : t("create_playlist")}
               </button>
               <button
                 type="button"

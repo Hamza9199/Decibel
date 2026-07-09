@@ -279,5 +279,9 @@
   "offlinesongs": "Offline-Lieder",
   "noofflinesongs": "Sie haben keine Offline-Lieder.",
   "delete_comment_confirm": "Sind Sie sicher, dass Sie diesen Kommentar löschen möchten?",
-  "album_not_found": "Album nicht gefunden."
+  "album_not_found": "Album nicht gefunden.",
+  "creating_playlist": "Playlist wird erstellt...",
+  "creating_album": "Album wird erstellt...",
+  "creating_song": "Lied wird erstellt...",
+  "creating": "Wird erstellt..."
 }

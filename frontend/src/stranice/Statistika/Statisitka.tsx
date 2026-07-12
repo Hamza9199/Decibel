@@ -59,7 +59,7 @@ const Statistika: React.FC = () => {
     initialData: [],
   });
   const playlisteQ = useQuery<Playlista[]>({
-    queryKey: ["playliste", "all"],
+    queryKey: ["playliste"],
     queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((r) => r.data || []),
     initialData: [],
   });

@@ -63,12 +63,15 @@ const Home: React.FC = () => {
   const pjesmeQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme"],
     queryFn: async () => axios.get(`${API_BASE}/pjesme/`).then((res) => res.data || []),
+    staleTime: 30_000, 
   });
   
   const albumiQ = useQuery<Album[]>({
     queryKey: ["albumi"],
     queryFn: async () => axios.get(`${API_BASE}/albumi/`).then((res) => res.data || []),
+    staleTime: 30_000,
   });
+
 
   const playlisteQ = useQuery<Playlista[]>({
     queryKey: ["playliste", "all"],
@@ -81,12 +84,13 @@ const Home: React.FC = () => {
         throw e;
       }
     },
-    
+    staleTime: 30_000,
   });
 
   const korisniciQ = useQuery<Korisnik[]>({
     queryKey: ["korisnici"],
     queryFn: async () => axios.get(`${API_BASE}/korisnici/`).then((res) => res.data || []),
+    staleTime: 30_000,
   });
 
 

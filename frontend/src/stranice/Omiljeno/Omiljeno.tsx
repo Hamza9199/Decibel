@@ -82,8 +82,9 @@ const Omiljeno: React.FC = () => {
     initialData: [],
   });
   const allPlaylistsQ = useQuery<Playlista[]>({
-    queryKey: ["playliste"],
+    queryKey: ["playliste", "korisnik", korisnikID],
     queryFn: async () => axios.get(`${API_BASE}/playliste/korisnik/${korisnikID}`).then((r) => r.data || []),
+    enabled: Boolean(korisnikID),
     initialData: [],
   });
 

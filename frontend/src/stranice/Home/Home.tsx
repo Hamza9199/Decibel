@@ -71,7 +71,7 @@ const Home: React.FC = () => {
   });
 
   const playlisteQ = useQuery<Playlista[]>({
-    queryKey: ["playliste"],
+    queryKey: ["playliste", "all"],
     queryFn: async () => {
       try {
         const res = await axios.get(`${API_BASE}/playliste/`);
@@ -261,7 +261,6 @@ const Home: React.FC = () => {
   const handlePlayPlaylist = useCallback(
 
     (playlistId: number) => {
-      console.log("PLAY PLAYLIST", playlistId);
       playPlaylistSongsMut.mutate(playlistId);
     },
     [playPlaylistSongsMut]
@@ -274,13 +273,6 @@ const Home: React.FC = () => {
     </section>
   );
 
-  console.log('playlisteQ FULL:', {
-  status: playlisteQ.status,
-  fetchStatus: playlisteQ.fetchStatus,
-  data: playlisteQ.data,
-  error: playlisteQ.error,
-  isError: playlisteQ.isError,
-});
 
   if (showLoading) return <Loading />;
 

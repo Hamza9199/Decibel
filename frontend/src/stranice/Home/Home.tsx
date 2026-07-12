@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { playPreview } from "../../utils/playPreview";
+import "../../assets/logo.css";
 
 type Styles = Record<string, string>;
 
@@ -426,8 +427,8 @@ const Home: React.FC = () => {
                     <div className={styles.cardImageWrap}>
                       {k.putanjaProfilneSlike ? (
                           <img
-                            src={k.putanjaProfilneSlike || "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8"}
-                            alt={k.korisnicko_ime}
+                            src={k.putanjaProfilneSlike || "/logo.gif" }
+                            alt="/logo.gif"
                             className={styles.cardImage}
                           />
                         ) : (

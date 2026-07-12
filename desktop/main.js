@@ -52,7 +52,7 @@ function createWindow() {
   if (win) return;
 
   const commonPrefs = { contextIsolation: true, preload: path.join(__dirname, 'preload.js'), webSecurity: false };
-  const commonOpts = { width: 1024, height: 768, icon: path.join(__dirname, 'assets', 'icon.ico'), autoHideMenuBar: true };
+  const commonOpts = { width: 1366, height: 768, icon: path.join(__dirname, 'assets', 'icon.ico'), autoHideMenuBar: true };
 
   let resolved = false;
   let timer;

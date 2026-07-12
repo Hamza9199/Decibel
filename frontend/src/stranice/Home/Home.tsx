@@ -63,24 +63,32 @@ const Home: React.FC = () => {
   const pjesmeQ = useQuery<Pjesma[]>({
     queryKey: ["pjesme"],
     queryFn: async () => axios.get(`${API_BASE}/pjesme/`).then((res) => res.data || []),
-    staleTime: 30_000,
   });
+  
   const albumiQ = useQuery<Album[]>({
     queryKey: ["albumi"],
     queryFn: async () => axios.get(`${API_BASE}/albumi/`).then((res) => res.data || []),
-    staleTime: 30_000,
   });
+
   const playlisteQ = useQuery<Playlista[]>({
     queryKey: ["playliste"],
-    queryFn: async () => axios.get(`${API_BASE}/playliste/`).then((res) => res.data || []),
-    staleTime: 0,
-    initialData: [],
+    queryFn: async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/playliste/`);
+        return res.data || [];
+      } catch (e) {
+        console.error("playliste fetch failed:", e);
+        throw e;
+      }
+    },
+    
   });
+
   const korisniciQ = useQuery<Korisnik[]>({
     queryKey: ["korisnici"],
     queryFn: async () => axios.get(`${API_BASE}/korisnici/`).then((res) => res.data || []),
-    staleTime: 30_000,
   });
+
 
   const queriesLoading = useMemo(
     () => pjesmeQ.isLoading || albumiQ.isLoading || playlisteQ.isLoading || korisniciQ.isLoading || pjesmaIzvodjaci === null,
@@ -108,10 +116,28 @@ const Home: React.FC = () => {
     return shuffled.slice(0, n);
   };
 
-  const pjesme = useMemo(() => sample(pjesmeQ.data || [], 10), [pjesmeQ.data]);
-  const albumi = useMemo(() => sample(albumiQ.data || [], 10), [albumiQ.data]);
-  const playliste = useMemo(() => sample(playlisteQ.data || [], 10), [playlisteQ.data]);
-  const korisnici = useMemo(() => sample(korisniciQ.data || [], 10), [korisniciQ.data]);
+  const pjesme = useMemo(
+  () => sample((pjesmeQ.data || []).filter((p) => p.odobreno), 10),
+  [pjesmeQ.data]
+  );
+  const albumi = useMemo(
+    () => sample((albumiQ.data || []).filter((a) => a.odobreno), 10),
+    [albumiQ.data]
+  );
+  const playliste = useMemo(
+    () => sample((playlisteQ.data || []).filter((pl) => pl.javno), 10),
+    [playlisteQ.data]
+  );
+  const korisnici = useMemo(
+    () =>
+      sample(
+        (korisniciQ.data || []).filter(
+          (k) => k.rola === "izvodac" && k.statusKorisnika !== "suspendovan"
+        ),
+        10
+      ),
+    [korisniciQ.data]
+  );
 
 
   useEffect(() => {
@@ -248,6 +274,14 @@ const Home: React.FC = () => {
     </section>
   );
 
+  console.log('playlisteQ FULL:', {
+  status: playlisteQ.status,
+  fetchStatus: playlisteQ.fetchStatus,
+  data: playlisteQ.data,
+  error: playlisteQ.error,
+  isError: playlisteQ.isError,
+});
+
   if (showLoading) return <Loading />;
 
   return (
@@ -258,7 +292,7 @@ const Home: React.FC = () => {
         <div className={styles.container}>
           <Section title={t("songs")}>
             <div className={styles.gridRow}>
-              {pjesme.filter((p) => p.odobreno).map((p) => (
+              {pjesme.map((p) => (
                 <div key={p.id} className={`${styles.card} ${activeSongId === p.id ? styles.activeCard : ""}`}>
                   <div className={styles.cardImageWrap}>
                     {p.putanjaSlika ? (
@@ -296,7 +330,7 @@ const Home: React.FC = () => {
 
           <Section title={t("albums")}>
             <div className={styles.gridRow}>
-              {albumi.filter((a) => a.odobreno).map((a) => (
+              {albumi.map((a) => (
                 <div key={a.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {a.putanjaSlika ? (
@@ -343,7 +377,7 @@ const Home: React.FC = () => {
 
           <Section title={t("playlists")}>
             <div className={styles.gridRow}>
-              {playliste.filter((pl) => pl.javno).map((pl) => (
+              {playliste.map((pl) => (
                 <div key={pl.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
                     {pl.putanjaSlika ? (
@@ -391,11 +425,6 @@ const Home: React.FC = () => {
           <Section title={t("artists")}>
             <div className={styles.gridRow}>
               {korisnici
-                .filter(
-                  (k) =>
-                    k.rola === "izvodac" &&
-                    k.statusKorisnika !== "suspendovan"
-                )
                 .map((k) => (
                   <div key={k.id} className={styles.card}>
                     <div className={styles.cardImageWrap}>

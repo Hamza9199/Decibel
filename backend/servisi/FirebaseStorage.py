@@ -1,75 +1,83 @@
-import requests
 import os
 from dotenv import load_dotenv
 import tempfile
-from urllib.parse import quote
+from appwrite.client import Client
+from appwrite.services.storage import Storage
+from appwrite.input_file import InputFile
+from appwrite.id import ID
+from typing import TypedDict
 
 load_dotenv()
-FIREBASE_BUCKET = os.getenv("FIREBASE_BUCKET")
 
-def upload_file(local_path: str, remote_path: str) -> str:
+client = (
+    Client()
+    .set_endpoint(os.getenv("APPWRITE_ENDPOINT"))
+    .set_project(os.getenv("APPWRITE_PROJECT_ID"))
+    .set_key(os.getenv("APPWRITE_API_KEY"))
+)
+
+storage = Storage(client)
+
+BUCKET_ID = os.getenv("APPWRITE_BUCKET_ID")
+
+
+class UploadedFile(TypedDict):
+    file_id: str
+    url: str
+
+
+def upload_file(local_path: str) -> UploadedFile:
     """
-    Upload file to Firebase Storage using REST API (unauthenticated).
-    :param local_path: Path to local file.
-    :param remote_path: Path in Firebase Storage (e.g. 'folder/file.jpg').
-    :return: Public download URL.
+    Upload file to Appwrite Storage.
+
+    remote_path može biti:
+    audios/song.mp3
+    images/test.jpg
     """
-    url = f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o?uploadType=media&name={remote_path}"
-    headers = {
-        "Content-Type": "application/octet-stream"
+
+    result = storage.create_file(
+        bucket_id=BUCKET_ID,
+        file_id=ID.unique(),
+        file=InputFile.from_path(local_path)
+    )
+
+    return {
+        "file_id": result["$id"],
+        "url": storage.get_file_view(
+            bucket_id=BUCKET_ID,
+            file_id=result["$id"]
+        )
     }
-    with open(local_path, "rb") as f:
-        data = f.read()
-    response = requests.post(url, headers=headers, data=data)
-    print(response.status_code, response.text)  # Debug
-    response.raise_for_status()
-    resp_json = response.json()
-    token = resp_json.get("downloadTokens") or resp_json.get("token")
-    encoded_path = quote(remote_path, safe='')
-    if token:
-        return f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{encoded_path}?alt=media&token={token}"
-    else:
-        return f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{encoded_path}?alt=media"
 
-def download_file(remote_path: str, local_path: str):
-    """
-    Download file from Firebase Storage using REST API (unauthenticated).
-    :param remote_path: Path in Firebase Storage (e.g. 'folder/file.jpg').
-    :param local_path: Path to save file locally.
-    """
-    url = f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{remote_path}?alt=media"
-    response = requests.get(url, stream=True)
-    response.raise_for_status()
-    with open(local_path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-    return f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{remote_path}?alt=media"
 
-def download_file(remote_path: str, local_path: str, id_token: str):
+def download_file(file_id: str, local_path: str):
     """
-    Download file from Firebase Storage using REST API.
-    :param remote_path: Path in Firebase Storage (e.g. 'folder/file.jpg').
-    :param local_path: Path to save file locally.
-    :param id_token: Firebase user ID token (must be authenticated).
+    Download file from Appwrite Storage.
     """
-    url = f"https://firebasestorage.googleapis.com/v0/b/{FIREBASE_BUCKET}/o/{remote_path}?alt=media"
-    headers = {
-        "Authorization": f"Bearer {id_token}"
-    }
-    response = requests.get(url, headers=headers, stream=True)
-    response.raise_for_status()
+
+    response = storage.get_file_download(
+        bucket_id=BUCKET_ID,
+        file_id=file_id
+    )
+
     with open(local_path, "wb") as f:
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
+        f.write(response)
+
 
 async def handle_file_upload(file_audio):
-    """
-    Handle the audio file upload.
-    :param file_audio: The audio file to be uploaded.
-    :return: The public URL of the uploaded audio file.
-    """
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(await file_audio.read())
         temp_path = tmp.name
-    remote_path = f"audios/{os.path.basename(temp_path)}"
-    return upload_file(temp_path, remote_path)
+
+    try:
+        return upload_file(temp_path)
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+
+def delete_file(file_id: str):
+    storage.delete_file(
+        bucket_id=BUCKET_ID,
+        file_id=file_id
+    )

@@ -94,22 +94,34 @@ async def nova_pjesma(
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp.write(await file_audio.read())
                 temp_path = tmp.name
-            putanjaAudio = upload_file(temp_path, f"pjesme/audio/{file_audio.filename}")
-            os.remove(temp_path)
+
+            try:
+                audio = upload_file(temp_path)
+                putanjaAudio = audio["url"]   
+            finally:
+                os.remove(temp_path)
 
         if file_slika:
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp.write(await file_slika.read())
                 temp_path = tmp.name
-            putanjaSlika = upload_file(temp_path, f"pjesme/slike/{file_slika.filename}")
-            os.remove(temp_path)
+
+            try:
+                slika = upload_file(temp_path)
+                putanjaSlika = slika["url"]   
+            finally:
+                os.remove(temp_path)
 
         if file_gif:
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp.write(await file_gif.read())
                 temp_path = tmp.name
-            putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
-            os.remove(temp_path)
+
+            try:
+                gif = upload_file(temp_path)
+                putanjaGif = gif["url"]      
+            finally:
+                os.remove(temp_path)
 
         pjesma_data = PjesmaCreate(
             korisnikID=korisnikID,
@@ -178,22 +190,34 @@ async def izmeni_pjesmu(
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_audio.read())
             temp_path = tmp.name
-        putanjaAudio = upload_file(temp_path, f"pjesme/audio/{file_audio.filename}")
-        os.remove(temp_path)
+
+        try:
+            audio = upload_file(temp_path)
+            putanjaAudio = audio["url"]     
+        finally:
+            os.remove(temp_path)
 
     if file_slika:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
-        putanjaSlika = upload_file(temp_path, f"pjesme/slike/{file_slika.filename}")
-        os.remove(temp_path)
+
+        try:
+            slika = upload_file(temp_path)
+            putanjaSlika = slika["url"]    
+        finally:
+            os.remove(temp_path)
 
     if file_gif:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
-        putanjaGif = upload_file(temp_path, f"pjesme/gif/{file_gif.filename}")
-        os.remove(temp_path)
+
+        try:
+            gif = upload_file(temp_path)
+            putanjaGif = gif["url"]       
+        finally:
+            os.remove(temp_path)
 
     pjesma_data = {
         "korisnikID": korisnikID if korisnikID is not None else db_pjesma.korisnikID,

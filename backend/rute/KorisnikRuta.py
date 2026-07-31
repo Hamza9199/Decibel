@@ -111,8 +111,11 @@ async def promijeni_sliku(
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         tmp.write(await file_profilna.read())
         temp_path = tmp.name
-    putanjaProfilneSlike = upload_file(temp_path, f"korisnici/profilne/{file_profilna.filename}")
-    os.remove(temp_path)
+    try:
+        slika = upload_file(temp_path)
+        putanjaProfilneSlike = slika["url"]    
+    finally:
+        os.remove(temp_path)
 
     korisnik_data = KorisnikCreate(
         ime=korisnik.ime,

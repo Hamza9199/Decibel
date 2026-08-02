@@ -126,6 +126,7 @@ const Pjesma: React.FC = () => {
       const all: PjesmaType[] = r.data || [];
       return all
         .filter((p) => String(p.id) !== String(pjesmaId))
+        .filter((p) => p.odobreno)
         .sort((a, b) => (b.brojLajkova || 0) - (a.brojLajkova || 0))
         .slice(0, 6);
     },

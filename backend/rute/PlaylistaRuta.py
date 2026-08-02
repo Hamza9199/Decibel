@@ -74,15 +74,23 @@ async def nova_playlista(
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
-        putanjaSlika = upload_file(temp_path, f"playliste/slike/{file_slika.filename}")
-        os.remove(temp_path)
+
+        try:
+            slika = upload_file(temp_path)
+            putanjaSlika = slika["url"]
+        finally:
+            os.remove(temp_path)
 
     if file_gif:
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
-        putanjaGif = upload_file(temp_path, f"playliste/gif/{file_gif.filename}")
-        os.remove(temp_path)
+
+        try:
+            gif = upload_file(temp_path)
+            putanjaGif = gif["url"]
+        finally:
+            os.remove(temp_path)
 
     playlista_data = PlaylistaCreate(
         korisnikID=korisnikID,
@@ -121,8 +129,12 @@ async def izmeni_playlistu(
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
-        putanjaSlika = upload_file(temp_path, f"playliste/slike/{file_slika.filename}")
-        os.remove(temp_path)
+
+        try:
+            slika = upload_file(temp_path)
+            putanjaSlika = slika["url"]
+        finally:
+            os.remove(temp_path)
     else:
         putanjaSlika = db_playlista.putanjaSlika
 
@@ -130,8 +142,12 @@ async def izmeni_playlistu(
         with tempfile.NamedTemporaryFile(delete=False) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
-        putanjaGif = upload_file(temp_path, f"playliste/gif/{file_gif.filename}")
-        os.remove(temp_path)
+
+        try:
+            gif = upload_file(temp_path)
+            putanjaGif = gif["url"]
+        finally:
+            os.remove(temp_path)
     else:
         putanjaGif = db_playlista.putanjaGif
 

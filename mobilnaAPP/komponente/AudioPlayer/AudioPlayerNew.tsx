@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, Alert, ScrollView, Animated, Easing, Platform } from 'react-native';
-// Navigation with history handling
 import { navigateWithHistory } from '@/hooks/handleBackPress';
 import { Slider } from '@miblanchard/react-native-slider';
 import { MaterialIcons } from '@expo/vector-icons';

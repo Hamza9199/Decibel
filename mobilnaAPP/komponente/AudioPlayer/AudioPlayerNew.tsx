@@ -280,7 +280,10 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const isBuffering = !!status?.isBuffering || (!status?.isLoaded && !!effectiveSrc);
   const playing = !!status?.playing;
 
-  useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); }, []);
+  useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); 
+    player.setActiveForLockScreen(true);
+
+  }, [player]);
 
   useEffect(() => {
     if (pretplataValid) {
@@ -313,6 +316,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       player.pause();
       player.seekTo(0);
       player.replace({ uri: effectiveSrc || '' });
+     
       if (effectiveSrc) player.play();
     } catch { }
     previewTimerRef.current = setTimeout(() => {
@@ -327,7 +331,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     return () => {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
-  }, [pretplataValid, effectiveSrc, player, onClose]);
+  }, [pretplataValid, effectiveSrc, player, onClose, currentSong?.naziv, currentSong?.putanjaSlika, effectiveTitle, effectiveSlika, izvodjaci, currentOwner?.korisnicko_ime]);
 
   const lastLoadedSrcRef = useRef<string | null>(null);
   useEffect(() => {
@@ -338,7 +342,9 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     const shouldPreview = pretplataValid === false;
     setIsPreviewOnly(shouldPreview);
     if (shouldPreview) setShowNoSubMsg(true);
-    try { player.replace({ uri: effectiveSrc }); player.play(); } catch { }
+    try { player.replace({ uri: effectiveSrc });
+   
+    player.play(); } catch { }
     if (shouldPreview) {
       previewTimerRef.current = setTimeout(() => {
         try { player.pause(); player.seekTo(0); } catch { }
@@ -353,12 +359,24 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     return () => {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
-  }, [effectiveSrc, player, pretplataValid, onClose]);
+  }, [effectiveSrc, player, pretplataValid, onClose, currentSong?.naziv, currentSong?.putanjaSlika, effectiveTitle, effectiveSlika, izvodjaci, currentOwner?.korisnicko_ime]);
 
   useEffect(() => {
     if (!effectiveSrc || pretplataValid === false) return;
     if (isPreviewOnly) setIsPreviewOnly(false);
   }, [effectiveSrc, pretplataValid, isPreviewOnly]);
+
+  useEffect(() => {
+    if (!isLoaded || !currentSong) return;
+    const artist = izvodjaci.length > 0
+      ? izvodjaci.map(izv => izv.korisnicko_ime).join(' & ')
+      : currentOwner?.korisnicko_ime || '';
+    player.setActiveForLockScreen(true, {
+      title: currentSong?.naziv || effectiveTitle || '',
+      artist,
+      artworkUrl: currentSong?.putanjaSlika || effectiveSlika || '',
+    });
+  }, [isLoaded, currentSong, izvodjaci, currentOwner, effectiveTitle, effectiveSlika, player]);
 
   const volumeRef = useRef(volume);
   useEffect(() => { if (!isLoaded) return; if (muted) { player.volume = 0; } else if (volumeRef.current !== volume) { volumeRef.current = volume; player.volume = volume; } }, [volume, muted, isLoaded, player]);

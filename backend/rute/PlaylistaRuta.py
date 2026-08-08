@@ -55,7 +55,6 @@ async def get_playlista(playlista_id: int, session: AsyncSession = Depends(get_s
         raise HTTPException(status_code=404, detail="Playlista nije pronađena")
     return playlista
 
-
 @router.post("/", response_model=Playlista)
 async def nova_playlista(
     korisnikID: str = Form(...),
@@ -71,7 +70,12 @@ async def nova_playlista(
     putanjaSlika = putanjaGif = None
 
     if file_slika:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_slika.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
 
@@ -79,10 +83,16 @@ async def nova_playlista(
             slika = upload_file(temp_path)
             putanjaSlika = slika["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     if file_gif:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_gif.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
 
@@ -90,7 +100,8 @@ async def nova_playlista(
             gif = upload_file(temp_path)
             putanjaGif = gif["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     playlista_data = PlaylistaCreate(
         korisnikID=korisnikID,
@@ -102,9 +113,13 @@ async def nova_playlista(
         putanjaSlika=putanjaSlika,
         putanjaGif=putanjaGif
     )
-    db_playlista = await create_playlista(session, playlista_data)
-    return db_playlista
 
+    db_playlista = await create_playlista(
+        session,
+        playlista_data
+    )
+
+    return db_playlista
 @router.put("/{playlista_id}", response_model=Playlista)
 async def izmeni_playlistu(
     playlista_id: int,
@@ -118,15 +133,29 @@ async def izmeni_playlistu(
     file_gif: UploadFile = File(None),
     session: AsyncSession = Depends(get_session)
 ):
-    putanjaSlika = putanjaGif = None
-
     from kontroleri.PlaylistaKontroler import get_playlista_by_id
-    db_playlista = await get_playlista_by_id(session, playlista_id)
+
+    db_playlista = await get_playlista_by_id(
+        session,
+        playlista_id
+    )
+
     if not db_playlista:
-        raise HTTPException(status_code=404, detail="Playlista nije pronađena")
+        raise HTTPException(
+            status_code=404,
+            detail="Playlista nije pronađena"
+        )
+
+    putanjaSlika = db_playlista.putanjaSlika
+    putanjaGif = db_playlista.putanjaGif
 
     if file_slika:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_slika.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
 
@@ -134,12 +163,16 @@ async def izmeni_playlistu(
             slika = upload_file(temp_path)
             putanjaSlika = slika["url"]
         finally:
-            os.remove(temp_path)
-    else:
-        putanjaSlika = db_playlista.putanjaSlika
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     if file_gif:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_gif.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
 
@@ -147,9 +180,8 @@ async def izmeni_playlistu(
             gif = upload_file(temp_path)
             putanjaGif = gif["url"]
         finally:
-            os.remove(temp_path)
-    else:
-        putanjaGif = db_playlista.putanjaGif
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     playlista_data = PlaylistaCreate(
         korisnikID=korisnikID,
@@ -161,10 +193,21 @@ async def izmeni_playlistu(
         putanjaSlika=putanjaSlika,
         putanjaGif=putanjaGif
     )
+
     from kontroleri.PlaylistaKontroler import update_playlista
-    db_playlista = await update_playlista(session, playlista_id, playlista_data)
+
+    db_playlista = await update_playlista(
+        session,
+        playlista_id,
+        playlista_data
+    )
+
     if not db_playlista:
-        raise HTTPException(status_code=404, detail="Playlista nije pronađena")
+        raise HTTPException(
+            status_code=404,
+            detail="Playlista nije pronađena"
+        )
+
     return db_playlista
 
 @router.delete("/{playlista_id}", response_model=Playlista)

@@ -67,7 +67,6 @@ async def get_pjesma(pjesma_id: int, session: AsyncSession = Depends(get_session
         raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
     return pjesma
 
-
 @router.post("/", response_model=Pjesma)
 async def nova_pjesma(
     korisnikID: str = Form(...),
@@ -88,40 +87,60 @@ async def nova_pjesma(
     session: AsyncSession = Depends(get_session)
 ):
     try:
-        putanjaAudio = putanjaSlika = putanjaGif = None
+        putanjaAudio = None
+        putanjaSlika = None
+        putanjaGif = None
 
         if file_audio:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            ekstenzija = os.path.splitext(file_audio.filename or "")[1]
+
+            with tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=ekstenzija
+            ) as tmp:
                 tmp.write(await file_audio.read())
                 temp_path = tmp.name
 
             try:
                 audio = upload_file(temp_path)
-                putanjaAudio = audio["url"]   
+                putanjaAudio = audio["url"]
             finally:
-                os.remove(temp_path)
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
         if file_slika:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            ekstenzija = os.path.splitext(file_slika.filename or "")[1]
+
+            with tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=ekstenzija
+            ) as tmp:
                 tmp.write(await file_slika.read())
                 temp_path = tmp.name
 
             try:
                 slika = upload_file(temp_path)
-                putanjaSlika = slika["url"]   
+                putanjaSlika = slika["url"]
             finally:
-                os.remove(temp_path)
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
         if file_gif:
-            with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            ekstenzija = os.path.splitext(file_gif.filename or "")[1]
+
+            with tempfile.NamedTemporaryFile(
+                delete=False,
+                suffix=ekstenzija
+            ) as tmp:
                 tmp.write(await file_gif.read())
                 temp_path = tmp.name
 
             try:
                 gif = upload_file(temp_path)
-                putanjaGif = gif["url"]      
+                putanjaGif = gif["url"]
             finally:
-                os.remove(temp_path)
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
 
         pjesma_data = PjesmaCreate(
             korisnikID=korisnikID,
@@ -140,24 +159,41 @@ async def nova_pjesma(
             eksplicitniSadrzaj=eksplicitniSadrzaj,
             zanr=zanr
         )
-        db_pjesma = await create_pjesma(session, pjesma_data)
+
+        db_pjesma = await create_pjesma(
+            session,
+            pjesma_data
+        )
 
         if db_pjesma and db_pjesma.id and korisnikID:
             izvodjac_pjesma_data = IzvodjacPjesmaCreate(
                 izvodjacID=korisnikID,
                 pjesmaID=db_pjesma.id
             )
-            await create_izvodjac_pjesma(session, izvodjac_pjesma_data)
+
+            await create_izvodjac_pjesma(
+                session,
+                izvodjac_pjesma_data
+            )
         else:
-            print("Ne može se kreirati izvodjac_pjesma: nedostaje korisnikID ili pjesmaID")
+            print(
+                "Ne može se kreirati izvodjac_pjesma: "
+                "nedostaje korisnikID ili pjesmaID"
+            )
 
         return db_pjesma
+
     except Exception as e:
         import traceback
+
         print("GRESKA PRI KREIRANJU PJESME:", e)
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=str(e))
 
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
 @router.put("/{pjesma_id}", response_model=Pjesma)
 async def izmeni_pjesmu(
     pjesma_id: int,
@@ -178,76 +214,179 @@ async def izmeni_pjesmu(
     file_slika: UploadFile = File(None),
     file_gif: UploadFile = File(None),
 ):
-    db_pjesma = await get_pjesma_by_id(session, pjesma_id)
+    db_pjesma = await get_pjesma_by_id(
+        session,
+        pjesma_id
+    )
+
     if not db_pjesma:
-        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+        raise HTTPException(
+            status_code=404,
+            detail="Pjesma nije pronađena"
+        )
 
     putanjaAudio = db_pjesma.putanjaAudio
     putanjaSlika = db_pjesma.putanjaSlika
     putanjaGif = db_pjesma.putanjaGif
 
     if file_audio:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_audio.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_audio.read())
             temp_path = tmp.name
 
         try:
             audio = upload_file(temp_path)
-            putanjaAudio = audio["url"]     
+            putanjaAudio = audio["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     if file_slika:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_slika.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
 
         try:
             slika = upload_file(temp_path)
-            putanjaSlika = slika["url"]    
+            putanjaSlika = slika["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     if file_gif:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_gif.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
 
         try:
             gif = upload_file(temp_path)
-            putanjaGif = gif["url"]       
+            putanjaGif = gif["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     pjesma_data = {
-        "korisnikID": korisnikID if korisnikID is not None else db_pjesma.korisnikID,
-        "albumID": albumID if albumID is not None else db_pjesma.albumID,
-        "naziv": naziv if naziv is not None else db_pjesma.naziv,
-        "opis": opis if opis is not None else db_pjesma.opis,
-        "datumObjave": datumObjave if datumObjave is not None else db_pjesma.datumObjave,
-        "trajanjeSekunde": trajanjeSekunde if trajanjeSekunde is not None else db_pjesma.trajanjeSekunde,
-        "javno": javno if javno is not None else db_pjesma.javno,
-        "odobreno": odobreno if odobreno is not None else db_pjesma.odobreno,
+        "korisnikID": (
+            korisnikID
+            if korisnikID is not None
+            else db_pjesma.korisnikID
+        ),
+
+        "albumID": (
+            albumID
+            if albumID is not None
+            else db_pjesma.albumID
+        ),
+
+        "naziv": (
+            naziv
+            if naziv is not None
+            else db_pjesma.naziv
+        ),
+
+        "opis": (
+            opis
+            if opis is not None
+            else db_pjesma.opis
+        ),
+
+        "datumObjave": (
+            datumObjave
+            if datumObjave is not None
+            else db_pjesma.datumObjave
+        ),
+
+        "trajanjeSekunde": (
+            trajanjeSekunde
+            if trajanjeSekunde is not None
+            else db_pjesma.trajanjeSekunde
+        ),
+
+        "javno": (
+            javno
+            if javno is not None
+            else db_pjesma.javno
+        ),
+
+        "odobreno": (
+            odobreno
+            if odobreno is not None
+            else db_pjesma.odobreno
+        ),
+
         "putanjaAudio": putanjaAudio,
         "putanjaSlika": putanjaSlika,
         "putanjaGif": putanjaGif,
-        "jezikPjesme": jezikPjesme if jezikPjesme is not None else db_pjesma.jezikPjesme,
-        "licenca": licenca if licenca is not None else db_pjesma.licenca,
-        "eksplicitniSadrzaj": eksplicitniSadrzaj if eksplicitniSadrzaj is not None else db_pjesma.eksplicitniSadrzaj,
-        "zanr": zanr if zanr is not None else db_pjesma.zanr,
+
+        "jezikPjesme": (
+            jezikPjesme
+            if jezikPjesme is not None
+            else db_pjesma.jezikPjesme
+        ),
+
+        "licenca": (
+            licenca
+            if licenca is not None
+            else db_pjesma.licenca
+        ),
+
+        "eksplicitniSadrzaj": (
+            eksplicitniSadrzaj
+            if eksplicitniSadrzaj is not None
+            else db_pjesma.eksplicitniSadrzaj
+        ),
+
+        "zanr": (
+            zanr
+            if zanr is not None
+            else db_pjesma.zanr
+        ),
+
         "brojReprodukcija": db_pjesma.brojReprodukcija,
         "brojLajkova": db_pjesma.brojLajkova,
     }
 
     import datetime
+
     if isinstance(pjesma_data["datumObjave"], str):
-        pjesma_data["datumObjave"] = datetime.datetime.strptime(pjesma_data["datumObjave"], "%Y-%m-%d").date()
+        pjesma_data["datumObjave"] = (
+            datetime.datetime.strptime(
+                pjesma_data["datumObjave"],
+                "%Y-%m-%d"
+            ).date()
+        )
 
     from modeli.Pjesma import PjesmaCreate
+
     pjesma_create = PjesmaCreate(**pjesma_data)
-    db_pjesma = await update_pjesma(session, pjesma_id, pjesma_create)
+
+    db_pjesma = await update_pjesma(
+        session,
+        pjesma_id,
+        pjesma_create
+    )
+
     if not db_pjesma:
-        raise HTTPException(status_code=404, detail="Pjesma nije pronađena")
+        raise HTTPException(
+            status_code=404,
+            detail="Pjesma nije pronađena"
+        )
+
     return db_pjesma
 
 @router.delete("/{pjesma_id}", response_model=Pjesma)

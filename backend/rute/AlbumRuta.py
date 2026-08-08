@@ -52,7 +52,6 @@ async def get_album(album_id: int, session: AsyncSession = Depends(get_session))
     if not album:
         raise HTTPException(status_code=404, detail="Album nije pronađen")
     return album
-
 @router.post("/", response_model=Album)
 async def novi_album(
     korisnikID: str = Form(...),
@@ -66,10 +65,16 @@ async def novi_album(
     file_gif: UploadFile = File(None),
     session: AsyncSession = Depends(get_session)
 ):
-    putanjaSlika = putanjaGif = None
+    putanjaSlika = None
+    putanjaGif = None
 
     if file_slika:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_slika.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
 
@@ -77,10 +82,16 @@ async def novi_album(
             slika = upload_file(temp_path)
             putanjaSlika = slika["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     if file_gif:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_gif.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
 
@@ -88,7 +99,8 @@ async def novi_album(
             gif = upload_file(temp_path)
             putanjaGif = gif["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     album_data = AlbumCreate(
         korisnikID=korisnikID,
@@ -101,9 +113,10 @@ async def novi_album(
         putanjaSlika=putanjaSlika,
         putanjaGif=putanjaGif
     )
-    db_album = await create_album(session, album_data)
-    return db_album
 
+    db_album = await create_album(session, album_data)
+
+    return db_album
 @router.put("/{album_id}", response_model=Album)
 async def izmeni_album(
     album_id: int,
@@ -119,14 +132,23 @@ async def izmeni_album(
     session: AsyncSession = Depends(get_session)
 ):
     db_album = await get_album_by_id(session, album_id)
-    if not db_album:
-        raise HTTPException(status_code=404, detail="Album nije pronađen")
 
-    putanjaSlika = db_album.putanjaSlika  
-    putanjaGif = db_album.putanjaGif      
+    if not db_album:
+        raise HTTPException(
+            status_code=404,
+            detail="Album nije pronađen"
+        )
+
+    putanjaSlika = db_album.putanjaSlika
+    putanjaGif = db_album.putanjaGif
 
     if file_slika:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_slika.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_slika.read())
             temp_path = tmp.name
 
@@ -134,10 +156,16 @@ async def izmeni_album(
             slika = upload_file(temp_path)
             putanjaSlika = slika["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     if file_gif:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        ekstenzija = os.path.splitext(file_gif.filename or "")[1]
+
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
             tmp.write(await file_gif.read())
             temp_path = tmp.name
 
@@ -145,7 +173,8 @@ async def izmeni_album(
             gif = upload_file(temp_path)
             putanjaGif = gif["url"]
         finally:
-            os.remove(temp_path)
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
 
     album_data = AlbumCreate(
         korisnikID=korisnikID,
@@ -158,9 +187,19 @@ async def izmeni_album(
         putanjaSlika=putanjaSlika,
         putanjaGif=putanjaGif
     )
-    db_album = await update_album(session, album_id, album_data)
+
+    db_album = await update_album(
+        session,
+        album_id,
+        album_data
+    )
+
     if not db_album:
-        raise HTTPException(status_code=404, detail="Album nije pronađen")
+        raise HTTPException(
+            status_code=404,
+            detail="Album nije pronađen"
+        )
+
     return db_album
 
 @router.delete("/{album_id}", response_model=Album)

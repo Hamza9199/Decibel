@@ -27,26 +27,22 @@ class UploadedFile(TypedDict):
 
 
 def upload_file(local_path: str) -> UploadedFile:
-    """
-    Upload file to Appwrite Storage.
-
-    remote_path može biti:
-    audios/song.mp3
-    images/test.jpg
-    """
-
     result = storage.create_file(
         bucket_id=BUCKET_ID,
         file_id=ID.unique(),
         file=InputFile.from_path(local_path)
     )
 
+    file_id = result["$id"]
+
+    url = storage.get_file_view(
+        bucket_id=BUCKET_ID,
+        file_id=file_id
+    )
+
     return {
-        "file_id": result["$id"],
-        "url": storage.get_file_view(
-            bucket_id=BUCKET_ID,
-            file_id=result["$id"]
-        )
+        "file_id": file_id,
+        "url": str(url)
     }
 
 

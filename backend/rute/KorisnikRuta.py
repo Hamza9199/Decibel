@@ -104,18 +104,53 @@ async def promijeni_sliku(
     session: AsyncSession = Depends(get_session)
 ):
     korisnik = await get_korisnik_by_id(session, korisnik_id)
-    if not korisnik:
-        raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
 
-    putanjaProfilneSlike = None
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        tmp.write(await file_profilna.read())
-        temp_path = tmp.name
+    if not korisnik:
+        raise HTTPException(
+            status_code=404,
+            detail="Korisnik nije pronađen"
+        )
+
+    dozvoljeni_tipovi = {
+        "image/jpeg",
+        "image/png",
+        "image/webp"
+    }
+
+    if file_profilna.content_type not in dozvoljeni_tipovi:
+        raise HTTPException(
+            status_code=400,
+            detail="Dozvoljeni su samo JPG, PNG i WEBP formati"
+        )
+
+    ekstenzija = os.path.splitext(file_profilna.filename or "")[1]
+
+    if not ekstenzija:
+        ekstenzija = ".jpg"
+
+    temp_path = None
+
     try:
+        with tempfile.NamedTemporaryFile(
+            delete=False,
+            suffix=ekstenzija
+        ) as tmp:
+            tmp.write(await file_profilna.read())
+            temp_path = tmp.name
+
         slika = upload_file(temp_path)
-        putanjaProfilneSlike = slika["url"]    
+
+        putanjaProfilneSlike = slika["url"]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Greška prilikom upload-a slike: {str(e)}"
+        )
+
     finally:
-        os.remove(temp_path)
+        if temp_path and os.path.exists(temp_path):
+            os.remove(temp_path)
 
     korisnik_data = KorisnikCreate(
         ime=korisnik.ime,
@@ -131,5 +166,11 @@ async def promijeni_sliku(
         brojPratilaca=korisnik.brojPratilaca,
         obrisan=korisnik.obrisan
     )
-    db_korisnik = await update_korisnik(session, korisnik_id, korisnik_data)
+
+    db_korisnik = await update_korisnik(
+        session,
+        korisnik_id,
+        korisnik_data
+    )
+
     return db_korisnik

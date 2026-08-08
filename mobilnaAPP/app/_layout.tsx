@@ -35,8 +35,9 @@ function GlobalSwipeHandler({ children }: { children: ReactNode }): ReactElement
   const segments = useSegments();
   const pathname = usePathname();
 
-  const isAuthScreen = segments.includes('login') || segments.includes('register');
-
+  const segmentsArray = segments as string[];
+  const isAuthScreen = segmentsArray.includes('login') || segmentsArray.includes('register');
+  
   const onGestureEvent = (event: any) => {
     if (isAuthScreen) return;
     const { translationX, translationY } = event.nativeEvent;
@@ -360,7 +361,9 @@ export default function RootLayout() {
 function AudioPlayerWrapper() {
   const audio = useAudio();
   const segments = useSegments();
-  const isAuthScreen = segments.includes('login') || segments.includes('register');
+
+  const segmentsArray = segments as string[];
+  const isAuthScreen = segmentsArray.includes('login') || segmentsArray.includes('register');
 
   useEffect(() => {
     if (isAuthScreen) {

@@ -145,6 +145,7 @@ export const styles = StyleSheet.create({
   },
 
   volumeSliderContainer: {
+    flex: 1,
     maxWidth: 80,
     marginLeft: 4,
   },

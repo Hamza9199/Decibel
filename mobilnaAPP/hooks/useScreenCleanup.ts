@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { InteractionManager } from 'react-native';
 import { queryClient } from '@/config/queryClient';
 
@@ -41,7 +41,7 @@ export const useScreenCleanup = (options: CleanupOptions = {}) => {
         });
       }
     });
-  }, [queryClient, queryKeys, stateCleanup, aggressiveCleanup]);
+  }, [queryKeys, stateCleanup, aggressiveCleanup]);
 
   useFocusEffect(
     useCallback(() => {

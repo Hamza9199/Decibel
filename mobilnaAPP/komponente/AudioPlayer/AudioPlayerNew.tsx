@@ -280,8 +280,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const playing = !!status?.playing;
 
   useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); 
-    player.setActiveForLockScreen(true);
-
+        //player.setActiveForLockScreen(true);
   }, [player]);
 
   useEffect(() => {
@@ -535,7 +534,40 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
   const ensureDir = useCallback(async (p: string) => { const i = p.lastIndexOf('/'); if (i === -1) return; const dir = p.slice(0, i + 1); const info = await FileSystem.getInfoAsync(dir); if (!info.exists) await FileSystem.makeDirectoryAsync(dir, { intermediates: true }); }, []);
   const safeFileName = useCallback((r: string) => r.split('/').pop()?.replace(/[^a-zA-Z0-9_.-]/g, '_') || `f_${Date.now()}`, []);
-  const handleDownload = useCallback(async () => { if (!currentSong?.putanjaAudio) return; try { const base = FileSystem.documentDirectory; if (!base) return; const dir = base + 'offline_songs/'; await ensureDir(dir + 'x'); const audioLocal = dir + safeFileName(currentSong.putanjaAudio); await FileSystem.downloadAsync(currentSong.putanjaAudio, audioLocal); let imageLocal = ''; if (currentSong.putanjaSlika) { imageLocal = dir + safeFileName(currentSong.putanjaSlika); await FileSystem.downloadAsync(currentSong.putanjaSlika, imageLocal); } const offlineSong = { id: currentSong.id, naziv: currentSong.naziv, izvođač: currentOwner?.korisnicko_ime || '', putanjaAudio: audioLocal, putanjaSlika: imageLocal }; const existing = await AsyncStorage.getItem('offline_pjesme'); const list = existing ? JSON.parse(existing) : []; if (!list.find((s: any) => s.id === currentSong.id)) { list.push(offlineSong); await AsyncStorage.setItem('offline_pjesme', JSON.stringify(list)); Alert.alert(t('success'), t('song_downloaded_offline') || 'Downloaded'); } else { Alert.alert(t('info'), t('song_already_downloaded') || 'Already downloaded'); } } catch { Alert.alert(t('error'), t('error_downloading_song') || 'Error'); } }, [currentSong, currentOwner?.korisnicko_ime, ensureDir, safeFileName, t]);
+  const handleDownload = useCallback(async () => {
+    if (!currentSong?.putanjaAudio) return;
+    try {
+      const base = (FileSystem as any).documentDirectory as string | null;
+      if (!base) return;
+      const dir = base + 'offline_songs/';
+      await ensureDir(dir + 'x');
+      const audioLocal = dir + safeFileName(currentSong.putanjaAudio);
+      await FileSystem.downloadAsync(currentSong.putanjaAudio, audioLocal);
+      let imageLocal = '';
+      if (currentSong.putanjaSlika) {
+        imageLocal = dir + safeFileName(currentSong.putanjaSlika);
+        await FileSystem.downloadAsync(currentSong.putanjaSlika, imageLocal);
+      }
+      const offlineSong = {
+        id: currentSong.id,
+        naziv: currentSong.naziv,
+        izvođač: currentOwner?.korisnicko_ime || '',
+        putanjaAudio: audioLocal,
+        putanjaSlika: imageLocal,
+      };
+      const existing = await AsyncStorage.getItem('offline_pjesme');
+      const list = existing ? JSON.parse(existing) : [];
+      if (!list.find((s: any) => s.id === currentSong.id)) {
+        list.push(offlineSong);
+        await AsyncStorage.setItem('offline_pjesme', JSON.stringify(list));
+        Alert.alert(t('success'), t('song_downloaded_offline') || 'Downloaded');
+      } else {
+        Alert.alert(t('info'), t('song_already_downloaded') || 'Already downloaded');
+      }
+    } catch {
+      Alert.alert(t('error'), t('error_downloading_song') || 'Error');
+    }
+  }, [currentSong, currentOwner?.korisnicko_ime, ensureDir, safeFileName, t]);
 
   const formatTime = useCallback((seconds: number): string => {
     if (!isFinite(seconds)) return '0:00';

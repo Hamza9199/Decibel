@@ -4,40 +4,78 @@ export default {
   expo: {
     name: "Decibel",
     slug: "decibel-mobile",
-    version: "1.0.0",
+    version: "2.0.0",
+    updates: {
+      fallbackToCacheTimeout: 0
+    },
     orientation: "portrait",
     icon: "./assets/images/icon.png",
-    userInterfaceStyle: "light",
+    scheme: "decibel",
+    userInterfaceStyle: "automatic",
+    newArchEnabled: true,
     owner: "gale9199",
-    splash: {
-      image: "./assets//images/splash-icon.png",
-      resizeMode: "contain",
-      backgroundColor: "#000000ff"
-    },
-    assetBundlePatterns: [
-      "**/*"
-    ],
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.gale9199.decibel"
     },
     android: {
       package: "com.gale9199.decibel",
+      googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
         backgroundColor: "#000000ff"
-      }
+      },
+      edgeToEdgeEnabled: false,
+      navigationBarBackgroundColor: "#232323",
+      navigationBarStyle: "dark",
+      softwareKeyboardLayoutMode: "pan"
     },
     web: {
-      favicon: "./assets/images/icon.png"
+      bundler: "metro",
+      output: "static",
+      favicon: "./assets/images/icon.png",
+      name: "Decibel",
+      shortName: "Decibel",
+      description: "Decibel is a mobile application for audio enthusiasts.",
+      themeColor: "#333333",
+      backgroundColor: "#ffffff"
+    },
+    plugins: [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          image: "./assets/images/splash-icon.png",
+          imageWidth: 200,
+          resizeMode: "contain",
+          backgroundColor: "#000000ff"
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          position: "sticky",
+          backgroundColor: "#333333",
+          borderTopColor: "#333333"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          enableBackgroundPlayback: true,
+          playbackCategory: "playback",
+          playbackMode: "default"
+        }
+      ]
+    ],
+    experiments: {
+      typedRoutes: true
     },
     extra: {
       apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
       eas: {
         projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID
       }
-    },
-    scheme: "decibel"
+    }
   }
 };
-

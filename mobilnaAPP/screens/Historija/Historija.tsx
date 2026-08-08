@@ -24,7 +24,7 @@ import { styles as lightStyles } from './HistorijaWhite.styles';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/config/queryClient';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import Back from '@/komponente/Back/Back';
 import { useAudio } from '@/context/AudioContext';
 import { navigateWithHistory, useBackPress } from '@/hooks/handleBackPress';

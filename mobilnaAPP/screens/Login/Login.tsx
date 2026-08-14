@@ -96,6 +96,10 @@ const Login: React.FC = React.memo(() => {
     setButtonPressed(false);
   }, []);
 
+  const handleLogoPress = useCallback(() => {
+    router.replace('/');
+  }, [router]);
+
   const logoSource = useMemo(() => ({
     uri: '../../assets/images/logo.gif',
   }), []);
@@ -129,8 +133,10 @@ const Login: React.FC = React.memo(() => {
               style={styles.logo}
               contentFit="cover"
             />
-            <Text style={styles.appName}>Decibel</Text>
+            <Text onPress={handleLogoPress} style={styles.appName}>Decibel</Text>
           </View>
+
+          
 
           <View style={styles.formContainer}>
             <Text style={styles.title}>{t('login')}</Text>

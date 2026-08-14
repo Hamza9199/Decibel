@@ -15,6 +15,8 @@ import { API_BASE } from '@/config/api';
 import AudioPlayerNew from '@/komponente/AudioPlayer/AudioPlayerNew';
 import { ROUTE_MAPPING, clearNavigationHistory } from '@/hooks/handleBackPress';
 
+const GUEST_ALLOWED_ROUTES = new Set(['', '(tabs)', '(tabs)/index', 'settings', 'login', 'register']);
+
 interface SidebarContextType {
   showSidebar: () => void;
   hideSidebar: () => void;
@@ -142,7 +144,7 @@ export default function RootLayout() {
     setSuspendInfo(null);
     setObrisan(false);
     setProvjera(false);
-    router.replace('/login');
+    router.replace('/(tabs)');
   }, [router]);
 
   const handleReaktiviraj = useCallback(async () => {
@@ -231,11 +233,12 @@ export default function RootLayout() {
 
     const currentRoute = segments.join('/');
     const inAuthGroup = currentRoute === 'login' || currentRoute === 'register';
+    const isGuestAllowedRoute = GUEST_ALLOWED_ROUTES.has(currentRoute);
 
     console.log('isLoggedIn:', isLoggedIn, 'segments:', segments, 'currentRoute:', currentRoute);
 
-    if (!isLoggedIn && !inAuthGroup) {
-      router.replace('/login');
+    if (!isLoggedIn && !isGuestAllowedRoute) {
+      router.replace('/(tabs)');
     } else if (isLoggedIn && inAuthGroup) {
       router.replace('/(tabs)');
     }
@@ -344,6 +347,7 @@ export default function RootLayout() {
                     }}
                   >
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                    <Stack.Screen name="settings" options={{ headerShown: false }} />
                     <Stack.Screen name="login" options={{ headerShown: false }} />
                     <Stack.Screen name="register" options={{ headerShown: false }} />
                   </Stack>

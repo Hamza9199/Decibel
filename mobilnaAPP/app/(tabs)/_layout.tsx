@@ -1,19 +1,36 @@
 import { Tabs } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { View } from 'react-native';
+import { useEffect, useState } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useScreenCleanup } from '@/hooks/useScreenCleanup';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useScreenCleanup({
     stateCleanup: () => {
       console.log('Cleaning up tabs layout');
     }
   });
+
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('korisnik');
+        const user = userData ? JSON.parse(userData) : null;
+        setIsLoggedIn(!!user?.id);
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+
+    checkAuthState();
+  }, []);
 
 
   return (
@@ -58,6 +75,7 @@ export default function TabsLayout() {
           name="search"
           options={{
             title: t('search'),
+            href: isLoggedIn ? undefined : null,
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="search" size={size} color={color} />
             ),
@@ -68,6 +86,7 @@ export default function TabsLayout() {
           name="library"
           options={{
             title: t('library'),
+            href: isLoggedIn ? undefined : null,
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name="library-music" size={size} color={color} />
             ),

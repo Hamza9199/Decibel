@@ -101,7 +101,7 @@ const Header: React.FC = () => {
     },
     onSettled: () => {
       localStorage.removeItem("korisnik");
-      
+      navigate("/login");
     },
   });
 

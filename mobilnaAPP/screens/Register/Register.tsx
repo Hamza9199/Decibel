@@ -129,6 +129,10 @@ const Register: React.FC = React.memo(() => {
     setButtonPressed(false);
   }, []);
 
+  const handleLogoPress = useCallback(() => {
+    router.replace('/');
+  }, [router]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -160,7 +164,7 @@ const Register: React.FC = React.memo(() => {
               style={styles.logo}
               contentFit="cover"
             />
-            <Text style={styles.appName}>Decibel</Text>
+            <Text onPress={handleLogoPress} style={styles.appName}>Decibel</Text>
           </View>
 
           <View style={styles.formContainer}>

@@ -181,6 +181,12 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
   const [obrisan, setObrisan] = useState(false);
   const [provjera, setProvjera] = useState(true);
 
+  const publicRoutes = ["/", "/login", "/register", "/download", "/profile/settings"];
+
+  const isPublicRoute = publicRoutes.some(route => 
+    location.pathname === route || location.pathname.startsWith(route + "/")
+  );
+
   const handleLogout = useCallback(() => {
     localStorage.removeItem("korisnik");
     navigate("/login");
@@ -210,10 +216,12 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     const userStr = localStorage.getItem("korisnik");
-    if (!userStr && location.pathname !== "/login" && location.pathname !== "/register") {
+    
+    if (!userStr && !isPublicRoute) {
       navigate("/login");
       return;
     }
+    
     if (userStr) {
       const user = JSON.parse(userStr);
       const korisnikID = user?.id;
@@ -258,7 +266,7 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
       setSuspendInfo(null);
       setProvjera(false);
     }
-  }, [location, navigate]);
+  }, [location, navigate, isPublicRoute]);
 
   if (provjera) return null;
   if (obrisan) {

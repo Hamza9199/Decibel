@@ -89,7 +89,17 @@ const Login: React.FC = () => {
       {loginMut.isPending ? (
         <Loading />
       ) : (
+        
         <form className={styles.loginForm} onSubmit={handleSubmit}>
+          <button className={styles.navBtn} onClick={() => { navigate("/");  }}>
+            <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+              <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
+                <path d="M3 12L12 4l9 8v7a2 2 0 0 1-2 2h-3v-5h-6v5H5a2 2 0 0 1-2-2z" />
+              </svg>
+            </span>
+            {t("home") || "Početna"}
+          </button>
+
           <h2 className={styles.title}>{t("login")}</h2>
           <input
             type="email"
@@ -115,7 +125,7 @@ const Login: React.FC = () => {
               style={{
                 position: "absolute",
                 right: 8,
-                top: "50%",
+                top: "40%",
                 transform: "translateY(-50%)",
                 height: 24,
                 width: 24,

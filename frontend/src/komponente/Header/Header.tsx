@@ -101,7 +101,7 @@ const Header: React.FC = () => {
     },
     onSettled: () => {
       localStorage.removeItem("korisnik");
-      window.location.href = "/login";
+      
     },
   });
 
@@ -142,14 +142,20 @@ const Header: React.FC = () => {
 
       {isMobile ? (
         <>
-          <Link to="/profile/edit">
-            <img
-              src={korisnik?.putanjaProfilneSlike}
-              className="profileImg"
-              alt="Profil"
-            />
-          </Link>
-          {isLoggedIn && !isMobile && (
+          {isLoggedIn ? (
+            <Link to="/profile/edit">
+              <img
+                src={korisnik?.putanjaProfilneSlike}
+                className="profileImg"
+                alt="Profil"
+              />
+            </Link>
+          ) : (
+            <span className={styles.welcomeMessageMobile}>
+              {t("please_login")}
+            </span>
+          )}
+          {isLoggedIn ? (
             <button className={styles.logoutBtn} onClick={handleLogout}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -163,21 +169,43 @@ const Header: React.FC = () => {
               </svg>
               {t("logout")}
             </button>
+          ) : (
+            <Link to="/login" className={styles.loginBtn}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className={styles.loginIcon}
+                viewBox="0 0 24 24"
+              >
+                <path d="M11 7L11 17L7 12M17 7V17M17 7L21 12M17 7L13 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {t("login")}
+            </Link>
           )}
         </>
       ) : (
         <>
-          <span className={styles.welcomeMessage}>
-            {t("welcome")} {korisnik?.korisnicko_ime} !
-          </span>
-          <Link to="/profile/edit">
-            <img
-              src={korisnik?.putanjaProfilneSlike}
-              className="profileImg"
-              alt="Profil"
-            />
-          </Link>
-          {isLoggedIn && (
+          {isLoggedIn ? (
+            <span className={styles.welcomeMessage}>
+              {t("welcome")} {korisnik?.korisnicko_ime} !
+            </span>
+          ) : (
+            <span className={styles.welcomeMessage}>
+              {t("please_login")}
+            </span>
+          )}
+          {isLoggedIn ? (
+            <Link to="/profile/edit">
+              <img
+                src={korisnik?.putanjaProfilneSlike}
+                className="profileImg"
+                alt="Profil"
+              />
+            </Link>
+          ) : null}
+          {isLoggedIn ? (
             <button className={styles.logoutBtn} onClick={handleLogout}>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -191,6 +219,20 @@ const Header: React.FC = () => {
               </svg>
               {t("logout")}
             </button>
+          ) : (
+            <Link to="/login" className={styles.loginBtn}>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className={styles.loginIcon}
+                viewBox="0 0 24 24"
+              >
+                <path d="M11 7L11 17L7 12M17 7V17M17 7L21 12M17 7L13 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              {t("login")}
+            </Link>
           )}
         </>
       )}

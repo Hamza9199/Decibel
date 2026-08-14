@@ -127,4 +127,20 @@ export const styles = StyleSheet.create({
     fontWeight: '600',
     marginLeft: 12,
   },
+  loginBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    marginTop: 20,
+    backgroundColor: '#b91d95',
+    marginBottom: 15,
+  },
+  loginBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 12,
+  },
 });

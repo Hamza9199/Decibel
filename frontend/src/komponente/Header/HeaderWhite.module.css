@@ -102,6 +102,36 @@
   fill: currentColor;
 }
 
+.loginBtn {
+  background: #b91d95;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease;
+  margin-left: auto;
+  margin-right: 24px;
+  margin-bottom: 4px;
+  text-decoration: none;
+}
+
+.loginBtn:hover {
+  background: #e754a2;
+  transform: translateY(-1px);
+}
+
+.loginIcon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
 @media (max-width: 480px) {
   .header {
     padding: 4px 0 10px 0;
@@ -123,6 +153,13 @@
   }
   .welcomeMessage {
     display: none !important;
+  }
+  .welcomeMessageMobile {
+    display: block !important;
+    margin-right: 10px;
+    font-size: 14px;
+    color: #b91d95;
+    font-weight: 600;
   }
   .searchWrap {
     flex: 1 1 0;

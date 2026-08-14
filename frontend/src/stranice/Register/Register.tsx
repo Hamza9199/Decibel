@@ -98,6 +98,14 @@ const Register: React.FC = () => {
         <Loading />
       ) : (
         <form className={styles.registerForm} onSubmit={handleSubmit}>
+           <button className={styles.navBtn} onClick={() => { navigate("/");  }}>
+            <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
+              <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
+                <path d="M3 12L12 4l9 8v7a2 2 0 0 1-2 2h-3v-5h-6v5H5a2 2 0 0 1-2-2z" />
+              </svg>
+            </span>
+            {t("home") || "Početna"}
+          </button>
           <h2 className={styles.title}>{t("register")}</h2>
           <input type="text" placeholder={t("name")} className={styles.input} value={ime} onChange={(e) => setIme(e.target.value)} required />
           <input type="text" placeholder={t("surname")} className={styles.input} value={prezime} onChange={(e) => setPrezime(e.target.value)} required />
@@ -119,7 +127,7 @@ const Register: React.FC = () => {
               style={{
                 position: "absolute",
                 right: 8,
-                top: "50%",
+                top: "40%",
                 transform: "translateY(-50%)",
                 height: 24,
                 width: 24,
@@ -147,7 +155,7 @@ const Register: React.FC = () => {
           <button className={styles.button} type="submit">{t("register")}</button>
           <div className={styles.linkWrap}>
             {t("already_have_account") + " "}
-            <span className={styles.link} onClick={() => navigate("/")}>{t("login_here")}</span>
+            <span className={styles.link} onClick={() => navigate("/login")}>{t("login_here")}</span>
           </div>
         </form>
       )}

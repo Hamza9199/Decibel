@@ -146,6 +146,13 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
     );
   }, [t, onClose, router]);
 
+  const handleLogin = useCallback(() => {
+    onClose();
+    setTimeout(() => {
+      router.replace('/login');
+    }, 300);
+  }, [onClose, router]);
+
   const handleNavPress = useCallback(async (route?: string, action?: () => void) => {
     if (action) {
       action();
@@ -522,10 +529,17 @@ const Sidebar: React.FC<SidebarProps> = React.memo(({ visible, onClose, source }
               )}
             </ScrollView>
 
-            <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-              {renderIcon('logout', 22, '#ffb3c6')}
-              <Text style={styles.logoutBtnText}>{t('logout')}</Text>
-            </TouchableOpacity>
+            {user ? (
+              <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+                {renderIcon('logout', 22, '#ffb3c6')}
+                <Text style={styles.logoutBtnText}>{t('logout')}</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
+                {renderIcon('login', 22, '#b91d95')}
+                <Text style={styles.loginBtnText}>{t('login')}</Text>
+              </TouchableOpacity>
+            )}
           </Animated.View>
         </PanGestureHandler>
       </View>

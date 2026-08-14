@@ -494,14 +494,18 @@ const Sidebar: React.FC = () => {
             </>
           )}
           
-          {isMobile && isLoggedIn && (
-            <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); handleLogout(); if (isMobile) handleCloseSidebar(); }}>
+          {isMobile && (
+            <button className={styles.navBtn} onClick={(e) => { e.stopPropagation(); if (isLoggedIn) { handleLogout(); } else { navigate("/login"); } if (isMobile) handleCloseSidebar(); }}>
               <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#b91d95">
-                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
+                  {isLoggedIn ? (
+                    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+                  ) : (
+                    <path d="M11 7L11 17L7 12M17 7V17M17 7L21 12M17 7L13 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  )}
                 </svg>
               </span>
-              {t("logout")}
+              {isLoggedIn ? t("logout") : t("login")}
             </button>
           )}
         </nav>

@@ -420,7 +420,9 @@
   "comment_deleted": "Kommentar wurde gelöscht",
   "error_deleting_comment": "Fehler beim Löschen des Kommentars",
   "delete_comment_confirm": "Sind Sie sicher, dass Sie diesen Kommentar löschen möchten?",
-  "select_month_year": "Auswählen"
+  "select_month_year": "Auswählen",
+  "free_trial_activated": "Kostenlose Testversion aktiviert",
+  "error_activating_free_trial": "Fehler beim Aktivieren der kostenlosen Testversion"
 
 
 }

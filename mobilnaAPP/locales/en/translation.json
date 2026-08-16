@@ -425,6 +425,8 @@
   "comment_deleted": "Comment has been deleted",
   "error_deleting_comment": "Error deleting comment",
   "delete_comment_confirm": "Are you sure you want to delete this comment?",
-  "select_month_year": "Select"
+  "select_month_year": "Select",
+  "free_trial_activated": "Free trial has been activated",
+  "error_activating_free_trial": "Error activating free trial"
 }
 

@@ -450,7 +450,9 @@
   "error_deleting_comment": "Greška pri brisanju komentara",
   "delete_comment_confirm": "Jeste li sigurni da želite obrisati ovaj komentar?",
   "genre_pop": "Popularna",
-  "select_month_year": "Odaberi"
+  "select_month_year": "Odaberi",
+  "free_trial_activated": "Besplatna probna verzija je aktivirana",
+  "error_activating_free_trial": "Greška pri aktivaciji besplatne probne verzije"
   
     
 }

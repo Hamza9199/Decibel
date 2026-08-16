@@ -114,6 +114,30 @@ const Pretplata: React.FC = () => {
       setError("Greška pri otkazivanju pretplate."),
   });
 
+  const freeTrialMut = useMutation({
+    mutationFn: async (pretplataId: number) => {
+      if (!korisnikID) throw new Error("no-user");
+      await axios.post(
+        `${API_BASE}/korisnik_pretplata/free/${korisnikID}/${pretplataId}`
+      );
+    },
+    onSuccess: async () => {
+      await qc.invalidateQueries({
+        queryKey: ["korisnikPretplata", korisnikID],
+      });
+      await qc.invalidateQueries({
+        queryKey: ["pretplatePonude"],
+      });
+      await korisnikPretplataQ.refetch();
+      await ponudeQ.refetch();
+    },
+    onError: (err: unknown) => {
+      const axiosError = err as { response?: { data?: { detail?: string } } };
+      const msg = axiosError.response?.data?.detail || "Greška pri aktivaciji besplatne pretplate.";
+      setError(msg);
+    },
+  });
+
   const handleOtkaziPretplatu = useCallback(() => {
     if (!korisnikPretplataQ.data) return;
     if (!window.confirm("Jeste li sigurni da želite otkazati pretplatu?")) return;
@@ -250,6 +274,29 @@ const Pretplata: React.FC = () => {
             ) : (
             <div className={styles.noSub}>
               <div className={styles.warning}>{t("no_active_subscription") || "Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:"}</div>
+              {ponude.length > 0 && (
+                <div className={styles.freeTrialInfo} style={{ marginBottom: 16, padding: 12, background: "#1a3a1a", borderRadius: 8, border: "1px solid #2ecc40" }}>
+                  <div style={{ color: "#2ecc40", fontWeight: 600, marginBottom: 8 }}>
+                    {t("free_trial_offer") || "🎁 Pokušajte besplatno 3 mjeseca!"}
+                  </div>
+                  <div style={{ color: "#b3b3b3", fontSize: "0.9rem", marginBottom: 12 }}>
+                    {t("free_trial_description") || "Kao novi korisnik, možete dobiti 3 mjeseca besplatne pretplate. Odaberite paket ispod i kliknite na 'Besplatno 3 mjeseca'."}
+                  </div>
+                  <button 
+                    className={styles.kupiBtn} 
+                    onClick={() => freeTrialMut.mutate(ponude[0].id)} 
+                    disabled={freeTrialMut.isPending}
+                    style={{ 
+                      background: "#2ecc40", 
+                      border: "none",
+                      color: "#fff",
+                      width: "100%"
+                    }}
+                  >
+                    {freeTrialMut.isPending ? (t("activating") || "Aktiviram...") : (t("free_trial_3_months") || "Besplatno 3 mjeseca")}
+                  </button>
+                </div>
+              )}
               <div className={styles.ponudeGrid}>
                 {ponude.length === 0 ? (
                   <div className={styles.error}>{t("no_available_subscriptions") || "Nema dostupnih pretplata."}</div>
@@ -259,7 +306,7 @@ const Pretplata: React.FC = () => {
                       <div className={styles.ponudaNaziv}>{p.naziv}</div>
                       <div className={styles.ponudaOpis}>{p.opis}</div>
                       <div className={styles.ponudaCijena}>{p.cijena} KM / mj</div>
-                      <button className={styles.kupiBtn} onClick={() => navigate(`/nova-pretplata/${p.id}`)} disabled={cancelMut.isPending}>
+                      <button className={styles.kupiBtn} onClick={() => navigate(`/nova-pretplata/${p.id}`)} disabled={cancelMut.isPending} style={{ width: "100%" }}>
                         {t("buy_subscription")}
                       </button>
                     </div>

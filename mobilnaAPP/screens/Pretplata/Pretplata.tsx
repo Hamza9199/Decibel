@@ -132,6 +132,28 @@ const PretplataScreen: React.FC = React.memo(() => {
     }
   });
 
+  const freeTrialMutation = useMutation({
+    mutationFn: async (pretplataId: number) => {
+      if (!korisnikID) throw new Error("no-user");
+      await axios.post(
+        `${API_BASE}/korisnik_pretplata/free/${korisnikID}/${pretplataId}`
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSubscription', korisnikID] });
+      queryClient.invalidateQueries({ queryKey: ['korisnik_pretplata', korisnikID] });
+      queryClient.invalidateQueries({ queryKey: ['subscriptionOffers'] });
+      Alert.alert(
+        t('success') || 'Success',
+        t('free_trial_activated') || 'Free trial activated successfully!'
+      );
+    },
+    onError: (error: any) => {
+      const msg = error.response?.data?.detail || t('error_activating_free_trial') || 'Error activating free trial.';
+      Alert.alert(t('error') || 'Error', msg);
+    },
+  });
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     Promise.all([
@@ -303,6 +325,26 @@ title={t('subscription') || 'Subscription'} onBackPress={handleBackPress}
                   {t('no_active_subscription') || 'You don\'t have an active subscription. Choose one of the available subscriptions:'}
                 </Text>
               </View>
+              
+              {ponude.length > 0 && (
+                <View style={styles.freeTrialInfo}>
+                  <Text style={styles.freeTrialTitle}>
+                    {t('free_trial_offer') || '🎁 Try free for 3 months!'}
+                  </Text>
+                  <Text style={styles.freeTrialDescription}>
+                    {t('free_trial_description') || 'As a new user, you can get 3 months of free subscription. Select a package below and click \'Free 3 months\'.'}
+                  </Text>
+                  <TouchableOpacity
+                    style={[styles.freeTrialButton, { width: '100%', marginTop: 12 }]}
+                    onPress={() => freeTrialMutation.mutate(ponude[0].id)}
+                    disabled={freeTrialMutation.isPending}
+                  >
+                    <Text style={styles.freeTrialButtonText}>
+                      {freeTrialMutation.isPending ? (t('activating') || 'Activating...') : (t('free_trial_3_months') || 'Free 3 months')}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
               
               <View style={styles.offersContainer}>
                 {ponude.length === 0 ? (

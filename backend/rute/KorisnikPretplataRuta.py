@@ -19,8 +19,8 @@ from kontroleri.KorisnikPretplataKontroler import (
     get_korisnik_pretplata_by_id,
     create_korisnik_pretplata,
     delete_korisnik_pretplata,
-    get_korisnik_pretplata_by_korisnik_id
-
+    get_korisnik_pretplata_by_korisnik_id,
+    create_free_pretplata_for_user
 )
 
 router = APIRouter(prefix="/api/korisnik_pretplata", tags=["KorisnikPretplata"])
@@ -97,6 +97,22 @@ async def nova_korisnik_pretplata(data: KorisnikPretplataCreate, session: AsyncS
         print("GRESKA:", e)
         traceback.print_exc()
         raise
+
+
+@router.post("/free/{korisnik_id}/{pretplata_id}", response_model=KorisnikPretplata)
+async def kreiraj_besplatnu_pretplatu(korisnik_id: str, pretplata_id: int, session: AsyncSession = Depends(get_session)):
+    """
+    Kreira 3 mjeseca besplatne pretplate za korisnika koji nema aktivnu pretplatu.
+    """
+    try:
+        db_obj = await create_free_pretplata_for_user(session, korisnik_id, pretplata_id)
+        return db_obj
+    except Exception as e:
+        import traceback
+        print("GRESKA:", e)
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=str(e))
+    
 
 @router.delete("/{korisnik_pretplata_id}", response_model=KorisnikPretplata)
 async def obrisi_korisnik_pretplatu(korisnik_pretplata_id: int, session: AsyncSession = Depends(get_session)):

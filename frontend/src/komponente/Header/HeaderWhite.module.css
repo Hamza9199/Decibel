@@ -154,13 +154,7 @@
   .welcomeMessage {
     display: none !important;
   }
-  .welcomeMessageMobile {
-    display: block !important;
-    margin-right: 10px;
-    font-size: 14px;
-    color: #b91d95;
-    font-weight: 600;
-  }
+
   .searchWrap {
     flex: 1 1 0;
     min-width: 0;

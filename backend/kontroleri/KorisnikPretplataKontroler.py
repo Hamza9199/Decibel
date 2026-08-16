@@ -6,6 +6,7 @@ import datetime
 
 from modeli.KorisnikPretplata import KorisnikPretplataORM, KorisnikPretplata, KorisnikPretplataCreate
 from modeli.ObnovaPretplate import ObnovaPretplateORM
+from modeli.PretplataStatus import PretplataStatusEnum
 
 async def get_all_korisnik_pretplata(session: AsyncSession):
     result = await session.execute(
@@ -80,3 +81,41 @@ async def get_korisnik_pretplata_by_korisnik_id(session: AsyncSession, korisnik_
         select(KorisnikPretplataORM).options(joinedload(KorisnikPretplataORM.pretplata)).where(KorisnikPretplataORM.korisnikID == korisnik_id)
     )
     return result.scalar_one_or_none()
+
+
+async def create_free_pretplata_for_user(session: AsyncSession, korisnik_id: str, pretplata_id: int):
+    """
+    Kreira 3 mjeseca besplatne pretplate za korisnika koji nema aktivnu pretplatu.
+    """
+    # Provjeri da li korisnik već ima pretplatu
+    existing = await session.execute(
+        select(KorisnikPretplataORM).where(KorisnikPretplataORM.korisnikID == korisnik_id)
+    )
+    existing_obj = existing.scalar_one_or_none()
+    
+    if existing_obj:
+        raise Exception("Korisnik već ima pretplatu")
+    
+    # Provjeri da li pretplata postoji
+    from modeli.Pretplata import PretplataORM
+    pretplata = await session.get(PretplataORM, pretplata_id)
+    if not pretplata:
+        raise Exception("Pretplata nije pronađena")
+    
+    now = datetime.datetime.utcnow()
+    tri_mjeseca = datetime.timedelta(days=90)  # 3 mjeseca
+    
+    # Kreiraj novu pretplatu za korisnika
+    db_obj = KorisnikPretplataORM(
+        korisnikID=korisnik_id,
+        pretplataID=pretplata_id,
+        pretplataStatus=PretplataStatusEnum.aktivna,
+        kreiranDatumVrijeme=now,
+        datumVrijemeObnove=now,
+        datumIsteka=now + tri_mjeseca
+    )
+    session.add(db_obj)
+    await session.commit()
+    await session.refresh(db_obj)
+    await session.refresh(db_obj, attribute_names=["pretplata"])
+    return db_obj

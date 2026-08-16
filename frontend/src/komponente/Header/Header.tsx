@@ -140,52 +140,22 @@ const Header: React.FC = () => {
       )}
 
 
-      {isMobile ? (
+     {isMobile ? (
         <>
-          {isLoggedIn ? (
+          {isLoggedIn && (
             <Link to="/profile/edit">
               <img
-                src={korisnik?.putanjaProfilneSlike}
-                className="profileImg"
-                alt="Profil"
+              src={korisnik?.putanjaProfilneSlike || "/logo.gif"}
+              className="profileImg"
+              alt="Profil"
+              onError={(e) => {
+                e.currentTarget.src = "/logo.gif";
+              }}
               />
-            </Link>
-          ) : (
-            <span className={styles.welcomeMessageMobile}>
-              {t("please_login")}
-            </span>
-          )}
-          {isLoggedIn ? (
-            <button className={styles.logoutBtn} onClick={handleLogout}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                className={styles.logoutIcon}
-                viewBox="0 0 24 24"
-              >
-                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
-              </svg>
-              {t("logout")}
-            </button>
-          ) : (
-            <Link to="/login" className={styles.loginBtn}>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                fill="currentColor"
-                className={styles.loginIcon}
-                viewBox="0 0 24 24"
-              >
-                <path d="M11 7L11 17L7 12M17 7V17M17 7L21 12M17 7L13 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              {t("login")}
             </Link>
           )}
         </>
-      ) : (
+        ) : (
         <>
           {isLoggedIn ? (
             <span className={styles.welcomeMessage}>
@@ -198,11 +168,14 @@ const Header: React.FC = () => {
           )}
           {isLoggedIn ? (
             <Link to="/profile/edit">
-              <img
-                src={korisnik?.putanjaProfilneSlike}
+               <img
+                src={korisnik?.putanjaProfilneSlike || "/logo.gif"}
                 className="profileImg"
                 alt="Profil"
-              />
+                onError={(e) => {
+                  e.currentTarget.src = "/logo.gif";
+                }}
+                />
             </Link>
           ) : null}
           {isLoggedIn ? (

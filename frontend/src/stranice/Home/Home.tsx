@@ -11,6 +11,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { playPreview } from "../../utils/playPreview";
 import { getApiBase } from "../../utils/apiBase";
 import "../../assets/logo.css";
+import { getMediaUrl } from "../../utils/mediaUrl";
 
 type Styles = Record<string, string>;
 
@@ -294,12 +295,12 @@ const Home: React.FC = () => {
                 <div key={p.id} className={`${styles.card} ${activeSongId === p.id ? styles.activeCard : ""}`}>
                   <div className={styles.cardImageWrap}>
                     {p.putanjaSlika ? (
-                      <img src={p.putanjaSlika} alt={p.naziv} className={styles.cardImage} />
+                      <img src={getMediaUrl(p.putanjaSlika)} alt={p.naziv} className={styles.cardImage} />
                     ) : (
                       <div className={styles.cardImage} style={{ background: "#222" }} />
                     )}
                     {p.putanjaAudio && (
-                      <button className={styles.playButton} onClick={() => handlePlay(p.id, p.putanjaAudio)} title="Play">
+                      <button className={styles.playButton} onClick={() => handlePlay(p.id, getMediaUrl(p.putanjaAudio))} title="Play">
                         <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff">
                           <polygon points="12,8 36,22 12,36" />
                         </svg>
@@ -333,7 +334,7 @@ const Home: React.FC = () => {
                   <div className={styles.cardImageWrap}>
                     {a.putanjaSlika ? (
                       <img
-                        src={a.putanjaSlika}
+                        src={getMediaUrl(a.putanjaSlika)}
                         alt={a.naziv}
                         className={styles.cardImage}
                       />
@@ -378,7 +379,7 @@ const Home: React.FC = () => {
               {playliste.map((pl) => (
                 <div key={pl.id} className={styles.card}>
                   <div className={styles.cardImageWrap}>
-                    {pl.putanjaSlika ? (
+                    {getMediaUrl(pl.putanjaSlika) ? (
                       <img
                         src={pl.putanjaSlika}
                         alt={pl.naziv}
@@ -426,7 +427,7 @@ const Home: React.FC = () => {
                 .map((k) => (
                   <div key={k.id} className={styles.card}>
                     <div className={styles.cardImageWrap}>
-                      {k.putanjaProfilneSlike ? (
+                      {getMediaUrl(k.putanjaProfilneSlike) ? (
                           <img
                             src={k.putanjaProfilneSlike || "/logo.gif" }
                             alt="/logo.gif"

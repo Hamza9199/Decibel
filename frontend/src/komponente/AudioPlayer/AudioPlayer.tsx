@@ -814,7 +814,7 @@ const AudioPlayer: React.FC<Props> = ({
         startTimestamp,
         endTimestamp,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.id}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://decibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://decibel.click/izvodjac/${currentOwner.id}` }]
       });
     } else {
       let pausedProgress = songDuration;
@@ -831,7 +831,7 @@ const AudioPlayer: React.FC<Props> = ({
         startTimestamp: now - pausedProgress,
         endTimestamp: songDuration ? now - pausedProgress + songDuration : undefined,
         type: 2,
-        buttons: [{ label: "Listen on Decibel", url: `https://deccibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://deccibel.click/izvodjac/${currentOwner.id}` }]
+        buttons: [{ label: "Listen on Decibel", url: `https://decibel.click/${currentSong.id}` }, { label: "View Creator", url: `https://decibel.click/izvodjac/${currentOwner.id}` }]
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

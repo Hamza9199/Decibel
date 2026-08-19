@@ -71,7 +71,7 @@ async def delete_korisnik_pretplata(session: AsyncSession, korisnik_pretplata_id
     db_obj = await get_korisnik_pretplata_by_id(session, korisnik_pretplata_id)
     if not db_obj:
         return None
-    db_obj.pretplataStatus = PretplataStatusEnum.neaktivna
+    db_obj.pretplataStatus = PretplataStatusEnum.pauzirana
     session.add(db_obj)
     await session.commit()
     await session.refresh(db_obj)

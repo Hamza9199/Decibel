@@ -160,7 +160,8 @@ const Pretplata: React.FC = () => {
   const korisnikPretplata = korisnikPretplataQ.data as KorisnikPretplata | null;
 
   const status = korisnikPretplata?.pretplataStatus;
-  const aktivna = status === "aktivna" || status === "pauzirana";
+  const aktivna = status === "aktivna";
+  const pauzirana = status === "pauzirana";
   const istekla = status === "istekla";
   const neaktivna = status === "neaktivna";
   const ponude = (ponudeQ.data as Pretplata[]) || [];
@@ -219,6 +220,13 @@ const Pretplata: React.FC = () => {
                   </div>
                 )}
 
+                {pauzirana && (
+                  <div className={styles.warning}>
+                    {t("paused_subscription") ||
+                      "Vaša pretplata je već pauzirana. Možete kupiti novu ili obnoviti postojeću."}
+                  </div>
+                )}
+
                 {istekla && (
                   <div className={styles.warning}>
                     {t("expired_subscription") ||
@@ -267,6 +275,16 @@ const Pretplata: React.FC = () => {
                       onClick={handleObnoviPretplatu}
                     >
                       {t("renew_subscription") || "Obnovi pretplatu"}
+                    </button>
+                  )}
+
+                  {pauzirana && (
+                    <button
+                      className={styles.kupiBtn}
+                      style={{ background: "#e754a2" }}
+                      onClick={handleObnoviPretplatu}
+                    >
+                      {t("buy_or_renew_subscription") || "Kupi ili obnovi pretplatu"}
                     </button>
                   )}
                 </div>

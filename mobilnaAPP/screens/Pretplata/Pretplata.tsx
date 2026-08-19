@@ -299,7 +299,7 @@ title={t('subscription') || 'Subscription'} onBackPress={handleBackPress}
                     </Text>
                   </TouchableOpacity>
                 )}
-                {(subscriptionStatus.status === 'aktivna' || subscriptionStatus.status === 'pauzirana') && (
+                {subscriptionStatus.status === 'aktivna' && (
                   <TouchableOpacity
                     style={[styles.button, styles.buttonCancel]}
                     onPress={handleOtkaziPretplatu}
@@ -310,11 +310,23 @@ title={t('subscription') || 'Subscription'} onBackPress={handleBackPress}
                     </Text>
                   </TouchableOpacity>
                 )}
+                {subscriptionStatus.status === 'pauzirana' && (
+                  <TouchableOpacity
+                    style={[styles.button, styles.buttonRenew]}
+                    onPress={handleObnoviPretplatu}
+                  >
+                    <Text style={styles.buttonText}>
+                      {t('buy_or_renew_subscription') || 'Buy or renew subscription'}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
               
               <View style={styles.successContainer}>
                 <Text style={styles.successText}>
-                  {t('active_subscription') || 'You have an active subscription'}
+                  {subscriptionStatus.status === 'pauzirana'
+                    ? (t('paused_subscription') || 'Your subscription is already paused.')
+                    : (t('active_subscription') || 'You have an active subscription')}
                 </Text>
               </View>
             </View>

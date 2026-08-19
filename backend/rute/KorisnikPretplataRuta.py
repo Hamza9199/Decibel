@@ -72,15 +72,8 @@ async def dobij_korisnik_pretplata_by_korisnik_id(korisnik_id: str, session: Asy
     )
 
     if not validna:
-        return KorisnikPretplata(
-            id=result.id,
-            korisnikID=result.korisnikID,
-            pretplataID=result.pretplataID,
-            datumKupovine=result.datumKupovine,
-            datumIsteka=result.datumIsteka,
-            pretplataStatus= PretplataStatusEnum.istekla,  
-            pretplata=result.pretplata
-        )
+        result.pretplataStatus = PretplataStatusEnum.istekla
+        return result
     
     return result
 

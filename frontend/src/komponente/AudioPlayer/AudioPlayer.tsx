@@ -6,6 +6,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from '../../config/queryClient';
+import { getApiBase } from "../../utils/apiBase";
 
 type Props = {
   id?: number;
@@ -26,7 +27,7 @@ type MediaSessionWithPositionState = MediaSession & {
 };
 
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 const AudioPlayer: React.FC<Props> = ({
   id,

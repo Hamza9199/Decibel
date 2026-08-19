@@ -8,10 +8,11 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { IzvodjacPjesmaVeza, Pjesma } from "../../types";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 const Zahtjevi: React.FC = () => {
   const { t } = useTranslation();

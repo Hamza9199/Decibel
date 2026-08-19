@@ -5,8 +5,9 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import axios from "axios";
+import { getApiBase } from "../../utils/apiBase";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const API_BASE = getApiBase();
 
 type Styles = Record<string, string>;
 

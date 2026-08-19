@@ -9,6 +9,7 @@ import Loading from "../../komponente/Loading/Loading";
 import type { Pretplata } from "../../types";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
@@ -40,7 +41,7 @@ const NovaPretplata: React.FC = () => {
     }
   }, []);
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+  const API_BASE = getApiBase();
 
   const pretplataQ = useQuery<Pretplata | null>({
     queryKey: ["pretplata", pretplataId],

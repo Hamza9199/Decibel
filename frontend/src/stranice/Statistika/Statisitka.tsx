@@ -18,12 +18,13 @@ import type { Statistika } from "../../types";
 import { Pjesma, Album, Playlista, Korisnik } from "../../types";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ArcElement);
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 const Statistika: React.FC = () => {
   const { t } = useTranslation();

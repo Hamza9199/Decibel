@@ -8,10 +8,11 @@ import Search from "../Search/Search";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import "../../assets/logo.css";
 import Loading from "../Loading/Loading";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 const Header: React.FC = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 480);

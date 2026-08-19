@@ -6,10 +6,11 @@ import { useTranslation } from "react-i18next";
 import { Album, Korisnik, Pjesma, Playlista } from "../../types";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "../Loading/Loading";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 type SearchResult = {
   izvodjaci: Korisnik[];

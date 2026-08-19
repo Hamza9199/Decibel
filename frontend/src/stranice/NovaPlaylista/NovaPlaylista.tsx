@@ -8,10 +8,11 @@ import Sidebar from "../../komponente/Sidebar/Sidebar";
 import Footer from "../../komponente/Footer/Footer";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 const NovaPlaylista: React.FC = () => {
   const [naziv, setNaziv] = useState("");

@@ -11,10 +11,11 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
 import { playPreview } from "../../utils/playPreview";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 type IzvodjacPjesmaVeza = { pjesmaID: number; izvodjacID: string };
 

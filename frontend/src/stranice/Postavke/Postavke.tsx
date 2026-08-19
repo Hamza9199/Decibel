@@ -8,10 +8,11 @@ import axios from "axios";
 import { useTranslation } from "react-i18next";
 import "../../i18n";
 import { useNavigate } from "react-router-dom";
+import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 const Postavke: React.FC = () => {
   const [showModal, setShowModal] = useState(false);

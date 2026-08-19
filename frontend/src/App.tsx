@@ -37,6 +37,7 @@ import Download from './stranice/Download/Download';
 import DiscordLink from './stranice/DiscordLink/DiscordLink';
 import Offline from './stranice/Offline/Offline';
 import { useTranslation } from 'react-i18next';
+import { getApiBase } from './utils/apiBase';
 
 
 
@@ -199,9 +200,9 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
     const korisnikID = user?.id;
     if (!korisnikID) return;
     try {
-      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`);
+      const res = await axios.get(`${getApiBase()}/korisnici/${korisnikID}`);
       const korisnik = res.data;
-      await axios.put(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`, {
+      await axios.put(`${getApiBase()}/korisnici/${korisnikID}`, {
         ...korisnik,
         statusKorisnika: "aktivan",
         obrisan: false
@@ -226,7 +227,7 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
       const user = JSON.parse(userStr);
       const korisnikID = user?.id;
       if (korisnikID) {
-        axios.get(`${import.meta.env.VITE_API_BASE_URL}/korisnici/${korisnikID}`)
+        axios.get(`${getApiBase()}/korisnici/${korisnikID}`)
           .then(res => {
             if (res.data.obrisan === true || res.data.statusKorisnika === "neaktivan") {
               setObrisan(true);
@@ -234,7 +235,7 @@ const RequireAuth: FC<{ children: React.ReactNode }> = ({ children }) => {
               return;
             }
             if (res.data.statusKorisnika === "suspendovan") {
-              axios.get(`${import.meta.env.VITE_API_BASE_URL}/suspendovani/korisnik/${korisnikID}`)
+              axios.get(`${getApiBase()}/suspendovani/korisnik/${korisnikID}`)
                 .then(r => {
                   setSuspendInfo({
                     poruka: r.data.poruka,

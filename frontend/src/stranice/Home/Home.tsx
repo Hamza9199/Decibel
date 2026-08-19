@@ -381,7 +381,7 @@ const Home: React.FC = () => {
                   <div className={styles.cardImageWrap}>
                     {getMediaUrl(pl.putanjaSlika) ? (
                       <img
-                        src={pl.putanjaSlika}
+                        src={getMediaUrl(pl.putanjaSlika)}
                         alt={pl.naziv}
                         className={styles.cardImage}
                       />
@@ -429,7 +429,7 @@ const Home: React.FC = () => {
                     <div className={styles.cardImageWrap}>
                       {getMediaUrl(k.putanjaProfilneSlike) ? (
                           <img
-                            src={k.putanjaProfilneSlike || "/logo.gif" }
+                            src={getMediaUrl(k.putanjaProfilneSlike)|| "/logo.gif" }
                             alt="/logo.gif"
                             className={styles.cardImage}
                           />

@@ -4,9 +4,9 @@ export function getApiBase(): string {
   }
 
   const isDiscordActivity =
-    window.location.href.includes("discord.com") ||
-    window.location.href.includes("discord.gg") ||
-    window.navigator.userAgent.includes("Discord");
+    window.location.hostname.endsWith("discordsays.com") ||
+    window.location.hostname.includes("discord.com") ||
+    window.location.hostname.includes("discord.gg");
 
   if (isDiscordActivity) {
     return "/api";
@@ -14,6 +14,5 @@ export function getApiBase(): string {
 
   return import.meta.env.VITE_API_BASE_URL as string;
 }
-
 
 export const API_BASE = getApiBase();

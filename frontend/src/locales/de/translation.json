@@ -104,6 +104,8 @@
   "renew_subscription": "Abonnement verlängern",
   "cancel_subscription": "Abonnement kündigen",
   "active_subscription": "Sie haben ein aktives Abonnement.",
+  "paused_subscription": "Ihr Abonnement ist bereits pausiert. Sie können ein neues kaufen oder das bestehende erneuern.",
+  "buy_or_renew_subscription": "Kaufen oder Abonnement erneuern",
   "no_active_subscription": "Sie haben kein aktives Abonnement. Kaufen Sie eines der verfügbaren Abonnements:",
   "no_available_subscriptions": "Keine verfügbaren Abonnements.",
   "image": "Bild",

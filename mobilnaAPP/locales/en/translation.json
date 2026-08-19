@@ -139,6 +139,8 @@
   "renew_subscription": "Renew subscription",
   "cancel_subscription": "Cancel subscription",
   "active_subscription": "You have an active subscription.",
+  "paused_subscription": "Your subscription is already paused. You can buy a new one or renew the existing one.",
+  "buy_or_renew_subscription": "Buy or renew subscription",
   "no_active_subscription": "You do not have an active subscription. Purchase one of the available subscriptions:",
   "no_available_subscriptions": "No available subscriptions.",
   "image": "Image",

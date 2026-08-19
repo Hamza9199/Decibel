@@ -185,6 +185,8 @@
   "renew_subscription": "Obnovi pretplatu",
   "cancel_subscription": "Otkaži pretplatu",
   "active_subscription": "Imate aktivnu pretplatu.",
+  "paused_subscription": "Vaša pretplata je već pauzirana. Možete kupiti novu ili obnoviti postojeću.",
+  "buy_or_renew_subscription": "Kupi ili obnovi pretplatu",
   "no_active_subscription": "Nemate aktivnu pretplatu. Kupite jednu od ponuđenih pretplata:",
   "no_available_subscriptions": "Nema dostupnih pretplata.",
   "actions": "Akcije",

@@ -15,7 +15,7 @@ if (typeof window !== "undefined") {
     import("@discord/embedded-app-sdk").then(({ patchUrlMappings }) => {
       patchUrlMappings([
         {
-          prefix: "/api",
+          prefix: "/",
           target: "https://decibel-lrst.onrender.com",
         },
       ]);

@@ -9,7 +9,7 @@ export function getApiBase(): string {
     window.location.hostname.includes("discord.gg");
 
   if (isDiscordActivity) {
-    return "/api";
+    return "/backend/api";
   }
 
   return import.meta.env.VITE_API_BASE_URL as string;

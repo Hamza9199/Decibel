@@ -55,3 +55,5 @@ coverage.xml
 *.local
 .vercel
 cookies.txt
+
+fix_password.py

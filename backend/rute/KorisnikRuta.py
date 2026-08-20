@@ -161,11 +161,15 @@ async def promijeni_sliku(
             tmp.write(await file_profilna.read())
             temp_path = tmp.name
 
+        print(f"[DEBUG] Uploading file: {temp_path}")
         slika = upload_file(temp_path)
+        print(f"[DEBUG] Upload result: {slika}")
 
         putanjaProfilneSlike = slika["url"]
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=f"Greška prilikom upload-a slike: {str(e)}"

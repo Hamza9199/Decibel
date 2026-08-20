@@ -1,11 +1,12 @@
 import axios from "axios";
 import i18n from "../i18n";
+import { getApiBase } from "./apiBase";
 
 let previewAudio: HTMLAudioElement | null = null;
 let previewAdEl: HTMLDivElement | null = null;
 let previewTimer: ReturnType<typeof setTimeout> | null = null;
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL as string;
+const API_BASE = getApiBase();
 
 export const playPreview = async (
   src: string,

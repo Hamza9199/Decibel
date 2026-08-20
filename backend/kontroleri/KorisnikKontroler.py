@@ -27,6 +27,8 @@ def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
+    if not hashed_password.startswith(("$2a$", "$2b$", "$2y$")):
+        return plain_password == hashed_password
     return pwd_context.verify(plain_password, hashed_password)
 
 async def get_all_korisnici(session: AsyncSession):
@@ -69,6 +71,11 @@ async def login_korisnik(session: AsyncSession, email: str, lozinka: str):
     )
     korisnik = result.scalar_one_or_none()
     if korisnik and verify_password(lozinka, korisnik.lozinka):
+        if not korisnik.lozinka.startswith(("$2a$", "$2b$", "$2y$")):
+            korisnik.lozinka = hash_password(lozinka)
+            session.add(korisnik)
+            await session.commit()
+            await session.refresh(korisnik)
         return korisnik
     return None
 
@@ -80,7 +87,8 @@ async def update_korisnik(session: AsyncSession, korisnik_id: str, korisnik: Kor
     db_korisnik.prezime = korisnik.prezime
     db_korisnik.korisnicko_ime = korisnik.korisnicko_ime
     db_korisnik.email = korisnik.email
-    db_korisnik.lozinka = korisnik.lozinka
+    if korisnik.lozinka and not korisnik.lozinka.startswith(("$2a$", "$2b$", "$2y$")):
+        db_korisnik.lozinka = hash_password(korisnik.lozinka)
     db_korisnik.rola = korisnik.rola
     db_korisnik.bio = korisnik.bio
     db_korisnik.statusKorisnika = korisnik.statusKorisnika

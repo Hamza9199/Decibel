@@ -4,6 +4,7 @@ from typing import List
 from uuid import UUID
 import os
 from dotenv import load_dotenv
+from sqlalchemy.exc import IntegrityError
 
 from modeli.Korisnik import Korisnik, KorisnikCreate, KorisnikLogin
 from servisi.Baza import database
@@ -66,10 +67,21 @@ async def export_podataka(
 
 @router.put("/{korisnik_id}", response_model=Korisnik)
 async def update(korisnik_id: str, korisnik: KorisnikCreate, session: AsyncSession = Depends(get_session)):
-    db_korisnik = await update_korisnik(session, korisnik_id, korisnik)
-    if not db_korisnik:
-        raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
-    return db_korisnik
+    try:
+        db_korisnik = await update_korisnik(session, korisnik_id, korisnik)
+        if not db_korisnik:
+            raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
+        return db_korisnik
+    except IntegrityError as e:
+        await session.rollback()
+        error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        if "korisnicko_ime" in error_msg:
+            raise HTTPException(status_code=400, detail="Korisničko ime je već zauzeto")
+        elif "email" in error_msg:
+            raise HTTPException(status_code=400, detail="Email je već registriran")
+        elif "discordID" in error_msg:
+            raise HTTPException(status_code=400, detail="Discord nalog je već povezan")
+        raise HTTPException(status_code=400, detail="Podaci već postoje")
 
 @router.delete("/{korisnik_id}", response_model=Korisnik)
 async def delete(korisnik_id: str, session: AsyncSession = Depends(get_session)):
@@ -86,8 +98,19 @@ async def delete(korisnik_id: str, session: AsyncSession = Depends(get_session))
 
 @router.post("/register", response_model=Korisnik)
 async def register(korisnik: KorisnikCreate, session: AsyncSession = Depends(get_session)):
-    db_korisnik = await register_korisnik(session, korisnik)
-    return db_korisnik
+    try:
+        db_korisnik = await register_korisnik(session, korisnik)
+        return db_korisnik
+    except IntegrityError as e:
+        await session.rollback()
+        error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        if "korisnicko_ime" in error_msg:
+            raise HTTPException(status_code=400, detail="Korisničko ime je već zauzeto")
+        elif "email" in error_msg:
+            raise HTTPException(status_code=400, detail="Email je već registriran")
+        elif "discordID" in error_msg:
+            raise HTTPException(status_code=400, detail="Discord nalog je već povezan")
+        raise HTTPException(status_code=400, detail="Podaci već postoje")
 
 @router.post("/login", response_model=Korisnik)
 async def login(login_data: KorisnikLogin, session: AsyncSession = Depends(get_session)):
@@ -123,9 +146,9 @@ async def promijeni_sliku(
             detail="Dozvoljeni su samo JPG, PNG i WEBP formati"
         )
 
-    ekstenzija = os.path.splitext(file_profilna.filename or "")[1]
+    ekstenzija = os.path.splitext(file_profilna.filename or "")[1].lower()
 
-    if not ekstenzija:
+    if ekstenzija not in {".jpg", ".jpeg", ".png", ".webp"}:
         ekstenzija = ".jpg"
 
     temp_path = None
@@ -157,7 +180,7 @@ async def promijeni_sliku(
         prezime=korisnik.prezime,
         korisnicko_ime=korisnik.korisnicko_ime,
         email=korisnik.email,
-        lozinka=korisnik.lozinka,
+        lozinka=korisnik.lozinka,  
         rola=korisnik.rola,
         bio=korisnik.bio,
         statusKorisnika=korisnik.statusKorisnika,
@@ -167,10 +190,20 @@ async def promijeni_sliku(
         obrisan=korisnik.obrisan
     )
 
-    db_korisnik = await update_korisnik(
-        session,
-        korisnik_id,
-        korisnik_data
-    )
-
-    return db_korisnik
+    try:
+        db_korisnik = await update_korisnik(
+            session,
+            korisnik_id,
+            korisnik_data
+        )
+        return db_korisnik
+    except IntegrityError as e:
+        await session.rollback()
+        error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        if "korisnicko_ime" in error_msg:
+            raise HTTPException(status_code=400, detail="Korisničko ime je već zauzeto")
+        elif "email" in error_msg:
+            raise HTTPException(status_code=400, detail="Email je već registriran")
+        elif "discordID" in error_msg:
+            raise HTTPException(status_code=400, detail="Discord nalog je već povezan")
+        raise HTTPException(status_code=400, detail="Podaci već postoje")

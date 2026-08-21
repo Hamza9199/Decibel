@@ -32,17 +32,16 @@ def upload_file(local_path: str) -> UploadedFile:
         file_id=ID.unique(),
         file=InputFile.from_path(local_path)
     )
+    print(dir(result))
+    file_id = result.id
 
-    file_id = result["$id"]
-
-    url = storage.get_file_view(
-        bucket_id=BUCKET_ID,
-        file_id=file_id
-    )
+    endpoint = os.getenv("APPWRITE_ENDPOINT").rstrip("/")
+    project_id = os.getenv("APPWRITE_PROJECT_ID")
+    url = f"{endpoint}/storage/buckets/{BUCKET_ID}/files/{file_id}/view?project={project_id}"
 
     return {
         "file_id": file_id,
-        "url": str(url)
+        "url": url
     }
 
 

@@ -467,7 +467,14 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const handleRepeatToggle = useCallback(() => { setRepeatOne(r => { const n = !r; player.loop = n; if (n) audioCtx.setPlaylistRepeat(false); return n; }); }, [player, audioCtx]);
   const handleRepeatAllToggle = useCallback(() => { audioCtx.setPlaylistRepeat(!playlistRepeat); if (repeatOne) { setRepeatOne(false); player.loop = false; } }, [audioCtx, playlistRepeat, repeatOne, player]);
 
-  const goPrev = useCallback(() => { if (progress > 5) { player.seekTo(0); return; } if (globalPlaylist.length > 0 && playlistIdx >= 0) { const prevIdx = playlistIdx - 1; if (prevIdx >= 0) audioCtx.setPlaylistIdx(prevIdx); else if (playlistRepeat) audioCtx.setPlaylistIdx(globalPlaylist.length - 1); } }, [progress, globalPlaylist, playlistIdx, playlistRepeat, audioCtx, player]);
+  const goPrev = useCallback(() => { 
+    if (progress > 5) { player.seekTo(0); return; } 
+    if (globalPlaylist.length > 0 && playlistIdx >= 0) { 
+      const prevIdx = playlistIdx - 1; 
+      if (prevIdx >= 0) audioCtx.setPlaylistIdx(prevIdx); 
+      else if (playlistRepeat) audioCtx.setPlaylistIdx(globalPlaylist.length - 1); 
+    } 
+  }, [progress, globalPlaylist, playlistIdx, playlistRepeat, audioCtx, player]);
   const goNext = useCallback(() => {
     if (globalPlaylist.length > 0 && playlistIdx >= 0) {
       const nextIdx = playlistIdx + 1;
@@ -721,6 +728,18 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
 
       <View style={styles.controlsRow}>
         <TouchableOpacity
+          style={[styles.controlIcon, (!isLoaded || isBuffering || globalPlaylist.length === 0) && styles.controlIconDisabled]}
+          onPress={goPrev}
+          disabled={!isLoaded || isBuffering || globalPlaylist.length === 0}
+        >
+          <MaterialIcons
+            name="skip-previous"
+            size={24}
+            color={(!isLoaded || isBuffering || globalPlaylist.length === 0) ? "#666" : "#ffe6ec"}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
           style={[styles.controlBtn, (!isLoaded || isBuffering) && styles.controlBtnDisabled]}
           onPress={handlePlayPause}
           disabled={!isLoaded || isBuffering}
@@ -729,6 +748,18 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
             name={playing ? 'pause' : 'play-arrow'}
             size={20}
             color={(!isLoaded || isBuffering) ? "#666" : "#fff"}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.controlIcon, (!isLoaded || isBuffering || globalPlaylist.length === 0) && styles.controlIconDisabled]}
+          onPress={goNext}
+          disabled={!isLoaded || isBuffering || globalPlaylist.length === 0}
+        >
+          <MaterialIcons
+            name="skip-next"
+            size={24}
+            color={(!isLoaded || isBuffering || globalPlaylist.length === 0) ? "#666" : "#ffe6ec"}
           />
         </TouchableOpacity>
 

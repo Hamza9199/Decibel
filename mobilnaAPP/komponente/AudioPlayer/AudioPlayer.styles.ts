@@ -81,8 +81,10 @@ export const styles = StyleSheet.create({
   controlsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
     width: '100%',
+    gap: 8,
   },
   controlBtn: {
     backgroundColor: '#b91d95',
@@ -101,6 +103,9 @@ export const styles = StyleSheet.create({
   controlBtnDisabled: {
     backgroundColor: '#444',
     opacity: 0.5,
+  },
+  controlIconDisabled: {
+    opacity: 0.4,
   },
   progressContainer: {
     flex: 1,

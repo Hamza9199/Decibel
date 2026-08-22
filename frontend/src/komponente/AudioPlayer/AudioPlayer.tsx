@@ -515,6 +515,22 @@ const AudioPlayer: React.FC<Props> = ({
     if (repeatOne) setRepeatOne(false);
   }, [repeatOne]);
 
+  const handlePreviousTrack = useCallback(() => {
+    if (globalPlaylist.length > 0 && playlistIdx > 0) {
+      setPlaylistIdx((i) => i - 1);
+    } else if (globalPlaylist.length > 0 && playlistRepeat) {
+      setPlaylistIdx(globalPlaylist.length - 1);
+    }
+  }, [globalPlaylist.length, playlistIdx, playlistRepeat]);
+
+  const handleNextTrack = useCallback(() => {
+    if (globalPlaylist.length > 0 && playlistIdx + 1 < globalPlaylist.length) {
+      setPlaylistIdx((i) => i + 1);
+    } else if (globalPlaylist.length > 0 && playlistRepeat) {
+      setPlaylistIdx(0);
+    }
+  }, [globalPlaylist.length, playlistIdx, playlistRepeat]);
+
   const handleRepeatToggle = useCallback(() => {
     setRepeatOne((prev) => {
       if (!prev) setPlaylistRepeat(false);
@@ -1105,23 +1121,49 @@ const AudioPlayer: React.FC<Props> = ({
         </div>
 
         <div className={styles.audioControls}>
-          <button
-            className={styles.controlBtn}
-            onClick={handlePlayPause}
-            aria-label={playing ? "Pause" : "Play"}
-          >
-            {playing ? (
-              <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff">
-                <rect x="8" y="8" width="7" height="22" rx="2" />
-                <rect x="23" y="8" width="7" height="22" rx="2" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff">
-                <polygon points="10,8 32,19 10,30" />
-              </svg>
-            )}
-          </button>
+            <div className={styles.audioControlsRow}>
+              <button
+                type="button"
+                className={styles.muteBtn}
+                onClick={handlePreviousTrack}
+                aria-label="Prethodna pjesma"
+                disabled={globalPlaylist.length === 0}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffe6ec" style={{ marginTop: 10 }}>
+                  <polygon points="19,20 9,12 19,4" />
+                  <rect x="3" y="4" width="4" height="16" />
+                </svg>
+              </button>
+              <button
+                className={styles.controlBtn}
+                onClick={handlePlayPause}
+                aria-label={playing ? "Pause" : "Play"}
+              >
+                {playing ? (
+                  <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff"  >
+                    <rect x="8" y="8" width="7" height="22" rx="2" />
+                    <rect x="23" y="8" width="7" height="22" rx="2" />
+                  </svg>
+                ) : (
+                  <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff" >
+                    <polygon points="10,8 32,19 10,30" />
+                  </svg>
+                )}
+              </button>
 
+              <button
+                type="button"
+                className={styles.muteBtn}
+                onClick={handleNextTrack}
+                aria-label="Sljedeća pjesma"
+                disabled={globalPlaylist.length === 0}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="#ffe6ec " style={{ marginTop: 10 }}>
+                  <polygon points="5,20 15,12 5,4" />
+                  <rect x="17" y="4" width="4" height="16" />
+                </svg>
+              </button>
+            </div>
           <input
             type="range"
             min={0}
@@ -1178,6 +1220,8 @@ const AudioPlayer: React.FC<Props> = ({
             </div>
 
             <div className={styles.mobileControlsRight}>
+              
+             
               <button
                 type="button"
                 className={styles.muteBtn}
@@ -1442,6 +1486,18 @@ const AudioPlayer: React.FC<Props> = ({
       </div>
       <div className={styles.audioControls}>
         <button
+          type="button"
+          className={styles.muteBtn}
+          onClick={handlePreviousTrack}
+          aria-label="Prethodna pjesma"
+          disabled={globalPlaylist.length === 0}
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffe6ec">
+            <polygon points="19,20 9,12 19,4" />
+            <rect x="3" y="4" width="4" height="16" />
+          </svg>
+        </button>
+        <button
           className={styles.controlBtn}
           onClick={handlePlayPause}
           aria-label={playing ? "Pause" : "Play"}
@@ -1456,6 +1512,19 @@ const AudioPlayer: React.FC<Props> = ({
               <polygon points="10,8 32,19 10,30" />
             </svg>
           )}
+        </button>
+        <button
+          type="button"
+          className={styles.muteBtn}
+          onClick={handleNextTrack}
+          aria-label="Sljedeća pjesma"
+          disabled={globalPlaylist.length === 0 }
+
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#ffe6ec">
+            <polygon points="5,20 15,12 5,4" />
+            <rect x="17" y="4" width="4" height="16" />
+          </svg>
         </button>
         <input
           type="range"

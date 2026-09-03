@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -49,8 +49,8 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   filterButtonActive: {
-    backgroundColor: '#b91d95',
-    borderColor: '#b91d95',
+    backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
   },
   filterButtonText: {
     color: '#fff',
@@ -58,7 +58,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filterButtonTextActive: {
-    color: '#fff',
+    color: '#181818',
     fontWeight: '600',
   },
   sectionTitle: {
@@ -73,9 +73,9 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -125,7 +125,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#e3342f',
   },
   likeButton: {
-    backgroundColor: '#e91e63',
+    backgroundColor: '#ffffff',
   },
   noItems: {
     color: '#b3b3b3',
@@ -136,9 +136,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -200,13 +199,13 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   retryButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 16,
     fontWeight: '600',
   },

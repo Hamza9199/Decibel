@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -41,14 +41,14 @@ export const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
   },
   detailRow: {
     flexDirection: 'row',
     marginBottom: 8,
   },
   detailLabel: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 8,
@@ -62,7 +62,7 @@ export const styles = StyleSheet.create({
     gap: 18,
   },
   label: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 8,
@@ -70,7 +70,7 @@ export const styles = StyleSheet.create({
   input: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     color: '#fff',
@@ -78,7 +78,7 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   inputFocused: {
-    borderColor: '#e754a2',
+    borderColor: '#ffffff',
     borderWidth: 2,
   },
   inputRow: {
@@ -89,13 +89,13 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   errorContainer: {
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#3a1a1a',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffb3c6',
+    color: '#ffb3b3',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -116,19 +116,19 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   button: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     flex: 1,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },
   buttonPressed: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
     transform: [{ scale: 0.98 }],
   },
   buttonDisabled: {
@@ -136,13 +136,13 @@ export const styles = StyleSheet.create({
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 18,
     fontWeight: '600',
   },
   cancelButton: {
     backgroundColor: '#232323',
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderWidth: 1,
     borderRadius: 8,
     padding: 14,
@@ -150,15 +150,14 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   cancelButtonText: {
-    color: '#ffe6ec',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '500',
   },
   loadingContainer: {
     flex: 1,
-    
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -197,12 +196,13 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 6,
   },
   pickerCloseText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 14,
+    fontWeight: '600',
   },
   pickerTitle: {
     color: '#fff',
@@ -211,4 +211,3 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-  

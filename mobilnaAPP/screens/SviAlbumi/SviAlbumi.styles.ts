@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -58,9 +58,9 @@ export const styles = StyleSheet.create({
     width: '48%',
     marginBottom: 16,
     alignItems: 'center',
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -82,7 +82,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 6,
     right: 6,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
   editButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#444',
     borderRadius: 6,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -138,9 +138,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -149,4 +148,3 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
-   

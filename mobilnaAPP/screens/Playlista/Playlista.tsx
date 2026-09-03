@@ -511,13 +511,13 @@ const likedSongsQuery = useQuery({
         </View>
         <View style={styles.songActions}>
           <TouchableOpacity style={styles.actionButton} onPress={() => handlePlaySong(item)}>
-            <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            <MaterialIcons name="play-arrow" size={20} color="black" />
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionButton, likeMap[item.id] && styles.actionButtonLiked]} onPress={() => handleLikeSong(item.id)}>
-            <MaterialIcons name={likeMap[item.id] ? 'favorite' : 'favorite-border'} size={18} color="#fff" />
+            <MaterialIcons name={likeMap[item.id] ? 'favorite' : 'favorite-border'} size={18} color="black" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => setShowPlaylistModal(item.id)}>
-            <MaterialIcons name="playlist-add" size={20} color="#fff" />
+            <MaterialIcons name="playlist-add" size={20} color="black" />
           </TouchableOpacity>
           {isOwner && (
             <TouchableOpacity style={[styles.actionButton, styles.actionButtonRemove]} onPress={() => handleRemoveSong(item.id)}>
@@ -618,13 +618,13 @@ const likeCount =
                 />
                 <View style={styles.actionButtons}>
                   <TouchableOpacity style={styles.playButton} onPress={handlePlayPlaylist}>
-                    <MaterialIcons name="play-arrow" size={32} color="#fff" />
+                    <MaterialIcons name="play-arrow" size={32} color="black" />
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[styles.likeButton, likePlaylist && styles.likeButtonLiked]}
                     onPress={handleLikeThisPlaylist}
                   >
-                    <MaterialIcons name={likePlaylist ? 'favorite' : 'favorite-border'} size={24} color="#fff" />
+                    <MaterialIcons name={likePlaylist ? 'favorite' : 'favorite-border'} size={24} color="black" />
                     <Text style={styles.likeCount}>{likeCount}</Text>
                   </TouchableOpacity>
                 </View>

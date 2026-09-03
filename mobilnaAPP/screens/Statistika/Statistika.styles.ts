@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 
-
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -21,9 +20,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -44,16 +43,16 @@ export const styles = StyleSheet.create({
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#ffffff',
   },
   chartCard: {
     backgroundColor: '#232323',
     borderRadius: 12,
     padding: 18,
     marginBottom: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -70,9 +69,9 @@ export const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 18,
     alignItems: 'center',
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -98,7 +97,7 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   artistName: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 4,
@@ -124,7 +123,7 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   listItemValue: {
-    color: '#b91d95',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -145,13 +144,13 @@ export const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   genreCount: {
-    color: '#b91d95',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
   },
   genreBar: {
     height: 6,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 3,
     marginTop: 4,
   },
@@ -189,15 +188,14 @@ export const styles = StyleSheet.create({
     textAlign: 'left',
   },
   chartLabelValue: {
-    color: '#b91d95',
+    color: '#ffffff',
     fontSize: 11,
     fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,
-
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -223,7 +221,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   genreBarValue: {
-    color: '#b91d95',
+    color: '#ffffff',
     fontSize: 12,
     fontWeight: '600',
   },

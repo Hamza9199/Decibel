@@ -290,7 +290,7 @@ const Izvodjac: React.FC = React.memo(() => {
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.actionButtonRight]} onPress={() => handlePlaySong(item)}>
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
+          <MaterialIcons name="play-arrow" size={20} color="black" />
         </TouchableOpacity>
       </View>
     </View>
@@ -313,7 +313,7 @@ const Izvodjac: React.FC = React.memo(() => {
           style={[styles.actionButton, styles.actionButtonRight]}
           onPress={() => handlePlayAlbum(item)}
         >
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
+          <MaterialIcons name="play-arrow" size={20} color="black" />
         </TouchableOpacity>
       </View>
     </View>
@@ -336,7 +336,7 @@ const Izvodjac: React.FC = React.memo(() => {
           style={[styles.actionButton, styles.actionButtonRight]}
           onPress={() => handlePlayPlaylist(item)}
         >
-          <MaterialIcons name="play-arrow" size={20} color="#fff" />
+          <MaterialIcons name="play-arrow" size={20} color="black" />
         </TouchableOpacity>
       </View>
     </View>

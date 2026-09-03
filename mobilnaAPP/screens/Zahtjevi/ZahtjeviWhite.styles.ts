@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
   playBtn: {
     paddingHorizontal: 12,
     paddingVertical: 4,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 4,
   },
   songItem: {
@@ -92,7 +92,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 20,
     width: 38,
     height: 38,

@@ -136,7 +136,7 @@ const Register: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#b91d95" />
+        <ActivityIndicator size="large" color="#ffffff" />
         <Loading />
       </View>
     );
@@ -144,7 +144,7 @@ const Register: React.FC = React.memo(() => {
 
   return (
     <LinearGradient
-      colors={['#b91d95', '#222222']}
+      colors={['#181818', '#222222']}
       start={{ x: 0.1, y: 0.6 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
@@ -160,7 +160,7 @@ const Register: React.FC = React.memo(() => {
         >
           <View style={styles.logoContainer}>
             <Image
-              source={{ uri: 'https://via.placeholder.com/100/b91d95/ffffff?text=D' }}
+              source={{ uri: 'https://via.placeholder.com/100/181818/ffffff?text=D' }}
               style={styles.logo}
               contentFit="cover"
             />

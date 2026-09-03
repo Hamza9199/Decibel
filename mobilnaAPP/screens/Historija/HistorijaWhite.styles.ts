@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
 		marginLeft: 'auto',
 	},
 	actionButton: {
-		backgroundColor: '#b91d95',
+		backgroundColor: '#181818',
 		borderRadius: 20,
 		width: 31,
 		height: 31,
@@ -99,7 +99,7 @@ export const styles = StyleSheet.create({
 		alignItems: 'center',
 	},
 	actionButtonLiked: {
-		backgroundColor: '#e754a2',
+		backgroundColor: '#333333',
 	},
 	loadingContainer: {
 		flex: 1,
@@ -134,7 +134,7 @@ export const styles = StyleSheet.create({
 		textAlign: 'center',
 	},
 	playlistItem: {
-		backgroundColor: '#b91d95',
+		backgroundColor: '#181818',
 		padding: 12,
 		borderRadius: 8,
 		marginBottom: 8,
@@ -147,7 +147,7 @@ export const styles = StyleSheet.create({
 	},
 	modalCloseBtn: {
 		backgroundColor: '#ffffff',
-		borderColor: '#b91d95',
+		borderColor: '#ccc',
 		borderWidth: 1,
 		padding: 12,
 		borderRadius: 8,
@@ -163,7 +163,7 @@ export const styles = StyleSheet.create({
 		backgroundColor: '#f2f2f2',
 	},
 	bottomSheetIndicator: {
-		backgroundColor: '#b91d95',
+		backgroundColor: '#181818',
 	},
 	bottomSheetContent: {
 		flex: 1,
@@ -191,10 +191,10 @@ export const styles = StyleSheet.create({
 		borderRadius: 8,
 		marginRight: 12,
 	},
-     songArtistRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    marginTop: 4,
-  },
+	songArtistRow: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		alignItems: 'center',
+		marginTop: 4,
+	},
 });

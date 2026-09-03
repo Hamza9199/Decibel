@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#e0e0e0',
   },
   detailRow: {
     flexDirection: 'row',
@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
     color: '#000',
@@ -76,7 +76,7 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   inputFocused: {
-    borderColor: '#e754a2',
+    borderColor: '#181818',
     borderWidth: 2,
   },
   inputRow: {
@@ -114,14 +114,14 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   button: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     flex: 1,
   },
   buttonPressed: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#333',
     transform: [{ scale: 0.98 }],
   },
   buttonDisabled: {
@@ -135,7 +135,7 @@ export const styles = StyleSheet.create({
   },
   cancelButton: {
     backgroundColor: '#e0e0e0',
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderWidth: 1,
     borderRadius: 8,
     padding: 14,
@@ -171,7 +171,6 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
   },
-  // modal styles reused from dark version
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -190,7 +189,7 @@ export const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     paddingVertical: 6,
     paddingHorizontal: 12,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 6,
   },
   pickerCloseText: {

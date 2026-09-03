@@ -107,7 +107,7 @@ const Login: React.FC = React.memo(() => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#b91d95" />
+        <ActivityIndicator size="large" color="#ffffff" />
         <Loading />
       </View>
     );
@@ -115,7 +115,7 @@ const Login: React.FC = React.memo(() => {
 
   return (
     <LinearGradient
-      colors={['#b91d95', '#222222']}
+      colors={['#181818', '#222222']}
       start={{ x: 0.1, y: 0.6 }}
       end={{ x: 1, y: 1 }}
       style={styles.gradient}
@@ -223,4 +223,3 @@ const Login: React.FC = React.memo(() => {
 Login.displayName = "Login";
 
 export default Login;
-

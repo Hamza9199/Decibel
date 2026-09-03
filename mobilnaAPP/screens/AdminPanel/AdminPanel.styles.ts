@@ -22,9 +22,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginRight: 12,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   spacer: {
     width: 40,
@@ -65,21 +65,21 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
   },
   tabText: {
-    color: '#ffe6ec',
+    color: '#b3b3b3',
     fontSize: 14,
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#fff',
+    color: '#181818',
     fontWeight: '700',
   },
   searchInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     color: '#fff',
@@ -90,14 +90,14 @@ export const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#ffe6ec',
+    color: '#fff',
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 16,
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#ffffff',
   },
   itemCard: {
     backgroundColor: '#232323',
@@ -141,8 +141,8 @@ export const styles = StyleSheet.create({
     color: '#baffc9',
   },
   unapprovedStatus: {
-    backgroundColor: '#3a0d2e',
-    color: '#ffb3c6',
+    backgroundColor: '#3a1212',
+    color: '#ff4d4f',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -161,16 +161,16 @@ export const styles = StyleSheet.create({
     backgroundColor: '#2ecc40',
   },
   approveButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
   },
   revokeButton: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#555555',
   },
   deleteButton: {
     backgroundColor: '#e53935',
   },
   buttonText: {
-    color: '#fff',
+    color: 'black',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -195,13 +195,13 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   errorContainer: {
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#3a1212',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffb3c6',
+    color: '#ff4d4f',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -217,4 +217,3 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
-  

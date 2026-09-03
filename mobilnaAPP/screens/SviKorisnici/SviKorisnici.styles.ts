@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -51,9 +51,9 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailLabel: {
-    color: '#ffe6ec',
+    color: '#b3b3b3',
     fontSize: 14,
     fontWeight: '500',
     flex: 1,
@@ -104,7 +104,7 @@ export const styles = StyleSheet.create({
   picker: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 6,
     color: '#fff',
     fontSize: 14,
@@ -113,14 +113,14 @@ export const styles = StyleSheet.create({
     flex: 2,
   },
   applicationButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
     alignSelf: 'flex-start',
   },
   applicationButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -130,13 +130,13 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   errorContainer: {
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#3a1212',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffb3c6',
+    color: '#ff4d4f',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -160,9 +160,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-  
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -210,7 +209,7 @@ export const styles = StyleSheet.create({
   modalInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 6,
     padding: 8,
     color: '#fff',
@@ -223,7 +222,7 @@ export const styles = StyleSheet.create({
   modalDateInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 6,
     padding: 8,
     color: '#fff',
@@ -242,16 +241,14 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   modalButtonPrimary: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#ffffff',
   },
   modalButtonSecondary: {
     backgroundColor: '#444',
   },
   modalButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 14,
     fontWeight: '600',
   },
 });
-   
- 

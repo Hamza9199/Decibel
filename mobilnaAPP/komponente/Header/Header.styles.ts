@@ -10,13 +10,13 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     backgroundColor: '#232323',
     borderBottomWidth: 1,
-    borderBottomColor: '#b91d95',
+    borderBottomColor: '#333333',
     paddingTop: Platform.OS === 'ios' ? 50 : 16,
   },
   menuButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   logoContainer: {
     flexDirection: 'row',
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
   logo: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#ffe6ec',
+    color: '#ffffff',
     letterSpacing: 1,
   },
   rightActions: {
@@ -45,7 +45,7 @@ export const styles = StyleSheet.create({
   iconButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     marginRight: 5,
   },
   profileButton: {
@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
   welcomeMessage: {
     marginRight: 17,
     fontSize: 18,
-    color: '#b91d95',
+    color: '#ffffff',
     fontWeight: '600',
   },
   profileImg: {
@@ -95,14 +95,14 @@ export const styles = StyleSheet.create({
     marginRight: 20,
   },
   logoutBtn: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#333333',
     paddingHorizontal: 18,
     paddingVertical: 8,
     borderRadius: 8,
     marginRight: 10,
   },
   logoutBtnMobile: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#333333',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,

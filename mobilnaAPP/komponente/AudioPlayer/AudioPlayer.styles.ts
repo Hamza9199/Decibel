@@ -68,7 +68,7 @@ export const styles = StyleSheet.create({
     marginBottom: 2,
   },
   audioTime: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 11,
     fontWeight: '500',
   },
@@ -87,7 +87,7 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   controlBtn: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#0d0d0d',
     borderRadius: 16,
     width: 32,
     height: 32,
@@ -99,6 +99,8 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
+  },
+  repeatBtnActive: {
   },
   controlBtnDisabled: {
     backgroundColor: '#444',
@@ -116,11 +118,17 @@ export const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#444',
   },
+  progressTrackActive: {
+    backgroundColor: '#b91d95',
+  },
   progressThumb: {
     width: 12,
     height: 12,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 6,
+  },
+  progressThumbActive: {
+    backgroundColor: '#b91d95',
   },
 
   bottomRow: {
@@ -159,11 +167,17 @@ export const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: '#444',
   },
+  volumeTrackActive: {
+    backgroundColor: '#b91d95',
+  },
   volumeThumb: {
     width: 10,
     height: 10,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 5,
+  },
+  volumeThumbActive: {
+    backgroundColor: '#b91d95',
   },
 
   speedContainer: {
@@ -175,7 +189,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#333333',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -183,7 +197,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   speedText: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 12,
     fontWeight: '500',
     marginRight: 2,
@@ -199,7 +213,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#232323',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444444',
     marginBottom: 4,
     zIndex: 1000,
     elevation: 10,
@@ -219,10 +233,10 @@ export const styles = StyleSheet.create({
     borderBottomColor: '#444',
   },
   speedDropdownItemActive: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#333333',
   },
   speedDropdownText: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -259,8 +273,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     maxWidth: 200,
-        zIndex: 10000,
-
+    zIndex: 10000,
   },
   miniPlayerImage: {
     width: 32,
@@ -269,7 +282,7 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   miniPlayerText: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '600',
     flex: 1,
@@ -298,7 +311,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   playlistItem: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#333333',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -316,14 +329,14 @@ export const styles = StyleSheet.create({
   },
   modalCloseBtn: {
     backgroundColor: '#181818',
-    borderColor: '#b91d95',
+    borderColor: '#444444',
     borderWidth: 1,
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
   },
   modalCloseBtnText: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
@@ -332,7 +345,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#232323',
   },
   bottomSheetIndicator: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
   },
   bottomSheetContent: {
     flex: 1,
@@ -371,19 +384,19 @@ export const styles = StyleSheet.create({
     padding: 8,
   },
   subscriptionText: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 16,
   },
   subscriptionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   subscriptionButtonText: {
-    color: '#fff',
+    color: '#111111',
     fontSize: 16,
     fontWeight: '600',
   },

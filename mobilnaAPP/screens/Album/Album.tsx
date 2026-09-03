@@ -363,7 +363,7 @@ const handleBackPress = useBackPress({
             style={styles.actionButton}
             onPress={() => handlePlaySong(item)}
           >
-            <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            <MaterialIcons name="play-arrow" size={20} color="black" />
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -375,14 +375,14 @@ const handleBackPress = useBackPress({
             <MaterialIcons
               name={songLikesValue[item.id] ? "favorite" : "favorite-border"}
               size={18}
-              color="#fff"
+              color="black"
             />
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleOpenPlaylistSheet(item)}
           >
-            <MaterialIcons name="playlist-add" size={20} color="#fff" />
+            <MaterialIcons name="playlist-add" size={20} color="black" />
           </TouchableOpacity>
         </View>
       </View>
@@ -462,7 +462,7 @@ const handleBackPress = useBackPress({
                   style={styles.playButton} 
                   onPress={handlePlayAlbum}
                 >
-                  <MaterialIcons name="play-arrow" size={28} color="#fff" />
+                  <MaterialIcons name="play-arrow" size={28} color="black" />
                 </TouchableOpacity>
                 
                 <TouchableOpacity 

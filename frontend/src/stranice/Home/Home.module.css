@@ -201,6 +201,7 @@
   justify-content: space-between;
   padding: 28px 36px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: visible;
 }
 
 .spotlightStage:hover {
@@ -336,7 +337,7 @@
   transform-style: preserve-3d;
   perspective: 1000px;
   cursor: pointer;
-  z-index: 2;
+  z-index: 100;
 }
 
 .vinylSleeve {
@@ -377,10 +378,10 @@
   border-radius: 50%;
   background: repeating-radial-gradient(
     circle at center,
-    #121212 0px,
-    #121212 2px,
-    #1f1f1f 3px,
-    #121212 4px
+    #484747 0px,
+    #3f3e3e 2px,
+    #575656 3px,
+    #4b4b4b 4px
   );
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), inset 0 0 10px rgba(0, 0, 0, 0.9);
   border: 2px solid rgba(50, 50, 50, 0.8);
@@ -440,11 +441,13 @@
   transform: translateZ(25px) translateX(70px) rotate(45deg);
   animation: spinVinyl 6s linear infinite;
   animation-delay: 0.3s;
+  z-index: 4; 
 }
 
 .vinylSpinActive .vinylDisc {
   transform: translateZ(25px) translateX(75px) rotate(45deg) !important;
   animation: spinVinyl 3.5s linear infinite !important;
+  z-index: 4 !important;
 }
 
 .eqMeter {

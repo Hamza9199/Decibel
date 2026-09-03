@@ -8,7 +8,6 @@
   justify-content: center;
 }
 
-
 .actionsCell {
   display: flex;
   gap: 5px;
@@ -16,7 +15,7 @@
 }
 
 .playButton {
-   background: #b91d95;
+  background: #111111;
   border: none;
   border-radius: 50%;
   width: 38px;
@@ -27,20 +26,22 @@
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   padding: 0;
+  color: #ffffff;
 }
 
 .playButton svg {
   width: 20px;
   height: 20px;
+  fill: currentColor;
 }
 
 .playButton:hover {
-  background: #e754a2;
+  background: #333333;
   transform: scale(1.08);
 }
 
 .likeButton {
-   background: #b91d95;
+  background: #111111;
   border: none;
   border-radius: 50%;
   width: 38px;
@@ -51,21 +52,22 @@
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   padding: 0;
+  color: #ffffff;
 }
 
 .likeButton svg {
   width: 20px;
   height: 20px;
+  fill: currentColor;
 }
 
 .likeButton:hover {
-  background: #e754a2;
+  background: #333333;
   transform: scale(1.08);
 }
 
-
 .addButton {
-   background: #b91d95;
+  background: #111111;
   border: none;
   border-radius: 50%;
   width: 38px;
@@ -76,15 +78,17 @@
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
   padding: 0;
+  color: #ffffff;
 }
 
 .addButton svg {
   width: 20px;
   height: 20px;
+  fill: currentColor;
 }
 
 .addButton:hover {
-  background: #e754a2;
+  background: #333333;
   transform: scale(1.08);
 }
 
@@ -95,23 +99,23 @@
   padding: 32px 24px 50px 24px;
   background: #ffffff;
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .link {
-  color: #291224;
+  color: #111111;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.15s;
 }
 
 .link:hover {
-  color: #e754a2;
+  color: #555555;
 }
 
 .title {
-  color: #111;
+  color: #111111;
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 28px;
@@ -120,7 +124,7 @@
 }
 
 .noItems {
-  color: #555;
+  color: #555555;
   font-size: 1.08rem;
   margin-bottom: 8px;
   text-align: center;
@@ -133,19 +137,19 @@
   border-radius: 12px;
   overflow: hidden;
   margin-top: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 }
 
 .table th, .table td {
   padding: 12px 8px;
   text-align: center;
-  color: #111;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
+  color: #111111;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .table th {
-  background: #b91d95;
-  color: #fff;
+  background: #111111;
+  color: #ffffff;
   font-weight: 800;
   font-size: 1.08rem;
 }
@@ -153,7 +157,6 @@
 .table tr:last-child td { border-bottom: none; }
 
 .table img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; }
-
 
 .table td:nth-child(3), .table td:nth-child(4) { text-align: center; }
 
@@ -176,48 +179,39 @@
 
 @media (max-width: 480px) {
   .pjesmaBg { padding-top: 55px; padding-bottom: 100px; min-height: 100vh; }
-  .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); background: #ffffff; }
+  .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06); background: #ffffff; }
   .title { font-size: 1.75rem; margin-bottom: 28px; letter-spacing: 1px; font-weight: 800; }
   .noItems { font-size: 1rem; margin-top: 40px; font-style: italic; }
   .table { display: block; border-radius: 0; background: transparent; overflow: visible; margin-top: 0; box-shadow: none; }
   .table thead { display: none; }
   .table tbody { display: block; }
-  .table tr { display: flex; align-items: flex-start; background: #fff; border-radius: 12px; padding: 16px; padding-right: 50px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.08); white-space: normal; position: relative; }
-  .table td { display: block; border: none; padding: 0; text-align: left; white-space: normal; font-size: 0.875rem; color: #111; }
+  .table tr { display: flex; align-items: flex-start; background: #ffffff; border-radius: 12px; padding: 16px; padding-right: 50px; margin-bottom: 12px; border: 1px solid rgba(0, 0, 0, 0.08); white-space: normal; position: relative; }
+  .table td { display: block; border: none; padding: 0; text-align: left; white-space: normal; font-size: 0.875rem; color: #111111; }
   .table td:first-child { display: none; }
   .table td:nth-child(2) { flex-shrink: 0; margin-right: 12px; }
-  .table td:nth-child(3) { position: absolute; left: 78px; top: 16px; color: #111; font-size: 1rem; font-weight: 700; margin-bottom: 4px; flex: 1; }
-  .table td:nth-child(4) { position: absolute; left: 78px; top: 40px; color: #555; font-size: 0.875rem; margin-top: -4px; flex: 1; }
+  .table td:nth-child(3) { position: absolute; left: 78px; top: 16px; color: #111111; font-size: 1rem; font-weight: 700; margin-bottom: 4px; flex: 1; }
+  .table td:nth-child(4) { position: absolute; left: 78px; top: 40px; color: #555555; font-size: 0.875rem; margin-top: -4px; flex: 1; }
   .table td:nth-child(5) { position: absolute !important; top: 16px; right: 8px; margin: 0 !important; display: flex; flex-direction: row; align-items: center; }
   .table img { width: 50px; height: 50px; border-radius: 8px; }
   .table td:nth-child(5) .table button:last-child { margin-bottom: 0; }
-   .link{
-    font-size: 0.8rem;
-  }
-
-  
+  .link { font-size: 0.8rem; }
 }
 
 @media (max-width: 375px) {
-  
-  .link{
-    font-size: 0.8rem;
-  }
+  .link { font-size: 0.8rem; }
 
   .likeButton {
     width: 27px;
     height: 27px;
   }
 
-  
   .playButton {
-     width: 27px;
+    width: 27px;
     height: 27px;
   }
 
-
   .addButton {
-      width: 27px;
+    width: 27px;
     height: 27px;
   }
 }

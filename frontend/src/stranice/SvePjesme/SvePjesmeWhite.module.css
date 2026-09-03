@@ -16,14 +16,15 @@
   margin-bottom: 24px;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid #b91d95;
+  border: 1px solid #cccccc;
   background: #ffffff;
   color: #111;
   font-size: 1.08rem;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-.editButton { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+.editButton { background: #111111; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+.editButton:hover { background: #333333; }
 .deleteButton { background: #e3342f; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s, transform 0.1s; }
 
 .container {
@@ -63,13 +64,13 @@
 .cardImageWrap { width: 110px; height: 110px; border-radius: 12px; overflow: hidden; margin-bottom: 16px; background: #f0f0f4; display: flex; align-items: center; justify-content: center; position: relative; }
 .cardImage { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.playButton { position: absolute; bottom: 10px; right: 10px; background: #b91d95; border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
-.playButton:hover { background: #e754a2; transform: scale(1.08); }
+.playButton { position: absolute; bottom: 10px; right: 10px; background: #111111; color: #ffffff; border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
+.playButton:hover { background: #333333; transform: scale(1.08); }
 
 .cardTitle { color: #111; font-size: 1.08rem; font-weight: 700; margin-bottom: 4px; text-align: center; }
 .cardDesc { color: #555; font-size: 0.97rem; margin-bottom: 6px; text-align: center; min-height: 24px; }
 
-.activeCard { border: 2px solid #b91d95; box-shadow: 0 4px 24px rgba(185,29,149,0.18); }
+.activeCard { border: 2px solid #111111; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
 
 .loading { color: #111; text-align: center; font-size: 1.2rem; margin-top: 80px; }
 .noSongs { color: #333; text-align: center; font-size: 1.1rem; margin-top: 40px; }
@@ -114,7 +115,7 @@
   .playButton svg { width: 16px; height: 16px; }
   .cardActions { gap: 4px; margin-top: 4px; flex-direction: column; }
   .editButton, .deleteButton { padding: 3px 6px; font-size: 0.65rem; border-radius: 4px; width: 100%; }
-  .activeCard { border: 1px solid #b91d95; box-shadow: 0 2px 8px rgba(185,29,149,0.15); }
+  .activeCard { border: 1px solid #111111; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
   .loading { font-size: 1rem; margin-top: 40px; }
   .noSongs { font-size: 0.95rem; margin-top: 20px; }
 }

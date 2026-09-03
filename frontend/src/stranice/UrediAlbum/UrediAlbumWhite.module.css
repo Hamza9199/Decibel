@@ -29,21 +29,21 @@
 .input {
   background: #ffffff;
   color: #111;
-  border: 1px solid #b91d95;
+  border: 1px solid #cccccc;
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 1.08rem;
   margin-bottom: 8px;
   outline: none;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.12);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.input:focus { border: 1.5px solid #e754a2; box-shadow: 0 3px 12px rgba(231,84,162,0.12); }
+.input:focus { border: 1.5px solid #111111; box-shadow: 0 3px 12px rgba(0,0,0,0.08); }
 
-.button { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.08rem; font-weight: 800; cursor: pointer; margin-top: 8px; transition: background 0.18s; }
-.button:hover { background: #e754a2; }
+.button { background: #111111; color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.08rem; font-weight: 800; cursor: pointer; margin-top: 8px; transition: background 0.18s; }
+.button:hover { background: #333333; }
 
-.error { color: #a1224f; background: #fde7ef; border: 1px solid #f5c1d7; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
+.error { color: #c0392b; background: #fdf2f2; border: 1px solid #f8d7da; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
 .success { color: #1f7a43; background: #e8f6ee; border: 1px solid #c5e8d4; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
 
 /* Form container layout */
@@ -75,9 +75,9 @@
 .songName { color: #111; font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .songDuration { color: #777; font-size: 0.85rem; margin-top: 2px; }
 
-.removeBtn, .addBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.18s; flex-shrink: 0; }
-.removeBtn:hover, .addBtn:hover { background: #e754a2; }
-.removeBtn:disabled, .addBtn:disabled { cursor: not-allowed; }
+.removeBtn, .addBtn { background: #111111; color: #fff; border: none; border-radius: 8px; padding: 6px 14px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: background 0.18s; flex-shrink: 0; }
+.removeBtn:hover, .addBtn:hover { background: #333333; }
+.removeBtn:disabled, .addBtn:disabled { cursor: not-allowed; opacity: 0.5; }
 
 .divider { margin: 18px 0; border: none; border-top: 1px solid rgba(0,0,0,0.08); }
 
@@ -106,18 +106,17 @@
   .title { font-size: 1.2rem; margin-bottom: 10px; letter-spacing: 0.5px; }
   .label { font-size: 0.85rem; margin-bottom: 3px; }
   .input { padding: 8px 10px; font-size: 0.85rem; margin-bottom: 5px; border-radius: 6px; width: 95%; }
-  .input:focus { border: 1.5px solid #e754a2; }
+  .input:focus { border: 1.5px solid #111111; }
   .button { padding: 10px 0; font-size: 0.9rem; margin-top: 5px; border-radius: 6px; }
   .error, .success { font-size: 0.8rem; padding: 6px 8px; margin-bottom: 3px; }
   .formContainer,
-.editAlbumForm,
-.songsSection,
-.input,
-.button,
-.addBtn,
-.removeBtn {
-  box-sizing: border-box;
-  max-width: 100%;
+  .editAlbumForm,
+  .songsSection,
+  .input,
+  .button,
+  .addBtn,
+  .removeBtn {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
 }
-}
-

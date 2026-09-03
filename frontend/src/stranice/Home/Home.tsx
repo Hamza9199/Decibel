@@ -517,7 +517,9 @@ const Home: React.FC = () => {
                 </div>
 
                 <div
-                  className={`${styles.vinylRig} ${isPlaying ? styles.vinylSpinActive : ""}`}
+                  className={`${styles.vinylRig} ${
+                    isPlaying && activeSong ? styles.vinylSpinActive : ""
+                  }`}
                   onClick={spotlight.onPlay || spotlight.onOpen}
                 >
                   <div className={styles.vinylSleeve}>
@@ -527,6 +529,7 @@ const Home: React.FC = () => {
                       <div className={styles.cardImage} style={{ background: gradientFor(spotlight.id) }} />
                     )}
                   </div>
+                  
                   <div className={styles.vinylDisc}>
                     <div className={styles.vinylCenterLabel}>
                       {spotlight.img ? (

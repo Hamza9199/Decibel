@@ -16,11 +16,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .title {
-  color: #111;
+  color: #111111;
   font-size: 2rem;
   font-weight: 800;
   margin-bottom: 28px;
@@ -32,18 +32,18 @@
   padding: 12px 16px;
   margin-bottom: 18px;
   border-radius: 8px;
-  border: 1px solid #b91d95;
+  border: 1.5px solid #e0e0e0;
   background: #ffffff;
-  color: #111;
+  color: #111111;
   font-size: 1rem;
   outline: none;
   transition: border 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .input:focus, .textarea:focus {
-  border: 1.5px solid #e754a2;
-  box-shadow: 0 3px 12px rgba(231,84,162,0.15);
+  border: 1.5px solid #111111;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
 }
 
 .textarea {
@@ -61,7 +61,7 @@
 }
 
 .fileLabel {
-  color: #333;
+  color: #333333;
   font-size: 1rem;
   font-weight: 600;
   display: flex;
@@ -69,8 +69,8 @@
 
 .button {
   width: 100%;
-  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
-  color: #fff;
+  background: #111111;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   padding: 12px 0;
@@ -78,36 +78,43 @@
   font-weight: 700;
   cursor: pointer;
   margin-bottom: 10px;
-  transition: background 0.2s;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.18);
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-.button:hover { background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%); }
+.button:hover {
+  background: #222222;
+  transform: translateY(-1px);
+}
 
 .cancelBtn {
   width: 100%;
-  background: #f4f4f6;
-  color: #222;
-  border: 1px solid #b91d95;
+  background: #ffffff;
+  color: #222222;
+  border: 1.5px solid #e0e0e0;
   border-radius: 8px;
   padding: 10px 0;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   margin-top: 4px;
-  transition: background 0.18s, color 0.18s;
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
 }
 
-.cancelBtn:hover { background: #b91d95; color: #fff; }
+.cancelBtn:hover {
+  background: #f4f4f4;
+  border-color: #111111;
+  color: #111111;
+}
 
 .error {
-  color: #a1224f;
-  background: #fde7ef;
+  color: #dc3545;
+  background: #fdf2f2;
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 12px;
   font-size: 0.98rem;
-  border: 1px solid #f5c1d7;
+  border: 1px solid #f8d7da;
 }
 
 .success {
@@ -139,18 +146,17 @@
   max-height: 520px;
   overflow-y: auto;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.songsTitle { color: #111; margin-bottom: 14px; font-weight: 700; font-size: 1.1rem; }
-.noSongsText { color: #555; font-size: 0.95rem; margin-bottom: 10px; }
+.songsTitle { color: #111111; margin-bottom: 14px; font-weight: 700; font-size: 1.1rem; }
+.noSongsText { color: #555555; font-size: 0.95rem; margin-bottom: 10px; }
 
 .songsList { list-style: none; padding: 0; margin: 0; }
-.songItem { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
-.songCheckbox { margin-right: 10px; }
-.songName { color: #111; font-weight: 600; }
-.songDuration { color: #666; font-size: 0.9rem; }
-
+.songItem { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.06); }
+.songCheckbox { margin-right: 10px; accent-color: #111111; }
+.songName { color: #111111; font-weight: 600; }
+.songDuration { color: #666666; font-size: 0.9rem; }
 
 @media (max-width: 600px) {
   .noviAlbumBg {
@@ -211,7 +217,7 @@
   .noviAlbumForm {
     padding: 20px 16px 20px 16px;
     border-radius: 8px;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
   }
@@ -224,7 +230,7 @@
     border-radius: 8px;
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
   }
   
   .songsTitle {
@@ -269,7 +275,7 @@
   }
   
   .input:focus, .textarea:focus {
-    border: 1.5px solid #e754a2;
+    border: 1.5px solid #111111;
   }
   
   .textarea {
@@ -308,14 +314,12 @@
   }
 
   .noviAlbumForm,
-.input,
-.textarea,
-.button,
-.cancelBtn,
-.songsSection {
-  box-sizing: border-box;
-  max-width: 100%;
+  .input,
+  .textarea,
+  .button,
+  .cancelBtn,
+  .songsSection {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
 }
-}
-
-

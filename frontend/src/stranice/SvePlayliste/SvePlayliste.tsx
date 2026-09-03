@@ -158,7 +158,7 @@ const SvePlayliste: React.FC = () => {
                   <div className={styles.cardImageWrap}>
                     {pl.putanjaSlika ? <img src={pl.putanjaSlika} alt={pl.naziv} className={styles.cardImage} /> : <div className={styles.cardImage} style={{ background: "#222" }} />}
                     <button className={styles.playButton} onClick={() => handlePlayPlaylist(pl.id)} title={t("play_playlist")} style={{ left: 50, position: "absolute", bottom: 10 }}>
-                      <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff"><polygon points="12,8 36,22 12,36" /></svg>
+                      <svg width="34" height="34" viewBox="0 0 44 44" fill="#171515ff"><polygon points="12,8 36,22 12,36" /></svg>
                     </button>
                   </div>
                   <Link to={`/playlista/${pl.id}`} className={styles.cardLink}>

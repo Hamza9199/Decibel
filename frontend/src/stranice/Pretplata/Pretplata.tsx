@@ -252,14 +252,12 @@ const Pretplata: React.FC = () => {
                 >
                   {aktivna && (
                     <>
-                
-
                       <button
                         className={styles.kupiBtn}
                         style={{
                           background: "#232323",
-                          color: "#ffe6ec",
-                          border: "1px solid #b91d95",
+                          color: "#ffffff",
+                          border: "1px solid #555555",
                         }}
                         onClick={handleOtkaziPretplatu}
                         disabled={cancelMut.isPending}
@@ -272,7 +270,7 @@ const Pretplata: React.FC = () => {
                   {(istekla || neaktivna) && (
                     <button
                       className={styles.kupiBtn}
-                      style={{ background: "#e754a2" }}
+                      style={{ background: "#ffffff", color: "#111111" }}
                       onClick={handleObnoviPretplatu}
                     >
                       {t("renew_subscription") || "Obnovi pretplatu"}
@@ -282,7 +280,7 @@ const Pretplata: React.FC = () => {
                   {pauzirana && (
                     <button
                       className={styles.kupiBtn}
-                      style={{ background: "#e754a2" }}
+                      style={{ background: "#ffffff", color: "#111111" }}
                       onClick={handleObnoviPretplatu}
                     >
                       {t("buy_or_renew_subscription") || "Kupi ili obnovi pretplatu"}
@@ -342,5 +340,3 @@ const Pretplata: React.FC = () => {
 };
 
 export default memo(Pretplata);
-
-

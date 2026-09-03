@@ -438,7 +438,7 @@ const Omiljeno: React.FC = () => {
                             </button>
                             <button
                               style={{
-                                background: likedSongs[p.id] ? "#e754a2" : "#efe6edff",                          
+                                background: likedSongs[p.id] ? "#f5edf1ff" : "#efe6edff",                          
                               }}
                               className= {styles.likeButton}
                               onClick={() => handleLike(p)}

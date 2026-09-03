@@ -30,7 +30,7 @@
 }
 
 .label {
-  color: #ffe6ec;
+  color: #ffffff;
   font-size: 1.08rem;
   font-weight: 600;
   margin-bottom: 2px;
@@ -39,7 +39,7 @@
 .input {
   background: #181818;
   color: #fff;
-  border: 1px solid #b91d95;
+  border: 1px solid #444444;
   border-radius: 8px;
   padding: 10px 12px;
   font-size: 1.08rem;
@@ -48,8 +48,8 @@
 }
 
 .button {
-  background: #b91d95;
-  color: #fff;
+  background: #ffffff;
+  color: #111111;
   border: none;
   border-radius: 8px;
   padding: 12px 0;
@@ -60,7 +60,7 @@
   transition: background 0.18s;
 }
 .button:hover {
-  background: #e754a2;
+  background: #e0e0e0;
 }
 
 .error {
@@ -99,7 +99,7 @@
   min-width: 260px;
   max-height: 480px;
   overflow-y: auto;
-  box-shadow: 0 4px 24px #b91d9533;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
 }
 
 .songsTitle {
@@ -144,7 +144,7 @@
 }
 
 .songName {
-  color: #ffe6ec;
+  color: #ffffff;
   font-weight: 500;
   font-size: 0.95rem;
   white-space: nowrap;
@@ -160,8 +160,8 @@
 
 .removeBtn,
 .addBtn {
-  background: #b91d95;
-  color: #fff;
+  background: #ffffff;
+  color: #111111;
   border: none;
   border-radius: 8px;
   padding: 6px 14px;
@@ -174,12 +174,13 @@
 
 .removeBtn:hover,
 .addBtn:hover {
-  background: #e754a2;
+  background: #e0e0e0;
 }
 
 .removeBtn:disabled,
 .addBtn:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .divider {
@@ -243,7 +244,7 @@
     padding: 16px 12px 16px 12px;
     border-radius: 8px;
     gap: 10px;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
     background: rgba(35, 35, 35, 0.95);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
@@ -257,7 +258,7 @@
     background: rgba(35, 35, 35, 0.85);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
   }
   
   .songsTitle {
@@ -319,7 +320,7 @@
   }
   
   .input:focus {
-    border: 1.5px solid #e754a2;
+    border: 1.5px solid #ffffff;
   }
   
   .button {
@@ -336,14 +337,13 @@
   }
 
   .formContainer,
-.editAlbumForm,
-.songsSection,
-.input,
-.button,
-.addBtn,
-.removeBtn {
-  box-sizing: border-box;
-  max-width: 100%;
+  .editAlbumForm,
+  .songsSection,
+  .input,
+  .button,
+  .addBtn,
+  .removeBtn {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
 }
-}
-

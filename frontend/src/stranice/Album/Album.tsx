@@ -350,7 +350,7 @@ const Album: React.FC = () => {
                 <svg width="28" height="28" viewBox="0 0 28 28" fill={liked ? "#010101ff" : "#c010b5ff"}>
                   <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                 </svg>
-                <span>{likeCount}</span>
+                <span style={{ color: "#c010b5ff" }} >{likeCount}</span>
               </button>
             </div>
             <div className={styles.albumInfo}>

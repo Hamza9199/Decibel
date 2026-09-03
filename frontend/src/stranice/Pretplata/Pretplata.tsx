@@ -322,7 +322,7 @@ const Pretplata: React.FC = () => {
                     <div key={p.id} className={styles.ponudaCard}>
                       <div className={styles.ponudaNaziv}>{p.naziv}</div>
                       <div className={styles.ponudaOpis}>{p.opis}</div>
-                      <div className={styles.ponudaCijena}>{p.cijena} KM / mj</div>
+                      <div className={styles.ponudaCijena}>{p.cijena} $ </div>
                       <button className={styles.kupiBtn} onClick={() => navigate(`/nova-pretplata/${p.id}`)} disabled={cancelMut.isPending} style={{ width: "100%" }}>
                         {t("buy_subscription")}
                       </button>

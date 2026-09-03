@@ -72,49 +72,49 @@ const Home: React.FC = React.memo(() => {
     queryKey: ['songs'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/pjesme/`);
-      const approvedSongs = response.data.filter((s: Pjesma) => s.odobreno);
+      const approvedSongs = (response.data || []).filter((s: Pjesma) => Boolean(s.odobreno));
       return getRandomItems(approvedSongs, 20);
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 1000,
     gcTime: 30 * 60 * 1000,
+    refetchOnMount: 'always',
   });
 
   const albumsQuery = useQuery({
     queryKey: ['albums'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/albumi/`);
-      const approvedAlbums = response.data.filter((a: Album) => a.odobreno);
+      const approvedAlbums = (response.data || []).filter((a: Album) => Boolean(a.odobreno));
       return getRandomItems(approvedAlbums, 20);
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 1000,
     gcTime: 30 * 60 * 1000,
-
+    refetchOnMount: 'always',
   });
 
   const playlistsQuery = useQuery({
     queryKey: ['playlists'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/playliste/`);
-      const publicPlaylists = response.data.filter((p: Playlista) => p.javno);
+      const publicPlaylists = (response.data || []).filter((p: Playlista) => Boolean(p.javno));
       return getRandomItems(publicPlaylists, 20);
     },
-    staleTime: 10 * 60 * 1000,
+    staleTime: 5 * 1000,
     gcTime: 30 * 60 * 1000,
-
+    refetchOnMount: 'always',
   });
 
   const artistsQuery = useQuery({
     queryKey: ['artists'],
     queryFn: async () => {
       const response = await axios.get(`${API_BASE}/korisnici/`);
-      const activeArtists = response.data.filter((k: Korisnik) =>
+      const activeArtists = (response.data || []).filter((k: Korisnik) =>
         k.rola === 'izvodac' && k.statusKorisnika !== 'suspendovan'
       );
       return getRandomItems(activeArtists, 20);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
-
   });
 
   const allVezeQuery = useQuery({
@@ -129,16 +129,34 @@ const Home: React.FC = React.memo(() => {
     staleTime: 5 * 60 * 1000,
   });
 
-  const onRefresh = useCallback(() => {
+  // Garancija da su izvučene SAMO odobrene pjesme
+  const approvedSongsList = useMemo<Pjesma[]>(() => {
+    if (!songsQuery.data) return [];
+    return (songsQuery.data as Pjesma[]).filter((s) => Boolean(s.odobreno));
+  }, [songsQuery.data]);
+
+  const spotlightSong = useMemo<Pjesma | null>(() => {
+    if (approvedSongsList.length === 0) return null;
+    return approvedSongsList[0];
+  }, [approvedSongsList]);
+
+  const quickPicks = useMemo<Pjesma[]>(() => {
+    if (approvedSongsList.length <= 1) return [];
+    return approvedSongsList.slice(1, 7);
+  }, [approvedSongsList]);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['songs'] }),
-      queryClient.invalidateQueries({ queryKey: ['albums'] }),
-      queryClient.invalidateQueries({ queryKey: ['playlists'] }),
-      queryClient.invalidateQueries({ queryKey: ['artists'] }),
-    ]).finally(() => {
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['songs'] }),
+        queryClient.invalidateQueries({ queryKey: ['albums'] }),
+        queryClient.invalidateQueries({ queryKey: ['playlists'] }),
+        queryClient.invalidateQueries({ queryKey: ['artists'] }),
+      ]);
+    } finally {
       setRefreshing(false);
-    });
+    }
   }, []);
 
   const handlePlaySong = useCallback((song: Pjesma) => {
@@ -169,12 +187,9 @@ const Home: React.FC = React.memo(() => {
 
   const handlePlayAlbum = useCallback(async (album: Album) => {
     try {
-      const albumSongs = songsQuery.data?.filter(
-        (s: any): s is Pjesma =>
-          (s as Pjesma).albumID === album.id &&
-          !!(s as Pjesma).putanjaAudio &&
-          !!(s as Pjesma).odobreno
-      ) || [];
+      const albumSongs = approvedSongsList.filter(
+        (s: Pjesma) => s.albumID === album.id && Boolean(s.putanjaAudio)
+      );
       if (albumSongs.length === 0) {
         console.warn('Album has no playable songs');
         return;
@@ -183,7 +198,7 @@ const Home: React.FC = React.memo(() => {
     } catch (error) {
       console.error('Failed to play album:', error);
     }
-  }, [songsQuery.data, playPlaylist]);
+  }, [approvedSongsList, playPlaylist]);
 
   const handlePlayPlaylist = useCallback(async (playlist: Playlista) => {
     try {
@@ -196,7 +211,7 @@ const Home: React.FC = React.memo(() => {
       const songResponses = await Promise.all(songIds.map(id => axios.get(`${API_BASE}/pjesme/${id}`)));
       const playable = songResponses
         .map(r => r.data)
-        .filter((s: Pjesma) => s && s.putanjaAudio && s.odobreno);
+        .filter((s: Pjesma) => s && Boolean(s.putanjaAudio) && Boolean(s.odobreno));
       if (playable.length === 0) {
         console.warn('No playable songs in playlist');
         return;
@@ -217,6 +232,7 @@ const Home: React.FC = React.memo(() => {
       <TouchableOpacity
         style={[activeStyles.card, activeSongId === item.id && activeStyles.activeCard]}
         onPress={() => handleNavigateToSong(item.id)}
+        activeOpacity={0.8}
       >
         <View style={activeStyles.cardImageWrap}>
           <Image
@@ -232,16 +248,16 @@ const Home: React.FC = React.memo(() => {
                 handlePlaySong(item);
               }}
             >
-              <MaterialIcons name="play-arrow" size={24} color="#fff" />
+              <MaterialIcons name="play-arrow" size={22} color={theme === 'light' ? '#fff' : '#000'} />
             </TouchableOpacity>
           )}
         </View>
         <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.naziv}</Text>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', width: '100%', paddingBottom: 5, marginTop: 2 }}>
+        <View style={activeStyles.artistTextContainer}>
           {izvodjaci.length > 0 ? (
             izvodjaci.map((izv: any, idx: number) => (
               <TouchableOpacity key={izv.id} onPress={() => handleNavigateToArtist(izv.id.toString())}>
-                <Text style={[activeStyles.cardDesc, { textAlign: 'center' }]}>
+                <Text style={activeStyles.cardDesc} numberOfLines={1}>
                   {izv.korisnicko_ime}{idx < izvodjaci.length - 1 ? ' & ' : ''}
                 </Text>
               </TouchableOpacity>
@@ -251,16 +267,16 @@ const Home: React.FC = React.memo(() => {
               onPress={() => { if (item.korisnikID) handleNavigateToArtist(item.korisnikID.toString()); }}
               disabled={!item.korisnikID}
             >
-              <Text style={[activeStyles.cardDesc, { textAlign: 'center' }]}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
+              <Text style={activeStyles.cardDesc} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
             </TouchableOpacity>
           )}
         </View>
       </TouchableOpacity>
     );
-  }, [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t, activeStyles, allVezeQuery.data, allKorisniciQuery.data]);
+  }, [activeSongId, handleNavigateToSong, handlePlaySong, handleNavigateToArtist, t, activeStyles, theme, allVezeQuery.data, allKorisniciQuery.data]);
 
   const renderAlbumItem = useCallback(({ item }: { item: Album }) => (
-    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToAlbum(item.id)}>
+    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToAlbum(item.id)} activeOpacity={0.8}>
       <View style={activeStyles.cardImageWrap}>
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
@@ -271,7 +287,7 @@ const Home: React.FC = React.memo(() => {
           style={activeStyles.playButton}
           onPress={(e) => { e.stopPropagation(); handlePlayAlbum(item); }}
         >
-          <MaterialIcons name="play-arrow" size={24} color="#fff" />
+          <MaterialIcons name="play-arrow" size={22} color={theme === 'light' ? '#fff' : '#000'} />
         </TouchableOpacity>
       </View>
       <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.naziv}</Text>
@@ -282,10 +298,10 @@ const Home: React.FC = React.memo(() => {
         <Text style={activeStyles.cardDesc} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  ), [handleNavigateToAlbum, handlePlayAlbum, handleNavigateToArtist, t, activeStyles]);
+  ), [handleNavigateToAlbum, handlePlayAlbum, handleNavigateToArtist, t, activeStyles, theme]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
-    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToPlaylist(item.id)}>
+    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToPlaylist(item.id)} activeOpacity={0.8}>
       <View style={activeStyles.cardImageWrap}>
         <Image
           source={{ uri: item.putanjaSlika || 'https://via.placeholder.com/150' }}
@@ -296,7 +312,7 @@ const Home: React.FC = React.memo(() => {
           style={activeStyles.playButton}
           onPress={(e) => { e.stopPropagation(); handlePlayPlaylist(item); }}
         >
-          <MaterialIcons name="play-arrow" size={24} color="#fff" />
+          <MaterialIcons name="play-arrow" size={22} color={theme === 'light' ? '#fff' : '#000'} />
         </TouchableOpacity>
       </View>
       <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.naziv}</Text>
@@ -307,10 +323,10 @@ const Home: React.FC = React.memo(() => {
         <Text style={activeStyles.cardDesc} numberOfLines={1}>{item.korisnik?.korisnicko_ime || t('unknown_user')}</Text>
       </TouchableOpacity>
     </TouchableOpacity>
-  ), [handleNavigateToPlaylist, handlePlayPlaylist, handleNavigateToArtist, t, activeStyles]);
+  ), [handleNavigateToPlaylist, handlePlayPlaylist, handleNavigateToArtist, t, activeStyles, theme]);
 
   const renderArtistItem = useCallback(({ item }: { item: Korisnik }) => (
-    <TouchableOpacity style={activeStyles.card} onPress={() => handleNavigateToArtist(item.id)}>
+    <TouchableOpacity style={[activeStyles.card, activeStyles.artistCard]} onPress={() => handleNavigateToArtist(item.id)} activeOpacity={0.8}>
       <View style={activeStyles.cardImageWrap2}>
         <Image
           source={{ uri: item.putanjaProfilneSlike || 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn2.iconfinder.com%2Fdata%2Ficons%2Fflaticons-solid%2F16%2Fprofile-1-512.png&f=1&nofb=1&ipt=6b148c0994b76fe50e9a2fbb9e360cc3858b81f150251aca12a5ca51d932aca8' }}
@@ -318,17 +334,18 @@ const Home: React.FC = React.memo(() => {
           cachePolicy="memory-disk"
         />
       </View>
-      <Text style={activeStyles.cardTitle} numberOfLines={1}>{item.korisnicko_ime}</Text>
+      <Text style={[activeStyles.cardTitle, { textAlign: 'center' }]} numberOfLines={1}>{item.korisnicko_ime}</Text>
+      <Text style={[activeStyles.cardDesc, { textAlign: 'center' }]}>{t('artist') || 'Izvođač'}</Text>
     </TouchableOpacity>
-  ), [handleNavigateToArtist, activeStyles]);
+  ), [handleNavigateToArtist, activeStyles, t]);
 
   const refreshControl = useMemo(() => (
     <RefreshControl
       refreshing={refreshing}
       onRefresh={onRefresh}
-      tintColor="#b91d95ff"
+      tintColor={theme === 'light' ? '#111' : '#fff'}
     />
-  ), [refreshing, onRefresh]);
+  ), [refreshing, onRefresh, theme]);
 
   const loading = songsQuery.isLoading || albumsQuery.isLoading || playlistsQuery.isLoading || artistsQuery.isLoading;
   const error = songsQuery.error || albumsQuery.error || playlistsQuery.error || artistsQuery.error;
@@ -350,7 +367,6 @@ const Home: React.FC = React.memo(() => {
         <TouchableOpacity onPress={onRefresh} style={{ marginTop: 10 }}>
           <Text style={activeStyles.cardDesc}>{t('retry')}</Text>
         </TouchableOpacity>
-
       </View>
     );
   }
@@ -362,16 +378,82 @@ const Home: React.FC = React.memo(() => {
       <ScrollView
         style={activeStyles.scrollContainer}
         refreshControl={refreshControl}
+        showsVerticalScrollIndicator={false}
       >
         <View style={activeStyles.content}>
+          
           <View style={activeStyles.header}>
             <Text style={activeStyles.headerTitle}>{t('welcome_to_decibel')}</Text>
+            <Text style={activeStyles.headerSubtitle}>{t('discover_new_music') || 'Otkrijte novu muziku danas'}</Text>
           </View>
 
+          {spotlightSong && (
+            <TouchableOpacity 
+              style={activeStyles.heroBanner} 
+              activeOpacity={0.9}
+              onPress={() => handleNavigateToSong(spotlightSong.id)}
+            >
+              <View style={activeStyles.heroBadgeWrap}>
+                <Text style={activeStyles.heroBadge}>SPOTLIGHT</Text>
+              </View>
+              <View style={activeStyles.heroContent}>
+                <Image
+                  source={{ uri: spotlightSong.putanjaSlika || 'https://via.placeholder.com/300' }}
+                  style={activeStyles.heroImage}
+                  cachePolicy="memory-disk"
+                />
+                <View style={activeStyles.heroInfo}>
+                  <Text style={activeStyles.heroTitle} numberOfLines={1}>{spotlightSong.naziv}</Text>
+                  <Text style={activeStyles.heroSub} numberOfLines={1}>
+                    {spotlightSong.korisnik?.korisnicko_ime || (spotlightSong as any)?.korisnik_ime || t('unknown_artist')}
+                  </Text>
+                  <TouchableOpacity
+                    style={activeStyles.heroPlayBtn}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handlePlaySong(spotlightSong);
+                    }}
+                  >
+                    <MaterialIcons name="play-arrow" size={20} color={theme === 'light' ? '#fff' : '#000'} />
+                    <Text style={activeStyles.heroPlayText}>{t('play') || 'Slušaj'}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {quickPicks.length > 0 && (
+            <View style={activeStyles.quickSection}>
+              <Text style={activeStyles.sectionTitle}>{t('quick_picks') || 'Brze opcije'}</Text>
+              <View style={activeStyles.quickGrid}>
+                {quickPicks.map((song: Pjesma) => (
+                  <TouchableOpacity
+                    key={song.id}
+                    style={activeStyles.quickCard}
+                    onPress={() => handleNavigateToSong(song.id)}
+                    activeOpacity={0.8}
+                  >
+                    <Image
+                      source={{ uri: song.putanjaSlika || 'https://via.placeholder.com/100' }}
+                      style={activeStyles.quickImage}
+                      cachePolicy="memory-disk"
+                    />
+                    <View style={activeStyles.quickTextWrap}>
+                      <Text style={activeStyles.quickTitle} numberOfLines={1}>{song.naziv}</Text>
+                      <Text style={activeStyles.quickSub} numberOfLines={1}>{song.korisnik?.korisnicko_ime || t('unknown_artist')}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
           <View style={activeStyles.section}>
-            <Text style={activeStyles.sectionTitle}>{t('songs')}</Text>
+            <View style={activeStyles.sectionHeaderRow}>
+              <Text style={activeStyles.sectionTitle}>{t('songs')}</Text>
+            </View>
             <FlatList
-              data={(songsQuery.data as Pjesma[]) || []}
+              data={approvedSongsList}
               renderItem={renderSongItem}
               keyExtractor={(item) => item.id.toString()}
               horizontal
@@ -385,7 +467,9 @@ const Home: React.FC = React.memo(() => {
           </View>
 
           <View style={activeStyles.section}>
-            <Text style={activeStyles.sectionTitle}>{t('albums')}</Text>
+            <View style={activeStyles.sectionHeaderRow}>
+              <Text style={activeStyles.sectionTitle}>{t('albums')}</Text>
+            </View>
             <FlatList
               data={albumsQuery.data as Album[] || []}
               renderItem={renderAlbumItem}
@@ -401,7 +485,9 @@ const Home: React.FC = React.memo(() => {
           </View>
 
           <View style={activeStyles.section}>
-            <Text style={activeStyles.sectionTitle}>{t('playlists')}</Text>
+            <View style={activeStyles.sectionHeaderRow}>
+              <Text style={activeStyles.sectionTitle}>{t('playlists')}</Text>
+            </View>
             <FlatList
               data={playlistsQuery.data as Playlista[] || []}
               renderItem={renderPlaylistItem}
@@ -417,7 +503,9 @@ const Home: React.FC = React.memo(() => {
           </View>
 
           <View style={activeStyles.section}>
-            <Text style={activeStyles.sectionTitle}>{t('artists')}</Text>
+            <View style={activeStyles.sectionHeaderRow}>
+              <Text style={activeStyles.sectionTitle}>{t('artists')}</Text>
+            </View>
             <FlatList
               data={artistsQuery.data as Korisnik[] || []}
               renderItem={renderArtistItem}
@@ -440,5 +528,3 @@ const Home: React.FC = React.memo(() => {
 Home.displayName = "Home";
 
 export default Home;
-
-

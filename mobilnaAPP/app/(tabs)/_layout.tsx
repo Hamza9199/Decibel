@@ -40,7 +40,7 @@ export default function TabsLayout() {
           headerShown: false, 
           tabBarStyle: {
             backgroundColor: '#232323',
-            borderTopColor: '#b91d95',
+            borderTopColor: '#333333',
             borderTopWidth: 1,
             position: 'absolute',
             bottom: 0,
@@ -50,7 +50,7 @@ export default function TabsLayout() {
             paddingBottom: 8,
             paddingTop: 5,
           },
-          tabBarActiveTintColor: '#b91d95',
+          tabBarActiveTintColor: '#ffffff',
           tabBarInactiveTintColor: '#888',
           tabBarShowLabel: true,
           tabBarLabelStyle: {
@@ -97,5 +97,3 @@ export default function TabsLayout() {
     </View>
   );
 }
-
-

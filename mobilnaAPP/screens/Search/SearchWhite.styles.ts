@@ -51,8 +51,8 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   filterButtonActive: {
-    backgroundColor: '#b91d95',
-    borderColor: '#b91d95',
+    backgroundColor: '#181818',
+    borderColor: '#181818',
   },
   filterButtonText: {
     color: '#555',
@@ -134,10 +134,10 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   playButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -155,7 +155,7 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
     opacity: 0.5,
   },
-    emptyText: {
+  emptyText: {
     color: '#555',
     fontSize: 16,
     fontWeight: '500',
@@ -167,7 +167,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
-    emptySubtitle: {
+  emptySubtitle: {
     color: '#555',
     fontSize: 14,
     fontWeight: '400',
@@ -184,4 +184,3 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-

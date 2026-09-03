@@ -658,14 +658,14 @@ const Biblioteka: React.FC = React.memo(() => {
                 style={styles.actionButton}
                 onPress={() => handlePlaySong(item)}
               >
-                <MaterialIcons name="play-arrow" size={20} color="#fff" />
+                <MaterialIcons name="play-arrow" size={20} color="black" />
               </TouchableOpacity>
             )}
             <TouchableOpacity
               style={[styles.actionButton, isLiked ? styles.likeButton : { backgroundColor: '#333' }]}
               onPress={() => handleToggleSongLike(item.id, isLiked)}
             >
-              <MaterialIcons name="favorite" size={20} color="#fff" />
+              <MaterialIcons name="favorite" size={20} color="black" />
             </TouchableOpacity>
           </View>
         </View>
@@ -700,13 +700,13 @@ const Biblioteka: React.FC = React.memo(() => {
               style={styles.actionButton}
               onPress={() => handlePlayAlbum(item)}
             >
-              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+              <MaterialIcons name="play-arrow" size={20} color="black" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, isLiked ? styles.likeButton : { backgroundColor: '#333' }]}
               onPress={() => handleToggleAlbumLike(item.id, isLiked)}
             >
-              <MaterialIcons name="favorite" size={20} color="#fff" />
+              <MaterialIcons name="favorite" size={20} color="black" />
             </TouchableOpacity>
           </View>
         </View>
@@ -741,13 +741,13 @@ const Biblioteka: React.FC = React.memo(() => {
               style={styles.actionButton}
               onPress={() => handlePlayPlaylist(item)}
             >
-              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+              <MaterialIcons name="play-arrow" size={20} color="black" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, isLiked ? styles.likeButton : { backgroundColor: '#333' }]}
               onPress={() => handleTogglePlaylistLike(item.id, isLiked)}
             >
-              <MaterialIcons name="favorite" size={20} color="#fff" />
+              <MaterialIcons name="favorite" size={20} color="black" />
             </TouchableOpacity>
           </View>
         </View>

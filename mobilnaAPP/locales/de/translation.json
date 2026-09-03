@@ -424,7 +424,9 @@
   "delete_comment_confirm": "Sind Sie sicher, dass Sie diesen Kommentar löschen möchten?",
   "select_month_year": "Auswählen",
   "free_trial_activated": "Kostenlose Testversion aktiviert",
-  "error_activating_free_trial": "Fehler beim Aktivieren der kostenlosen Testversion"
+  "error_activating_free_trial": "Fehler beim Aktivieren der kostenlosen Testversion",
+  "discover_new_music": "Entdecke neue Musik",
+  "quick_picks": "Schnellauswahl"
 
 
 }

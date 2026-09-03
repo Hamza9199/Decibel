@@ -226,8 +226,7 @@ const NovaPretplata: React.FC = React.memo(() => {
     if (!subscriptionQuery.data) return [];
     
     return [
-      { label: t('price'), value: `${subscriptionQuery.data.cijena} KM / ${t('month')}` },
-      { label: t('description'), value: subscriptionQuery.data.opis || '' },
+      { label: t('price'), value: `${subscriptionQuery.data.cijena}$ / ${t('month')}` },
     ];
   }, [subscriptionQuery.data, t]);
 

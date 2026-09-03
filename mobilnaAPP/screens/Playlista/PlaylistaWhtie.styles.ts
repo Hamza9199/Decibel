@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',  
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.13,
     shadowRadius: 24,
@@ -61,7 +61,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 27,
     width: 54,
     height: 54,
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   likeButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 27,
     width: 54,
     height: 54,
@@ -88,7 +88,7 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   likeButtonLiked: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#333333',
   },
   likeCount: {
     color: '#fff',
@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#181818',
   },
 
   noSongs: {
@@ -143,7 +143,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ddd',
   },
-  draggingSong: { opacity: 0.7, borderColor: '#b91d95' },
+  draggingSong: { opacity: 0.7, borderColor: '#181818' },
   songHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   songNumber: {
-    color: '#b91d95',
+    color: '#666666',
     fontSize: 16,
     fontWeight: '600',
     width: 30,
@@ -191,7 +191,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 20,
     width: 38,
     height: 38,
@@ -199,10 +199,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonLiked: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#333333',
   },
   actionButtonRemove: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#dc3545',
   },
   actionButtonDisabled: { opacity: 0.4 },
 
@@ -228,7 +228,7 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   playlistItem: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -240,35 +240,35 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalCloseBtn: {
-    backgroundColor: '#181818',
-    borderColor: '#b91d95',
+    backgroundColor: '#ffffff',
+    borderColor: '#ccc',
     borderWidth: 1,
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
   },
   modalCloseBtnText: {
-    color: '#ffe6ec',
+    color: '#333',
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
   },
-   bottomSheetBackground: {
-    backgroundColor: '#232323',
+  bottomSheetBackground: {
+    backgroundColor: '#f2f2f2',
   },
-    playlistItemContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  playlistItemContent: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   playlistItemImage: { width: 40, height: 40, borderRadius: 8, marginRight: 12 },
   bottomSheetIndicator: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
   },
   bottomSheetContent: {
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 20,
-    backgroundColor: '#232323',
+    backgroundColor: '#f2f2f2',
   },
   bottomSheetTitle: {
-    color: '#fff',
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 16,

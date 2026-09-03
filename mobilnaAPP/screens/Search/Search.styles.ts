@@ -51,8 +51,8 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   filterButtonActive: {
-    backgroundColor: '#b91d95',
-    borderColor: '#b91d95',
+    backgroundColor: '#ffffff',
+    borderColor: '#ffffff',
   },
   filterButtonText: {
     color: '#888',
@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filterButtonTextActive: {
-    color: '#fff',
+    color: '#181818',
     fontWeight: '600',
   },
   scrollContainer: {
@@ -134,10 +134,10 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginLeft: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   playButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -171,9 +171,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-
     paddingVertical: 40,
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {

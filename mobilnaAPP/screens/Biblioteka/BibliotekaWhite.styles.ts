@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
@@ -49,8 +49,8 @@ export const styles = StyleSheet.create({
     marginRight: 12,
   },
   filterButtonActive: {
-    backgroundColor: '#b91d95',
-    borderColor: '#b91d95',
+    backgroundColor: '#181818',
+    borderColor: '#181818',
   },
   filterButtonText: {
     color: '#181818',
@@ -73,7 +73,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
-    shadowColor: '#b91d95',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -127,7 +127,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#e3342f',
   },
   likeButton: {
-    backgroundColor: '#e91e63',
+    backgroundColor: '#181818',
   },
   noItems: {
     color: '#666',
@@ -201,7 +201,7 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   retryButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

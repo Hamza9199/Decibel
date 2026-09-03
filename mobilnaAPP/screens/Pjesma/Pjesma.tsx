@@ -400,7 +400,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
               style={styles.recommendedPlayBtn}
               onPress={() => handlePlay(item)}
             >
-              <MaterialIcons name="play-arrow" size={20} color="#fff" />
+              <MaterialIcons name="play-arrow" size={20} color="black" />
             </TouchableOpacity>
           )}
         </View>
@@ -608,7 +608,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                   <MaterialIcons 
                     name={liked ? 'favorite' : 'favorite-border'} 
                     size={24} 
-                    color="#fff" 
+                    color="black" 
                   />
                   <Text style={styles.likeCount}>{likeCount}</Text>
                 </TouchableOpacity>
@@ -618,7 +618,7 @@ const PjesmePage: React.FC<PjesmaProps> = React.memo(({
                     style={styles.playButton}
                     onPress={() => handlePlay(pjesma)}
                   >
-                    <MaterialIcons name="play-arrow" size={32} color="#fff" />
+                    <MaterialIcons name="play-arrow" size={32} color="black" />
                   </TouchableOpacity>
                 )}
               </View>

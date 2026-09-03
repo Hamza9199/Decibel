@@ -10,13 +10,13 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     backgroundColor: '#232323',
     borderBottomWidth: 1,
-    borderBottomColor: '#b91d95',
+    borderBottomColor: '#333333',
     paddingTop: Platform.OS === 'ios' ? 50 : 16,
   },
   backButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   titleContainer: {
     flex: 1,
@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#ffe6ec',
+    color: '#ffffff',
     textAlign: 'center',
   },
   rightActions: {

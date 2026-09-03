@@ -256,7 +256,7 @@ const handleBackPress = useBackPress({ from, defaultRoute: '/svepjesme', current
                         style={activeStyles.playButton}
                         onPress={() => handlePlay(song)}
                       >
-                        <MaterialIcons name="play-arrow" size={24} color="#fff" />
+                        <MaterialIcons name="play-arrow" size={24} color="black" />
                       </TouchableOpacity>
                     )}
                   </View>

@@ -129,7 +129,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     refetchOnMount: 'always',
     refetchOnWindowFocus: 'always',
     refetchInterval: 5 * 1000,
-    
   });
   const pretplataValid = !!pretplata && (pretplata.pretplataStatus === 'aktivna' || pretplata.pretplataStatus === 'pauzirana');
 
@@ -158,8 +157,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     }
     return null;
   }, [contextCurrentSong, globalPlaylist, playlistIdx, allSongs, effectiveSrc, id, effectiveTitle, effectiveGif, effectiveSlika, effectiveKorisnikID]);
-
-
 
   const { data: playlists = [] } = useQuery({
     queryKey: ['playlists', korisnik?.id],
@@ -260,6 +257,8 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const [repeatOne, setRepeatOne] = useState(false);
   const [seekValue, setSeekValue] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
+  const [isAudioBarSeeking, setIsAudioBarSeeking] = useState(false);
+  const [isVolumeSeeking, setIsVolumeSeeking] = useState(false);
   const [volume, setVolume] = useState(0.3);
   const [muted, setMuted] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
@@ -279,8 +278,8 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const isBuffering = !!status?.isBuffering || (!status?.isLoaded && !!effectiveSrc);
   const playing = !!status?.playing;
 
-  useEffect(() => { setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); 
-        //player.setActiveForLockScreen(true);
+  useEffect(() => { 
+    setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => { }); 
   }, [player]);
 
   useEffect(() => {
@@ -291,7 +290,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
         clearTimeout(previewTimerRef.current);
         previewTimerRef.current = null;
       }
-      
       setIsPreviewOnly(false);
       setShowNoSubMsg(false);
     }
@@ -314,7 +312,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       player.pause();
       player.seekTo(0);
       player.replace({ uri: effectiveSrc || '' });
-     
       if (effectiveSrc) player.play();
     } catch { }
     previewTimerRef.current = setTimeout(() => {
@@ -323,7 +320,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     }, 5000);
 
     setTimeout(() => {
-          setShowNoSubMsg(false);
+      setShowNoSubMsg(false);
     }, 5000);
 
     return () => {
@@ -340,9 +337,10 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     const shouldPreview = pretplataValid === false;
     setIsPreviewOnly(shouldPreview);
     if (shouldPreview) setShowNoSubMsg(true);
-    try { player.replace({ uri: effectiveSrc });
-   
-    player.play(); } catch { }
+    try { 
+      player.replace({ uri: effectiveSrc });
+      player.play(); 
+    } catch { }
     if (shouldPreview) {
       previewTimerRef.current = setTimeout(() => {
         try { player.pause(); player.seekTo(0); } catch { }
@@ -351,7 +349,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     }
 
     setTimeout(() => {
-          setShowNoSubMsg(false);
+      setShowNoSubMsg(false);
     }, 5000);
 
     return () => {
@@ -428,10 +426,6 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   useEffect(() => { if (!currentSong?.id || !korisnik?.id || !playing) return; if (progress < 30 || statistikaSent) return; const params = { korisnikID: korisnik.id, pjesmaID: currentSong.id, sent: true }; if (!statistikaRef.current || statistikaRef.current.pjesmaID !== params.pjesmaID || !statistikaRef.current.sent) { statistikaRef.current = params; statistikaMutation.mutate({ korisnikID: params.korisnikID, pjesmaID: params.pjesmaID }); setStatistikaSent(true); } }, [progress, statistikaSent, playing, currentSong?.id, korisnik?.id, statistikaMutation]);
   useEffect(() => { setStatistikaSent(false); if (statistikaRef.current) statistikaRef.current.sent = false; }, [effectiveSrc]);
 
-
-
-
-
   const handlePlayPause = useCallback(() => {
     if (!isLoaded || isBuffering) return;
     if (playing) {
@@ -441,11 +435,22 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     }
   }, [playing, isLoaded, isBuffering, player]);
 
-  const handleSeekStart = useCallback(() => setIsSeeking(true), []);
+  const handleSeekStart = useCallback(() => {
+    setIsSeeking(true);
+    setIsAudioBarSeeking(true);
+  }, []);
   const handleSeekChange = useCallback((v: number | number[]) => setSeekValue(Array.isArray(v) ? v[0] : v), []);
-  const handleSeekComplete = useCallback((v: number | number[]) => { const val = Array.isArray(v) ? v[0] : v; player.seekTo(val).finally(() => setIsSeeking(false)); }, [player]);
+  const handleSeekComplete = useCallback((v: number | number[]) => { 
+    const val = Array.isArray(v) ? v[0] : v; 
+    player.seekTo(val).finally(() => {
+      setIsSeeking(false);
+      setIsAudioBarSeeking(false);
+    }); 
+  }, [player]);
 
-  const handleVolumeSeekStart = useCallback(() => { }, []);
+  const handleVolumeSeekStart = useCallback(() => {
+    setIsVolumeSeeking(true);
+  }, []);
   const handleVolumeSeekChange = useCallback((v: number | number[]) => {
     const val = Array.isArray(v) ? v[0] : v;
     setVolume(val);
@@ -460,6 +465,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
         player.muted = false;
       }
     }
+    setIsVolumeSeeking(false);
   }, [isLoaded, muted, player]);
 
   const handleRateChange = useCallback((r: number) => { setPlaybackRate(r); try { player.setPlaybackRate(r); } catch { } }, [player]);
@@ -592,8 +598,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
   const handleNavigateToSubscription = useCallback(() => {
     handleClosePress();
     navigateWithHistory('/pretplata', '/(tabs)');
-  }
-, [handleClosePress]);
+  }, [handleClosePress]);
 
   const renderPlaylistItem = useCallback(({ item }: { item: Playlista }) => (
     <TouchableOpacity
@@ -621,7 +626,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
             style={styles.closeButton}
             onPress={() => setShowNoSubMsg(false)}
           >
-            <MaterialIcons name="close" size={24} color="#ffe6ec" />
+            <MaterialIcons name="close" size={24} color="#ffffff" />
           </TouchableOpacity>
           <Text style={styles.subscriptionText}>
             {t('subscription_required')}
@@ -644,14 +649,14 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
     return (
       <TouchableOpacity style={[styles.miniPlayer, { bottom: tabBarHeight + insets.bottom }]} onPress={onExpand}>
         <Image
-          source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
+          source={currentSong?.putanjaSlika ? { uri: currentSong.putanjaSlika } : require('@/assets/images/icon.png')}
           style={styles.miniPlayerImage}
           cachePolicy="memory-disk"
         />
         <Text style={styles.miniPlayerText} numberOfLines={1}>
           {currentSong?.naziv || t('current_song')}
         </Text>
-        <MaterialIcons name={playing ? 'pause' : 'play-arrow'} size={24} color="#ffe6ec" />
+        <MaterialIcons name={playing ? 'pause' : 'play-arrow'} size={24} color="#ffffff" />
       </TouchableOpacity>
     );
   }
@@ -663,12 +668,12 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
       onPress={handleOutsidePress}
     >
       <TouchableOpacity style={styles.closeBtn} onPress={handleClosePress}>
-        <MaterialIcons name="close" size={20} color="#ffe6ec" />
+        <MaterialIcons name="close" size={20} color="#ffffff" />
       </TouchableOpacity>
 
       <View style={styles.topRow}>
         <Image
-          source={{ uri: currentSong?.putanjaSlika || '../../assets/images/icon.png' }}
+          source={currentSong?.putanjaSlika ? { uri: currentSong.putanjaSlika } : require('@/assets/images/icon.png')}
           style={styles.audioLogo}
         />
 
@@ -702,28 +707,27 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           <Text style={styles.audioTime}>
             {formatTime(isSeeking ? seekValue : progress)} / {formatTime(duration)}
           </Text>
-          
         </View>
+
         <TouchableOpacity
           onPress={handleLike}
           disabled={!isLoaded || isBuffering || !korisnik?.id || likeMutation.isPending}
-          style={[styles.likeButton, { left: 250, backgroundColor: '#f383bfff' }]}
+          style={[styles.likeButton, { left: 250, backgroundColor: '#333333' }]}
         >
           <MaterialIcons
             name={liked ? 'favorite' : 'favorite-border'}
             size={20}
-            color={liked ? "#e91e63" : (!isLoaded || isBuffering || !korisnik?.id) ? "#666" : "#ffe6ec"}
+            color={liked ? "#ffffff" : (!isLoaded || isBuffering || !korisnik?.id) ? "#666" : "#ffffff"}
           />
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={handleDownload}
           disabled={!isLoaded || isBuffering}
-          style={[styles.likeButton, { left: 200, backgroundColor: '#e754a2' }]}
+          style={[styles.likeButton, { left: 200, backgroundColor: '#333333' }]}
         >
-          <MaterialIcons name="download" size={20} color="#fff" />
+          <MaterialIcons name="download" size={20} color="#ffffff" />
         </TouchableOpacity>
-       
       </View>
 
       <View style={styles.controlsRow}>
@@ -735,7 +739,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           <MaterialIcons
             name="skip-previous"
             size={24}
-            color={(!isLoaded || isBuffering || globalPlaylist.length === 0) ? "#666" : "#ffe6ec"}
+            color={(!isLoaded || isBuffering || globalPlaylist.length === 0) ? "#666" : "#ffffff"}
           />
         </TouchableOpacity>
 
@@ -747,7 +751,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           <MaterialIcons
             name={playing ? 'pause' : 'play-arrow'}
             size={20}
-            color={(!isLoaded || isBuffering) ? "#666" : "#fff"}
+            color={(!isLoaded || isBuffering) ? "#666" : "#ffffff"}
           />
         </TouchableOpacity>
 
@@ -759,7 +763,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
           <MaterialIcons
             name="skip-next"
             size={24}
-            color={(!isLoaded || isBuffering || globalPlaylist.length === 0) ? "#666" : "#ffe6ec"}
+            color={(!isLoaded || isBuffering || globalPlaylist.length === 0) ? "#666" : "#ffffff"}
           />
         </TouchableOpacity>
 
@@ -774,9 +778,8 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
             disabled={!isLoaded || isBuffering}
             trackStyle={styles.progressTrack}
             thumbStyle={styles.progressThumb}
-            minimumTrackTintColor="#b91d95"
-            maximumTrackTintColor="#444"
-
+            minimumTrackTintColor={isAudioBarSeeking ? "#e91e63" : "#ffffff"}
+            maximumTrackTintColor="#444444"
           />
         </View>
       </View>
@@ -791,7 +794,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
             <MaterialIcons
               name={muted ? 'volume-off' : 'volume-up'}
               size={20}
-              color={(!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+              color={(!isLoaded || isBuffering) ? "#666" : "#ffffff"}
             />
           </TouchableOpacity>
 
@@ -807,9 +810,8 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
               disabled={!isLoaded || isBuffering}
               trackStyle={styles.volumeTrack}
               thumbStyle={styles.volumeThumb}
-              minimumTrackTintColor="#b91d95"
-              maximumTrackTintColor="#444"
-
+              minimumTrackTintColor={isVolumeSeeking ? "#e91e63" : "#ffffff"}
+              maximumTrackTintColor="#444444"
             />
           </View>
         </View>
@@ -817,23 +819,23 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
         <View style={styles.rightControls}>
           <TouchableOpacity
             onPress={handleRepeatToggle}
-            style={styles.controlIcon}
+            style={[styles.controlIcon, repeatOne && styles.repeatBtnActive]}
           >
             <MaterialIcons
               name="repeat-one"
               size={20}
-              color={repeatOne ? "#b91d95" : (!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+              color={repeatOne ? "#e91e63" : (!isLoaded || isBuffering) ? "#666" : "#ffffff"}
             />
           </TouchableOpacity>
 
           <TouchableOpacity
             onPress={handleRepeatAllToggle}
-            style={styles.controlIcon}
+            style={[styles.controlIcon, playlistRepeat && styles.repeatBtnActive]}
           >
             <MaterialIcons
               name="repeat"
               size={20}
-              color={playlistRepeat ? "#b91d95" : (!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+              color={playlistRepeat ? "#e91e63" : (!isLoaded || isBuffering) ? "#666" : "#ffffff"}
             />
           </TouchableOpacity>
 
@@ -845,7 +847,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
             <MaterialIcons
               name="playlist-add"
               size={20}
-              color={(!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+              color={(!isLoaded || isBuffering) ? "#666" : "#ffffff"}
             />
           </TouchableOpacity>
 
@@ -864,7 +866,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
               <MaterialIcons
                 name="expand-more"
                 size={16}
-                color={(!isLoaded || isBuffering) ? "#666" : "#ffe6ec"}
+                color={(!isLoaded || isBuffering) ? "#666" : "#ffffff"}
               />
             </TouchableOpacity>
 
@@ -889,7 +891,7 @@ const AudioPlayerNew: React.FC<AudioPlayerNewProps> = ({ id, src: propSrc, title
                       {rate}x
                     </Text>
                     {playbackRate === rate && (
-                      <MaterialIcons name="check" size={14} color="#fff" />
+                      <MaterialIcons name="check" size={14} color="#ffffff" />
                     )}
                   </TouchableOpacity>
                 ))}

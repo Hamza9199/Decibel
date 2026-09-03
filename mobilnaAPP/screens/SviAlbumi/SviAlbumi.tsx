@@ -256,7 +256,7 @@ const SviAlbumi: React.FC = React.memo(() => {
                       style={activeStyles.playButton}
                       onPress={() => handlePlayAlbum(album.id)}
                     >
-                      <MaterialIcons name="play-arrow" size={24} color="#fff" />
+                      <MaterialIcons name="play-arrow" size={24} color="black" />
                     </TouchableOpacity>
                   </View>
                   

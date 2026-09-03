@@ -325,7 +325,7 @@ const Historija: React.FC = React.memo(() => {
             style={activeStyles.actionButton}
             onPress={() => handlePlaySong(item.song)}
           >
-            <MaterialIcons name="play-arrow" size={20} color="#fff" />
+            <MaterialIcons name="play-arrow" size={20} color="black" />
           </TouchableOpacity>
           <TouchableOpacity
             style={[
@@ -337,14 +337,14 @@ const Historija: React.FC = React.memo(() => {
             <MaterialIcons 
               name={likedSongs[item.pjesmaID] ? "favorite" : "favorite-border"} 
               size={18} 
-              color="#fff" 
+              color="black" 
             />
           </TouchableOpacity>
           <TouchableOpacity
             style={activeStyles.actionButton}
             onPress={() => handleOpenPlaylistSheet(item.pjesmaID)}
           >
-            <MaterialIcons name="playlist-add" size={20} color="#fff" />
+            <MaterialIcons name="playlist-add" size={20} color="black" />
           </TouchableOpacity>
         </View>
       </View>

@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.13,
     shadowRadius: 24,
@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailLabel: {
-    color: '#b91d95',
+    color: '#666666',
     fontSize: 14,
     fontWeight: '500',
     flex: 1,
@@ -104,7 +104,7 @@ export const styles = StyleSheet.create({
   picker: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderRadius: 6,
     color: '#181818',
     fontSize: 14,
@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     flex: 2,
   },
   applicationButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 6,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -130,13 +130,13 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   errorContainer: {
-    backgroundColor: '#ffe0ec',
+    backgroundColor: '#ffe6e6',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#b91d95',
+    color: '#ff4d4f',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -209,7 +209,7 @@ export const styles = StyleSheet.create({
   modalInput: {
     backgroundColor: '#f5f5f5',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderRadius: 6,
     padding: 8,
     color: '#181818',
@@ -222,7 +222,7 @@ export const styles = StyleSheet.create({
   modalDateInput: {
     backgroundColor: '#f5f5f5',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderRadius: 6,
     padding: 8,
     color: '#181818',
@@ -241,7 +241,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   modalButtonPrimary: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#181818',
   },
   modalButtonSecondary: {
     backgroundColor: '#cccccc',

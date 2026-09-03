@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 15,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -46,7 +46,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#232323',
     borderRadius: 12,
     padding: 13,
-    paddingHorizontal:5,
+    paddingHorizontal: 5,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#333',
@@ -84,7 +84,7 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   songDate: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 12,
     fontWeight: '500',
   },
@@ -99,7 +99,7 @@ export const styles = StyleSheet.create({
     marginLeft: 'auto',
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     width: 31,
     height: 31,
@@ -107,13 +107,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonLiked: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
   },
   loadingContainer: {
     flex: 1,
-    
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -143,27 +142,27 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   playlistItem: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
   },
   playlistItemText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   modalCloseBtn: {
     backgroundColor: '#181818',
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderWidth: 1,
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
   },
   modalCloseBtnText: {
-    color: '#ffe6ec',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
@@ -172,7 +171,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#232323',
   },
   bottomSheetIndicator: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
   },
   bottomSheetContent: {
     flex: 1,

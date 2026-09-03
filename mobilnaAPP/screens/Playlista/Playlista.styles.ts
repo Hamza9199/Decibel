@@ -27,9 +27,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 27,
     width: 54,
     height: 54,
@@ -73,7 +73,7 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   likeButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 27,
     width: 54,
     height: 54,
@@ -87,16 +87,16 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   likeButtonLiked: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
   },
   likeCount: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 10,
     fontWeight: '600',
     marginLeft: 2,
   },
   repeatButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 27,
     width: 54,
     height: 54,
@@ -109,7 +109,7 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   repeatButtonActive: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
   },
   playlistInfo: {
     alignItems: 'center',
@@ -137,7 +137,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   metaLabel: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '500',
     marginRight: 8,
@@ -156,7 +156,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#ffffff',
   },
   noSongs: {
     color: '#b3b3b3',
@@ -173,7 +173,7 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#333',
   },
-  draggingSong: { opacity: 0.7, borderColor: '#b91d95' },
+  draggingSong: { opacity: 0.7, borderColor: '#ffffff' },
   songHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -184,7 +184,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   songNumber: {
-    color: '#b91d95',
+    color: '#aaa',
     fontSize: 16,
     fontWeight: '600',
     width: 30,
@@ -212,7 +212,7 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   songDuration: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -222,7 +222,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     width: 38,
     height: 38,
@@ -230,10 +230,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionButtonLiked: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
   },
   actionButtonRemove: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#dc3545',
   },
   actionButtonDisabled: { opacity: 0.4 },
   modalOverlay: {
@@ -258,27 +258,27 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   playlistItem: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
   },
   playlistItemText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
   },
   modalCloseBtn: {
     backgroundColor: '#181818',
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderWidth: 1,
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
   },
   modalCloseBtnText: {
-    color: '#ffe6ec',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '500',
     textAlign: 'center',
@@ -287,7 +287,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#232323',
   },
   bottomSheetIndicator: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
   },
   bottomSheetContent: {
     flex: 1,
@@ -307,9 +307,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {

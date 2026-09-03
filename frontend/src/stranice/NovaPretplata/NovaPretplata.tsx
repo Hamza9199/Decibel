@@ -193,7 +193,7 @@ const NovaPretplata: React.FC = () => {
           <h2 className={styles.title}>{t("buy_subscription")}: {pretplata.naziv}</h2>
           <div className={styles.kupovinaDetalji}>
             <div>
-              <b>{t("price") || "Cijena"}:</b> {pretplata.cijena} KM / mj
+              <b>{t("price") || "Cijena"}:</b> {pretplata.cijena} $
             </div>
             <div>
               <b>{t("description") || "Opis"}:</b> {pretplata.opis}

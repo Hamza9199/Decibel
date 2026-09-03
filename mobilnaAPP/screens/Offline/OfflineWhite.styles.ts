@@ -75,7 +75,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
   playButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -84,7 +84,7 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   deleteButton: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#dc3545',
     borderRadius: 20,
     width: 40,
     height: 40,

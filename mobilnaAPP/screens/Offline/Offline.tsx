@@ -125,7 +125,7 @@ const Offline: React.FC = React.memo(() => {
         style={activeStyles.playButton}
         onPress={() => handlePlayOfflineSong(item)}
       >
-        <MaterialIcons name="play-arrow" size={22} color="#fff" />
+        <MaterialIcons name="play-arrow" size={22} color="black" />
       </TouchableOpacity>
       <TouchableOpacity
         style={activeStyles.deleteButton}

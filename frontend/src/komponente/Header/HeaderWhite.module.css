@@ -1,17 +1,71 @@
+@keyframes headerSlideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes ringPulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px rgba(13, 13, 13, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 10px 3px rgba(13, 13, 13, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+
+  100% {
+    background-position: 200% center;
+  }
+}
+
 .header {
   width: 100%;
-  background: #ffffff;
-  color: #111;
-  padding: 18px 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(22px) saturate(1.6);
+  -webkit-backdrop-filter: blur(22px) saturate(1.6);
+  color: #0d0d0d;
+  padding: 16px 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1000;
+  border-bottom: 1px solid rgba(13, 13, 13, 0.08);
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  animation: headerSlideIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .logoImg {
@@ -19,6 +73,12 @@
   margin-right: 14px;
   margin-left: 18px;
   border-radius: 40%;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+}
+
+.logoImg:hover {
+  transform: scale(1.1) rotate(-4deg);
+  filter: drop-shadow(0 0 8px rgba(13, 13, 13, 0.25));
 }
 
 .logo {
@@ -27,116 +87,226 @@
   letter-spacing: 2px;
   margin-left: 0;
   margin-right: 50px;
-  color: #111;
+  color: #0d0d0d;
 }
 
-.welcomeMessage{
-  margin-right:17px;
+.welcomeMessage {
+  margin-right: 17px;
   text-align: right;
   flex-grow: 1;
-  font-size: 20px;
-  color: #b91d95;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  background: linear-gradient(135deg, #0d0d0d, #444444);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradientShift 4s ease infinite;
 }
 
-.profileImg{
-  width: 50px;
-  height: 50px;
+.profileImgWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+}
+
+.profileImg {
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  margin-right: 25px;
   object-fit: cover;
+  border: 2px solid transparent;
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+  background-image:
+    linear-gradient(#fff, #fff),
+    linear-gradient(135deg, #0d0d0d, #4a4a4a, #888888);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.35s ease;
+  animation: ringPulse 3s ease-in-out infinite;
+  cursor: pointer;
+}
+
+.profileImg:hover {
+  transform: scale(1.12);
+  box-shadow: 0 0 18px 4px rgba(13, 13, 13, 0.2);
 }
 
 .searchWrap {
   flex: 1;
-  margin: 0 20px;
-  max-width: 500px;
-    margin-left: 240px;
-
+  margin: 0 24px;
+  max-width: 520px;
+  margin-left: 240px;
 }
-
 
 .downloadBtn {
-  background: #b91d95;
-  color: #fff;
+  background: linear-gradient(135deg, #0d0d0d, #2a2a2a);
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
+  border-radius: 24px;
+  padding: 9px 22px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s ease;
-  margin-left:120px;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  margin-left: 170px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(13, 13, 13, 0.15);
 }
 
+.downloadBtn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.downloadBtn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 24px rgba(13, 13, 13, 0.25);
+  background: linear-gradient(135deg, #1a1a1a, #3a3a3a);
+}
+
+.downloadBtn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.downloadIcon {
+  transition: transform 0.3s ease;
+}
+
+.downloadBtn:hover .downloadIcon {
+  transform: translateY(-2px);
+}
 
 .logoutBtn {
-  background: #b91d95;
-  color: #fff;
+  background: linear-gradient(135deg, #0d0d0d, #2a2a2a);
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
+  border-radius: 24px;
+  padding: 9px 22px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   margin-left: auto;
   margin-right: 24px;
-  margin-bottom: 4px;
+  box-shadow: 0 2px 12px rgba(13, 13, 13, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.logoutBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .logoutBtn:hover {
-  background: #e754a2;
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 24px rgba(13, 13, 13, 0.25);
+}
+
+.logoutBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .logoutIcon {
   width: 16px;
   height: 16px;
   fill: currentColor;
+  transition: transform 0.3s ease;
+}
+
+.logoutBtn:hover .logoutIcon {
+  transform: translateX(3px);
 }
 
 .loginBtn {
-  background: #b91d95;
-  color: #fff;
+  background: linear-gradient(135deg, #0d0d0d, #2a2a2a);
+  color: #ffffff;
   border: none;
-  border-radius: 8px;
-  padding: 8px 18px;
+  border-radius: 24px;
+  padding: 9px 22px;
   font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   margin-left: auto;
   margin-right: 24px;
-  margin-bottom: 4px;
   text-decoration: none;
+  box-shadow: 0 2px 12px rgba(13, 13, 13, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.loginBtn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.15) 50%,
+      transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .loginBtn:hover {
-  background: #e754a2;
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 24px rgba(13, 13, 13, 0.25);
+}
+
+.loginBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .loginIcon {
   width: 16px;
   height: 16px;
   fill: currentColor;
+  transition: transform 0.3s ease;
+}
+
+.loginBtn:hover .loginIcon {
+  transform: translateX(3px);
 }
 
 @media (max-width: 480px) {
   .header {
-    padding: 4px 0 10px 0;
+    padding: 6px 0 10px 0;
     min-height: 55px;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
     justify-content: flex-start;
     align-items: center;
     position: fixed;
@@ -145,12 +315,14 @@
     right: 0;
     z-index: 1000;
     gap: 0;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.95);
   }
+
   .logoImg,
   .logo {
     display: none !important;
   }
+
   .welcomeMessage {
     display: none !important;
   }
@@ -164,16 +336,30 @@
     display: flex;
     margin-top: 10px;
   }
+
+  .profileImgWrap {
+    margin-right: 10px;
+  }
+
   .profileImg {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     margin-left: 8px;
     order: 2;
     align-self: center;
-    margin-top: 7px;
+    margin-top: 5px;
+    animation: none;
+    background-image:
+      linear-gradient(#fff, #fff),
+      linear-gradient(135deg, #0d0d0d, #4a4a4a, #888888);
   }
 
   .downloadBtn {
     display: none !important;
+  }
+
+  .headerGradientLine {
+    height: 1.5px;
+    opacity: 0.5;
   }
 }

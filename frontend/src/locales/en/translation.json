@@ -285,6 +285,15 @@
   "creating_playlist": "Creating playlist...",
   "creating_album": "Creating album...",
   "creating_song": "Creating song...",
-  "creating": "Creating..."
+  "creating": "Creating...",
+  "home_hero_subtitle": "Listen to music, create playlists, and discover new artists.",
+  "greeting_evening": "Good evening",
+  "greeting_day": "Good day",
+  "greeting_morning": "Good morning",
+  "greeting_night": "Good night",
+  "details": "Details",
+  "top_album": "Top Album",
+  "trending_song": "Trending Song",
+  "recommended_playlist": "Recommended Playlist"
 }
 

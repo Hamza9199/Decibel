@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
-// import styles from "./Search.module.css";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -34,6 +33,7 @@ const withTimeout = <T,>(p: Promise<T>, ms = 10000) =>
 const Search: React.FC = () => {
   const [query, setQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -63,8 +63,20 @@ const Search: React.FC = () => {
         loadThemeStyles(e.newValue || undefined);
       }
     };
+
+    const onThemeChanged = (e: Event) => {
+      const theme = (e as CustomEvent<string>).detail;
+      setCssReady(false);
+      setCssDelayDone(false);
+      loadThemeStyles(theme);
+    };
+
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("themeChanged", onThemeChanged);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("themeChanged", onThemeChanged);
+    };
   }, []);
 
   useEffect(() => {
@@ -161,12 +173,20 @@ const Search: React.FC = () => {
     setQuery(val);
     if (val.trim().length > 0) setShowDropdown(true);
   }, []);
-  const onFocus = useCallback(() => normalizedQuery && setShowDropdown(true), [normalizedQuery]);
+  const onFocus = useCallback(() => {
+    setIsFocused(true);
+    if (normalizedQuery) setShowDropdown(true);
+  }, [normalizedQuery]);
+  const onBlur = useCallback(() => {
+    setIsFocused(false);
+  }, []);
 
   if (!cssReady || !cssDelayDone) return <Loading />;
 
+  const wrapClassName = `${styles.searchWrap}${isFocused ? ` ${styles.focused}` : ""}`;
+
   return (
-    <div className={styles.searchWrap}>
+    <div className={wrapClassName}>
       <input
         ref={inputRef}
         className={styles.searchInput}
@@ -175,13 +195,15 @@ const Search: React.FC = () => {
         value={query}
         onChange={onChange}
         onFocus={onFocus}
+        onBlur={onBlur}
         autoComplete="off"
+        aria-label={placeholder}
         {...(isMobile ? { inputMode: "search" } : {})}
       />
       <span className={styles.searchIcon}>
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <circle cx="10" cy="10" r="8" stroke="#b91d95" strokeWidth="2" />
-          <line x1="16" y1="16" x2="21" y2="21" stroke="#b91d95" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" />
+          <line x1="16" y1="16" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
         </svg>
       </span>
       {showDropdown && (debouncedQuery || isFetching) && (

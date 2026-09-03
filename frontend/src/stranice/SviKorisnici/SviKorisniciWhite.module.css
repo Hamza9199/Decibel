@@ -8,15 +8,15 @@
   justify-content: center;
 }
 
-.link{
-  color: #1a0b16;
+.link {
+  color: #111111;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.18s;
 }
 
 .link:hover {
-  color: #e754a2;
+  color: #555555;
 }
 
 .container {
@@ -57,7 +57,7 @@
 }
 
 .table th {
-  background: #b91d95;
+  background: #111111;
   color: #fff;
   font-weight: 800;
   font-size: 1.08rem;
@@ -67,21 +67,20 @@
 
 .profileImg { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
-.select { background: #ffffff; color: #111; border: 1px solid #b91d95; border-radius: 6px; padding: 6px 10px; font-size: 1rem; outline: none; transition: border 0.2s, box-shadow 0.2s; }
-.select:focus { border: 1.5px solid #e754a2; box-shadow: 0 2px 8px rgba(231,84,162,0.15); }
+.select { background: #ffffff; color: #111; border: 1px solid #cccccc; border-radius: 6px; padding: 6px 10px; font-size: 1rem; outline: none; transition: border 0.2s, box-shadow 0.2s; }
+.select:focus { border: 1.5px solid #111111; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
 .loading { color: #111; text-align: center; font-size: 1.2rem; margin-top: 80px; }
 
-.error { color: #a1224f; background: #fde7ef; border: 1px solid #f5c1d7; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.98rem; text-align: center; }
+.error { color: #a91b1b; background: #fdf2f2; border: 1px solid #f8c4c4; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.98rem; text-align: center; }
 .success { color: #1f7a43; background: #e8f6ee; border: 1px solid #c5e8d4; border-radius: 6px; padding: 8px 12px; margin-bottom: 8px; font-size: 0.98rem; text-align: center; }
 
-/* Search input styling */
-.searchInput { width: 100%; max-width: 400px; margin: 0 auto 28px auto; padding: 12px 16px; border-radius: 10px; border: 1.5px solid #b91d95; background: #ffffff; color: #111; font-size: 1.1rem; outline: none; transition: all 0.2s ease; display: block; box-shadow: 0 2px 8px rgba(185,29,149,0.12); }
-.searchInput:focus { border: 2px solid #e754a2; box-shadow: 0 4px 16px rgba(231,84,162,0.2); transform: translateY(-1px); }
+.searchInput { width: 100%; max-width: 400px; margin: 0 auto 28px auto; padding: 12px 16px; border-radius: 10px; border: 1.5px solid #cccccc; background: #ffffff; color: #111; font-size: 1.1rem; outline: none; transition: all 0.2s ease; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.searchInput:focus { border: 2px solid #111111; box-shadow: 0 4px 16px rgba(0,0,0,0.12); transform: translateY(-1px); }
 .searchInput::placeholder { color: #777; font-style: italic; }
 
-.showApplicationBtn { background: #b91d95; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.18s; }
-.showApplicationBtn:hover { background: #e754a2; }
+.showApplicationBtn { background: #111111; color: #fff; border: none; border-radius: 6px; padding: 6px 14px; font-weight: 600; cursor: pointer; font-size: 0.9rem; transition: background 0.18s; }
+.showApplicationBtn:hover { background: #333333; }
 
 .noApplicationText { color: #555; font-style: italic; }
 
@@ -112,21 +111,20 @@
   .container { max-width: 95%; margin: 0 auto; padding: 20px; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); background: #ffffff; }
   .title { font-size: 1.75rem; margin-bottom: 20px; letter-spacing: 1px; font-weight: 800; }
   .searchInput { font-size: 1rem; padding: 12px 14px; max-width: 85%; margin-bottom: 24px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-  .searchInput:focus { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(231,84,162,0.18); }
+  .searchInput:focus { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
   .table { display: block; border-radius: 0; background: transparent; overflow: visible; margin-top: 0; }
   .table thead { display: none; }
   .table tbody { display: block; }
   .table tr { display: block; background: #ffffff; border-radius: 12px; padding: 16px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.08); white-space: normal; position: relative; }
   .table td { display: block; border: none; padding: 0; text-align: left; white-space: normal; font-size: 0.875rem; margin-bottom: 8px; color: #111; }
   .table td:last-child { margin-bottom: 0; }
-  .table td:before { content: attr(data-label) ": "; font-weight: bold; color: #b91d95; font-size: 0.8rem; display: inline-block; min-width: 100px; }
+  .table td:before { content: attr(data-label) ": "; font-weight: bold; color: #111111; font-size: 0.8rem; display: inline-block; min-width: 100px; }
   .profileImg { width: 40px; height: 40px; margin-right: 8px; vertical-align: middle; }
   .select { padding: 6px 8px; font-size: 0.8rem; border-radius: 6px; min-width: 120px; margin-top: 4px; }
   .showApplicationBtn { padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; margin-top: 4px; }
   .noApplicationText { font-size: 0.8rem; margin-top: 4px; }
   .loading { font-size: 1.1rem; margin-top: 40px; }
   .error, .success { font-size: 0.85rem; padding: 8px 12px; margin-bottom: 10px; border-radius: 6px; }
-  /* Modal responsive styles */
   .modalContent,
   .suspendModalContent { min-width: 280px; max-width: 90vw; padding: 20px 16px 16px 16px; border-radius: 10px; max-height: 85vh; }
   .modalTitle,
@@ -145,31 +143,29 @@
   .suspendLabel { font-size: 0.9rem; margin-bottom: 4px; }
 }
 
-/* Application Modal Styles */
 .modalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 3000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 .modalContent { background: #ffffff; border-radius: 14px; padding: 32px 24px 24px 24px; min-width: 320px; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); text-align: left; color: #111; position: relative; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,0,0,0.06); }
 .modalTitle { margin-top: 0; margin-bottom: 20px; font-size: 1.3rem; font-weight: 800; color: #111; }
 .modalSection { margin-bottom: 12px; font-size: 1rem; }
 .messageBox { background: #ffffff; border-radius: 6px; padding: 12px; margin-top: 4px; white-space: pre-wrap; max-height: 200px; overflow-y: auto; border: 1px solid rgba(0,0,0,0.08); color: #333; }
 .modalButtons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-.deleteBtn { background: #e754a2; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-weight: 700; cursor: pointer; transition: background 0.18s; }
-.deleteBtn:hover { background: #d1487c; }
+.deleteBtn { background: #dc3545; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-weight: 700; cursor: pointer; transition: background 0.18s; }
+.deleteBtn:hover { background: #bd2130; }
 .cancelBtn { background: #f1f1f1; color: #222; border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; padding: 8px 18px; font-weight: 700; cursor: pointer; transition: background 0.18s; }
 .cancelBtn:hover { background: #e9e9e9; }
 
-/* Suspend Modal Styles */
 .suspendModalOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 4000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
 .suspendModalContent { background: #ffffff; border-radius: 14px; padding: 32px 24px 24px 24px; min-width: 320px; max-width: 480px; box-shadow: 0 4px 24px rgba(0,0,0,0.12); text-align: left; color: #111; position: relative; max-height: 80vh; overflow-y: auto; border: 1px solid rgba(0,0,0,0.06); }
 .suspendModalTitle { margin-top: 0; margin-bottom: 20px; font-size: 1.3rem; font-weight: 800; color: #111; }
 .suspendUserInfo { margin-bottom: 12px; font-size: 1rem; }
 .suspendInputGroup { margin-bottom: 12px; }
 .suspendLabel { display: block; font-weight: 700; margin-bottom: 6px; color: #333; }
-.suspendTextarea { width: 100%; min-height: 60px; margin-top: 6px; border-radius: 6px; border: 1px solid #b91d95; background: #ffffff; color: #111; padding: 8px; margin-bottom: 8px; outline: none; resize: vertical; font-family: inherit; }
-.suspendTextarea:focus { border: 1.5px solid #e754a2; box-shadow: 0 2px 8px rgba(231,84,162,0.12); }
-.suspendDateInput { width: 100%; border-radius: 6px; border: 1px solid #b91d95; background: #ffffff; color: #111; padding: 8px; margin-top: 6px; outline: none; }
-.suspendDateInput:focus { border: 1.5px solid #e754a2; box-shadow: 0 2px 8px rgba(231,84,162,0.12); }
+.suspendTextarea { width: 100%; min-height: 60px; margin-top: 6px; border-radius: 6px; border: 1px solid #cccccc; background: #ffffff; color: #111; padding: 8px; margin-bottom: 8px; outline: none; resize: vertical; font-family: inherit; }
+.suspendTextarea:focus { border: 1.5px solid #111111; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.suspendDateInput { width: 100%; border-radius: 6px; border: 1px solid #cccccc; background: #ffffff; color: #111; padding: 8px; margin-top: 6px; outline: none; }
+.suspendDateInput:focus { border: 1.5px solid #111111; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .suspendModalButtons { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-.confirmSuspendBtn { background: #e754a2; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-weight: 700; cursor: pointer; transition: background 0.18s; }
-.confirmSuspendBtn:hover { background: #d1487c; }
+.confirmSuspendBtn { background: #dc3545; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-weight: 700; cursor: pointer; transition: background 0.18s; }
+.confirmSuspendBtn:hover { background: #bd2130; }
 .cancelSuspendBtn { background: #f1f1f1; color: #222; border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; padding: 8px 18px; font-weight: 700; cursor: pointer; transition: background 0.18s; }
 .cancelSuspendBtn:hover { background: #e9e9e9; }

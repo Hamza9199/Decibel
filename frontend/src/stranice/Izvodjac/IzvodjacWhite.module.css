@@ -31,7 +31,7 @@
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.2);
+  box-shadow: 0 2px 8px rgba(13, 13, 13, 0.2);
 }
 
 .izvodjacInfo { flex: 1; display: flex; flex-direction: column; gap: 12px; }
@@ -42,12 +42,12 @@
 
 .izvodjacBio { color: #666; font-size: 1.08rem; margin-bottom: 8px; }
 
-.pratiBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 1.15rem; font-weight: 600; cursor: pointer; margin-top: 8px; transition: background 0.18s; max-width: 200px; }
-.pratiBtn.pratim { background: #e754a2; }
+.pratiBtn { background: #0d0d0d; color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 1.15rem; font-weight: 600; cursor: pointer; margin-top: 8px; transition: background 0.18s; max-width: 200px; }
+.pratiBtn.pratim { background: #333333; }
 
 .section { margin-top: 38px; }
 
-.sectionTitle { color: #111; font-size: 1.3rem; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; border-left: 5px solid #b91d95; padding-left: 12px; }
+.sectionTitle { color: #111; font-size: 1.3rem; font-weight: 600; margin-bottom: 18px; letter-spacing: 1px; border-left: 5px solid #0d0d0d; padding-left: 12px; }
 
 .gridRow { display: flex; flex-wrap: wrap; gap: 22px; }
 
@@ -57,8 +57,8 @@
 
 .cardImage { width: 100%; height: 100%; object-fit: cover; }
 
-.playBtn { position: absolute; bottom: 6px; right: 6px; background: #b91d95; border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(185, 29, 149, 0.18); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
-.playBtn:hover { background: #e754a2; transform: scale(1.08); }
+.playBtn { position: absolute; bottom: 6px; right: 6px; background: #0d0d0d; border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(13, 13, 13, 0.18); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
+.playBtn:hover { background: #333333; transform: scale(1.08); }
 
 .cardTitle { color: #111; font-size: 1.05rem; font-weight: 600; margin-bottom: 2px; text-align: center; text-decoration: none; }
 
@@ -74,7 +74,7 @@
 }
 
 .cardTitle:hover{
-  color: #e754a2;
+  color: #0d0d0d;
 }
 
 .artistLink:hover{
@@ -125,7 +125,7 @@
   .izvodjacBio { font-size: 0.8rem; margin-bottom: 6px; color: #666; }
   .pratiBtn { font-size: 0.9rem; padding: 8px 16px; border-radius: 6px; max-width: 120px; }
   .section { margin-top: 20px; }
-  .sectionTitle { font-size: 1.1rem; margin-bottom: 12px; border-left: 3px solid #b91d95; padding-left: 8px; color: #111; }
+  .sectionTitle { font-size: 1.1rem; margin-bottom: 12px;   border-left: 3px solid #0d0d0d; padding-left: 8px; color: #111; }
   .gridRow { gap: 8px; flex-wrap: wrap; justify-content: center; }
   .card { min-width: 90px; max-width: 90px; padding: 8px 6px 6px 6px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); background: #ffffff; }
   .cardImageWrap { width: 50px; height: 50px; border-radius: 6px; margin-bottom: 6px; background: #f2f2f2; }

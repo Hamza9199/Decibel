@@ -292,7 +292,7 @@ const Historija: React.FC = () => {
                         onClick={() => handleLike(h.pjesmaID)}
                         title={likedSongs[h.pjesmaID] ? t("remove") : t("add_to_favorites") || "Lajkuj pjesmu"}
                       >
-                        <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[h.pjesmaID] ? "#fcbaddff" : "#fff"}>
+                        <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[h.pjesmaID] ? "#faf7f7ff" : "#ae229dff"}>
                           <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                         </svg>
                       </button>
@@ -301,7 +301,7 @@ const Historija: React.FC = () => {
                         onClick={() => setShowPlaylistModal(h.pjesmaID)}
                         title={t("add_to_playlist")}
                       >
-                        <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
+                        <svg width="22" height="22" viewBox="0 0 44 44" fill="#f3eff2ff">
                           <rect x="18" y="8" width="8" height="28" />
                           <rect x="8" y="18" width="28" height="8" />
                         </svg>

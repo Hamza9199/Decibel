@@ -25,7 +25,7 @@
   transition: color 0.18s;
 }
 .link:hover {
-  color: #e754a2;
+  color: #ffffff;
 }
 
 .title {
@@ -42,12 +42,12 @@
 }
 
 .sectionTitle {
-  color: #ffe6ec;
+  color: #ffffff;
   font-size: 1.3rem;
   font-weight: 600;
   margin-bottom: 18px;
   letter-spacing: 1px;
-  border-left: 5px solid #b91d95;
+  border-left: 5px solid #ffffff;
   padding-left: 12px;
 }
 
@@ -68,10 +68,11 @@
 }
 
 .table th {
-  background: #b91d95;
+  background: #333333;
   color: #fff;
   font-weight: 700;
   font-size: 1.08rem;
+  border-bottom: 1px solid #444;
 }
 
 .table tr:last-child td {
@@ -84,24 +85,24 @@
 }
 
 .neodobreno {
-  color: #ffb3c6;
+  color: #ff9999;
   font-weight: 700;
 }
 
 .btn {
-  background: #b91d95;
-  color: #fff;
+  background: #ffffff;
+  color: #121212;
   border: none;
   border-radius: 8px;
   padding: 8px 18px;
   font-weight: 600;
   cursor: pointer;
   font-size: 1rem;
-  transition: background 0.18s;
+  transition: background 0.18s, color 0.18s;
 }
 
 .btn:hover {
-  background: #e754a2;
+  background: #e0e0e0;
 }
 
 .loading {
@@ -112,8 +113,8 @@
 }
 
 .error {
-  color: #ffb3c6;
-  background: #3a0d2e;
+  color: #ff9999;
+  background: #3a1212;
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 8px;
@@ -141,7 +142,7 @@
 
 .tabButton {
   background: #232323;
-  color: #ffe6ec;
+  color: #ffffff;
   border: 2px solid #232323;
   font-weight: 500;
   font-size: 1.07rem;
@@ -152,16 +153,16 @@
 }
 
 .tabButton.active {
-  background: #b91d95;
-  color: #fff;
-  border: 2px solid #b91d95;
+  background: #ffffff;
+  color: #121212;
+  border: 2px solid #ffffff;
   font-weight: 700;
 }
 
 .tabButton:hover {
-  background: #e754a2;
-  color: #fff;
-  border: 2px solid #e754a2;
+  background: #e0e0e0;
+  color: #121212;
+  border: 2px solid #e0e0e0;
 }
 
 /* Search input styling */
@@ -171,7 +172,7 @@
   margin-bottom: 24px;
   padding: 10px 14px;
   border-radius: 8px;
-  border: 1px solid #b91d95;
+  border: 1px solid #555555;
   background: #181818;
   color: #fff;
   font-size: 1.08rem;
@@ -183,7 +184,7 @@
 }
 
 .searchInput:focus {
-  border: 1.5px solid #e754a2;
+  border: 1.5px solid #ffffff;
 }
 
 @media (max-width: 900px) {
@@ -258,7 +259,7 @@
   .sectionTitle {
     font-size: 1rem;
     margin-bottom: 10px;
-    border-left: 3px solid #b91d95;
+    border-left: 3px solid #ffffff;
     padding-left: 6px;
   }
   
@@ -304,7 +305,7 @@
     margin: 0 auto;
     padding: 20px 20px 20px 20px;
     border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
     background: rgba(35, 35, 35, 0.97);
   }
   
@@ -322,7 +323,7 @@
   .sectionTitle {
     font-size: 1.2rem;
     margin-bottom: 12px;
-    border-left: 3px solid #b91d95;
+    border-left: 3px solid #ffffff;
     padding-left: 8px;
   }
   
@@ -370,7 +371,7 @@
   .table td:before {
     content: attr(data-label) ": ";
     font-weight: bold;
-    color: #b91d95;
+    color: #ffffff;
     font-size: 0.8rem;
     display: inline-block;
     min-width: 80px;

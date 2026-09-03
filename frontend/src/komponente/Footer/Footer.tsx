@@ -34,8 +34,19 @@ const Footer: React.FC = () => {
         loadThemeStyles(e.newValue || undefined);
       }
     };
+    const onThemeChanged = (e: Event) => {
+      const theme = (e as CustomEvent<string>).detail;
+      setCssReady(false);
+      setCssDelayDone(false);
+      loadThemeStyles(theme);
+    };
+
     window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
+    window.addEventListener("themeChanged", onThemeChanged);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("themeChanged", onThemeChanged);
+    };
   }, []);
 
   useEffect(() => {
@@ -48,12 +59,12 @@ const Footer: React.FC = () => {
 
   return (
     <footer className={styles.footer}>
-      <Link to="/">
+      <div className={styles.footerGradientLine} />
+      <Link to="/" style={{ display: "inline-flex" }}>
         <img
           src="/logo.gif"
           alt="Decibel logo"
-          className="footerLogo"
-          style={{ height: "38px" }}
+          className={styles.footerLogo}
         />
       </Link>
       <span className={styles.footerText}>

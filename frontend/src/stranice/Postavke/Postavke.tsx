@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
-// import styles from "./Postavke.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";

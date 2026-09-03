@@ -8,15 +8,15 @@
   justify-content: center;
 }
 
-.link{
-  color: #f3eaf0;
+.link {
+  color: #ffffff;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.18s;
 }
 
 .link:hover {
-  color: #e754a2;
+  color: #cccccc;
 }
 
 .container {
@@ -55,7 +55,7 @@
 }
 
 .table th {
-  background: #b91d95;
+  background: #333333;
   color: #fff;
   font-weight: 700;
   font-size: 1.08rem;
@@ -71,13 +71,13 @@
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
-  box-shadow: 0 2px 8px #b91d9533;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .select {
   background: #181818;
-  color: #ffe6ec;
-  border: 1px solid #b91d95;
+  color: #ffffff;
+  border: 1px solid #444444;
   border-radius: 6px;
   padding: 6px 10px;
   font-size: 1rem;
@@ -86,7 +86,7 @@
 }
 
 .select:focus {
-  border: 1.5px solid #e754a2;
+  border: 1.5px solid #888888;
 }
 
 .loading {
@@ -97,8 +97,8 @@
 }
 
 .error {
-  color: #ffb3c6;
-  background: #3a0d2e;
+  color: #ff9999;
+  background: #3a1515;
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 8px;
@@ -122,19 +122,19 @@
   margin: 0 auto 28px auto;
   padding: 12px 16px;
   border-radius: 10px;
-  border: 1.5px solid #b91d95;
+  border: 1.5px solid #444444;
   background: #181818;
   color: #fff;
   font-size: 1.1rem;
   outline: none;
   transition: all 0.2s ease;
   display: block;
-  box-shadow: 0 2px 8px rgba(185, 29, 149, 0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .searchInput:focus {
-  border: 2px solid #e754a2;
-  box-shadow: 0 4px 16px rgba(231, 84, 162, 0.2);
+  border: 2px solid #888888;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   transform: translateY(-1px);
 }
 
@@ -144,7 +144,7 @@
 }
 
 .showApplicationBtn {
-  background: #b91d95;
+  background: #444444;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -156,7 +156,7 @@
 }
 
 .showApplicationBtn:hover {
-  background: #e754a2;
+  background: #555555;
 }
 
 .noApplicationText {
@@ -263,7 +263,7 @@
     margin: 0 auto;
     padding: 20px 20px 20px 20px;
     border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
     background: rgba(35, 35, 35, 0.97);
   }
   
@@ -280,12 +280,12 @@
     max-width: 85%;
     margin-bottom: 24px;
     border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(185, 29, 149, 0.15);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
   }
   
   .searchInput:focus {
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(231, 84, 162, 0.25);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
   
   .table {
@@ -332,7 +332,7 @@
   .table td:before {
     content: attr(data-label) ": ";
     font-weight: bold;
-    color: #b91d95;
+    color: #cccccc;
     font-size: 0.8rem;
     display: inline-block;
     min-width: 100px;
@@ -457,7 +457,7 @@
   padding: 32px 24px 24px 24px;
   min-width: 320px;
   max-width: 480px;
-  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
   text-align: left;
   color: #fff;
   position: relative;
@@ -470,7 +470,7 @@
   margin-bottom: 20px;
   font-size: 1.3rem;
   font-weight: 700;
-  color: #ffe6ec;
+  color: #ffffff;
 }
 
 .modalSection {
@@ -498,7 +498,7 @@
 }
 
 .deleteBtn {
-  background: #e754a2;
+  background: #dc3545;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -509,7 +509,7 @@
 }
 
 .deleteBtn:hover {
-  background: #d1487c;
+  background: #bd2130;
 }
 
 .cancelBtn {
@@ -546,7 +546,7 @@
   padding: 32px 24px 24px 24px;
   min-width: 320px;
   max-width: 480px;
-  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.2);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
   text-align: left;
   color: #fff;
   position: relative;
@@ -559,7 +559,7 @@
   margin-bottom: 20px;
   font-size: 1.3rem;
   font-weight: 700;
-  color: #ffe6ec;
+  color: #ffffff;
 }
 
 .suspendUserInfo {
@@ -575,7 +575,7 @@
   display: block;
   font-weight: 600;
   margin-bottom: 6px;
-  color: #ffe6ec;
+  color: #ffffff;
 }
 
 .suspendTextarea {
@@ -583,7 +583,7 @@
   min-height: 60px;
   margin-top: 6px;
   border-radius: 6px;
-  border: 1px solid #b91d95;
+  border: 1px solid #444444;
   background: #181818;
   color: #fff;
   padding: 8px;
@@ -594,13 +594,13 @@
 }
 
 .suspendTextarea:focus {
-  border: 1.5px solid #e754a2;
+  border: 1.5px solid #888888;
 }
 
 .suspendDateInput {
   width: 100%;
   border-radius: 6px;
-  border: 1px solid #b91d95;
+  border: 1px solid #444444;
   background: #181818;
   color: #fff;
   padding: 8px;
@@ -609,7 +609,7 @@
 }
 
 .suspendDateInput:focus {
-  border: 1.5px solid #e754a2;
+  border: 1.5px solid #888888;
 }
 
 .suspendModalButtons {
@@ -620,7 +620,7 @@
 }
 
 .confirmSuspendBtn {
-  background: #e754a2;
+  background: #dc3545;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -631,7 +631,7 @@
 }
 
 .confirmSuspendBtn:hover {
-  background: #d1487c;
+  background: #bd2130;
 }
 
 .cancelSuspendBtn {

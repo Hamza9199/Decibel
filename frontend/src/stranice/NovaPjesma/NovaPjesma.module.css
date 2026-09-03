@@ -10,7 +10,7 @@
 .novaPjesmaForm {
   background: rgba(24,24,24,0.99);
   border-radius: 22px;
-  box-shadow: 0 8px 32px rgba(185, 29, 149, 0.18);
+  box-shadow: 0 8px 32px rgba(13, 13, 13, 0.18);
   padding: 48px 38px 38px 38px;
   min-width: 340px;
   display: flex;
@@ -19,16 +19,16 @@
   max-width: 820px;
   width: 100%;
   gap: 0;
-  border: 1.5px solid #b91d95;
+  border: 1.5px solid #0d0d0d;
 }
 
 .title {
-  color: #ffe6ec;
+  color: #ffffff;
   font-size: 2.2rem;
   font-weight: 800;
   margin-bottom: 32px;
   letter-spacing: 2px;
-  text-shadow: 0 2px 8px #b91d9533;
+  text-shadow: 0 2px 8px rgba(13, 13, 13, 0.2);
   text-align: center;
 }
 
@@ -37,7 +37,7 @@
   padding: 13px 18px;
   margin-bottom: 18px;
   border-radius: 10px;
-  border: 1.5px solid #b91d95;
+  border: 1.5px solid #0d0d0d;
   background: #18181f;
   color: #fff;
   font-size: 1.08rem;
@@ -48,8 +48,8 @@
 }
 
 .input:focus, .fileInput:focus, textarea:focus {
-  border: 2px solid #e754a2;
-  box-shadow: 0 4px 16px #e754a233;
+  border: 2px solid #333333;
+  box-shadow: 0 4px 16px rgba(51, 51, 51, 0.15);
 }
 
 textarea {
@@ -59,7 +59,7 @@ textarea {
 
 .button {
   width: 70%;
-  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  background: linear-gradient(90deg, #0d0d0d 0%, #333333 100%);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -75,12 +75,12 @@ textarea {
 }
 
 .button:hover {
-  background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
+  background: linear-gradient(90deg, #333333 0%, #0d0d0d 100%);
   transform: scale(1.03);
 }
 
 .label {
-  color: #ffe6ec;
+  color: #ffffff;
   font-size: 1.04rem;
   font-weight: 600;
   margin-bottom: 6px;
@@ -104,7 +104,7 @@ textarea {
 }
 
 .fileInput::-webkit-file-upload-button {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   border: none;
   border-radius: 7px;
@@ -116,12 +116,12 @@ textarea {
   transition: background 0.18s;
 }
 .fileInput::-webkit-file-upload-button:hover {
-  background: #e754a2;
+  background: #333333;
 }
 
 .error {
-  color: #ffb3c6;
-  background: #3a0d2e;
+  color: #ffffff;
+  background: #333333;
   border-radius: 7px;
   padding: 10px 14px;
   margin-bottom: 14px;
@@ -159,7 +159,7 @@ textarea {
   min-width: 260px;
   max-height: 480px;
   overflow-y: auto;
-  box-shadow: 0 4px 24px #b91d9533;
+  box-shadow: 0 4px 24px rgba(13, 13, 13, 0.2);
 }
 
 .artistsTitle {
@@ -172,7 +172,7 @@ textarea {
 .artistSearch {
   width: 100%;
   border-radius: 8px;
-  border: 1px solid #b91d95;
+  border: 1px solid #0d0d0d;
   padding: 8px 10px;
   font-size: 1.05rem;
   margin-bottom: 10px;
@@ -183,7 +183,7 @@ textarea {
 }
 
 .artistSearch:focus {
-  border: 1.5px solid #e754a2;
+  border: 1.5px solid #333333;
 }
 
 .selectedArtists {
@@ -193,7 +193,7 @@ textarea {
 .artistTag {
   display: inline-flex;
   align-items: center;
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   border-radius: 8px;
   padding: 4px 10px;
@@ -235,7 +235,7 @@ textarea {
 }
 
 .addArtistBtn {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -248,7 +248,7 @@ textarea {
 }
 
 .addArtistBtn:hover {
-  background: #e754a2;
+  background: #333333;
 }
 
 @media (max-width: 600px) {
@@ -292,11 +292,11 @@ textarea {
     padding: 20px 12px 20px 12px;
     border-radius: 8px;
     gap: 0;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(13, 13, 13, 0.1);
     background: rgba(24,24,24,0.85);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
-    border: 1px solid #b91d95;
+    border: 1px solid #0d0d0d;
   }
 
 
@@ -310,7 +310,7 @@ textarea {
     background: rgba(35, 35, 35, 0.85);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(13, 13, 13, 0.1);
   }
   
   .artistsTitle {
@@ -371,13 +371,13 @@ textarea {
     font-size: 0.85rem;
     margin-bottom: 12px;
     border-radius: 6px;
-    border: 1px solid #b91d95;
-    box-shadow: 0 1px 6px #b91d9533;
+    border: 1px solid #0d0d0d;
+    box-shadow: 0 1px 6px rgba(13, 13, 13, 0.2);
   }
   
   .input:focus, .fileInput:focus, textarea:focus {
-    border: 1.5px solid #e754a2;
-    box-shadow: 0 2px 12px #e754a233;
+    border: 1.5px solid #333333;
+    box-shadow: 0 2px 12px rgba(51, 51, 51, 0.15);
   }
   
   textarea {
@@ -407,7 +407,7 @@ textarea {
     margin-top: 8px;
     border-radius: 6px;
     letter-spacing: 0.5px;
-    box-shadow: 0 1px 6px #b91d9533;
+    box-shadow: 0 1px 6px rgba(13, 13, 13, 0.2);
   }
   
   .error, .success {

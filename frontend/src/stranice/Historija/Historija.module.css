@@ -59,7 +59,7 @@
 }
 
 .pjesmeTable th {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   font-weight: 700;
   font-size: 1.08rem;
@@ -70,7 +70,7 @@
 }
 
 .songPlayBtn, .likeBtn, .addBtn {
-  background: #b91d95;
+  background: #0d0d0d;
   border: none;
   border-radius: 50%;
   width: 38px;
@@ -84,11 +84,11 @@
   padding: 0;
 }
 .songPlayBtn:hover, .likeBtn:hover, .addBtn:hover {
-  background: #e754a2;
+  background: #333333;
   transform: scale(1.08);
 }
 .likeBtn.liked {
-  background: #e754a2;
+  background: #333333;
 }
 
 .modalOverlay {
@@ -117,7 +117,7 @@
 }
 
 .playlistBtn {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -130,13 +130,13 @@
   transition: background 0.18s;
 }
 .playlistBtn:hover {
-  background: #e754a2;
+  background: #333333;
 }
 
 .closeModalBtn {
   background: #232323;
-  color: #ffe6ec;
-  border: 1px solid #b91d95;
+  color: #fff;
+  border: 1px solid #0d0d0d;
   border-radius: 8px;
   padding: 10px 0;
   font-size: 1rem;
@@ -147,7 +147,7 @@
   transition: background 0.18s, color 0.18s;
 }
 .closeModalBtn:hover {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
 }
 
@@ -163,7 +163,7 @@
 }
 
 .songDate {
-  color: #ffe6ec;
+  color: #ffffff;
   font-size: 12px;
   font-weight: 500;
   margin-top: 2px;
@@ -179,7 +179,7 @@
 
 
 .link:hover {
-  color: #b91d95;
+  color: #c6c5c5;
 }
 
 @media (max-width: 480px) {
@@ -194,7 +194,7 @@
     margin: 0 auto;
     padding: 20px 20px 20px 20px;
     border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+    box-shadow: 0 4px 24px rgba(13, 13, 13, 0.13);
     background: rgba(35, 35, 35, 0.97);
   }
   

@@ -47,7 +47,7 @@
 .playBtn, .likeBtn, .repeatBtn {
   position: absolute;
   bottom: 18px;
-  background: #b91d95;
+  background: #0d0d0d;
   border: none;
   border-radius: 50%;
   width: 54px;
@@ -67,7 +67,7 @@
 .repeatBtn { right: 5px; }
 
 .likeBtn.liked {
-  background: #e754a2;
+  background: #333333;
 }
 
 .albumInfo {
@@ -109,7 +109,7 @@
   font-weight: 600;
   margin-bottom: 18px;
   letter-spacing: 1px;
-  border-left: 5px solid #b91d95;
+  border-left: 5px solid #0d0d0d;
   padding-left: 12px;
 }
 
@@ -137,7 +137,7 @@
 }
 
 .pjesmeTable th {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   font-weight: 700;
   font-size: 1.08rem;
@@ -148,7 +148,7 @@
 }
 
 .songPlayBtn, .songAddBtn {
-  background: #b91d95;
+  background: #0d0d0d;
   border: none;
   border-radius: 50%;
   width: 38px;
@@ -162,7 +162,7 @@
   padding: 0;
 }
 .songPlayBtn:hover, .songAddBtn:hover {
-  background: #e754a2;
+  background: #333333;
   transform: scale(1.08);
 }
 
@@ -213,7 +213,7 @@
 }
 
 .playlistBtn {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -226,14 +226,14 @@
   transition: background 0.18s;
 }
 .playlistBtn:hover {
-  background: #e754a2;
+  background: #333333;
 }
 
 .closeModalBtn,
 .modalCloseBtn {
   background: #ffffff;
   color: #111;
-  border: 1px solid #b91d95;
+  border: 1px solid #0d0d0d;
   border-radius: 8px;
   padding: 10px 0;
   font-size: 1rem;
@@ -245,7 +245,7 @@
 }
 .closeModalBtn:hover,
 .modalCloseBtn:hover {
-  background: #b91d95;
+  background: #0d0d0d;
   color: #fff;
 }
 
@@ -259,16 +259,16 @@
 }
 
 .songRow { transition: background 0.15s, color 0.15s; }
-.songNumber { font-weight: 600; color: #b91d95; }
+.songNumber { font-weight: 600; color: #0d0d0d; }
 .songNameCell { text-align: left !important; }
 .songInfo { display: flex; align-items: center; gap: 12px; }
-.songImage { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 8px rgba(185, 29, 149, 0.15); }
+.songImage { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; box-shadow: 0 2px 8px rgba(13, 13, 13, 0.15); }
 .songName { font-weight: 500; color: #111; }
 .songDetails { display: flex; flex-direction: column; flex: 1; }
 .songArtist { font-size: 0.85rem; color: #666; font-weight: 400; }
 .songDuration { font-size: 0.8rem; color: #777; margin-top: 2px; }
 .songActions { display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap; }
-.songPlayBtn.liked { background: #e754a2; }
+.songPlayBtn.liked { background: #333333; }
 
 @media (max-width: 900px) {
   .albumBg { padding-top: 60px; padding-bottom: 40px; }

@@ -1,7 +1,7 @@
 .footer {
   width: 95vw;
   background: #ffffff;
-  color: #111;
+  color: #0d0d0d;
   padding: 72px 0 48px 0;
   font-size: 1.08rem;
   display: flex !important;
@@ -10,7 +10,8 @@
   flex-wrap: nowrap;
   justify-content: space-between;
   gap: 18px;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+  border-top: 1px solid rgba(13, 13, 13, 0.08);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
   position: relative !important;
   bottom: 0;
   left: 40px;
@@ -26,11 +27,11 @@
   border-radius: 40%;
   background: #fff;
   object-fit: contain;
-  box-shadow: 0 2px 8px #b91d9533;
+  box-shadow: 0 2px 8px rgba(13, 13, 13, 0.12);
 }
 
 .footerText {
-  color: #333;
+  color: #0d0d0d;
   font-size: 1.08rem;
   font-weight: 500;
   letter-spacing: 1px;
@@ -45,13 +46,14 @@
 }
 
 .footerLink {
-  color: #b91d95;
+  color: #0d0d0d;
   text-decoration: underline;
   font-size: 1rem;
   transition: color 0.18s;
 }
+
 .footerLink:hover {
-  color: #111;
+  color: #666666;
 }
 
 @media (max-width: 700px) {
@@ -60,13 +62,16 @@
     gap: 8px;
     padding: 16px 0 8px 0;
   }
+
   .footerLogo {
     margin-left: 0;
     margin-right: 0;
   }
+
   .footerLinks {
     margin-right: 0;
   }
+
   .footerText {
     text-align: center;
     margin: 0;
@@ -83,7 +88,7 @@
     width: 100vw;
     margin-bottom: 0;
     font-size: 0.92rem;
-    box-shadow: 0 -1px 6px rgba(0,0,0,0.06);
+    box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.06);
     position: absolute;
     bottom: 0;
     left: 0;
@@ -93,6 +98,7 @@
     padding-left: 0;
     background: #ffffff;
   }
+
   .footerLogo {
     height: 22px !important;
     margin-left: 0;
@@ -100,14 +106,16 @@
     border-radius: 8px;
     box-shadow: none;
   }
+
   .footerText {
     font-size: 0.85rem;
     text-align: center;
     margin: 0;
     padding: 0 8px;
-    color: #333;
+    color: #0d0d0d;
     font-weight: 500;
   }
+
   .footerLinks {
     margin-right: 0;
     gap: 8px;
@@ -116,6 +124,7 @@
     width: 100%;
     padding-bottom: 2px;
   }
+
   .footerLink {
     font-size: 0.85rem;
     padding: 0 2px;

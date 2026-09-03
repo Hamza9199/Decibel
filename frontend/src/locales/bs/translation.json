@@ -296,5 +296,14 @@
   "creating_playlist": "Kreiranje playliste...",
   "creating_album": "Kreiranje albuma...",
   "creating_song": "Kreiranje pjesme...",
-  "creating": "Kreiranje..."
+  "creating": "Kreiranje...",
+  "home_hero_subtitle": "Slušajte muziku, kreirajte playliste i otkrijte nove izvođače.",
+  "greeting_evening": "Dobro veče",
+  "greeting_day": "Dobar dan",
+  "greeting_morning": "Dobro jutro",
+  "greeting_night": "Dobro veče",
+  "details": "Detalji",
+  "top_album": "Top Album",
+  "trending_song": "Popularna pjesma",
+  "recommended_playlist": "Preporučena playlista"
 }

@@ -56,7 +56,7 @@
 }
 
 .playBtn {
-  background: #b91d95;
+  background: #333333;
   border: none;
   border-radius: 50%;
   width: 64px;
@@ -71,7 +71,7 @@
   padding: 0;
   position: relative;
 }
-.playBtn:hover { background: #e754a2; transform: scale(1.08); }
+.playBtn:hover { background: #555555; transform: scale(1.08); }
 
 .pjesmaInfo { flex: 1; display: flex; flex-direction: column; gap: 12px; }
 
@@ -80,32 +80,32 @@
 .pjesmaMeta { color: #333; font-size: 1.05rem; font-weight: 600; display: flex; gap: 22px; margin-bottom: 8px; }
 
 .izvodjaciWrap { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-.izvodjaciLabel { color: #b91d95; font-weight: 700; font-size: 1.08rem; }
+.izvodjaciLabel { color: #222222; font-weight: 700; font-size: 1.08rem; }
 .izvodjacIme { color: #222; font-size: 1.08rem; font-weight: 600; display: flex; align-items: center; gap: 6px; margin-right: 10px; }
 .izvodjacSlika { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
 .topPjesmeSection { margin-top: 150px; }
-.topPjesmeTitle { color: #111; font-size: 1.3rem; font-weight: 700; margin-bottom: 30px; letter-spacing: 1px; border-left: 5px solid #b91d95; padding-left: 12px; }
+.topPjesmeTitle { color: #111; font-size: 1.3rem; font-weight: 700; margin-bottom: 30px; letter-spacing: 1px; border-left: 5px solid #333333; padding-left: 12px; }
 .topPjesmeGrid { display: flex; flex-wrap: wrap; gap: 22px; }
 
 .topPjesmaCard { background: #ffffff; border-radius: 14px; padding: 16px 12px 12px 12px; min-width: 160px; max-width: 160px; display: flex; flex-direction: column; align-items: center; position: relative; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
 .topPjesmaSlikaWrap { width: 80px; height: 80px; border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: #f0f0f4; display: flex; align-items: center; justify-content: center; position: relative; }
 .topPjesmaSlika { width: 100%; height: 100%; object-fit: cover; }
 
-.topPlayBtn { position: absolute; bottom: 6px; right: 6px; background: #b91d95; border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
-.topPlayBtn:hover { background: #e754a2; transform: scale(1.08); }
+.topPlayBtn { position: absolute; bottom: 6px; right: 6px; background: #333333; border: none; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
+.topPlayBtn:hover { background: #555555; transform: scale(1.08); }
 
 .topPjesmaNaziv { color: #111; font-size: 1.05rem; font-weight: 700; margin-bottom: 2px; text-align: center; }
 .topPjesmaIzvodjac { color: #666; font-size: 0.97rem; text-align: center; }
 
 .notFound { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; }
-.backBtn { background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 18px; transition: background 0.18s; }
-.backBtn:hover { background: #e754a2; }
+.backBtn { background: #333333; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 1.1rem; font-weight: 700; cursor: pointer; margin-top: 18px; transition: background 0.18s; }
+.backBtn:hover { background: #555555; }
 
 .actionBtnsRow { position: absolute; bottom: 18px; left: 18px; right: 18px; display: flex; flex-direction: row; gap: 0; z-index: 10; justify-content: space-between; }
 
-.likeBtn { background: #b91d95; border: none; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
-.likeBtn.liked { background: #f6b6d8ff; }
+.likeBtn { background: #333333; border: none; border-radius: 50%; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
+.likeBtn.liked { background: #555555; }
 .likeBtn span { font-size: 1.01rem; margin-left: 4px; color: #fff; font-weight: 600; }
 
 @media (max-width: 900px) {
@@ -151,16 +151,16 @@
     padding-top: 75px;
     padding-bottom: 30px;
     min-height: 100vh;
-        overflow-x: hidden;
+    overflow-x: hidden;
   }
   
   .container {
     width: 100%;
     max-width: 100vw;
-     box-sizing: border-box;
+    box-sizing: border-box;
     padding: 12px 8px 20px 8px;
     border-radius: 0;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
   }
@@ -191,7 +191,7 @@
     height: 36px;
   }
   
-.playBtn {
+  .playBtn {
     width: 36px;
     height: 36px;
   }
@@ -201,7 +201,7 @@
     margin-right: 3px;
   }
 
-.playBtn svg {
+  .playBtn svg {
     width: 25px;
     height: 25px;
   }
@@ -211,7 +211,6 @@
     margin-left: 3px;
     margin-bottom: 2px;
   }
-
 
   .pjesmaNaziv {
     font-size: 1.2rem;
@@ -256,7 +255,7 @@
   .topPjesmeTitle {
     font-size: 1.1rem;
     margin-bottom: 16px;
-    border-left: 3px solid #b91d95;
+    border-left: 3px solid #333333;
     padding-left: 8px;
   }
   

@@ -1,10 +1,9 @@
 .container {
-    min-height: 100vh;
-
+  min-height: 100vh;
   display: flex;
-  gap: 20px;
-  padding: 20px;
-  max-width: 95vw;
+  gap: 32px;
+  padding: 32px 24px;
+  max-width: 1200px;
   margin: 0 auto;
   margin-top: 50px;
 }
@@ -13,134 +12,292 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .card {
   width: 100%;
-  max-width: 800px;
-  background: #181818;
-  border: 1px solid #2c2c2c;
-  border-radius: 18px;
-  padding: 32px;
-  color: #fff;
+  max-width: 720px;
+  background: rgba(22, 22, 26, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  color: #ffffff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.discordHeaderIcon {
+  width: 56px;
+  height: 56px;
+  background: rgba(88, 101, 242, 0.15);
+  border: 1px solid rgba(88, 101, 242, 0.3);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5865F2;
+  flex-shrink: 0;
 }
 
 .title {
-  margin-bottom: 16px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
 }
 
 .description {
-  color: #bdbdbd;
-  margin-bottom: 24px;
+  color: #a0a0ab;
+  font-size: 0.98rem;
+  line-height: 1.5;
 }
 
-.statusBox {
+.statusCard {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 16px 20px;
   display: flex;
-  gap: 10px;
-  margin-bottom: 24px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.statusInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .statusLabel {
-  font-weight: 700;
+  color: #8e8e93;
+  font-size: 0.95rem;
+  font-weight: 500;
 }
 
-.statusDisconnected {
-  color: #ff6b6b;
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
 }
 
-.statusConnected {
+.statusBadgeConnected {
+  background: rgba(46, 204, 113, 0.12);
   color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.25);
+}
+
+.statusBadgeDisconnected {
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.25);
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.refreshBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #d1d1d6;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.refreshBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .generateBtn {
   width: 100%;
-  padding: 14px;
+  padding: 16px;
   border: none;
-  border-radius: 12px;
-  background: #b91d95;
-  color: white;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
 }
 
-.generateBtn:hover {
-  opacity: 0.9;
+.generateBtn:hover:not(:disabled) {
+  background: #e0e0e0;
+  transform: translateY(-1px);
+}
+
+.generateBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.unlinkBtn {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  border-radius: 14px;
+  background: rgba(255, 107, 107, 0.08);
+  color: #ff6b6b;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.unlinkBtn:hover {
+  background: rgba(255, 107, 107, 0.18);
+  border-color: rgba(255, 107, 107, 0.5);
 }
 
 .codeBox {
   margin-top: 24px;
-  padding: 20px;
-  background: #101010;
-  border-radius: 12px;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
   text-align: center;
+  position: relative;
 }
 
 .codeTitle {
-  margin-bottom: 10px;
-  color: #aaa;
+  margin-bottom: 8px;
+  color: #8e8e93;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
 }
 
 .code {
-  font-size: 2rem;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 2.2rem;
   font-weight: 800;
-  letter-spacing: 4px;
+  letter-spacing: 6px;
+  color: #ffffff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.discordInfo {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(88, 101, 242, 0.08);
+  border: 1px solid rgba(88, 101, 242, 0.2);
+  border-radius: 12px;
+  color: #a5b4fc;
+  font-family: monospace;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
 .instructions {
-  margin-top: 24px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.command {
-  margin-top: 12px;
-  background: #0f0f0f;
-  border-radius: 10px;
-  padding: 14px;
-  font-family: monospace;
+.instructions h3 {
   font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #ffffff;
+}
+
+.stepsList {
+  padding-left: 20px;
+  margin-bottom: 20px;
+  color: #a0a0ab;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.commandBox {
+  margin-top: 16px;
+  background: #09090b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.commandText {
+  font-family: monospace;
+  font-size: 1.05rem;
+  color: #2ecc71;
 }
 
 .discordBtn {
-  display: block;
-  margin-top: 24px;
-  text-align: center;
-  background: #b91d95;
-  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 28px;
+  background: #5865F2;
+  color: #ffffff;
   text-decoration: none;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 16px;
+  border-radius: 14px;
   font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(88, 101, 242, 0.3);
 }
 
 .discordBtn:hover {
-  opacity: 0.9;
-  color: white;
+  background: #4752C4;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4);
 }
 
-.refreshBtn {
-  background: transparent;
-  border: 1px solid #2c2c2c;
-  color: #bdbdbd;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.refreshBtn:hover {
-  background: #2c2c2c;
-  color: white;
-}
-
-@media (max-width: 480px) {
+@media (max-width: 600px) {
   .container {
-    padding: 10px;
+    padding: 16px 12px;
   }
 
   .card {
-    padding: 18px;
+    padding: 24px 18px;
+    border-radius: 18px;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+    gap: 14px;
   }
 
   .code {
-    font-size: 1.4rem;
-    letter-spacing: 2px;
+    font-size: 1.6rem;
+    letter-spacing: 3px;
   }
 }

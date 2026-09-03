@@ -87,21 +87,24 @@ const Register: React.FC = () => {
   const resetBodyBackground = () => {
     const body = document.body;
     if (body) {
-      body.style.background = "radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)";
+      body.style.background = "radial-gradient(ellipse at 10% 60%, #3f3f3f 0%, #404040ff 60%) ";
     }
   };
 
   const loading = registerMut.isPending;
 
   return (
+  
     <div className={styles.registerBg}>
+
       {loading ? (
         <Loading />
       ) : (
+        
         <form className={styles.registerForm} onSubmit={handleSubmit}>
            <button className={styles.navBtn} onClick={() => { navigate("/");  }}>
             <span style={{ marginRight: 10, display: "inline-flex", verticalAlign: "middle" }}>
-              <svg width="22" height="22" fill="#b91d95" viewBox="0 0 24 24">
+              <svg width="22" height="22" fill="#fbd9f3ff" viewBox="0 0 24 24">
                 <path d="M3 12L12 4l9 8v7a2 2 0 0 1-2 2h-3v-5h-6v5H5a2 2 0 0 1-2-2z" />
               </svg>
             </span>
@@ -135,7 +138,7 @@ const Register: React.FC = () => {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                color: "#b91d95",
+                color: "#ebe0e9ff",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -145,9 +148,9 @@ const Register: React.FC = () => {
               aria-label={showPassword ? "Sakrij lozinku" : "Prikaži lozinku"}
             >
               {showPassword ? (
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#b91d95" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#b91d95" strokeWidth="2"/></svg>
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#ead9e6ff" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#f7d6ecff" strokeWidth="2"/></svg>
               ) : (
-                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#b91d95" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#b91d95" strokeWidth="2"/><line x1="4" y1="18" x2="18" y2="4" stroke="#b91d95" strokeWidth="2"/></svg>
+                <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M1 11C3.5 5.5 18.5 5.5 21 11C18.5 16.5 3.5 16.5 1 11Z" stroke="#efd7e9ff" strokeWidth="2"/><circle cx="11" cy="11" r="3" stroke="#0e0d0eff" strokeWidth="2"/><line x1="4" y1="18" x2="18" y2="4" stroke="#f8e8f0ff" strokeWidth="2"/></svg>
               )}
             </button>
           </div>

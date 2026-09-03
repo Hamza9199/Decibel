@@ -290,5 +290,14 @@
   "creating_playlist": "Playlist wird erstellt...",
   "creating_album": "Album wird erstellt...",
   "creating_song": "Lied wird erstellt...",
-  "creating": "Wird erstellt..."
+  "creating": "Wird erstellt...",
+  "home_hero_subtitle": "Hören Sie Musik, erstellen Sie Playlists und entdecken Sie neue Künstler.",
+  "greeting_evening": "Guten Abend",
+  "greeting_day": "Guten Tag",
+  "greeting_morning": "Guten Morgen",
+  "greeting_night": "Gute Nacht",
+  "details": "Details",
+  "top_album": "Top-Album",
+  "trending_song": "Beliebtes Lied",
+  "recommended_playlist": "Empfohlene Playlist"
 }

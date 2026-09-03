@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, useCallback, memo } from "react";
-// import styles from "./Header.module.css";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Korisnik } from "../../types";
@@ -38,28 +37,28 @@ const Header: React.FC = () => {
     setCssReady(false);
     loadThemeStyles();
     const onStorage = (e: StorageEvent) => {
-        if (e.key === "decibel_tema") {
-          setCssReady(false);
-          setCssDelayDone(false);
-          loadThemeStyles(e.newValue || undefined);
-        }
-      };
-
-      const onThemeChanged = (e: Event) => {
-        const theme = (e as CustomEvent<string>).detail;
-
+      if (e.key === "decibel_tema") {
         setCssReady(false);
         setCssDelayDone(false);
-        loadThemeStyles(theme);
-      };
+        loadThemeStyles(e.newValue || undefined);
+      }
+    };
 
-      window.addEventListener("storage", onStorage);
-      window.addEventListener("themeChanged", onThemeChanged);
+    const onThemeChanged = (e: Event) => {
+      const theme = (e as CustomEvent<string>).detail;
 
-      return () => {
-        window.removeEventListener("storage", onStorage);
-        window.removeEventListener("themeChanged", onThemeChanged);
-      };
+      setCssReady(false);
+      setCssDelayDone(false);
+      loadThemeStyles(theme);
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("themeChanged", onThemeChanged);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("themeChanged", onThemeChanged);
+    };
   }, []);
 
   useEffect(() => {
@@ -107,8 +106,8 @@ const Header: React.FC = () => {
   });
 
   const handleDownload = useCallback(() => {
-      navigate("/download");
-  }, [navigate]); 
+    navigate("/download");
+  }, [navigate]);
 
 
   const handleLogout = useCallback(() => logoutMutation.mutate(), [logoutMutation]);
@@ -117,15 +116,14 @@ const Header: React.FC = () => {
 
   return (
     <header className={styles.header}>
-      
+      <div className={styles.headerGradientLine} />
+
       <div className={styles.searchWrap}>
         <Search />
-
-    
       </div>
 
       {!isElectron && (
-      <div className={styles.downloadBtn} onClick={() => handleDownload()}>
+        <div className={styles.downloadBtn} onClick={() => handleDownload()}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="30"
@@ -136,27 +134,27 @@ const Header: React.FC = () => {
           >
             <path d="M5 20h14v2H5c-1.1 0-2-.9-2-2V6h2v14zm7-18L5.33 9h3.84v4h4V9h3.84L12 2z" />
           </svg>
-            {t("download")}
+          {t("download")}
         </div>
       )}
 
 
-     {isMobile ? (
+      {isMobile ? (
         <>
           {isLoggedIn && (
-            <Link to="/profile/edit">
+            <Link to="/profile/edit" className={styles.profileImgWrap}>
               <img
-              src={korisnik?.putanjaProfilneSlike || "/logo.gif"}
-              className="profileImg"
-              alt="Profil"
-              onError={(e) => {
-                e.currentTarget.src = "/logo.gif";
-              }}
+                src={korisnik?.putanjaProfilneSlike || "/logo.gif"}
+                className={styles.profileImg}
+                alt="Profil"
+                onError={(e) => {
+                  e.currentTarget.src = "/logo.gif";
+                }}
               />
             </Link>
           )}
         </>
-        ) : (
+      ) : (
         <>
           {isLoggedIn ? (
             <span className={styles.welcomeMessage}>
@@ -168,15 +166,15 @@ const Header: React.FC = () => {
             </span>
           )}
           {isLoggedIn ? (
-            <Link to="/profile/edit">
-               <img
+            <Link to="/profile/edit" className={styles.profileImgWrap}>
+              <img
                 src={korisnik?.putanjaProfilneSlike || "/logo.gif"}
-                className="profileImg"
+                className={styles.profileImg}
                 alt="Profil"
                 onError={(e) => {
                   e.currentTarget.src = "/logo.gif";
                 }}
-                />
+              />
             </Link>
           ) : null}
           {isLoggedIn ? (
@@ -203,7 +201,7 @@ const Header: React.FC = () => {
                 className={styles.loginIcon}
                 viewBox="0 0 24 24"
               >
-                <path d="M11 7L11 17L7 12M17 7V17M17 7L21 12M17 7L13 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M11 7L11 17L7 12M17 7V17M17 7L21 12M17 7L13 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               {t("login")}
             </Link>
@@ -215,5 +213,3 @@ const Header: React.FC = () => {
 };
 
 export default memo(Header);
-
-

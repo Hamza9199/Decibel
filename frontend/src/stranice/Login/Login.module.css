@@ -1,3 +1,4 @@
+
 .loginBg {
   min-height: 100vh;
   display: flex;
@@ -8,7 +9,7 @@
 .loginForm {
   background: rgba(24,24,24,0.97);
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+  box-shadow: 0 4px 24px rgba(13, 13, 13, 0.13);
   padding: 40px 32px 32px 32px;
   min-width: 320px;
   display: flex;
@@ -29,7 +30,7 @@
   padding: 12px 16px;
   margin-bottom: 18px;
   border-radius: 8px;
-  border: 1px solid #b91d95;
+  border: 1px solid #0d0d0d;
   background: #181818;
   color: #fff;
   font-size: 1rem;
@@ -39,7 +40,7 @@
 }
 
 .input:focus {
-  border: 1.5px solid #e754a2;
+  border: 1.5px solid #333333;
 }
 
 .passwordWrapper {
@@ -49,7 +50,7 @@
 
 .button {
   width: 100%;
-  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  background: linear-gradient(90deg, #0d0d0d 0%, #333333 100%);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -62,12 +63,12 @@
 }
 
 .button:hover {
-  background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
+  background: linear-gradient(90deg, #333333 0%, #0d0d0d 100%);
 }
 
 .error {
-  color: #ffb3c6;
-  background: #3a0d2e;
+  color: #ffffff;
+  background: #333333;
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 12px;
@@ -81,7 +82,7 @@
 }
 
 .link {
-  color: #e754a2;
+  color: #ffffff;
   cursor: pointer;
   margin-left: 4px;
   text-decoration: underline;
@@ -140,7 +141,7 @@
     max-width: 85vw;
     padding: 24px 16px 20px 16px;
     border-radius: 8px;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(13, 13, 13, 0.1);
     background: rgba(24,24,24,0.85);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);

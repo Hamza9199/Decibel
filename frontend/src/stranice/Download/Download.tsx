@@ -1,5 +1,4 @@
 import React, { useEffect, useState, memo} from "react";
-// import styles from "./UrediProfil.module.css";
 import Header from "../../komponente/Header/Header";
 import Footer from "../../komponente/Footer/Footer";
 import Sidebar from "../../komponente/Sidebar/Sidebar";

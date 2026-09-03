@@ -30,19 +30,19 @@
   padding: 12px 16px;
   margin-bottom: 18px;
   border-radius: 8px;
-  border: 1px solid #b91d95;
+  border: 1px solid #0d0d0d;
   background: #ffffff;
   color: #111;
   font-size: 1rem;
   outline: none;
   transition: border 0.2s, box-shadow 0.2s;
-  box-shadow: 0 2px 8px rgba(185,29,149,0.12);
+  box-shadow: 0 2px 8px rgba(13, 13, 13, 0.12);
   box-sizing: border-box;
 }
 
 .input:focus {
-  border: 1.5px solid #e754a2;
-  box-shadow: 0 3px 12px rgba(231,84,162,0.15);
+  border: 1.5px solid #333333;
+  box-shadow: 0 3px 12px rgba(51, 51, 51, 0.15);
 }
 
 .passwordWrapper {
@@ -52,7 +52,7 @@
 
 .button {
   width: 100%;
-  background: linear-gradient(90deg, #b91d95 0%, #e754a2 100%);
+  background: linear-gradient(90deg, #0d0d0d 0%, #333333 100%);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -65,13 +65,13 @@
 }
 
 .button:hover {
-  background: linear-gradient(90deg, #e754a2 0%, #b91d95 100%);
+  background: linear-gradient(90deg, #333333 0%, #0d0d0d 100%);
 }
 
 .error {
-  color: #a1224f;
-  background: #fde7ef;
-  border: 1px solid #f5c1d7;
+  color: #0d0d0d;
+  background: #e0e0e0;
+  border: 1px solid #333333;
   border-radius: 6px;
   padding: 8px 12px;
   margin-bottom: 12px;
@@ -95,7 +95,7 @@
 }
 
 .link {
-  color: #b91d95;
+  color: #0d0d0d;
   cursor: pointer;
   margin-left: 4px;
   text-decoration: underline;
@@ -117,7 +117,7 @@
     max-width: 85vw; padding: 24px 16px 20px 16px; border-radius: 8px; box-shadow: 0 2px 16px rgba(0,0,0,0.06); background: #ffffff; }
   .title { font-size: 1.3rem; margin-bottom: 18px; letter-spacing: 0.5px; }
   .input { padding: 10px 12px; font-size: 0.9rem; margin-bottom: 10px; border-radius: 6px; }
-  .input:focus { border: 1.5px solid #e754a2; }
+  .input:focus { border: 1.5px solid #333333; }
   .button { padding: 10px 0; font-size: 0.95rem; margin-bottom: 8px; border-radius: 6px; }
   .error, .success { font-size: 0.85rem; padding: 6px 10px; margin-bottom: 8px; }
   .linkWrap { font-size: 0.85rem; margin-top: 6px; }

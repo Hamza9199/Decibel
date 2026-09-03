@@ -1140,12 +1140,12 @@ const AudioPlayer: React.FC<Props> = ({
                 aria-label={playing ? "Pause" : "Play"}
               >
                 {playing ? (
-                  <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff"  >
+                  <svg width="20" height="20" viewBox="0 0 40 40" fill="#010101ff"  >
                     <rect x="8" y="8" width="7" height="22" rx="2" />
                     <rect x="23" y="8" width="7" height="22" rx="2" />
                   </svg>
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 40 40" fill="#fff" >
+                  <svg width="20" height="20" viewBox="0 0 40 40" fill="#080808ff" >
                     <polygon points="10,8 32,19 10,30" />
                   </svg>
                 )}
@@ -1503,12 +1503,12 @@ const AudioPlayer: React.FC<Props> = ({
           aria-label={playing ? "Pause" : "Play"}
         >
           {playing ? (
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="#fff">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="#0b0a0aff">
               <rect x="8" y="8" width="7" height="22" rx="2" />
               <rect x="23" y="8" width="7" height="22" rx="2" />
             </svg>
           ) : (
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="#fff">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="#191717ff">
               <polygon points="10,8 32,19 10,30" />
             </svg>
           )}
@@ -1554,40 +1554,41 @@ const AudioPlayer: React.FC<Props> = ({
         </label>
         <button
           type="button"
-          className={styles.muteBtn}
+          className={`${styles.muteBtn} ${repeatOne ? styles.activeControlBtn : ''}`}
           onClick={handleRepeatToggle}
           aria-label={repeatOne ? "Ponovi ovu pjesmu" : "Ponovi jednu pjesmu"}
           style={{ marginLeft: 16, marginRight: 8 }}
         >
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <g>
-              <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M21 7l-2-2-2 2" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M7 21l2 2 2-2" stroke="currentColor" strokeWidth="2" fill="none" />
               {repeatOne && (
-                <text x="13" y="19" fontSize="10" fill="#ffe6ec" fontWeight="bold">
+                <text x="13" y="19" fontSize="10" fill="currentColor" fontWeight="bold">
                   1
                 </text>
               )}
             </g>
           </svg>
         </button>
+
         <button
           type="button"
-          className={styles.muteBtn}
+          className={`${styles.muteBtn} ${playlistRepeat ? styles.activeControlBtn : ''}`}
           onClick={handleRepeatAllToggle}
           aria-label={playlistRepeat ? "Ponovi cijeli album/playlistu" : "Ponovi album/playlistu"}
           style={{ marginLeft: 2, marginRight: 8 }}
         >
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <g>
-              <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              <path d="M21 7l-2-2-2 2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="#ffe6ec" strokeWidth="2" fill="none" />
-              <path d="M7 21l2 2 2-2" stroke="#ffe6ec" strokeWidth="2" fill="none" />
+              <path d="M7 14v-2a7 7 0 0 1 7-7h4" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M21 7l-2-2-2 2" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M21 14v2a7 7 0 0 1-7 7h-4" stroke="currentColor" strokeWidth="2" fill="none" />
+              <path d="M7 21l2 2 2-2" stroke="currentColor" strokeWidth="2" fill="none" />
               {playlistRepeat && (
-                <circle cx="23" cy="5" r="3" fill="#2f0650ff" />
+                <circle cx="23" cy="5" r="3" fill="currentColor" />
               )}
             </g>
           </svg>

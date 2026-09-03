@@ -5,7 +5,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background: radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%);
+  background: radial-gradient(ellipse at 10% 60%, #3f3f3f 0%, #404040ff 60%);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -14,11 +14,11 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #000000;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #f8f8fa;
 }
 
 body {
@@ -27,13 +27,13 @@ body {
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%);
+  background: radial-gradient(ellipse at 10% 60%, #3f3f3f 0%, #404040ff 60%);
   background-attachment: fixed;
-  background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   position: relative;
   z-index: 0;
+
 }
 
 body::before {
@@ -93,7 +93,7 @@ button:focus-visible {
     background-color: #ffffff;
   }
   a:hover {
-    color: #747bff;
+    color: #f5f5f8;
   }
   button {
     background-color: #f9f9f9;

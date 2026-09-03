@@ -144,14 +144,14 @@ const Statistika: React.FC = () => {
   }, [statistika, pjesme]);
 
   useEffect(() => {
-  document.body.style.overflow = "";
-  document.documentElement.style.overflow = "";
-
-  return () => {
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
-  };
-}, []);
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
+  }, []);
 
   const loading =
     pjesmeQ.isLoading ||
@@ -181,7 +181,7 @@ const Statistika: React.FC = () => {
                         {
                           label: t("number_of_likes") || "Broj lajkova",
                           data: topPjesme.map((p) => p.brojLajkova),
-                          backgroundColor: "#b91d95",
+                          backgroundColor: "#ffffff",
                         },
                       ],
                     }}
@@ -197,7 +197,7 @@ const Statistika: React.FC = () => {
                         {
                           label: t("number_of_likes") || "Broj lajkova",
                           data: topAlbumi.map((a) => a.brojLajkova),
-                          backgroundColor: "#e754a2",
+                          backgroundColor: "#cccccc",
                         },
                       ],
                     }}
@@ -213,7 +213,7 @@ const Statistika: React.FC = () => {
                         {
                           label: t("number_of_likes") || "Broj lajkova",
                           data: topPlayliste.map((pl) => pl.brojLajkova),
-                          backgroundColor: "#590846",
+                          backgroundColor: "#888888",
                         },
                       ],
                     }}
@@ -229,7 +229,7 @@ const Statistika: React.FC = () => {
                         {
                           label: t("number_of_followers") || "Broj pratilaca",
                           data: topIzvodjaci.map((k) => k.brojPratilaca),
-                          backgroundColor: "#ffe6ec",
+                          backgroundColor: "#e0e0e0",
                         },
                       ],
                     }}
@@ -246,14 +246,14 @@ const Statistika: React.FC = () => {
                           label: t("number_of_songs") || "Broj pjesama",
                           data: pjesmePoZanru,
                           backgroundColor: [
-                            "#b91d95",
-                            "#e754a2",
-                            "#590846",
-                            "#ffe6ec",
-                            "#232323",
-                            "#baffc9",
-                            "#3a0d2e",
-                            "#1e3a2e",
+                            "#ffffff",
+                            "#e0e0e0",
+                            "#cccccc",
+                            "#aaaaaa",
+                            "#888888",
+                            "#666666",
+                            "#444444",
+                            "#222222",
                             "#b3b3b3",
                           ],
                         },

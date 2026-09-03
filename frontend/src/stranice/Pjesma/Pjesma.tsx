@@ -383,7 +383,7 @@ const handleLajk = () => {
                   className={`${styles.playBtn} ${styles.likeBtn} ${liked ? styles.liked : ""}`}
                   onClick={handleLajk}
                   title={liked ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}
-                  style={{ right: 18, left: "auto", background: liked ? "#f6b6d8ff" : "#b91d95" }}
+                  style={{ right: 18, left: "auto" }}
                 >
                   <svg width="40" height="40" viewBox="0 0 28 28" fill="#fff">
                     <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
@@ -484,11 +484,11 @@ const handleLajk = () => {
                 style={{
                   width: "100%",
                   borderRadius: 8,
-                  border: "1px solid #b91d95",
+                  border: "1px solid #333333",
                   padding: 10,
                   fontSize: "1.08rem",
-                  background: "#181818",
-                  color: "#fff",
+                  background: "#f9f9f9",
+                  color: "#111",
                   marginBottom: 8,
                   resize: "vertical",
                 }}
@@ -498,7 +498,7 @@ const handleLajk = () => {
                 <button
                   type="submit"
                   style={{
-                    background: "#b91d95",
+                    background: "#333333",
                     color: "#fff",
                     border: "none",
                     borderRadius: 8,
@@ -514,17 +514,18 @@ const handleLajk = () => {
             </form>
             <div>
               {komentariSortirani.length === 0 ? (
-                <div style={{ color: "#b3b3b3" }}>{t("no_comments") || "Nema komentara."}</div>
+                <div style={{ color: "#666666" }}>{t("no_comments") || "Nema komentara."}</div>
               ) : (
                 komentariSortirani.map((k) => (
                   <div
                     key={k.id}
                     style={{
-                      background: k.korisnikID === mojID ? "#2a182a" : "#232323",
+                      background: k.korisnikID === mojID ? "#f0f0f0" : "#f8f8f8",
                       borderRadius: 8,
                       padding: 14,
                       marginBottom: 12,
                       position: "relative",
+                      border: "1px solid #e5e5e5"
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", marginBottom: 6 }}>
@@ -537,12 +538,12 @@ const handleLajk = () => {
                           borderRadius: "50%",
                           objectFit: "cover",
                           marginRight: 10,
-                          border: k.korisnikID === mojID ? "2px solid #b91d95" : "none",
+                          border: k.korisnikID === mojID ? "2px solid #333333" : "none",
                         }}
                       />
                       <span
                         style={{
-                          color: "#ffe6ec",
+                          color: "#111",
                           fontWeight: 600,
                           cursor: "pointer",
                         }}
@@ -553,7 +554,7 @@ const handleLajk = () => {
                           "Korisnik"}
                         {k.korisnikID === mojID && " (Vi)"}
                       </span>
-                      <span style={{ color: "#b3b3b3", fontSize: "0.98rem", marginLeft: 12 }}>
+                      <span style={{ color: "#666666", fontSize: "0.98rem", marginLeft: 12 }}>
                         {k.kreiranDatumVrijeme ? new Date(k.kreiranDatumVrijeme).toLocaleString() : ""}
                       </span>
                     </div>
@@ -566,18 +567,18 @@ const handleLajk = () => {
                           style={{
                             width: "100%",
                             borderRadius: 6,
-                            border: "1px solid #b91d95",
+                            border: "1px solid #333333",
                             padding: 8,
                             fontSize: "1.05rem",
-                            background: "#181818",
-                            color: "#fff",
+                            background: "#fff",
+                            color: "#111",
                             marginBottom: 8,
                             resize: "vertical",
                           }}
                         />
                         <button
                           style={{
-                            background: "#b91d95",
+                            background: "#333333",
                             color: "#fff",
                             border: "none",
                             borderRadius: 6,
@@ -593,9 +594,9 @@ const handleLajk = () => {
                         </button>
                         <button
                           style={{
-                            background: "#232323",
-                            color: "#ffe6ec",
-                            border: "1px solid #b91d95",
+                            background: "#e0e0e0",
+                            color: "#111",
+                            border: "1px solid #ccc",
                             borderRadius: 6,
                             padding: "7px 18px",
                             fontWeight: 600,
@@ -611,16 +612,16 @@ const handleLajk = () => {
                         </button>
                       </div>
                     ) : (
-                      <div style={{ color: "#fff", fontSize: "1.08rem", marginBottom: 2 }}>
+                      <div style={{ color: "#222", fontSize: "1.08rem", marginBottom: 2 }}>
                         {k.tekst}
                         {k.korisnikID === mojID && (
                           <>
                           <button
                             style={{
                               marginLeft: 18,
-                              background: "#232323",
-                              color: "#b91d95",
-                              border: "1px solid #b91d95",
+                              background: "#ffffff",
+                              color: "#333333",
+                              border: "1px solid #333333",
                               borderRadius: 6,
                               padding: "4px 12px",
                               fontWeight: 600,
@@ -637,9 +638,9 @@ const handleLajk = () => {
                           <button
                             style={{
                               marginLeft: 8,
-                              background: "#8b1e1e",
+                              background: "#d9534f",
                               color: "#fff",
-                              border: "1px solid #8b1e1e",
+                              border: "1px solid #d9534f",
                               borderRadius: 6,
                               padding: "4px 12px",
                               fontWeight: 600,

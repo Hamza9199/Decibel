@@ -342,12 +342,12 @@ const Album: React.FC = () => {
             <div className={styles.albumSlikaWrap}>
               <img src={album.putanjaSlika || "/logo.gif"} alt={album.naziv} className={styles.albumSlika} />
               <button className={styles.playBtn} onClick={handlePlayAlbum} title={t("play_album") || "Pusti album"}>
-                <svg width="44" height="44" viewBox="0 0 44 44" fill="#fff">
+                <svg width="44" height="44" viewBox="0 0 44 44" fill="#0c0c0cff">
                   <polygon points="12,8 36,22 12,36" />
                 </svg>
               </button>
               <button className={`${styles.likeBtn} ${liked ? styles.liked : ""}`} onClick={handleLike} title={liked ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj album"}>
-                <svg width="28" height="28" viewBox="0 0 28 28" fill={liked ? "#f6b6d8ff" : "#fff"}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill={liked ? "#010101ff" : "#c010b5ff"}>
                   <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                 </svg>
                 <span>{likeCount}</span>
@@ -426,17 +426,17 @@ const Album: React.FC = () => {
                       </td>
                       <td data-label={t("actions") || "Akcije"} className={styles.songActions}>
                         <button className={styles.songPlayBtn} onClick={() => handlePlaySong(p)} title={t("play_song") || "Pusti pjesmu"}>
-                          <svg width="22" height="22" viewBox="0 0 44 44" fill="#fff">
+                          <svg width="22" height="22" viewBox="0 0 44 44" fill="#0a0a0aff">
                             <polygon points="12,8 36,22 12,36" />
                           </svg>
                         </button>
                         <button className={`${styles.songPlayBtn} ${likedSongs[p.id] ? styles.liked : ""}`} onClick={() => handleLikeSong(p.id)} title={likedSongs[p.id] ? t("remove") || "Ukloni lajk" : t("add_to_favorites") || "Lajkuj pjesmu"}>
-                          <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[p.id] ? "#f2a9d0ff" : "#fff"}>
+                          <svg width="22" height="22" viewBox="0 0 28 28" fill={likedSongs[p.id] ? "#0f0e0eff" : "#cb10afff"}>
                             <path d="M14 25s-9-6.6-9-13.2C5 7.1 8.1 4 12 4c1.7 0 3.3.8 4.3 2.1C17.7 4.8 19.3 4 21 4c3.9 0 7 3.1 7 7.8C28 18.4 14 25 14 25z" />
                           </svg>
                         </button>
                         <button className={styles.songAddBtn} onClick={() => handleAddToPlaylist(p)} title={t("add_song_to_playlist") || "Dodaj u playlistu"}>
-                          <svg width="22" height="22" viewBox="0 0 44 44" fill="#ffe6ec">
+                          <svg width="22" height="22" viewBox="0 0 44 44" fill="#0d0d0d">
                             <rect x="18" y="8" width="8" height="28" />
                             <rect x="8" y="18" width="28" height="8" />
                           </svg>

@@ -12,7 +12,7 @@
   color: #f8f8f9;
 }
 .link.react {
-  color: #61dafb;
+  color: #f3f5f6;
 }
 
 .logo {
@@ -43,19 +43,15 @@
   }
 }
 
-
-
 .read-the-docs {
   color: #888;
 }
-
-
 
 body[data-theme="light"] {
   background: #fff !important;
   color: #181818 !important;
 }
 body[data-theme="dark"] {
-  background: radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%) !important;
+  background: radial-gradient(ellipse at 10% 60%, #3f3f3f 0%, #404040ff 60%) !important;
   color: #fff !important;
 }

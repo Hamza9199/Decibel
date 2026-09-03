@@ -65,12 +65,12 @@ const SuspendovanScreen: FC<{
         background: "#232323",
         borderRadius: 18,
         padding: "40px 32px",
-        boxShadow: "0 4px 24px #b91d9533",
+        boxShadow: "0 4px 24px rgba(0, 0, 0, 0.4)",
         maxWidth: 420,
         textAlign: "center"
       }}>
         <img src="/logo.gif" alt="Suspendovan" style={{ width: 120, height: 120, marginBottom: 24 }} />
-        <h2 style={{ color: "#e754a2", marginBottom: 18 }}>{t("account_suspended")}</h2>
+        <h2 style={{ color: "#ffffff", marginBottom: 18 }}>{t("account_suspended")}</h2>
         <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
           <b>{t("suspension_reason")}:</b>
           <div style={{
@@ -82,13 +82,13 @@ const SuspendovanScreen: FC<{
           }}>{poruka}</div>
         </div>
         <div style={{ marginBottom: 24 }}>
-        <b>{t("suspension_until")}:</b> <span style={{ color: "#ffe6ec" }}>{new Date(vrijemeDo).toLocaleString()}</span>
+        <b>{t("suspension_until")}:</b> <span style={{ color: "#cccccc" }}>{new Date(vrijemeDo).toLocaleString()}</span>
         </div>
         <button
           style={{
-            background: "#b91d95",
+            background: "#333333",
             color: "#fff",
-            border: "none",
+            border: "1px solid #444444",
             borderRadius: "8px",
             padding: "10px 28px",
             fontWeight: 600,
@@ -127,12 +127,12 @@ const ObrisanScreen: FC<{
           background: "#232323",
           borderRadius: 18,
           padding: "40px 32px",
-          boxShadow: "0 4px 24px #b91d9533",
+          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.4)",
           maxWidth: 420,
           textAlign: "center"
         }}>
           <img src="/logo.gif" alt="Obrisan" style={{ width: 120, height: 120, marginBottom: 24 }} />
-          <h2 style={{ color: "#e754a2", marginBottom: 18 }}>{t("profile_deleted")}</h2>
+          <h2 style={{ color: "#ffffff", marginBottom: 18 }}>{t("profile_deleted")}</h2>
           <div style={{ marginBottom: 18, fontSize: "1.1rem" }}>
     {t("profile_deleted_info")}
           </div>
@@ -141,9 +141,9 @@ const ObrisanScreen: FC<{
           </div>
           <button
             style={{
-              background: "#b91d95",
+              background: "#333333",
               color: "#fff",
-              border: "none",
+              border: "1px solid #444444",
               borderRadius: "8px",
               padding: "10px 28px",
               fontWeight: 600,
@@ -316,7 +316,7 @@ const setBodyBackground = (imgUrl?: string) => {
     
     console.log('Background set to:', imgUrl);
   } else {
-    body.style.background = 'radial-gradient(ellipse at 10% 60%, #b91d95 0%, #222222 60%)';
+    body.style.background = 'radial-gradient(ellipse at 10% 60%, #333333 0%, #181818 60%)';
     body.style.backgroundAttachment = 'fixed';
     body.style.backgroundSize = 'auto';
     body.style.backgroundPosition = 'initial';

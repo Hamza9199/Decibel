@@ -17,6 +17,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .title {
@@ -30,6 +31,7 @@
 .kupovinaDetalji {
   margin-bottom: 18px;
   font-size: 1.08rem;
+  color: #e0e0e0;
 }
 
 .cardContainer {
@@ -103,7 +105,7 @@
 }
 
 .inputGroup label {
-  color: #ffe6ec;
+  color: #e0e0e0;
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
@@ -125,8 +127,8 @@
 }
 
 .input:focus {
-  border-color: #b91d95;
-  box-shadow: 0 0 0 3px rgba(185, 29, 149, 0.1);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
 }
 
 .input::placeholder {
@@ -179,8 +181,8 @@
 .cancelBtn {
   width: 100%;
   background: transparent;
-  color: #ffe6ec;
-  border: 2px solid #b91d95;
+  color: #e0e0e0;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   padding: 16px 0;
   font-size: 16px;
@@ -190,14 +192,16 @@
 }
 
 .cancelBtn:hover {
-  background: rgba(185, 29, 149, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #ffffff;
+  color: #ffffff;
 }
 
 .spinner {
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid #ffffff;
+  border: 2px solid #000000;
   border-radius: 50%;
   border-top-color: transparent;
   animation: spin 1s ease-in-out infinite;
@@ -215,8 +219,8 @@
 
 .kupiBtn {
   width: 100%;
-  background: #b91d95;
-  color: #fff;
+  background: #ffffff;
+  color: #000000;
   border: none;
   border-radius: 12px;
   padding: 16px 0;
@@ -227,16 +231,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
 
 .kupiBtn:hover:not(:disabled) {
-  background: #e754a2;
+  background: #e6e6e6;
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(185, 29, 149, 0.3);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
 }
 
 .kupiBtn:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
@@ -271,6 +276,7 @@
   font-size: 20px;
   user-select: none;
   z-index: 2;
+  color: #ffffff;
 }
 
 .datePickerDropdown {
@@ -279,10 +285,10 @@
   left: 0;
   right: 0;
   background: #232323;
-  border: 2px solid #b91d95;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   z-index: 2000;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   max-height: 300px;
   overflow: hidden;
   margin-top: 4px;
@@ -290,13 +296,14 @@
 
 .datePickerHeader {
   padding: 16px;
-  background: #b91d95;
+  background: #181818;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
   font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .closeBtn {
@@ -335,14 +342,14 @@
 }
 
 .monthOption:hover {
-  background: rgba(185, 29, 149, 0.1);
-  border-left-color: #b91d95;
+  background: rgba(255, 255, 255, 0.08);
+  border-left-color: #ffffff;
 }
 
 .monthOption.selected {
-  background: rgba(185, 29, 149, 0.2);
-  border-left-color: #b91d95;
-  color: #ffe6ec;
+  background: rgba(255, 255, 255, 0.15);
+  border-left-color: #ffffff;
+  color: #ffffff;
   font-weight: 600;
 }
 
@@ -356,12 +363,12 @@
 }
 
 .monthsList::-webkit-scrollbar-thumb {
-  background: #b91d95;
+  background: #444444;
   border-radius: 3px;
 }
 
 .monthsList::-webkit-scrollbar-thumb:hover {
-  background: #e754a2;
+  background: #666666;
 }
 
 @media (max-width: 600px) {
@@ -392,7 +399,6 @@
     height: 160px;
     padding: 20px;
     box-sizing: border-box;
-   
   }
   
   .cardNumber {
@@ -445,7 +451,7 @@
     padding: 16px 12px 16px 12px;
     border-radius: 8px;
     gap: 10px;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
     background: rgba(35, 35, 35, 0.95);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
@@ -466,7 +472,8 @@
     height: 140px;
     padding: 16px;
     border-radius: 12px;
-  width: 90%;  }
+    width: 90%;
+  }
   
   .cardNumber {
     font-size: 18px;

@@ -21,7 +21,7 @@
 .editPlaylistForm {
   background: rgba(24,24,24,0.97);
   border-radius: 18px;
-  box-shadow: 0 4px 24px rgba(185, 29, 149, 0.13);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
   padding: 40px 32px 32px 32px;
   display: flex;
   flex-direction: column;
@@ -46,7 +46,7 @@
 }
 
 .label {
-  color: #ffe6ec;
+  color: #ffffff;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.5px;
@@ -56,7 +56,7 @@
   width: 100%;
   padding: 12px 16px;
   border-radius: 10px;
-  border: 2px solid rgba(185, 29, 149, 0.3);
+  border: 2px solid #444444;
   background: #181818;
   color: #fff;
   font-size: 1rem;
@@ -66,8 +66,8 @@
 }
 
 .input:focus, .textarea:focus {
-  border: 2px solid #b91d95;
-  box-shadow: 0 0 12px rgba(185, 29, 149, 0.25);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
   background: #1a1a1a;
 }
 
@@ -96,27 +96,27 @@
 .uploadArea {
   width: 100%;
   aspect-ratio: 1;
-  border: 3px dashed rgba(185, 29, 149, 0.4);
+  border: 3px dashed rgba(255, 255, 255, 0.3);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(185, 29, 149, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   transition: all 0.3s ease;
   gap: 8px;
-  color: #ffe6ec;
+  color: #ffffff;
   position: relative;
 }
 
 .fileInputLabel:hover .uploadArea {
-  border-color: #b91d95;
-  background: rgba(185, 29, 149, 0.1);
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
   transform: scale(1.02);
 }
 
 .uploadArea svg {
-  color: #b91d95;
+  color: #ffffff;
 }
 
 .uploadArea span {
@@ -160,7 +160,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  color: #ffe6ec;
+  color: #ffffff;
   font-weight: 600;
   cursor: pointer;
   font-size: 1rem;
@@ -170,12 +170,12 @@
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: #b91d95;
+  accent-color: #ffffff;
 }
 
 .error {
-  color: #ffb3c6;
-  background: rgba(255, 179, 198, 0.1);
+  color: #ff4d4f;
+  background: #2a181a;
   border: 2px solid #dc3545;
   border-radius: 10px;
   padding: 12px 16px;
@@ -202,8 +202,8 @@
 
 .button {
   width: 100%;
-  background: linear-gradient(135deg, #b91d95 0%, #e754a2 100%);
-  color: #fff;
+  background: #ffffff;
+  color: #111111;
   border: none;
   border-radius: 10px;
   padding: 14px 0;
@@ -211,14 +211,14 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(185, 29, 149, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   letter-spacing: 0.5px;
 }
 
 .button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(185, 29, 149, 0.4);
-  background: linear-gradient(135deg, #e754a2 0%, #b91d95 100%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  background: #e0e0e0;
 }
 
 .button:disabled {
@@ -229,8 +229,8 @@
 .cancelBtn {
   width: 100%;
   background: rgba(35, 35, 35, 0.8);
-  color: #ffe6ec;
-  border: 2px solid #b91d95;
+  color: #ffffff;
+  border: 2px solid #444444;
   border-radius: 10px;
   padding: 12px 0;
   font-size: 1rem;
@@ -241,7 +241,7 @@
 }
 
 .cancelBtn:hover {
-  background: #b91d95;
+  background: #444444;
   color: #fff;
   transform: translateY(-2px);
 }
@@ -254,7 +254,7 @@
   min-width: 260px;
   max-height: 480px;
   overflow-y: auto;
-  box-shadow: 0 4px 24px #b91d9533;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   flex: 0 1 auto;
 }
 
@@ -292,7 +292,7 @@
 }
 
 .songName {
-  color: #ffe6ec;
+  color: #ffffff;
   font-weight: 500;
   font-size: 0.95rem;
   white-space: nowrap;
@@ -307,8 +307,8 @@
 }
 
 .removeBtn {
-  background: #b91d95;
-  color: #fff;
+  background: #ffffff;
+  color: #111111;
   border: none;
   border-radius: 8px;
   padding: 6px 14px;
@@ -320,11 +320,12 @@
 }
 
 .removeBtn:hover {
-  background: #e754a2;
+  background: #e0e0e0;
 }
 
 .removeBtn:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 @media (max-width: 900px) {
@@ -402,7 +403,7 @@
     padding: 20px 60px 20px 60px;
     gap: 16px;
     border-radius: 14px;
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
   }
 
   .title {
@@ -464,7 +465,7 @@
     padding: 16px 12px;
     border-radius: 8px;
     background: rgba(35, 35, 35, 0.85);
-    box-shadow: 0 2px 16px rgba(185, 29, 149, 0.1);
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
   }
 
   .songsTitle {

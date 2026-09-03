@@ -134,7 +134,7 @@ const SviAlbumi: React.FC = () => {
                   <div className={styles.cardImageWrap}>
                     {a.putanjaSlika ? <img src={a.putanjaSlika} alt={a.naziv} className={styles.cardImage} /> : <div className={styles.cardImage} style={{ background: "#222" }} />}
                     <button className={styles.playButton} onClick={() => handlePlayAlbum(a.id)} title={t("play_album")} style={{ left: 50, position: "absolute", bottom: 10 }}>
-                      <svg width="34" height="34" viewBox="0 0 44 44" fill="#fff"><polygon points="12,8 36,22 12,36" /></svg>
+                      <svg width="34" height="34" viewBox="0 0 44 44" fill="#0b0a0aff"><polygon points="12,8 36,22 12,36" /></svg>
                     </button>
                   </div>
                   <Link to={`/album/${a.id}`} className={styles.cardLink}>

@@ -8,10 +8,10 @@
   flex-direction: column;
 }
 
-.playButton { position: absolute; bottom: 10px; right: 10px; background: #b91d95; border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
-.playButton:hover { background: #e754a2; transform: scale(1.08); }
+.playButton { position: absolute; bottom: 10px; right: 10px; background: #111111; color: #ffffff; border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: background 0.15s, transform 0.1s; z-index: 2; padding: 0; }
+.playButton:hover { background: #333333; transform: scale(1.08); }
 
-.searchInput { width: 100%; max-width: 340px; margin-bottom: 24px; padding: 10px 14px; border-radius: 8px; border: 1px solid #b91d95; background: #ffffff; color: #111; font-size: 1.08rem; box-shadow: 0 2px 8px rgba(185,29,149,0.12); }
+.searchInput { width: 100%; max-width: 340px; margin-bottom: 24px; padding: 10px 14px; border-radius: 8px; border: 1px solid #cccccc; background: #ffffff; color: #111; font-size: 1.08rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
 .container { max-width: 1200px; width: 100%; margin: 0 auto; padding: 32px 24px 50px 24px; background: #ffffff; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.06); }
 

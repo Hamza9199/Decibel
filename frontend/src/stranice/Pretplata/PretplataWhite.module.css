@@ -64,8 +64,8 @@
 
 .warning {
   color: #222;
-  background: #fde7ef;
-  border: 1px solid #f5c1d7;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
   border-radius: 6px;
   padding: 10px 14px;
   margin-bottom: 18px;
@@ -91,7 +91,7 @@
 
 .ponudaNaziv { font-size: 1.15rem; font-weight: 800; margin-bottom: 6px; color: #111; }
 .ponudaOpis { color: #555; font-size: 0.98rem; margin-bottom: 8px; }
-.ponudaCijena { color: #b91d95; font-size: 1.08rem; font-weight: 700; margin-bottom: 10px; }
+.ponudaCijena { color: #111111; font-size: 1.08rem; font-weight: 700; margin-bottom: 10px; }
 
 .kupovinaBox {
   background: #ffffff;
@@ -108,12 +108,12 @@
 
 .karticaForm { display: flex; flex-direction: column; gap: 12px; }
 .karticaForm label { color: #333; font-size: 1.08rem; font-weight: 700; margin-bottom: 2px; }
-.karticaForm input { background: #ffffff; color: #111; border: 1px solid #b91d95; border-radius: 8px; padding: 10px 12px; font-size: 1.08rem; margin-bottom: 8px; outline: none; box-shadow: 0 2px 8px rgba(185,29,149,0.12); }
+.karticaForm input { background: #ffffff; color: #111; border: 1px solid #111111; border-radius: 8px; padding: 10px 12px; font-size: 1.08rem; margin-bottom: 8px; outline: none; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
-.kupiBtn { width: 100%; background: #b91d95; color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.08rem; font-weight: 800; cursor: pointer; margin-top: 8px; transition: background 0.18s; }
-.kupiBtn:hover { background: #e754a2; }
+.kupiBtn { width: 100%; background: #111111; color: #fff; border: none; border-radius: 8px; padding: 12px 0; font-size: 1.08rem; font-weight: 800; cursor: pointer; margin-top: 8px; transition: background 0.18s; }
+.kupiBtn:hover { background: #333333; }
 
-.error { color: #a1224f; background: #fde7ef; border: 1px solid #f5c1d7; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
+.error { color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; padding: 8px 10px; margin-bottom: 4px; text-align: center; }
 
 @media (max-width: 600px) {
   .pretplataBg { padding-top: 60px; padding-bottom: 40px; }
@@ -154,7 +154,7 @@
   .karticaForm { gap: 8px; }
   .karticaForm label { font-size: 0.85rem; margin-bottom: 1px; }
   .karticaForm input { font-size: 0.85rem; padding: 8px 10px; margin-bottom: 4px; border-radius: 6px; }
-  .karticaForm input:focus { border: 1.5px solid #e754a2; }
+  .karticaForm input:focus { border: 1.5px solid #111111; }
   .kupiBtn { font-size: 0.9rem; padding: 10px 0; margin-top: 6px; border-radius: 6px; }
   .error { font-size: 0.8rem; padding: 6px 8px; margin-bottom: 6px; }
 }

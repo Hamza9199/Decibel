@@ -311,7 +311,7 @@ const NovaPretplata: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    🔒 {t("confirm_purchase") || "Potvrdi kupovinu"}
+                    {t("confirm_purchase") || "Potvrdi kupovinu"}
                   </>
                 )}
               </button>

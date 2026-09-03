@@ -154,6 +154,7 @@ android/
 android
 
 AGENTS.md
+CLAUDE.md
 .agents
 .agents/
 skills-lock.json

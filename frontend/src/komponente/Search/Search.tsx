@@ -121,13 +121,13 @@ const Search: React.FC = () => {
         )
       );
       const pjesme: Pjesma[] = (pjesmeRes.data || []).filter((p: Pjesma) =>
-        p.naziv?.toLowerCase().includes(debouncedQuery)
+        p.odobreno && p.naziv?.toLowerCase().includes(debouncedQuery)
       );
       const albumi: Album[] = (albumiRes.data || []).filter((a: Album) =>
-        a.naziv?.toLowerCase().includes(debouncedQuery)
+        a.odobreno && a.naziv?.toLowerCase().includes(debouncedQuery)
       );
       const playliste: Playlista[] = (playlisteRes.data || []).filter((pl: Playlista) =>
-        pl.naziv?.toLowerCase().includes(debouncedQuery)
+        pl.javno && pl.naziv?.toLowerCase().includes(debouncedQuery)
       );
       return { izvodjaci, pjesme, albumi, playliste };
     },

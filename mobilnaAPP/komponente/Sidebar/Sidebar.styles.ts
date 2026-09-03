@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
   logoText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffe6ec',
+    color: '#ffffff',
     letterSpacing: 2,
   },
   nav: {
@@ -70,7 +70,7 @@ export const styles = StyleSheet.create({
     color: '#888',
   },
   sectionTitle: {
-    color: '#b91d95',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 1,
@@ -116,13 +116,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
     marginTop: 20,
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#292929',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444444',
     marginBottom: 15,
   },
   logoutBtnText: {
-    color: '#ffb3c6',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 12,
@@ -134,7 +134,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
     marginTop: 20,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#333333',
     marginBottom: 15,
   },
   loginBtnText: {

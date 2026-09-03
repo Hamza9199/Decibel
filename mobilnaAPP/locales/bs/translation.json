@@ -454,7 +454,9 @@
   "genre_pop": "Popularna",
   "select_month_year": "Odaberi",
   "free_trial_activated": "Besplatna probna verzija je aktivirana",
-  "error_activating_free_trial": "Greška pri aktivaciji besplatne probne verzije"
+  "error_activating_free_trial": "Greška pri aktivaciji besplatne probne verzije",
+  "discover_new_music": "Otkrijte novu muziku",
+  "quick_picks": "Brzi izbori"
   
     
 }

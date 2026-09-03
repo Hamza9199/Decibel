@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     height: 65,
     backgroundColor: '#232323',
     borderTopWidth: 1,
-    borderTopColor: '#b91d95',
+    borderTopColor: '#333333',
     flexDirection: 'row',
     paddingBottom: 8,
     paddingTop: 7,
@@ -26,6 +26,6 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   tabBarLabelActive: {
-    color: '#b91d95',
+    color: '#ffffff',
   },
 });

@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -42,7 +42,7 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   label: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 6,
@@ -50,7 +50,7 @@ export const styles = StyleSheet.create({
   input: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
   textArea: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -72,7 +72,7 @@ export const styles = StyleSheet.create({
   picker: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     color: '#fff',
     fontSize: 16,
@@ -85,7 +85,7 @@ export const styles = StyleSheet.create({
     marginTop: 6,
   },
   checkboxLabel: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 12,
@@ -93,31 +93,31 @@ export const styles = StyleSheet.create({
   fileButton: {
     backgroundColor: '#232323',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     marginTop: 4,
   },
   fileButtonText: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '500',
   },
   selectedFileText: {
-    color: '#b91d95',
+    color: '#fff',
     fontSize: 12,
     marginTop: 4,
     fontStyle: 'italic',
   },
   errorContainer: {
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#3a1818',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffb3c6',
+    color: '#ffb3b3',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -133,19 +133,19 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   submitButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     marginTop: 16,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },
   submitButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -162,7 +162,7 @@ export const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
@@ -175,7 +175,7 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
   },
   artistTag: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#444',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -216,7 +216,7 @@ export const styles = StyleSheet.create({
     maxHeight: 200,
   },
   artistItem: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#444',
     borderRadius: 6,
     padding: 12,
     marginBottom: 8,
@@ -229,9 +229,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
- 
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {
@@ -240,7 +239,7 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   unauthorizedText: {
-    color: '#ffb3c6',
+    color: '#ffb3b3',
     fontSize: 16,
     textAlign: 'center',
     padding: 32,

@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 24,
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginRight: 12,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   spacer: {
     width: 40,
@@ -65,10 +65,10 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTab: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
   },
   tabText: {
-    color: '#7a1f5e',
+    color: '#666666',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -79,7 +79,7 @@ export const styles = StyleSheet.create({
   searchInput: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#ccc',
     borderRadius: 8,
     padding: 12,
     color: '#181818',
@@ -90,14 +90,14 @@ export const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    color: '#7a1f5e',
+    color: '#181818',
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 16,
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#181818',
   },
   itemCard: {
     backgroundColor: '#fafafa',
@@ -141,8 +141,8 @@ export const styles = StyleSheet.create({
     color: '#1e7a44',
   },
   unapprovedStatus: {
-    backgroundColor: '#fbdce9',
-    color: '#a3175f',
+    backgroundColor: '#ffe6e6',
+    color: '#ff4d4f',
   },
   actionButtons: {
     flexDirection: 'row',
@@ -161,10 +161,10 @@ export const styles = StyleSheet.create({
     backgroundColor: '#2ecc40',
   },
   approveButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
   },
   revokeButton: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#666666',
   },
   deleteButton: {
     backgroundColor: '#e53935',
@@ -195,13 +195,13 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
   errorContainer: {
-    backgroundColor: '#fbdce9',
+    backgroundColor: '#ffe6e6',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#a3175f',
+    color: '#ff4d4f',
     fontSize: 14,
     textAlign: 'center',
   },

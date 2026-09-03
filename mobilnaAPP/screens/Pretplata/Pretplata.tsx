@@ -277,7 +277,7 @@ title={t('subscription') || 'Subscription'} onBackPress={handleBackPress}
                 </Text>
               )}
               <Text style={styles.priceText}>
-                {t('price')}: <Text style={styles.boldText}>{subscriptionStatus.price} KM / {t('month')}</Text>
+                {t('price')}: <Text style={styles.boldText}>{subscriptionStatus.price}$ / {t('month')}</Text>
               </Text>
               {subscriptionStatus.expires && (
                 <Text style={styles.expiresText}>

@@ -40,9 +40,9 @@ export const styles = StyleSheet.create({
     padding: 26,
     width: width - 40,
     maxWidth: 400,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 8,
   },
@@ -69,7 +69,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -83,7 +83,7 @@ export const styles = StyleSheet.create({
   input: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 14,
     fontSize: 16,
@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   inputFocused: {
-    borderColor: '#e754a2',
+    borderColor: '#ffffff',
     borderWidth: 2,
   },
   passwordIconButton: {
@@ -100,13 +100,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorContainer: {
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#3a1212',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffb3c6',
+    color: '#ff4d4f',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -122,23 +122,23 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     marginBottom: 16,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },
   buttonPressed: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
     transform: [{ scale: 0.98 }],
   },
   buttonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -153,7 +153,7 @@ export const styles = StyleSheet.create({
     fontSize: 15,
   },
   link: {
-    color: '#e754a2',
+    color: '#ffffff',
     fontSize: 15,
     fontWeight: '600',
     marginLeft: 4,
@@ -161,9 +161,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
- 
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {

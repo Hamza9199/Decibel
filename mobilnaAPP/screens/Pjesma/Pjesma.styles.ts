@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -54,7 +54,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   playButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 32,
     width: 64,
     height: 64,
@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   likeButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 32,
     width: 64,
     height: 64,
@@ -81,10 +81,10 @@ export const styles = StyleSheet.create({
     elevation: 4,
   },
   likeButtonLiked: {
-    backgroundColor: '#f6b6d8',
+    backgroundColor: '#dddddd',
   },
   likeCount: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   metaLabel: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '500',
     marginRight: 8,
@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   artistsLabel: {
-    color: '#b91d95',
+    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
     marginRight: 12,
@@ -154,7 +154,7 @@ export const styles = StyleSheet.create({
     marginRight: 8,
   },
   artistName: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -167,7 +167,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#ffffff',
   },
   recommendedGrid: {
     flexDirection: 'row',
@@ -199,7 +199,7 @@ export const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     right: 4,
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 19,
     width: 38,
     height: 38,
@@ -227,7 +227,7 @@ export const styles = StyleSheet.create({
   commentInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 8,
     padding: 12,
     color: '#fff',
@@ -242,13 +242,13 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   commentButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },
   commentButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -264,9 +264,9 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
   commentItemOwn: {
-    backgroundColor: '#2a182a',
+    backgroundColor: '#282828',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
   },
   commentHeader: {
     flexDirection: 'row',
@@ -283,7 +283,7 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   commentUserName: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -300,7 +300,7 @@ export const styles = StyleSheet.create({
   commentEditInput: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderRadius: 6,
     padding: 10,
     color: '#fff',
@@ -314,32 +314,32 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   saveButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   saveButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 14,
     fontWeight: '600',
   },
   cancelButton: {
     backgroundColor: '#232323',
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 16,
     paddingVertical: 8,
   },
   cancelButtonText: {
-    color: '#ffe6ec',
+    color: '#aaa',
     fontSize: 14,
     fontWeight: '600',
   },
   editButton: {
     backgroundColor: '#232323',
-    borderColor: '#b91d95',
+    borderColor: '#444',
     borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 12,
@@ -347,7 +347,7 @@ export const styles = StyleSheet.create({
     marginTop: 8,
   },
   editButtonText: {
-    color: '#b91d95',
+    color: '#fff',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -360,7 +360,6 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-
     backgroundColor: '#181818',
     width: '100%',
   },
@@ -383,4 +382,3 @@ export const styles = StyleSheet.create({
     marginTop: 16,
   },
 });
- 

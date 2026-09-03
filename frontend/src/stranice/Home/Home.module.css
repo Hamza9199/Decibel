@@ -23,14 +23,15 @@
   background: #0d0d0d;
   color: #f3f3f3;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-x: hidden;
 }
 
 .container {
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  margin-left: 250px;
   padding: 0 40px 60px 40px;
+  box-sizing: border-box;
 }
 
 .topBar {

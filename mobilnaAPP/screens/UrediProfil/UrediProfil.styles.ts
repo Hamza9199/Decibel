@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 
-
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -20,9 +19,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.25,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -35,7 +34,7 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginRight: 12,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   spacer: {
     width: 40,
@@ -46,10 +45,9 @@ export const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     letterSpacing: 1,
-
   },
   subtitle: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 20,
     fontWeight: '600',
     marginBottom: 16,
@@ -60,7 +58,7 @@ export const styles = StyleSheet.create({
     gap: 18,
   },
   label: {
-    color: '#ffe6ec',
+    color: '#b3b3b3',
     fontSize: 16,
     fontWeight: '500',
     marginBottom: 8,
@@ -68,7 +66,7 @@ export const styles = StyleSheet.create({
   input: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#333333',
     borderRadius: 8,
     padding: 12,
     color: '#fff',
@@ -76,13 +74,13 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   inputFocused: {
-    borderColor: '#e754a2',
-    borderWidth: 2,
+    borderColor: '#ffffff',
+    borderWidth: 1.5,
   },
   textArea: {
     backgroundColor: '#181818',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#333333',
     borderRadius: 8,
     padding: 12,
     color: '#fff',
@@ -93,27 +91,27 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   button: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
   },
   buttonPressed: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#e0e0e0',
     transform: [{ scale: 0.98 }],
   },
   buttonDisabled: {
-    backgroundColor: '#666',
+    backgroundColor: '#444',
     opacity: 0.7,
   },
   buttonText: {
-    color: '#fff',
+    color: '#000000',
     fontSize: 18,
     fontWeight: '600',
   },
@@ -134,25 +132,25 @@ export const styles = StyleSheet.create({
   imageButton: {
     backgroundColor: '#232323',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#444444',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
     marginBottom: 12,
   },
   imageButtonText: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '500',
   },
   errorContainer: {
-    backgroundColor: '#3a0d2e',
+    backgroundColor: '#3a1818',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#ffb3c6',
+    color: '#ff8a8a',
     fontSize: 14,
     textAlign: 'center',
   },
@@ -169,9 +167,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-  
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {

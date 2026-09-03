@@ -145,6 +145,7 @@ const Search: React.FC = React.memo(() => {
 
       const filteredUsers = (korisniciceRes.data as Korisnik[])
         .filter(k =>
+          k.rola === 'izvodac' &&
           k.statusKorisnika !== 'suspendovan' &&
           (k.korisnicko_ime?.toLowerCase().includes(termLower) ||
             k.ime?.toLowerCase().includes(termLower) ||

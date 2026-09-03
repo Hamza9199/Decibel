@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 24,
@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     padding: 8,
     marginRight: 12,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   spacer: {
     width: 40,
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   inputFocused: {
-    borderColor: '#b91d95',
+    borderColor: '#181818',
     borderWidth: 2,
   },
   textArea: {
@@ -91,19 +91,19 @@ export const styles = StyleSheet.create({
     marginBottom: 18,
   },
   button: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#181818',
     borderRadius: 8,
     padding: 14,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#b91d95',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 4,
   },
   buttonPressed: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#333333',
     transform: [{ scale: 0.98 }],
   },
   buttonDisabled: {
@@ -132,7 +132,7 @@ export const styles = StyleSheet.create({
   imageButton: {
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#b91d95',
+    borderColor: '#181818',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -144,13 +144,13 @@ export const styles = StyleSheet.create({
     fontWeight: '500',
   },
   errorContainer: {
-    backgroundColor: '#ffe6ec',
+    backgroundColor: '#fce8e6',
     borderRadius: 6,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#b91d95',
+    color: '#c5221f',
     fontSize: 14,
     textAlign: 'center',
   },

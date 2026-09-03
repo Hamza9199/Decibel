@@ -293,47 +293,47 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AudioProvider>
           <StatusBar style="dark" />
-          <View style={{ flex: 1, position: 'relative' }}>
+            <View style={{ flex: 1, position: 'relative' }}>
             {blocked ? (
               <View style={{
-                position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-                backgroundColor: 'rgba(24,24,24,0.97)',
-                alignItems: 'center', justifyContent: 'center',
-                zIndex: 10000,
+              position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+              backgroundColor: 'rgba(24,24,24,0.97)',
+              alignItems: 'center', justifyContent: 'center',
+              zIndex: 10000,
               }}>
-                <View style={{ backgroundColor: '#232323', borderRadius: 18, padding: 24, width: '84%', maxWidth: 420, alignItems: 'center' }}>
-                  <Text style={{ color: '#e754a2', fontSize: 20, fontWeight: '700', marginBottom: 12 }}>
-                    {obrisan ? 'Vaš nalog je deaktiviran' : 'Vaš nalog je suspendovan'}
-                  </Text>
-                  {suspendInfo && !obrisan && (
-                    <>
-                      <Text style={{ color: '#fff', marginBottom: 8 }}>Razlog:</Text>
-                      <View style={{ backgroundColor: '#181818', borderRadius: 6, padding: 10, marginBottom: 12, width: '100%' }}>
-                        <Text style={{ color: '#ffe6ec' }}>{suspendInfo.poruka}</Text>
-                      </View>
-                      {!!suspendInfo.vrijemeDo && (
-                        <Text style={{ color: '#fff', marginBottom: 16 }}>
-                          Suspenzija traje do: <Text style={{ color: '#ffe6ec' }}>{new Date(suspendInfo.vrijemeDo).toLocaleString()}</Text>
-                        </Text>
-                      )}
-                    </>
-                  )}
-                  {obrisan && (
-                    <Text style={{ color: '#fff', marginBottom: 16, textAlign: 'center' }}>
-                      Vaš nalog je postavljen kao neaktivan. Ne možete koristiti aplikaciju dok ga ne reaktivirate.
-                    </Text>
-                  )}
-                  <View style={{ flexDirection: 'row', marginTop: 8 }}>
-                    {obrisan && (
-                      <TouchableOpacity onPress={handleReaktiviraj} style={{ backgroundColor: '#b91d95', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, marginRight: 10 }}>
-                        <Text style={{ color: '#fff', fontWeight: '700' }}>Reaktiviraj nalog</Text>
-                      </TouchableOpacity>
-                    )}
-                    <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: obrisan ? '#444' : '#b91d95', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
-                      <Text style={{ color: '#fff', fontWeight: '700' }}>Logout</Text>
-                    </TouchableOpacity>
+              <View style={{ backgroundColor: '#232323', borderRadius: 18, padding: 24, width: '84%', maxWidth: 420, alignItems: 'center' }}>
+                <Text style={{ color: '#ffffff', fontSize: 20, fontWeight: '700', marginBottom: 12 }}>
+                {obrisan ? 'Your account is deactivated' : 'Your account is suspended'}
+                </Text>
+                {suspendInfo && !obrisan && (
+                <>
+                  <Text style={{ color: '#fff', marginBottom: 8 }}>Reason:</Text>
+                  <View style={{ backgroundColor: '#181818', borderRadius: 6, padding: 10, marginBottom: 12, width: '100%' }}>
+                  <Text style={{ color: '#ffffff' }}>{suspendInfo.poruka}</Text>
                   </View>
+                  {!!suspendInfo.vrijemeDo && (
+                  <Text style={{ color: '#fff', marginBottom: 16 }}>
+                    Suspension lasts until: <Text style={{ color: '#ffffff' }}>{new Date(suspendInfo.vrijemeDo).toLocaleString()}</Text>
+                  </Text>
+                  )}
+                </>
+                )}
+                {obrisan && (
+                <Text style={{ color: '#fff', marginBottom: 16, textAlign: 'center' }}>
+                  Your account has been set as inactive. You cannot use the application until you reactivate it.
+                </Text>
+                )}
+                <View style={{ flexDirection: 'row', marginTop: 8 }}>
+                {obrisan && (
+                  <TouchableOpacity onPress={handleReaktiviraj} style={{ backgroundColor: '#333333', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, marginRight: 10 }}>
+                  <Text style={{ color: '#fff', fontWeight: '700' }}>Reactivate account</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={handleLogout} style={{ backgroundColor: '#333333', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8 }}>
+                  <Text style={{ color: '#fff', fontWeight: '700' }}>Logout</Text>
+                </TouchableOpacity>
                 </View>
+              </View>
               </View>
             ) : (
               <>

@@ -10,13 +10,13 @@ export const styles = StyleSheet.create({
     marginTop: 15,
     backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#b91d95',
+    borderBottomColor: '#e0e0e0',
     paddingTop: Platform.OS === 'ios' ? 50 : 16,
   },
   backButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(185, 29, 149, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
   },
   titleContainer: {
     flex: 1,

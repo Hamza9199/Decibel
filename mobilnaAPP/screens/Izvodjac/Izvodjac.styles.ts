@@ -21,9 +21,9 @@ export const styles = StyleSheet.create({
     backgroundColor: 'rgba(35, 35, 35, 0.97)',
     borderRadius: 18,
     padding: 24,
-    shadowColor: '#b91d95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.13,
+    shadowOpacity: 0.3,
     shadowRadius: 24,
     elevation: 8,
   },
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   metaItem: {
-    color: '#ffe6ec',
+    color: '#ffffff',
     fontSize: 14,
     fontWeight: '500',
   },
@@ -67,17 +67,17 @@ export const styles = StyleSheet.create({
     lineHeight: 20,
   },
   followButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 8,
     marginTop: 8,
   },
   followButtonFollowing: {
-    backgroundColor: '#e754a2',
+    backgroundColor: '#444444',
   },
   followButtonText: {
-    color: '#fff',
+    color: '#181818',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -92,7 +92,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 1,
     paddingLeft: 8,
     borderLeftWidth: 4,
-    borderLeftColor: '#b91d95',
+    borderLeftColor: '#ffffff',
   },
   noItems: {
     color: '#b3b3b3',
@@ -131,7 +131,7 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
   },
   actionButton: {
-    backgroundColor: '#b91d95',
+    backgroundColor: '#ffffff',
     borderRadius: 20,
     width: 40,
     height: 40,
@@ -143,9 +143,8 @@ export const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-
     backgroundColor: '#181818',
-     height: '100%',
+    height: '100%',
     width: '100%',
   },
   loadingText: {

@@ -62,7 +62,7 @@ const BouncingNote = ({
     <MaterialIcons
       name="music-note"
       size={32}
-      color="#ffb6c1"
+      color="#ffffff"
     />
   </Animated.View>
 );

@@ -294,6 +294,15 @@
   "details": "Details",
   "top_album": "Top Album",
   "trending_song": "Trending Song",
-  "recommended_playlist": "Recommended Playlist"
+  "recommended_playlist": "Recommended Playlist",
+  "not_found": "Page not found.",
+  "go_back": "Go back to home",
+  "privacy_policy": "Privacy Policy",
+  "privacy_policy_text": "Your privacy is important to us. Please read our privacy policy to learn how we collect, use, and protect your data.",
+  "terms_conditions": "Terms and Conditions",
+  "terms_conditions_text": "By using our app, you agree to our terms and conditions. Please read them carefully to understand your rights and obligations when using our platform.",
+  "cookie_text": "This site uses cookies to enhance your experience. By continuing to use the site, you agree to our use of cookies.",
+  "cookie_accept": "I accept",
+  "cookie_decline": "I decline"
 }
 

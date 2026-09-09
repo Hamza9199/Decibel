@@ -24,9 +24,6 @@ import Izvodjac from './stranice/Izvodjac/Izvodjac';
 import UrediPjesmu from './stranice/UrediPjesmu/UrediPjesmu';
 import UrediAlbum from './stranice/UrediAlbum/UrediAlbum';
 import UrediPlaylistu from './stranice/UrediPlaylistu/UrediPlaylistu';
-import Header from './komponente/Header/Header';
-import Footer from './komponente/Footer/Footer';
-import Sidebar from './komponente/Sidebar/Sidebar';
 import NovaPretplata from './stranice/NovaPretplata/NovaPretplata';
 import Historija from './stranice/Historija/Historija';
 import Omiljeno from './stranice/Omiljeno/Omiljeno';
@@ -35,6 +32,9 @@ import { useCallback } from 'react';
 import Zahtjevi from './stranice/Zahtjevi/Zahtjevi';
 import Download from './stranice/Download/Download';
 import DiscordLink from './stranice/DiscordLink/DiscordLink';
+import NotFound from './stranice/404/404';
+import PrivacyPolicy from './stranice/PrivacyPolicy/PrivacyPolicy';
+import TermsConditions from './stranice/TermsConditions/TermsConditions';
 import Offline from './stranice/Offline/Offline';
 import { useTranslation } from 'react-i18next';
 import { getApiBase } from './utils/apiBase';
@@ -388,15 +388,12 @@ const AppContent: FC = () => {
             <Route path="/offline" element={<Offline />} />
           )
         }
-        <Route path="/404" element={
-          <>
-            <Header/>
-            <Sidebar/>
-            <div>Stranica nije pronađena</div>
-            <Footer/>
-          </>
-        } 
-        />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-conditions" element={<TermsConditions />} />
+        <Route path="/sitemap.txt" element={<div style={{ padding: 40, color: '#fff', background: '#0d0d0d' }}>Sitemap</div>} />
+        <Route path="/robots.txt" element={<div style={{ padding: 40, color: '#fff', background: '#0d0d0d' }}>Robots</div>} />
+        <Route path="*" element={<NotFound />} />
       
 
 

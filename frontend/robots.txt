@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin-panel
+Disallow: /profile/edit
+Disallow: /add-song
+Disallow: /add-album
+Disallow: /add-playlist
+
+Sitemap: https://decibel.app/sitemap.txt

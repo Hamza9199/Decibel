@@ -22,7 +22,6 @@ const Tabs: React.FC<TabsProps> = ({ currentRoute }) => {
     const currentSegment = segments[segments.length - 1];
     if (currentSegment === 'search') return 'search';
     if (currentSegment === 'library') return 'library';
-    if (currentSegment === 'profile') return 'profile';
     return 'home';
   };
 

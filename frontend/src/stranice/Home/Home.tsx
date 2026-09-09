@@ -11,6 +11,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { playPreview } from "../../utils/playPreview";
 import { getApiBase } from "../../utils/apiBase";
 import "../../assets/logo.css";
+import CookieConsent from '../../komponente/CookieConsent/CookieConsent';
 import { getMediaUrl } from "../../utils/mediaUrl";
 
 type Styles = Record<string, string>;
@@ -442,6 +443,7 @@ const Home: React.FC = () => {
 
   return (
     <>
+      <CookieConsent />
       <Header />
       <Sidebar />
       

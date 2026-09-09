@@ -27,6 +27,10 @@ const Postavke: React.FC = () => {
 
 const navigate = useNavigate();
 
+  const handleNavigate = useCallback((path: string) => {
+    setTimeout(() => navigate(path), 10);
+  }, [navigate]);
+
   useEffect(() => {
     const loadThemeStyles = async (theme?: string) => {
       const current = theme || localStorage.getItem("decibel_tema") || "dark";
@@ -232,12 +236,12 @@ const navigate = useNavigate();
             </button>
 
             <div className={styles.label} style={{ marginTop: 8 }}>
-              <a href="/privacy-policy" className={styles.link} style={{ color: "#1e90ff" }}>
+              <a onClick={() => handleNavigate("/privacy-policy")} className={styles.link} style={{ color: "#1e90ff" }}>
                 {t("privacy_policy") || "Politika privatnosti"}
               </a>
             </div>
             <div className={styles.label}>
-              <a href="/terms-conditions" className={styles.link} style={{ color: "#1e90ff" }}>
+              <a onClick={() => handleNavigate("/terms-conditions")} className={styles.link} style={{ color: "#1e90ff" }}>
                 {t("terms_conditions") || "Uslovi korištenja"}
               </a>
             </div>

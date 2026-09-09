@@ -299,5 +299,14 @@
   "details": "Details",
   "top_album": "Top-Album",
   "trending_song": "Beliebtes Lied",
-  "recommended_playlist": "Empfohlene Playlist"
+  "recommended_playlist": "Empfohlene Playlist",
+  "not_found": "Seite nicht gefunden.",
+  "go_back": "Zurück zur Startseite",
+  "privacy_policy": "Datenschutzrichtlinie",
+  "privacy_policy_text": "Ihre Privatsphäre ist uns wichtig. Lesen Sie unsere Datenschutzrichtlinie, um zu erfahren, wie wir Ihre Daten sammeln, verwenden und schützen.",
+  "terms_conditions": "Nutzungsbedingungen",
+  "terms_conditions_text": "Durch die Nutzung unserer App stimmen Sie unseren Nutzungsbedingungen zu. Bitte lesen Sie diese sorgfältig durch, um Ihre Rechte und Pflichten bei der Nutzung unserer Plattform zu verstehen.",
+  "cookie_text": "Diese Website verwendet Cookies, um Ihr Erlebnis zu verbessern. Durch die weitere Nutzung der Website stimmen Sie unserer Verwendung von Cookies zu.",
+  "cookie_accept": "Akzeptieren",
+  "cookie_decline": "Ablehnen"
 }

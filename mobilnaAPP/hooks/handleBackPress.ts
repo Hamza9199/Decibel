@@ -54,6 +54,8 @@ export const ROUTE_MAPPING: { [key: string]: string } = {
   'login': 'login',
   'register': 'register',
   'zahtjevi': 'zahtjevi',
+  'terms': 'terms',
+  'privacypolicy': 'privacypolicy',
 };
 
 export const getRoutePathFromSource = (source?: string): string | undefined => {
@@ -83,7 +85,7 @@ const isConcreteRoute = (route?: string): boolean => {
   if (route === '/pjesma' || route === '/album' || route === '/playlista' || route === '/izvodjac' || route === '/pjesme' || route === '/artist') return false;
   if (route === '/(tabs)' || route === '/(tabs)/home' || route === '/(tabs)/library' || route === '/(tabs)/search') return true;
   if (/^\/(pjesma|album|playlista|izvodjac|nova-pretplata|uredi-pjesmu|uredi-album|uredi-playlistu)\/[^/]+$/.test(route)) return true;
-  if (/^\/(history|statistika|edit-profile|settings|pretplata|admin-panel|offline|svi-korisnici|svi-albumi|sve-playliste|nova-pjesma|novi-album|nova-playlista|svepjesme|login|register|zahtjevi)$/.test(route)) return true;
+  if (/^\/(history|statistika|edit-profile|settings|pretplata|admin-panel|offline|svi-korisnici|svi-albumi|sve-playliste|nova-pjesma|novi-album|nova-playlista|svepjesme|login|register|zahtjevi|terms|privacypolicy)$/.test(route)) return true;
   return false;
 };
 

@@ -431,6 +431,11 @@
   "free_trial_activated": "Free trial has been activated",
   "error_activating_free_trial": "Error activating free trial",
   "discover_new_music": "Discover new music",
-  "quick_picks": "Quick Picks"
+  "quick_picks": "Quick Picks",
+  "open": "Open",
+  "terms_conditions": "Terms and Conditions",
+  "terms_conditions_text": "This section contains the terms and conditions for using the Decibel application.",
+  "privacy_policy": "Privacy Policy",
+  "privacy_policy_text": "This section explains how the Decibel application collects, uses, and protects your data."
 }
 

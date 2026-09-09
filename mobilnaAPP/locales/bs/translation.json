@@ -456,7 +456,12 @@
   "free_trial_activated": "Besplatna probna verzija je aktivirana",
   "error_activating_free_trial": "Greška pri aktivaciji besplatne probne verzije",
   "discover_new_music": "Otkrijte novu muziku",
-  "quick_picks": "Brzi izbori"
+  "quick_picks": "Brzi izbori",
+  "open": "Otvori",
+  "terms_conditions": "Uslovi korištenja",
+  "terms_conditions_text": "Ovdje se nalaze uslovi korištenja aplikacije Decibel.",
+  "privacy_policy": "Politika privatnosti",
+  "privacy_policy_text": "Ovdje se nalaze informacije o načinu na koji aplikacija Decibel prikuplja, koristi i štiti vaše podatke."
   
     
 }

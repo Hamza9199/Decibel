@@ -294,6 +294,24 @@ const Postavke: React.FC = React.memo(() => {
               </TouchableOpacity>
             </View>
           </View>
+
+          <View style={styles.section}>
+            <View style={styles.linkSection}>
+              <Text style={styles.label}>{t('terms_conditions')}</Text>
+              <TouchableOpacity style={styles.linkButton} onPress={() => router.push('/terms' as any)}>
+                <Text style={styles.linkText}>{t('open')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.linkSection}>
+              <Text style={styles.label}>{t('privacy_policy')}</Text>
+              <TouchableOpacity style={styles.linkButton} onPress={() => router.push('/privacypolicy' as any)}>
+                <Text style={styles.linkText}>{t('open')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
 
         <Tabs currentRoute="settings" />

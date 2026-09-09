@@ -305,5 +305,14 @@
   "details": "Detalji",
   "top_album": "Top Album",
   "trending_song": "Popularna pjesma",
-  "recommended_playlist": "Preporučena playlista"
+  "recommended_playlist": "Preporučena playlista",
+  "not_found": "Stranica nije pronađena.",
+  "go_back": "Vrati se nazad",
+  "privacy_policy": "Politika privatnosti",
+  "privacy_policy_text": "Vaša privatnost nam je važna. Pročitajte našu politiku privatnosti kako biste saznali kako prikupljamo, koristimo i štitimo vaše podatke.",
+  "terms_conditions": "Uslovi korištenja",
+  "terms_conditions_text": "Korištenjem naše aplikacije pristajete na naše uslove korištenja. Molimo vas da ih pažljivo pročitate kako biste razumjeli svoja prava i obaveze prilikom korištenja naše platforme.",
+  "cookie_text": "Ova stranica koristi kolačiće kako bi poboljšala vaše iskustvo. Nastavljanjem korištenja stranice pristajete na našu upotrebu kolačića.",
+  "cookie_accept": "Prihvatam",
+  "cookie_decline": "Odbijam"
 }

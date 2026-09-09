@@ -1,0 +1,20 @@
+.privacyPolicy {
+  padding: 40px;
+  color: #fff;
+  background: #0d0d0d;
+  min-height: 100vh;
+    margin-top: 50px;
+
+}
+
+.privacyPolicy h1 {
+  font-size: 2.5rem;
+  margin-bottom: 24px;
+  color: #ffffff;
+}
+
+.privacyPolicy p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #e0e0e0;
+}

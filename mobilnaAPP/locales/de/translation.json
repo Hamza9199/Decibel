@@ -426,7 +426,12 @@
   "free_trial_activated": "Kostenlose Testversion aktiviert",
   "error_activating_free_trial": "Fehler beim Aktivieren der kostenlosen Testversion",
   "discover_new_music": "Entdecke neue Musik",
-  "quick_picks": "Schnellauswahl"
+  "quick_picks": "Schnellauswahl",
+  "open": "Öffnen",
+  "terms_conditions": "Nutzungsbedingungen",
+  "terms_conditions_text": "Hier finden Sie die Nutzungsbedingungen für die Decibel-Anwendung.",
+  "privacy_policy": "Datenschutzerklärung",
+  "privacy_policy_text": "Hier erfahren Sie, wie die Decibel-Anwendung Ihre Daten sammelt, verwendet und schützt."
 
 
 }

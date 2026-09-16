@@ -391,8 +391,8 @@ const AppContent: FC = () => {
         <Route path="/404" element={<NotFound />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-conditions" element={<TermsConditions />} />
-        <Route path="/sitemap.txt" element={<div style={{ padding: 40, color: '#fff', background: '#0d0d0d' }}>Sitemap</div>} />
-        <Route path="/robots.txt" element={<div style={{ padding: 40, color: '#fff', background: '#0d0d0d' }}>Robots</div>} />
+        <Route path="/sitemap.txt"  />
+        <Route path="/robots.txt" />
         <Route path="*" element={<NotFound />} />
       
 

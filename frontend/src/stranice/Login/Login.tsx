@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
+import { Helmet } from 'react-helmet';
 import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
@@ -87,6 +88,15 @@ const Login: React.FC = () => {
 
   return (
     <div className={styles.loginBg}>
+      <Helmet>
+        <title>Login — Decibel</title>
+        <meta name="description" content="Log in to Decibel — multiplatform streaming service." />
+        <meta property="og:title" content="Login — Decibel" />
+        <meta property="og:description" content="Log in to Decibel — multiplatform streaming service." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://decibel.app/login" />
+        <meta property="og:image" content="https://decibel.app/logo.gif" />
+      </Helmet>
       {loginMut.isPending ? (
         <Loading />
       ) : (

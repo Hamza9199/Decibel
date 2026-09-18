@@ -12,6 +12,7 @@ import { playPreview } from "../../utils/playPreview";
 import { getApiBase } from "../../utils/apiBase";
 import "../../assets/logo.css";
 import CookieConsent from '../../komponente/CookieConsent/CookieConsent';
+import {Helmet} from "react-helmet"
 import { getMediaUrl } from "../../utils/mediaUrl";
 
 type Styles = Record<string, string>;
@@ -443,6 +444,15 @@ const Home: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>Decibel</title>
+        <meta name="description" content="Decibel — multiplatform streaming service. Discover songs, albums, playlists and artists." />
+        <meta property="og:title" content="Decibel — Music Streaming" />
+        <meta property="og:description" content="Discover songs, albums, playlists and artists on Decibel." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://decibel.app/" />
+        <meta property="og:image" content="https://decibel.app/logo.gif" />
+      </Helmet>
       <CookieConsent />
       <Header />
       <Sidebar />

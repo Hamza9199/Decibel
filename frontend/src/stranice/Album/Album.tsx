@@ -10,6 +10,7 @@ import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { playPreview } from "../../utils/playPreview";
+import { Helmet } from 'react-helmet';
 import { getApiBase } from "../../utils/apiBase";
 //import { queryClient as qc } from '../../config/queryClient';
 
@@ -334,6 +335,15 @@ const Album: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{album?.naziv ? `${album.naziv} — Album | Decibel` : 'Album | Decibel'}</title>
+        <meta name="description" content={album?.opis || `Album ${album?.naziv || ''} on Decibel.`} />
+        <meta property="og:title" content={`${album?.naziv || 'Album'} — Decibel`} />
+        <meta property="og:description" content={album?.opis || `Listen to ${album?.naziv || 'this album'} on Decibel.`} />
+        <meta property="og:type" content="music.album" />
+        <meta property="og:url" content={`https://decibel.app/album/${albumId}`} />
+        <meta property="og:image" content={album?.putanjaSlika || 'https://decibel.app/logo.gif'} />
+      </Helmet>
       <Header />
       <Sidebar />
       <div className={styles.albumBg}>

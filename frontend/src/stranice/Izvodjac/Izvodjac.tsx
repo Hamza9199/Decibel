@@ -10,6 +10,7 @@ import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { playPreview } from "../../utils/playPreview";
+import { Helmet } from 'react-helmet';
 import { getApiBase } from "../../utils/apiBase";
 //import { queryClient as qc } from '../../config/queryClient';
 
@@ -298,6 +299,15 @@ const Izvodjac: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{izvodjac?.korisnicko_ime ? `${izvodjac.korisnicko_ime} — Artist | Decibel` : 'Artist | Decibel'}</title>
+        <meta name="description" content={izvodjac?.bio || `Artist ${izvodjac?.korisnicko_ime || ''} on Decibel.`} />
+        <meta property="og:title" content={`${izvodjac?.korisnicko_ime || 'Artist'} — Decibel`} />
+        <meta property="og:description" content={izvodjac?.bio || `Discover ${izvodjac?.korisnicko_ime || 'this artist'} on Decibel.`} />
+        <meta property="og:type" content="profile" />
+        <meta property="og:url" content={`https://decibel.app/izvodjac/${izvodjacId}`} />
+        <meta property="og:image" content={izvodjac?.putanjaProfilneSlike || 'https://decibel.app/logo.gif'} />
+      </Helmet>
       <Header />
       <Sidebar />
       <div className={styles.izvodjacBg}>

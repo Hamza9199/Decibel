@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Loading from "../../komponente/Loading/Loading";
 import { useTranslation } from "react-i18next";
 import { useMutation } from "@tanstack/react-query";
+import { Helmet } from 'react-helmet';
 import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
@@ -94,8 +95,16 @@ const Register: React.FC = () => {
   const loading = registerMut.isPending;
 
   return (
-  
     <div className={styles.registerBg}>
+      <Helmet>
+        <title>Register — Decibel</title>
+        <meta name="description" content="Create an account on Decibel — multiplatform streaming service." />
+        <meta property="og:title" content="Register — Decibel" />
+        <meta property="og:description" content="Create an account on Decibel — multiplatform streaming service." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://decibel.app/register" />
+        <meta property="og:image" content="https://decibel.app/logo.gif" />
+      </Helmet>
 
       {loading ? (
         <Loading />

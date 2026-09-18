@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
 import { playPreview } from "../../utils/playPreview";
+import { Helmet } from 'react-helmet';
 import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
@@ -391,6 +392,15 @@ const Playlista: React.FC = () => {
 
   return (
     <>
+      <Helmet>
+        <title>{playlista?.naziv ? `${playlista.naziv} — Playlist | Decibel` : 'Playlist | Decibel'}</title>
+        <meta name="description" content={`Playlist ${playlista?.naziv || ''} on Decibel.`} />
+        <meta property="og:title" content={`${playlista?.naziv || 'Playlist'} — Decibel`} />
+        <meta property="og:description" content={`Listen to playlist ${playlista?.naziv || ''} on Decibel.`} />
+        <meta property="og:type" content="music.playlist" />
+        <meta property="og:url" content={`https://decibel.app/playlista/${playlistaId}`} />
+        <meta property="og:image" content={playlista?.putanjaSlika || 'https://decibel.app/logo.gif'} />
+      </Helmet>
       <Header />
       <Sidebar />
       <div className={styles.playlistaBg}>

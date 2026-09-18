@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient as qc } from '../../config/queryClient';
 import { playPreview } from "../../utils/playPreview";
+import { Helmet } from 'react-helmet';
 import { getApiBase } from "../../utils/apiBase";
 
 type Styles = Record<string, string>;
@@ -371,6 +372,15 @@ const handleLajk = () => {
   
   return (
     <>
+      <Helmet>
+        <title>{pjesma?.naziv ? `${pjesma.naziv} — Song | Decibel` : 'Song | Decibel'}</title>
+        <meta name="description" content={pjesma?.opis || `Song ${pjesma?.naziv || ''} on Decibel.`} />
+        <meta property="og:title" content={`${pjesma?.naziv || 'Song'} — Decibel`} />
+        <meta property="og:description" content={pjesma?.opis || `Listen to ${pjesma?.naziv || 'this song'} on Decibel.`} />
+        <meta property="og:type" content="music.song" />
+        <meta property="og:url" content={`https://decibel.app/pjesma/${pjesmaId}`} />
+        <meta property="og:image" content={pjesma?.putanjaSlika || 'https://decibel.app/logo.gif'} />
+      </Helmet>
       <Header />
       <Sidebar />
       <div className={styles.pjesmaBg}>

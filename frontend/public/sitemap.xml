@@ -1,10 +1,43 @@
-https://decibel.app/
-https://decibel.app/login
-https://decibel.app/register
-https://decibel.app/songs
-https://decibel.app/albums
-https://decibel.app/playlists
-https://decibel.app/artists
-https://decibel.app/profile/settings
-https://decibel.app/privacy-policy
-https://decibel.app/terms-conditions
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://www.decibel.click/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/pjesma/40</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/album/13</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/playlista/5</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/izvodjac/4c79bf23-4aab-4ec6-81b5-defbbe571f53</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/download</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/privacy-policy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://www.decibel.click/terms-conditions</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+</urlset>

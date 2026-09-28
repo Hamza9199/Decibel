@@ -6,4 +6,4 @@ Disallow: /add-song
 Disallow: /add-album
 Disallow: /add-playlist
 
-Sitemap: https://decibel.app/sitemap.txt
+Sitemap: https://www.decibel.click/sitemap.xml

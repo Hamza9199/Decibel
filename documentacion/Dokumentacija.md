@@ -1,125 +1,125 @@
-# Dokumentacija projekta Decibel
+# Decibel Project Documentation
 
-## Sadržaj
+## Table of Contents
 
-1. [Uvod](#uvod)
-   - [Brzi start (lokalni razvoj)](#brzi-start-lokalni-razvoj)
-1.1. [Glavni moduli — brz pregled](#glavni-moduli--brz-pregled)
+1. [Introduction](#1-introduction)
+   - [Quick start (local development)](#quick-start-local-development)
+1.1. [Main modules — quick overview](#main-modules--quick-overview)
 1.2. [Discord Bot](#discord-bot)
 1.3. [Desktop](#desktop)
-2. [Arhitektura](#arhitektura)
-   - [API verzionisanje i deprecijacija](#api-verzionisanje-i-deprecijacija)
-   - [Tok zahtjeva i observability](#tok-zahtjeva-i-observability)
-   - [Cross-cutting: middleware, validacija i standardni odgovori](#cross-cutting-middleware-validacija-i-standardni-odgovori)
-3. [Backend](#backend)
-   - [Tehnologije](#tehnologije-backenda)
-   - [Struktura direktorijuma](#struktura-direktorijuma-backend)
-   - [Konvencije i standardi](#konvencije-i-standardi-backend)
-   - [Modeli](#modeli)
-   - [Standardi API-ja](#standardi-api-ja)
-   - [Rute](#rute)
-   - [Kontroleri](#kontroleri)
-   - [Streaming, keširanje i CDN](#streaming-kesiranje-i-cdn)
-   - [Upload i obrada medija](#upload-i-obrada-medija)
-   - [Baza podataka](#baza-podataka)
+2. [Architecture](#2-architecture)
+   - [API versioning and deprecation](#api-versioning-and-deprecation)
+   - [Request flow and observability](#request-flow-and-observability)
+   - [Cross-cutting: middleware, validation and standard responses](#cross-cutting-middleware-validation-and-standard-responses)
+3. [Backend](#3-backend)
+   - [Backend technologies](#backend-technologies)
+   - [Directory structure (backend)](#directory-structure-backend)
+   - [Conventions and standards (backend)](#conventions-and-standards-backend)
+   - [Models](#models)
+   - [API standards](#api-standards)
+   - [Routes](#routes)
+   - [Controllers](#controllers)
+   - [Streaming, caching and CDN](#streaming-caching-and-cdn)
+   - [Upload and media processing](#upload-and-media-processing)
+   - [Database](#database)
    - [Firebase Storage](#firebase-storage)
-   - [Pokretanje i razvoj](#pokretanje-i-razvoj)
-   - [Docker](#docker-backend)
-   - [Deploy](#deploy-backend)
-   - [Sigurnost i autentikacija](#sigurnost-i-autentikacija)
-   - [Logovanje i metrike](#logovanje-i-metrike)
-   - [Background poslovi](#background-poslovi)
-   - [Testiranje](#testiranje-backenda)
-   - [Primjeri API poziva](#primjeri-api-poziva)
-   - [Napredne funkcionalnosti](#napredne-funkcionalnosti)
-   - [Noviteti](#noviteti)
-4. [Frontend](#frontend)
-   - [Tehnologije](#tehnologije-frontenda)
-   - [Struktura direktorijuma](#struktura-direktorijuma-frontend)
-   - [Arhitekturni principi](#arhitekturni-principi-frontend)
-   - [Konvencije i standardi](#konvencije-i-standardi-frontend)
-   - [Konfiguracija i build](#konfiguracija-i-build-frontend)
-   - [Prikaz podataka i audio player](#prikaz-podataka-i-audio-player)
-   - [Performanse i PWA](#performanse-i-pwa)
-   - [Deploy](#deploy-frontend)
-   - [Testiranje](#testiranje-frontenda)
-   - [Napredne funkcionalnosti](#napredne-funkcionalnosti-frontend)
-   - [Noviteti](#noviteti-frontend)
-5. [Mobilna aplikacija](#mobilna-aplikacija)
-   - [Tehnologije](#tehnologije-mobilne-aplikacije)
-   - [Struktura direktorijuma](#struktura-direktorijuma-mobilna)
-   - [Konvencije i standardi](#konvencije-i-standardi-mobilna)
-   - [Konfiguracija i build](#konfiguracija-i-build-mobilna)
-   - [React Native komponente](#react-native-komponente)
-   - [Audio player](#audio-player-mobilna)
-   - [Offline režim](#offline-rezim-mobilna)
-   - [Push, background i deep linkovi](#push-background-i-deep-linkovi)
-   - [Dozvole](#dozvole)
-   - [Testiranje](#testiranje-mobilne-aplikacije)
-   - [Distribucija APK](#distribucija-apk)
-   - [Noviteti](#noviteti-mobilna)
-6. [Dodatno](#dodatno)
-   - [CORS i sigurnost](#cors-i-sigurnost)
-   - [Okruženja i konfiguracija](#okruzenja-i-konfiguracija)
+   - [Running and development](#running-and-development)
+   - [Docker (backend)](#docker-backend)
+   - [Deploy (backend)](#deploy-backend)
+   - [Security and authentication](#security-and-authentication)
+   - [Logging and metrics](#logging-and-metrics)
+   - [Background jobs](#background-jobs)
+   - [Testing (backend)](#testing-backend)
+   - [API call examples](#api-call-examples)
+   - [Advanced features](#advanced-features)
+   - [What's new](#whats-new)
+4. [Frontend](#4-frontend)
+   - [Frontend technologies](#frontend-technologies)
+   - [Directory structure (frontend)](#directory-structure-frontend)
+   - [Architectural principles (frontend)](#architectural-principles-frontend)
+   - [Conventions and standards (frontend)](#conventions-and-standards-frontend)
+   - [Configuration and build (frontend)](#configuration-and-build-frontend)
+   - [Data display and audio player](#data-display-and-audio-player)
+   - [Performance and PWA](#performance-and-pwa)
+   - [Deploy (frontend)](#deploy-frontend)
+   - [Testing (frontend)](#testing-frontend)
+   - [Advanced features (frontend)](#advanced-features-frontend)
+   - [What's new (frontend)](#whats-new-frontend)
+5. [Mobile application](#5-mobile-application)
+   - [Mobile application technologies](#mobile-application-technologies)
+   - [Directory structure (mobile)](#directory-structure-mobile)
+   - [Conventions and standards (mobile)](#conventions-and-standards-mobile)
+   - [Configuration and build (mobile)](#configuration-and-build-mobile)
+   - [React Native components](#react-native-components)
+   - [Audio player (mobile)](#audio-player-mobile)
+   - [Offline mode (mobile)](#offline-mode-mobile)
+   - [Push, background and deep links](#push-background-and-deep-links)
+   - [Permissions](#permissions)
+   - [Testing the mobile application](#testing-the-mobile-application)
+   - [APK distribution](#apk-distribution)
+   - [What's new (mobile)](#whats-new-mobile)
+6. [Additional](#6-additional)
+   - [CORS and security](#cors-and-security)
+   - [Environments and configuration](#environments-and-configuration)
    - [CI/CD](#ci-cd)
-   - [Monitoring i logovanje](#monitoring-i-logovanje)
-   - [SEO i PWA](#seo-i-pwa)
-   - [Pravila i migracije baze](#pravila-i-migracije-baze)
-   - [Pravila za komentare, historiju i pretplate](#pravila-za-komentare-historiju-i-pretplate)
-   - [Automatizacija i AI](#automatizacija-i-ai)
-   - [Politika verzionisanja i deprecijacije](#politika-verzionisanja-i-deprecijacije)
-   - [Privatnost i zaštita podataka](#privatnost-i-zastita-podataka)
-   - [Stil i konvencije](#stil-i-konvencije)
-7. [Appendix](#appendix)
-   - [Matrica okruženja](#matrica-okruzenja)
-   - [Katalog grešaka](#katalog-gresaka)
-   - [Mapiranje API ruta](#mapiranje-api-ruta)
-   - [Referenca .env varijabli (sažeto)](#referenca-env-varijabli-sazeto)
-   - [Primjeri sigurnosnih zaglavlja](#primjeri-sigurnosnih-zaglavlja)
-8. [Troubleshooting](#troubleshooting)
-9. [Reference](#reference)
-10. [Changelog](#changelog)
-11. [FAQ](#faq)
-12. [Tehnički, fajl-po-fajl pregled](#12-tehnički-fajl-po-fajl-pregled-detaljno)
-13. [Fronted file level](#13-frontend--file-level-reference)
-14. [Mobilna aplikacija file level](#14-mobilna-aplikacija--file-level-reference-detaljno)
+   - [Monitoring and logging](#monitoring-and-logging)
+   - [SEO and PWA](#seo-and-pwa)
+   - [Database rules and migrations](#database-rules-and-migrations)
+   - [Rules for comments, history and subscriptions](#rules-for-comments-history-and-subscriptions)
+   - [Automation and AI](#automation-and-ai)
+   - [Versioning and deprecation policy](#versioning-and-deprecation-policy)
+   - [Privacy and data protection](#privacy-and-data-protection)
+   - [Style and conventions](#style-and-conventions)
+7. [Appendix](#7-appendix)
+   - [Environment matrix](#environment-matrix)
+   - [Error catalog](#error-catalog)
+   - [API route mapping](#api-route-mapping)
+   - [.env variable reference (summary)](#env-variable-reference-summary)
+   - [Security header examples](#security-header-examples)
+8. [Troubleshooting](#8-troubleshooting)
+9. [References](#9-references)
+10. [Changelog](#10-changelog)
+11. [FAQ](#11-faq)
+12. [Technical, file-by-file overview](#12-technical-file-by-file-overview-detailed)
+13. [Frontend file level](#13-frontend--file-level-reference)
+14. [Mobile application file level](#14-mobile-application--file-level-reference-detailed)
 
 
 
 
-## 1. Uvod
+## 1. Introduction
 
-Decibel je moderna muzička platforma (web + mobilna aplikacija) za upravljanje, prikaz i slušanje pjesama, albuma, plejlista i korisnika. Projekat koristi moderne tehnologije za backend (FastAPI), frontend (React + Vite) i mobilnu aplikaciju (React Native + Expo). 
+Decibel is a modern music platform (web + mobile application) for managing, displaying and listening to songs, albums, playlists and users. The project uses modern technologies for the backend (FastAPI), frontend (React + Vite) and mobile application (React Native + Expo).
 
-Najvažnije mogućnosti:
-- Offline režim (mobilna), napredna pretraga, historija slušanja sa unique constraintom
-- Napredni filteri/sort, paginacija i lazy loading
-- Notifikacije (push/email), suspendovanje korisnika, prijava izvođača
-- Statistika (grafovi, top liste), automatska obnova pretplate
-- Napredni audio player (web & mobilni) sa background play
-- Komentari sa uređivanjem, globalni state, centralizovana konfiguracija
-- CI/CD, i18n (BS/EN/DE), Dark/Light tema, QR kodovi, Firebase Storage, backup baze
+Key features:
+- Offline mode (mobile), advanced search, listening history with a unique constraint
+- Advanced filters/sorting, pagination and lazy loading
+- Notifications (push/email), user suspension, artist application
+- Statistics (charts, top lists), automatic subscription renewal
+- Advanced audio player (web & mobile) with background play
+- Comments with editing, global state, centralized configuration
+- CI/CD, i18n (BS/EN/DE), Dark/Light theme, QR codes, Firebase Storage, database backup
 
-### Brzi start (lokalni razvoj)
+### Quick start (local development)
 
 - Backend
   - `cd backend && pip install -r requirements.txt`
-  - U .env postaviti DATABASE_URL_ASYNC i DATABASE_URL_SYNC; pokrenuti: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`
+  - Set DATABASE_URL_ASYNC and DATABASE_URL_SYNC in .env; run: `uvicorn main:app --reload --host 0.0.0.0 --port 8000`
 - Frontend (Vite)
   - `cd frontend && npm i && echo VITE_API_URL=http://localhost:8000 >> .env && npm run dev`
-- Mobilna (Expo)
+- Mobile (Expo)
   - `cd mobilnaAPP && npm i && echo EXPO_PUBLIC_API_URL=http://localhost:8000 >> .env && npx expo start`
-- Preporuka: pokrenuti backend prije klijentskih aplikacija; provjeriti Swagger na http://localhost:8000/docs
+- Recommendation: start the backend before the client applications; check Swagger at http://localhost:8000/docs
 
 
-### Glavni moduli — brz pregled
+### Main modules — quick overview
 
-Ovaj odjeljak pruža odmah upotrebljiv, ne-teorijski sažetak gdje pronaći i kako pokrenuti glavne module projekta: Backend, Frontend, Mobilna aplikacija, Desktop i Discord Bot. 
+This section provides an immediately usable, non-theoretical summary of where to find and how to run the project's main modules: Backend, Frontend, Mobile application, Desktop and Discord Bot.
 
 - Backend
-  - Putanja: `backend/`
-  - Svrha: REST API, poslovna logika, baza podataka, file upload, background poslovi.
-  - Pokretanje (lokalno):
+  - Path: `backend/`
+  - Purpose: REST API, business logic, database, file upload, background jobs.
+  - Running (locally):
 ```powershell
 cd backend
 pip install -r requirements.txt
@@ -128,19 +128,19 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
   - Swagger: `http://localhost:8000/docs`
 
 - Frontend (web)
-  - Putanja: `frontend/`
-  - Svrha: korisničko sučelje za pregled i reprodukciju muzike, upravljanje korisnicima i admin funkcije.
-  - Pokretanje (lokalno):
+  - Path: `frontend/`
+  - Purpose: user interface for browsing and playing music, user management and admin functions.
+  - Running (locally):
 ```powershell
 cd frontend
 npm ci
 npm run dev
 ```
 
-- Mobilna aplikacija
-  - Putanja: `mobilnaAPP/`
-  - Svrha: Expo React Native aplikacija za korisnike (offline, background play, push).
-  - Pokretanje (lokalno):
+- Mobile application
+  - Path: `mobilnaAPP/`
+  - Purpose: Expo React Native application for users (offline, background play, push).
+  - Running (locally):
 ```powershell
 cd mobilnaAPP
 npm ci
@@ -148,15 +148,15 @@ npx expo start
 ```
 
 - Desktop
-  - Putanja: `desktop/`
-  - Svrha: Electron-based desktop client (zajednički API sa web/mobile).
-  - Pokretanje (lokalno): pregledajte `desktop/package.json` i `main.js` za start script.
+  - Path: `desktop/`
+  - Purpose: Electron-based desktop client (shared API with web/mobile).
+  - Running (locally): check `desktop/package.json` and `main.js` for the start script.
 
 - Discord Bot
-  - Putanja: `discordBot/` i duplicirana integracija u `backend/servisi/DiscordBot.py`.
-  - Svrha: slash komande (play, pause, skip, active), integracija s backend-om za dohvat pjesama i metapodataka.
-  - Najvažnije: glasovna reprodukcija zahtijeva FFmpeg i host sa outbound UDP (VPS). Ako hostujete bot na PaaS koji blokira UDP, koristite `DISABLE_VOICE=true` ili hostajte bot zasebno.
-  - Pokretanje (lokalno / VPS):
+  - Path: `discordBot/` and the duplicated integration in `backend/servisi/DiscordBot.py`.
+  - Purpose: slash commands (play, pause, skip, active), integration with the backend for fetching songs and metadata.
+  - Most important: voice playback requires FFmpeg and a host with outbound UDP (VPS). If you host the bot on a PaaS that blocks UDP, use `DISABLE_VOICE=true` or host the bot separately.
+  - Running (locally / VPS):
 ```powershell
 cd discordBot
 pip install -r requirements.txt
@@ -165,98 +165,98 @@ python main.py
 
 ##### Discord Bot
 
-Lokacija koda:
-- `discordBot/DiscordBot.py` — glavna entry skripta za bot (slash komande, event handling)
-- `backend/servisi/DiscordBot.py` — varijanta/izvor integracije koja se može pokrenuti iz backend procesa (kontrolirano s `RUN_DISCORD_IN_PROCESS` env var).
+Code location:
+- `discordBot/DiscordBot.py` — main entry script for the bot (slash commands, event handling)
+- `backend/servisi/DiscordBot.py` — variant/source of the integration that can be started from the backend process (controlled by the `RUN_DISCORD_IN_PROCESS` env var).
 
-Glavne napomene:
-- Voice (play) funkcionalnost koristi `discord.FFmpegPCMAudio(url)` i zahtijeva:
-  - instaliran `ffmpeg` na hostu
-  - host/environment koji dozvoljava outbound UDP
-  - validan `TOKEN` i bot privilegije u Discord guild-u (CONNECT, SPEAK)
-- Ako hostujete backend na Render, Vercel ili sličnim PaaS-ovima koji blokiraju UDP, `/play` će prijaviti grešku pri konekciji. Rješenja:
-  1. Postavite `DISABLE_VOICE=true` u env u tim okruženjima (bot će i dalje raditi za slash komande koje ne koriste voice)
-  2. Hostajte Discord bota na VPS/VM (DigitalOcean, Hetzner, AWS EC2) koji dopušta UDP i instalirajte `ffmpeg`.
-  3. Za razvoj, možete pokrenuti `discordBot` lokalno i koristiti `BACKEND_URL` za komunikaciju s API-jem.
+Main notes:
+- The voice (play) functionality uses `discord.FFmpegPCMAudio(url)` and requires:
+  - `ffmpeg` installed on the host
+  - a host/environment that allows outbound UDP
+  - a valid `TOKEN` and bot privileges in the Discord guild (CONNECT, SPEAK)
+- If you host the backend on Render, Vercel or similar PaaS providers that block UDP, `/play` will report a connection error. Solutions:
+  1. Set `DISABLE_VOICE=true` in the env in those environments (the bot will still work for slash commands that do not use voice)
+  2. Host the Discord bot on a VPS/VM (DigitalOcean, Hetzner, AWS EC2) that allows UDP and install `ffmpeg`.
+  3. For development, you can run `discordBot` locally and use `BACKEND_URL` to communicate with the API.
 
-Operativni koraci za VPS:
+Operational steps for a VPS:
 ```powershell
-# na Ubuntu/Debian (primjer)
+# on Ubuntu/Debian (example)
 sudo apt update; sudo apt install -y ffmpeg python3-venv python3-pip
 python3 -m venv venv; .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python main.py
 ```
 
-Sigurnosno:
-- Nikad ne komitujte `TOKEN` u repozitorij. Koristite Secrets (Vercel/Koyeb/EAS Secrets ili systemd environment) ili `.env` u privatnom okruženju.
+Security:
+- Never commit `TOKEN` to the repository. Use Secrets (Vercel/Koyeb/EAS Secrets or systemd environment) or `.env` in a private environment.
 
 ##### Desktop
 
-Lokacija koda:
+Code location:
 - `desktop/main.js` — Electron main process
-- `desktop/preload.js` — preload za renderer
-- `desktop/package.json` — start/build skripte
+- `desktop/preload.js` — preload for the renderer
+- `desktop/package.json` — start/build scripts
 
-Svrha i ponašanje:
-- Desktop klijent koristi iste REST API-je kao web/mobile.
-- Ako želite omogućiti native integracije (npr. system media keys), provjerite code u `main.js` i implementirajte platform-specific handlers.
+Purpose and behavior:
+- The desktop client uses the same REST APIs as web/mobile.
+- If you want to enable native integrations (e.g. system media keys), check the code in `main.js` and implement platform-specific handlers.
 
-Pokretanje:
+Running:
 ```powershell
 cd desktop
 npm ci
 npm run start
 ```
 
-Napomena: Desktop app može zahtijevati dodatne build korake za proizvodnju (electron-builder / electron-forge) — provjerite `package.json`.
+Note: The desktop app may require additional build steps for production (electron-builder / electron-forge) — check `package.json`.
 
 
 ---
 
-## 2. Arhitektura
+## 2. Architecture
 
-Aplikacija je podijeljena na tri dijela:
+The application is divided into three parts:
 - Backend: FastAPI (Python), MySQL (Aiven Cloud), Firebase Storage
 - Frontend: React (TypeScript), Vite, CSS Modules
-- Mobilna: React Native (Expo), TypeScript, Expo AV
+- Mobile: React Native (Expo), TypeScript, Expo AV
 
-Komunikacija: REST API. Servisi su nezavisni i deployuju se odvojeno. 
+Communication: REST API. The services are independent and deployed separately.
 
-Novi pristup:
-- Environment-based konfiguracija (.env)
-- Centralizovani API klijenti (tipizirani), React Query/AudioContext za state
-- Unified error handling i standardizovan odgovor
-- Automatsko testiranje i deploy (CI/CD)
-- Verzije API-ja: /api/v1, plan deprecijacije 6–12 mjeseci uz changelog
+New approach:
+- Environment-based configuration (.env)
+- Centralized API clients (typed), React Query/AudioContext for state
+- Unified error handling and standardized responses
+- Automated testing and deployment (CI/CD)
+- API versions: /api/v1, deprecation plan of 6–12 months with a changelog
 
-### API verzionisanje i deprecijacija
-- Aktivna verzija: /api/v1
-- Deprecijacija: release note + HTTP Warning + Sunset datum
-- Održavanje: stare verzije samo sigurnosne ispravke; funkcionalne promjene idu u novu verziju
-- Klijenti čitaju base URL iz env (VITE_API_URL / EXPO_PUBLIC_API_URL)
+### API versioning and deprecation
+- Active version: /api/v1
+- Deprecation: release note + HTTP Warning + Sunset date
+- Maintenance: old versions receive security fixes only; functional changes go into the new version
+- Clients read the base URL from env (VITE_API_URL / EXPO_PUBLIC_API_URL)
 
-### Tok zahtjeva i observability
-- Klijent može poslati X-Request-Id; backend kreira traceId ako nije poslan
-- Logovi (JSON) uključuju: metoda, putanja, status, trajanje ms, userId (ako postoji), traceId
-- Health endpointi: /healthz (liveness), /readyz (readiness), opcioni /metrics
+### Request flow and observability
+- The client may send X-Request-Id; the backend creates a traceId if none was sent
+- Logs (JSON) include: method, path, status, duration in ms, userId (if present), traceId
+- Health endpoints: /healthz (liveness), /readyz (readiness), optional /metrics
 
-### Cross-cutting: middleware, validacija i standardni odgovori
-- Middleware dodaje/propagira traceId, normalizuje CORS i sigurnosna zaglavlja
-- Svi uspješni odgovori: `{ data, meta?, traceId }`
-- Greške: `{ error: { code, message, details? }, traceId }`
-- Pydantic validacija inputa i izlaza; katalog kodova grešaka u Appendix-u
+### Cross-cutting: middleware, validation and standard responses
+- Middleware adds/propagates traceId, normalizes CORS and security headers
+- All successful responses: `{ data, meta?, traceId }`
+- Errors: `{ error: { code, message, details? }, traceId }`
+- Pydantic validation of input and output; error code catalog in the Appendix
 
 ---
 
 ## 3. Backend
 
-### Tehnologije backenda
+### Backend technologies
 
 - FastAPI, SQLAlchemy (async), databases, aiomysql, Alembic
 - python-dotenv, passlib[bcrypt], firebase-admin, uvicorn, python-multipart, pytest
 
-### Struktura direktorijuma (backend)
+### Directory structure (backend)
 
 ```plaintext
 backend/
@@ -270,31 +270,31 @@ backend/
 └── servisi/ ...
 ```
 
-### Konvencije i standardi (backend)
+### Conventions and standards (backend)
 
-- Imenovanje: snake_case (DB), PascalCase (ORM), camelCase (JSON)
-- Datumi/vrijeme: ISO 8601 (UTC), sufiksi At/Do
-- Paginacija: limit (≤100), offset; total u meta (opcionalno)
-- Sort: `?sort=polje,-drugo`
-- Filtriranje: `q` + specifični filteri (zanr, jezik, javno, korisnikId...)
-- Greške (JSON): vidi standardni odgovor i katalog kodova
+- Naming: snake_case (DB), PascalCase (ORM), camelCase (JSON)
+- Dates/time: ISO 8601 (UTC), suffixes At/Do
+- Pagination: limit (≤100), offset; total in meta (optional)
+- Sorting: `?sort=field,-other`
+- Filtering: `q` + specific filters (genre, language, public, userId...)
+- Errors (JSON): see the standard response and the error code catalog
 
-### Modeli
+### Models
 
 - KorisnikORM, PjesmaORM, AlbumORM, PlaylistaORM, KomentarORM
 - IzvodjacPjesmaORM, PjesmaPlaylistaORM, KorisnikPlaylistaORM, KorisnikPjesmaORM
 - KorisnikPretplataORM, PretplataORM, ObnovaPretplateORM, PretplataStatus
-- StatistikaReprodukcijeORM, HistorijaSlusanjaORM (unique korisnik+pjesma)
-- RedoslijedPjesamaORM (redoslijed u playlisti)
+- StatistikaReprodukcijeORM, HistorijaSlusanjaORM (unique user+song)
+- RedoslijedPjesamaORM (order within a playlist)
 
-Napomene:
-- Indeksi na često filtriranim poljima (npr. korisnikId, createdAt)
-- FK i on delete pravila; validacija unique constraint-a na aplikativnom sloju
+Notes:
+- Indexes on frequently filtered fields (e.g. userId, createdAt)
+- FK and on delete rules; unique constraint validation at the application layer
 
-### Standardi API-ja
+### API standards
 
-- Prefiks: /api/v1
-- Uspjeh:
+- Prefix: /api/v1
+- Success:
 ```json
 {
   "data": [],
@@ -302,70 +302,70 @@ Napomene:
   "traceId": "req-123"
 }
 ```
-- Greška:
+- Error:
 ```json
 {
-  "error": {"code": "RESOURCE_NOT_FOUND", "message": "Pjesma nije pronađena"},
+  "error": {"code": "RESOURCE_NOT_FOUND", "message": "Song not found"},
   "traceId": "req-123"
 }
 ```
-- OpenAPI tagovi: Korisnici, Pjesme, Albumi, Playliste, Komentari, Statistika, Pretplate
+- OpenAPI tags: Users, Songs, Albums, Playlists, Comments, Statistics, Subscriptions
 
-### Rute
+### Routes
 
 - `/api/v1/korisnici`, `/api/v1/pjesme`, `/api/v1/albumi`, `/api/v1/playliste`, `/api/v1/komentari`
 - `/api/v1/statistika`, `/api/v1/historija`, `/api/v1/qr`
-- Pretplate: `/api/v1/korisnik_pretplata`, `/api/v1/obnove_pretplate`
-- Operativno: `/healthz`, `/readyz`, `/openapi.json`, `/redoc` (+ opcioni `/metrics`)
+- Subscriptions: `/api/v1/korisnik_pretplata`, `/api/v1/obnove_pretplate`
+- Operational: `/healthz`, `/readyz`, `/openapi.json`, `/redoc` (+ optional `/metrics`)
 
-### Kontroleri
+### Controllers
 
-- Try/except uz mapiranje izuzetaka u katalog kodova (VALIDATION_ERROR, NOT_FOUND, CONFLICT...)
-- Relationship loading (selectinload/joinedload) radi prevencije N+1
-- Multipart upload za slike/audio; provjere MIME i veličine
-- Scheduler/cron za automatizovane procese (pretplate, čišćenja)
+- Try/except with exception mapping to catalog codes (VALIDATION_ERROR, NOT_FOUND, CONFLICT...)
+- Relationship loading (selectinload/joinedload) to prevent N+1
+- Multipart upload for images/audio; MIME and size checks
+- Scheduler/cron for automated processes (subscriptions, cleanup)
 
-### Streaming, keširanje i CDN
+### Streaming, caching and CDN
 
-- Audio streaming: Range zaglavlja (206 Partial Content), Content-Range, Content-Length, Accept-Ranges
-- Keširanje: ETag i/ili Last-Modified; Cache-Control za javne resurse
-- Rekonekcija i resume: poštovati byte-range zahtjeve klijenta
-- Preporuka: CDN ispred frontend-a i Firebase Storage-a gdje je moguće
+- Audio streaming: Range headers (206 Partial Content), Content-Range, Content-Length, Accept-Ranges
+- Caching: ETag and/or Last-Modified; Cache-Control for public resources
+- Reconnection and resume: honor the client's byte-range requests
+- Recommendation: CDN in front of the frontend and Firebase Storage where possible
 
-### Upload i obrada medija
+### Upload and media processing
 
-- Validacija: Content-Type whitelist, veličina (audio ≤ 20MB, slika ≤ 5MB – konfigurabilno)
-- Sigurno ime fajla; čuvanje metapodataka (trajanje, dimenzije, veličina)
-- Generisanje signed URL-ova sa rokom trajanja
-- Opcionalno AV skeniranje (pre-deploy/worker)
+- Validation: Content-Type whitelist, size (audio ≤ 20MB, image ≤ 5MB – configurable)
+- Safe file name; storing metadata (duration, dimensions, size)
+- Generating signed URLs with an expiration time
+- Optional AV scanning (pre-deploy/worker)
 
-### Baza podataka
+### Database
 
-- MySQL (Aiven). Alembic migracije izvor istine
-- Indeksi: `(korisnik_id, datum)`, `(pjesma_id)`, `(playlista_id, poredak)`
-- Backup: dnevno, retention 30 dana; restore procedura dokumentovana
+- MySQL (Aiven). Alembic migrations are the source of truth
+- Indexes: `(korisnik_id, datum)`, `(pjesma_id)`, `(playlista_id, poredak)`
+- Backup: daily, retention 30 days; restore procedure documented
 
 ### Firebase Storage
 
-- Upload/download za slike/audio/gif
-- Signed URL-ovi; periodično čišćenje privremenih fajlova
+- Upload/download for images/audio/gif
+- Signed URLs; periodic cleanup of temporary files
 
-### Pokretanje i razvoj
+### Running and development
 
-1) Instalacija
+1) Installation
 ```bash
 pip install -r requirements.txt
 ```
-2) Lokalni razvoj
+2) Local development
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
-3) Migracije
+3) Migrations
 ```bash
-alembic revision --autogenerate -m "opis"
+alembic revision --autogenerate -m "description"
 alembic upgrade head
 ```
-4) .env primjer
+4) .env example
 ```
 DATABASE_URL_ASYNC=mysql+aiomysql://user:pass@host/db
 DATABASE_URL_SYNC=mysql+pymysql://user:pass@host/db
@@ -381,7 +381,7 @@ SECURITY_HEADERS_ENABLED=true
 
 ### Docker (backend)
 
-Minimalni Dockerfile:
+Minimal Dockerfile:
 ```dockerfile
 FROM python:3.12-slim
 WORKDIR /app
@@ -411,23 +411,23 @@ services:
 
 ### Deploy (backend)
 
-- Koyeb: build & run; `alembic upgrade head` prije starta
-- CORS iz .env; Health check `/healthz`; Readiness nakon konekcije na bazu
-- Backup i rotacija logova; tajne kroz Secret management
+- Koyeb: build & run; `alembic upgrade head` before start
+- CORS from .env; Health check `/healthz`; Readiness after connecting to the database
+- Backup and log rotation; secrets via Secret management
 
-### Sigurnost i autentikacija
+### Security and authentication
 
-- Lozinke: bcrypt + per-user salt; nikad plain tekst
-- CORS: ALLOWED_ORIGINS; metode GET/POST/PUT/DELETE/OPTIONS
-- Upload: Content-Type/veličina; whitelist ekstenzija
-- RBAC: korisnik/izvođač/admin; provjera vlasništva
-- JWT (opciono): access 15min, refresh 7–30 dana, rotacija i blacklist/whitelist
-- Rate limiting: SlowAPI ili na proxy sloju (Cloudflare, Nginx)
-- Sigurnosna zaglavlja: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
-- HTTPS u produkciji; bez mixed content-a
-- Tokeni: Bearer u Authorization; refresh u secure storage (mobilna) ili httpOnly cookie
+- Passwords: bcrypt + per-user salt; never plain text
+- CORS: ALLOWED_ORIGINS; methods GET/POST/PUT/DELETE/OPTIONS
+- Upload: Content-Type/size; extension whitelist
+- RBAC: user/artist/admin; ownership checks
+- JWT (optional): access 15min, refresh 7–30 days, rotation and blacklist/whitelist
+- Rate limiting: SlowAPI or at the proxy layer (Cloudflare, Nginx)
+- Security headers: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy
+- HTTPS in production; no mixed content
+- Tokens: Bearer in Authorization; refresh in secure storage (mobile) or httpOnly cookie
 
-Brzi JWT primjer (FastAPI):
+Quick JWT example (FastAPI):
 ```python
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -447,27 +447,27 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=401, detail="INVALID_TOKEN")
 ```
 
-### Logovanje i metrike
+### Logging and metrics
 
-- JSON logovi sa: metoda, putanja, status, ms, userId, traceId
-- Zaglavlja: X-Request-Id (opciono); traceId vraćen u tijelu
-- `/healthz`, `/readyz`, opcioni `/metrics` (Prometheus)
-- Sentry (opciono) za error tracking
+- JSON logs with: method, path, status, ms, userId, traceId
+- Headers: X-Request-Id (optional); traceId returned in the body
+- `/healthz`, `/readyz`, optional `/metrics` (Prometheus)
+- Sentry (optional) for error tracking
 
-### Background poslovi
+### Background jobs
 
-- Čišćenje: stari signed URL-ovi, privremeni fajlovi
-- Pretplate: dnevna provjera isteka i auto-obnova
-- Statistika: preagregacija top-lista/grafova
+- Cleanup: old signed URLs, temporary files
+- Subscriptions: daily expiry check and auto-renewal
+- Statistics: pre-aggregation of top lists/charts
 
-### Testiranje (backend)
+### Testing (backend)
 
 - Pytest: unit/integration; fixtures
-- Postman/Swagger za ručno testiranje
-- Load test (k6/Locust) za kritične rute
-- Coverage cilj: ≥ 70% na kritičnim domainima
+- Postman/Swagger for manual testing
+- Load test (k6/Locust) for critical routes
+- Coverage target: ≥ 70% on critical domains
 
-### Primjeri API poziva
+### API call examples
 
 ```http
 POST /api/v1/korisnici/register
@@ -492,191 +492,191 @@ file_slika=slika.jpg
 GET /api/v1/statistika/top-songs
 ```
 
-### Napredne funkcionalnosti
+### Advanced features
 
-- Auto-obnova pretplate; suspendovanje korisnika; statistika sa embed objektima
-- Offline režim (preuzimanje pjesama); QR kodovi; AI preporuke (eksperimentalno)
+- Subscription auto-renewal; user suspension; statistics with embedded objects
+- Offline mode (song downloads); QR codes; AI recommendations (experimental)
 
-### Noviteti
+### What's new
 
-- Offline tokeni i čišćenje starih fajlova; fuzzy/autocomplete pretraga
-- Push/email notifikacije (FCM/SMTP); QR generacija/validacija; Admin panel endpointi
+- Offline tokens and cleanup of old files; fuzzy/autocomplete search
+- Push/email notifications (FCM/SMTP); QR generation/validation; Admin panel endpoints
 
 ---
 
 ## 4. Frontend
 
-### Tehnologije frontenda
+### Frontend technologies
 
 - React 18 + TypeScript, Vite, CSS Modules
 - Axios, React Router, React Query, i18next
 - Jest/Cypress
 
-### Struktura direktorijuma (frontend)
+### Directory structure (frontend)
 
 ```plaintext
 frontend/
 ├── src/
 │   ├── api/           (Axios instance, hooks)
-│   ├── components/    (UI komponente)
-│   ├── pages/         (stranice)
+│   ├── components/    (UI components)
+│   ├── pages/         (pages)
 │   ├── hooks/         (custom hooks)
-│   ├── locales/       (prevodi)
-│   ├── styles/        (globalni stilovi)
-│   └── types/         (tipovi)
+│   ├── locales/       (translations)
+│   ├── styles/        (global styles)
+│   └── types/         (types)
 ├── public/
 ├── .env
 └── package.json
 ```
 
-### Arhitekturni principi (frontend)
+### Architectural principles (frontend)
 
-- „By feature“ grupisanje gdje ima smisla; shared u `components/`
-- Tipizirani API sloj (ApiResponse<T>); interceptori i globalni error handler
-- React Query za data fetching sa cache keyevima po domenu (npr. ['songs', params])
+- "By feature" grouping where it makes sense; shared code in `components/`
+- Typed API layer (ApiResponse<T>); interceptors and a global error handler
+- React Query for data fetching with cache keys per domain (e.g. ['songs', params])
 
-### Konvencije i standardi (frontend)
+### Conventions and standards (frontend)
 
-- Axios instance sa baseURL=`VITE_API_URL`; interceptori (auth, error)
-- i18n: default iz `VITE_I18N_DEFAULT_LANG`; lazy load prevoda
-- ESLint/Prettier; a11y (semantika, ARIA za player kontrole)
+- Axios instance with baseURL=`VITE_API_URL`; interceptors (auth, error)
+- i18n: default from `VITE_I18N_DEFAULT_LANG`; lazy loading of translations
+- ESLint/Prettier; a11y (semantics, ARIA for player controls)
 
-Axios primjer:
+Axios example:
 ```ts
 import axios from 'axios'
 export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL })
 api.interceptors.response.use(r=>r, e=>Promise.reject(e))
 ```
 
-### Konfiguracija i build (frontend)
+### Configuration and build (frontend)
 
-- .env (VITE_ prefiks); `npm run dev/build/preview`
-- QueryClient centralizovan (config)
-- CSP preporuka: `default-src 'self'; connect-src 'self' API_URL; img-src 'self' data: Firebase;`
+- .env (VITE_ prefix); `npm run dev/build/preview`
+- QueryClient centralized (config)
+- CSP recommendation: `default-src 'self'; connect-src 'self' API_URL; img-src 'self' data: Firebase;`
 
-### Prikaz podataka i audio player
+### Data display and audio player
 
-- Kartice (Spotify-style), responsive grid, infinite scroll
+- Cards (Spotify-style), responsive grid, infinite scroll
 - Skeleton loading, error boundaries
-- Player fiksiran na dnu: play/pause, progress, repeat/shuffle, brzina, volume, mini-player
-- Range streaming (seek preko Range zaglavlja)
+- Player fixed at the bottom: play/pause, progress, repeat/shuffle, speed, volume, mini-player
+- Range streaming (seek via Range headers)
 
-### Performanse i PWA
+### Performance and PWA
 
-- Budžeti: LCP < 2.5s (p75); TTI < 3.5s; code splitting i lazy routes
-- PWA: manifest + service worker; offline cache za statiku i liste (stale-while-revalidate)
-- No-store za osjetljive rute/podatke
+- Budgets: LCP < 2.5s (p75); TTI < 3.5s; code splitting and lazy routes
+- PWA: manifest + service worker; offline cache for static assets and lists (stale-while-revalidate)
+- No-store for sensitive routes/data
 
 ### Deploy (frontend)
 
-- Vercel: auto-build iz main; env varijable; CDN; custom domain
+- Vercel: auto-build from main; environment variables; CDN; custom domain
 
-### Testiranje (frontend)
+### Testing (frontend)
 
-- Jest + RTL; Cypress E2E; opcioni Storybook
+- Jest + RTL; Cypress E2E; optional Storybook
 
-### Napredne funkcionalnosti (frontend)
+### Advanced features (frontend)
 
-- Dynamic backgrounds; suspendovan/obrisan screen
-- i18n (BS/EN/DE); QR kodovi; web push (opciono)
+- Dynamic backgrounds; suspended/deleted screen
+- i18n (BS/EN/DE); QR codes; web push (optional)
 
-### Noviteti (frontend)
+### What's new (frontend)
 
-- PWA offline; fuzzy/autocomplete search; AI preporuke
+- PWA offline; fuzzy/autocomplete search; AI recommendations
 
 ---
 
-## 5. Mobilna aplikacija
+## 5. Mobile application
 
-### Tehnologije mobilne aplikacije
+### Mobile application technologies
 
 - React Native (Expo), TypeScript, expo-av, expo-image, React Navigation, Async Storage, React Query
 
-### Struktura direktorijuma (mobilna)
+### Directory structure (mobile)
 
 ```plaintext
 mobilnaAPP/
-├── app/          (router, ekrani)
-├── komponente/   (UI i player)
-├── hooks/        (mreža, cleanup, push)
+├── app/          (router, screens)
+├── komponente/   (UI and player)
+├── hooks/        (network, cleanup, push)
 ├── context/      (AudioContext)
 ├── config/       (queryClient, api)
-├── locales/      (prevodi)
+├── locales/      (translations)
 ├── .env
 └── app.config.js
 ```
 
-### Konvencije i standardi (mobilna)
+### Conventions and standards (mobile)
 
-- `EXPO_PUBLIC_` prefiks za varijable okruženja
-- Centralizovan QueryClient; i18n u `locales/`
-- `useScreenCleanup` za sprječavanje curenja listenera
-- Secure storage (preporuka) za osjetljive tokene; retry/backoff mrežnih poziva
+- `EXPO_PUBLIC_` prefix for environment variables
+- Centralized QueryClient; i18n in `locales/`
+- `useScreenCleanup` to prevent listener leaks
+- Secure storage (recommended) for sensitive tokens; retry/backoff for network calls
 
-### Konfiguracija i build (mobilna)
+### Configuration and build (mobile)
 
 - Dev: `npx expo start`
-- EAS build: preview/production profili; OTA updates (opciono)
+- EAS build: preview/production profiles; OTA updates (optional)
 - FCM: `google-services.json`; `hooks/usePushNotifications.ts`
-- Deep linkovi: scheme `decibel://` (npr. `decibel://pjesma/123`)
+- Deep links: scheme `decibel://` (e.g. `decibel://pjesma/123`)
 
-### React Native komponente
+### React Native components
 
 - AudioPlayer (expo-av; progress/volume slider, repeat/shuffle, background play)
-- Header, Sidebar/Tabs, Home, Biblioteka, Omiljeno, Detalji (pjesma/album/playlista/izvođač)
+- Header, Sidebar/Tabs, Home, Library, Favorites, Details (song/album/playlist/artist)
 
-### Audio player (mobilna)
+### Audio player (mobile)
 
 - `expo-av` + `onPlaybackStatusUpdate`; background mode
-- Cleanup na unmount + `useScreenCleanup`
-- Range/seek; pauza na poziv/slušalice; media notification (Android)
+- Cleanup on unmount + `useScreenCleanup`
+- Range/seek; pause on call/headphones; media notification (Android)
 
-### Offline režim (mobilna)
+### Offline mode (mobile)
 
-- Fajlovi: `expo-file-system` u `FileSystem.documentDirectory`
-- Limit keša: preporuka 1GB; LRU brisanje najstarijih fajlova
+- Files: `expo-file-system` in `FileSystem.documentDirectory`
+- Cache limit: recommended 1GB; LRU deletion of the oldest files
 - Feature flag: `EXPO_PUBLIC_FEATURE_OFFLINE`
-- Primjer preuzimanja:
+- Download example:
 ```ts
 import * as FileSystem from 'expo-file-system'
 await FileSystem.downloadAsync(remoteUrl, FileSystem.documentDirectory + 'audio/123.mp3')
 ```
 
-### Push, background i deep linkovi
+### Push, background and deep links
 
-- FCM token → backend; slanje po useru ili topicu
-- Background fetch (opciono) za sinhronizaciju omiljenih/historije
-- Deep linkovi: otvaranje ekrana prema scheme i parametru
+- FCM token → backend; sending per user or per topic
+- Background fetch (optional) for syncing favorites/history
+- Deep links: opening screens according to scheme and parameter
 
-### Dozvole
+### Permissions
 
-- Android: POST_NOTIFICATIONS (13+), INTERNET; (Expo automatski rukuje skladištem)
+- Android: POST_NOTIFICATIONS (13+), INTERNET; (Expo handles storage automatically)
 - iOS: Notifications, Background audio
 
-### Testiranje mobilne aplikacije
+### Testing the mobile application
 
-- Expo Go i fizički uređaji; razni audio formati i mrežni uslovi (offline/slow)
+- Expo Go and physical devices; various audio formats and network conditions (offline/slow)
 
-### Distribucija APK
+### APK distribution
 
-- EAS build (Android), TestFlight (iOS), OTA updates (opciono)
+- EAS build (Android), TestFlight (iOS), OTA updates (optional)
 
-### Noviteti (mobilna)
+### What's new (mobile)
 
-- Offline preuzimanje/brisanje; real-time pretraga; FCM; QR skeniranje; AI preporuke
+- Offline download/delete; real-time search; FCM; QR scanning; AI recommendations
 
 ---
 
-## 6. Dodatno
+## 6. Additional
 
-### CORS i sigurnost
+### CORS and security
 
-- CORS iz .env; HTTPS u produkciji
-- Rate limiting; input validacija; SQL injection prevencija (SQLAlchemy); JWT (opciono)
+- CORS from .env; HTTPS in production
+- Rate limiting; input validation; SQL injection prevention (SQLAlchemy); JWT (optional)
 
-### Okruženja i konfiguracija
+### Environments and configuration
 
-- Backend (.env primjer)
+- Backend (.env example)
   - `DATABASE_URL_ASYNC`, `DATABASE_URL_SYNC`
   - `FIREBASE_BUCKET_NAME`
   - `ALLOWED_ORIGINS`
@@ -686,19 +686,19 @@ await FileSystem.downloadAsync(remoteUrl, FileSystem.documentDirectory + 'audio/
 - Frontend (Vite .env)
   - `VITE_API_URL`
   - `VITE_I18N_DEFAULT_LANG`
-- Mobilna (Expo .env)
+- Mobile (Expo .env)
   - `EXPO_PUBLIC_API_URL`
   - `EXPO_PUBLIC_FEATURE_OFFLINE`
 
-Preporuka: tajne čuvati kroz platformu (Vercel/Koyeb/EAS Secrets); ne komitovati u repozitorij.
+Recommendation: keep secrets in the platform (Vercel/Koyeb/EAS Secrets); do not commit them to the repository.
 
 ### CI/CD
 
 - Backend (Koyeb): lint/test → migrate → deploy; health check
-- Frontend (Vercel): build iz main, per-environment varijable
-- Mobilna (EAS): build profili, OTA updates
+- Frontend (Vercel): build from main, per-environment variables
+- Mobile (EAS): build profiles, OTA updates
 
-Primjer GitHub Actions (sažeto):
+GitHub Actions example (summary):
 ```yaml
 name: ci
 on: [push]
@@ -720,54 +720,54 @@ jobs:
       - run: cd frontend && npm ci && npm run build
 ```
 
-### Monitoring i logovanje
+### Monitoring and logging
 
-- FastAPI logging + Sentry (opciono), Web Vitals, GA
-- Prometheus/Grafana (opciono)
+- FastAPI logging + Sentry (optional), Web Vitals, GA
+- Prometheus/Grafana (optional)
 
-### SEO i PWA
+### SEO and PWA
 
 - React Helmet, sitemap, manifest, service worker, Lighthouse
 
-### Pravila i migracije baze
+### Database rules and migrations
 
-- Alembic za sve promjene; unique/FK; optimizacija indeksa; backup procedure
+- Alembic for all changes; unique/FK; index optimization; backup procedures
 
-### Pravila za komentare, historiju i pretplate
+### Rules for comments, history and subscriptions
 
-- Komentari: uređivanje vlasniku, brisanje vlasnik/admin; real-time update
-- Historija: unique korisnik+pjesma, najnovije prvo, paginacija
-- Pretplate: jedna aktivna, auto-obnova, evidencija obnova
+- Comments: editing by owner, deletion by owner/admin; real-time update
+- History: unique user+song, newest first, pagination
+- Subscriptions: one active, auto-renewal, renewal records
 
-### Automatizacija i AI
+### Automation and AI
 
-- AI preporuke (eksperimentalno); automatski backup; testiranje u CI; čišćenje starih fajlova
+- AI recommendations (experimental); automatic backup; testing in CI; cleanup of old files
 
-### Politika verzionisanja i deprecijacije
+### Versioning and deprecation policy
 
-- SemVer za SDK; API prefiksi (/api/v1) po verziji; Deprecation header + sunset; dokumentovan migration path
+- SemVer for the SDK; API prefixes (/api/v1) per version; Deprecation header + sunset; documented migration path
 
-### Privatnost i zaštita podataka
+### Privacy and data protection
 
-- Minimizacija podataka u logovima; nikad ne logovati lozinke/tokene
-- Šifrirani backupi; ograničen pristup; GDPR principi (ako primjenjivo)
+- Data minimization in logs; never log passwords/tokens
+- Encrypted backups; restricted access; GDPR principles (if applicable)
 
-### Stil i konvencije
+### Style and conventions
 
 - Python: black/isort; TypeScript: ESLint/Prettier
-- Commit poruke: Conventional Commits (feat/fix/chore/docs/refactor/test/build)
+- Commit messages: Conventional Commits (feat/fix/chore/docs/refactor/test/build)
 
 ---
 
 ## 7. Appendix
 
-### Matrica okruženja
+### Environment matrix
 
-- Dev: lokalni DB/Docker, debug logging, seed podaci
-- Staging: kopija produkcije sa anonimizovanim podacima
-- Prod: skalabilno okruženje, backup i monitoring uključeni
+- Dev: local DB/Docker, debug logging, seed data
+- Staging: a copy of production with anonymized data
+- Prod: scalable environment, backup and monitoring enabled
 
-### Katalog grešaka
+### Error catalog
 
 - AUTH_INVALID_CREDENTIALS (401)
 - AUTH_INVALID_TOKEN (401)
@@ -777,19 +777,19 @@ jobs:
 - RATE_LIMITED (429)
 - SERVER_ERROR (500)
 
-### Mapiranje API ruta
+### API route mapping
 
-- Korisnici: `/api/v1/korisnici` (register, login, me, update, suspend)
-- Pjesme: `/api/v1/pjesme` (CRUD, upload, search, recommend)
-- Albumi: `/api/v1/albumi` (CRUD)
-- Playliste: `/api/v1/playliste` (CRUD, redoslijed)
-- Komentari: `/api/v1/komentari` (CRUD)
-- Statistika: `/api/v1/statistika` (top-songs, top-artists, grafovi)
-- Historija: `/api/v1/historija` (list, add, delete)
-- Pretplate: `/api/v1/korisnik_pretplata`, `/api/v1/obnove_pretplate`
+- Users: `/api/v1/korisnici` (register, login, me, update, suspend)
+- Songs: `/api/v1/pjesme` (CRUD, upload, search, recommend)
+- Albums: `/api/v1/albumi` (CRUD)
+- Playlists: `/api/v1/playliste` (CRUD, ordering)
+- Comments: `/api/v1/komentari` (CRUD)
+- Statistics: `/api/v1/statistika` (top-songs, top-artists, charts)
+- History: `/api/v1/historija` (list, add, delete)
+- Subscriptions: `/api/v1/korisnik_pretplata`, `/api/v1/obnove_pretplate`
 - QR: `/api/v1/qr` (generate, validate)
 
-### Referenca .env varijabli (sažeto)
+### .env variable reference (summary)
 
 - Backend:
   - DATABASE_URL_ASYNC, DATABASE_URL_SYNC
@@ -800,13 +800,13 @@ jobs:
 - Frontend (Vite):
   - VITE_API_URL
   - VITE_I18N_DEFAULT_LANG (bs|en|de)
-- Mobilna (Expo):
+- Mobile (Expo):
   - EXPO_PUBLIC_API_URL
   - EXPO_PUBLIC_FEATURE_OFFLINE=true|false
 
-### Primjeri sigurnosnih zaglavlja
+### Security header examples
 
-Preporučena zaglavlja (za produkciju):
+Recommended headers (for production):
 ```
 Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
 X-Content-Type-Options: nosniff
@@ -820,23 +820,23 @@ Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; media-
 
 ## 8. Troubleshooting
 
-- CORS greška: provjeriti ALLOWED_ORIGINS, protokol (https) i OPTIONS preflight
-- Upload odbijen: veličina/MIME; MAX_UPLOAD_MB_* i validatori
-- Offline ne radi (mobilna): dozvole, `expo-file-system`, očistiti keš
-- 500 na /api/*: backend logovi (traceId), konekcija na bazu, `alembic upgrade head`
-- Push ne stižu: FCM token/permission; reinstal + re-registracija
-- JWT 401: istekao token; refresh ili re-login; clock drift
-- Prazne liste: limit/offset/sort; indeksi u bazi
-- 206/seek ne radi: Range/Content-Range/Content-Length i Accept-Ranges
-- Player staje u background-u (mobilna): background audio permisije i cleanup hook-ovi
-- Deep link ne otvara ekran: scheme u `app.config.js` i format linka (npr. `decibel://pjesma/123`)
-- i18n ne učitava (mobilna): `locales/` i inicijalizacija u `i18n.ts`
-- PWA ne kešira: validacija service workera i cache strategije
-- Rate limited (429): smanjiti frekvenciju; provjeriti RATE_LIMIT_PER_MINUTE
+- CORS error: check ALLOWED_ORIGINS, the protocol (https) and the OPTIONS preflight
+- Upload rejected: size/MIME; MAX_UPLOAD_MB_* and validators
+- Offline not working (mobile): permissions, `expo-file-system`, clear the cache
+- 500 on /api/*: backend logs (traceId), database connection, `alembic upgrade head`
+- Push not arriving: FCM token/permission; reinstall + re-registration
+- JWT 401: expired token; refresh or re-login; clock drift
+- Empty lists: limit/offset/sort; database indexes
+- 206/seek not working: Range/Content-Range/Content-Length and Accept-Ranges
+- Player stops in the background (mobile): background audio permissions and cleanup hooks
+- Deep link does not open a screen: scheme in `app.config.js` and link format (e.g. `decibel://pjesma/123`)
+- i18n not loading (mobile): `locales/` and initialization in `i18n.ts`
+- PWA not caching: validate the service worker and cache strategy
+- Rate limited (429): reduce the frequency; check RATE_LIMIT_PER_MINUTE
 
 ---
 
-## 9. Reference
+## 9. References
 
 - FastAPI, SQLAlchemy, React, React Native, Expo, TypeScript, Vite, Firebase Storage
 - Vercel, Koyeb, EAS, Chart.js, React Hook Form, React Query, Jest, RTL, Cypress
@@ -844,92 +844,92 @@ Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; media-
 ## 10. Changelog
 
 - 2025-08
-  - Dodan Brzi start (lokalni razvoj)
-  - Prošireni operativni endpointi (/openapi.json, /redoc)
-  - Dokumentovana Expo Router struktura (mobilna)
-  - Pojašnjen request-id/traceId obrazac u logovima
-  - Ažurirana sekcija okruženja sa konkretnim .env primjerima
-  - Dodani primjeri GitHub Actions CI, sigurnosna zaglavlja i proširen Troubleshooting
+  - Added Quick start (local development)
+  - Expanded operational endpoints (/openapi.json, /redoc)
+  - Documented the Expo Router structure (mobile)
+  - Clarified the request-id/traceId pattern in logs
+  - Updated the environments section with concrete .env examples
+  - Added GitHub Actions CI examples, security headers and an expanded Troubleshooting section
 
 ## 11. FAQ
 
-- P: Koji je base URL API-ja u lokalnom okruženju?
-  - O: http://localhost:8000
-- P: Gdje mijenjam API URL za web?
-  - O: U `frontend/.env` kroz `VITE_API_URL`.
-- P: Kako osvježiti migracije?
-  - O: `alembic revision --autogenerate -m "opis" && alembic upgrade head`.
-- P: Kako omogućiti offline na mobilnoj?
-  - O: `EXPO_PUBLIC_FEATURE_OFFLINE=true` i koristiti ekran Offline; fajlovi se čuvaju u `FileSystem.documentDirectory`.
-- P: Kako uključiti sigurnosna zaglavlja?
-  - O: Postaviti `SECURITY_HEADERS_ENABLED=true` i konfigurirati proxy/server (Nginx/Cloudflare) prema preporukama iz Appendix-a.
+- Q: What is the API base URL in the local environment?
+  - A: http://localhost:8000
+- Q: Where do I change the API URL for the web app?
+  - A: In `frontend/.env` through `VITE_API_URL`.
+- Q: How do I refresh migrations?
+  - A: `alembic revision --autogenerate -m "description" && alembic upgrade head`.
+- Q: How do I enable offline mode on mobile?
+  - A: `EXPO_PUBLIC_FEATURE_OFFLINE=true` and use the Offline screen; files are stored in `FileSystem.documentDirectory`.
+- Q: How do I enable security headers?
+  - A: Set `SECURITY_HEADERS_ENABLED=true` and configure the proxy/server (Nginx/Cloudflare) according to the recommendations in the Appendix.
 
 ---
 
-## 12. Tehnički, fajl-po-fajl pregled (detaljno)
+## 12. Technical, file-by-file overview (detailed)
 
-### backend/main.py (ulazna tačka)
+### backend/main.py (entry point)
 
-- Učitava `.env` varijable, kreira async engine za SQLAlchemy, povezuje `databases.Database` objekt (u `servisi/Baza.py`) i starta background taskove:
-  - `check_and_update_suspended_users()` — periodički provjerava suspendovane korisnike i vraća im status ako je vrijeme isteklo.
-  - `keep_alive()` — šalje periodične HTTP GET zahtjeve na `KEEP_ALIVE_URL` (korisno za hosting platforme sa idlem).
-  - `auto_cleanup()` — briše privremene fajlove u `/tmp` (Python kod izvršava na Linux-like okruženjima; možete prilagoditi za Windows dev ako treba).
-- U `startup` eventu se takođe provjerava Discord token i opcionalno pokreće Discord bota u istom procesu ako je `RUN_DISCORD_IN_PROCESS=true`.
+- Loads `.env` variables, creates the async engine for SQLAlchemy, connects the `databases.Database` object (in `servisi/Baza.py`) and starts background tasks:
+  - `check_and_update_suspended_users()` — periodically checks suspended users and restores their status once the time has expired.
+  - `keep_alive()` — sends periodic HTTP GET requests to `KEEP_ALIVE_URL` (useful for hosting platforms that idle).
+  - `auto_cleanup()` — deletes temporary files in `/tmp` (the Python code runs on Linux-like environments; you can adapt it for Windows dev if needed).
+- In the `startup` event it also checks the Discord token and optionally starts the Discord bot in the same process if `RUN_DISCORD_IN_PROCESS=true`.
 
-Testiranje lokalno:
+Testing locally:
 ```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Provjerite `http://localhost:8000/docs` za Swagger.
+Check `http://localhost:8000/docs` for Swagger.
 
 ### backend/servisi/Baza.py
 
-- Centralna inicijalizacija baze (SQLAlchemy `Base`, `database` objekat za `databases` lib, `create_tables()`/`delete_tables()` pomoćne funkcije). Ovdje održavate globalne DB helper funkcije i reuse pattern.
+- Central database initialization (SQLAlchemy `Base`, the `database` object for the `databases` lib, `create_tables()`/`delete_tables()` helper functions). This is where you maintain global DB helper functions and the reuse pattern.
 
-Praćenje grešaka: Ako dobijete exception pri importu DB-a, provjerite `DATABASE_URL_ASYNC` i da li su svi dependency-ji instalirani (`aiomysql`, `PyMySQL`, `SQLAlchemy`).
+Error tracking: If you get an exception while importing the DB, check `DATABASE_URL_ASYNC` and whether all dependencies are installed (`aiomysql`, `PyMySQL`, `SQLAlchemy`).
 
 ### backend/modeli/*
 
-Ovdje su ORM klase i odgovarajući Pydantic modeli. Ključne datoteke pregledane:
+This is where the ORM classes and the corresponding Pydantic models live. Key files reviewed:
 
-- `Korisnik.py` — `KorisnikORM` (SQLAlchemy) i Pydantic modeli `KorisnikCreate`, `Korisnik`, `KorisnikLogin`. Sadrži polja: `id`, `ime`, `prezime`, `korisnicko_ime`, `email`, `lozinka`, `rola`, `bio`, `statusKorisnika`, `putanjaProfilneSlike`, `datumRegistracije`, `brojPratilaca`, `obrisan`.
-  - Napomena: lozinka se u modelu drži kao `String` — stvarno heširanje lozinke treba biti u kontroleru (iz `register_korisnik`) koristeći `passlib`.
-- `Pjesma.py` — `PjesmaORM` s poljima `id`, `korisnikID`, `albumID`, `naziv`, `opis`, `datumObjave`, `trajanjeSekunde`, `javno`, `odobreno`, `putanjaAudio`, `putanjaSlika`, `putanjaGif`, `brojReprodukcija`, `brojLajkova`, `jezikPjesme`, `licenca`, `eksplicitniSadrzaj`, `zanr`. Sadrži relationship prema `KorisnikORM` i `AlbumORM`.
-  - Pydantic modeli: `PjesmaBase`, `PjesmaCreate`, `Pjesma` (orm_mode=true).
+- `Korisnik.py` — `KorisnikORM` (SQLAlchemy) and the Pydantic models `KorisnikCreate`, `Korisnik`, `KorisnikLogin`. Contains the fields: `id`, `ime`, `prezime`, `korisnicko_ime`, `email`, `lozinka`, `rola`, `bio`, `statusKorisnika`, `putanjaProfilneSlike`, `datumRegistracije`, `brojPratilaca`, `obrisan`.
+  - Note: the password is stored as a `String` in the model — the actual password hashing should be done in the controller (in `register_korisnik`) using `passlib`.
+- `Pjesma.py` — `PjesmaORM` with the fields `id`, `korisnikID`, `albumID`, `naziv`, `opis`, `datumObjave`, `trajanjeSekunde`, `javno`, `odobreno`, `putanjaAudio`, `putanjaSlika`, `putanjaGif`, `brojReprodukcija`, `brojLajkova`, `jezikPjesme`, `licenca`, `eksplicitniSadrzaj`, `zanr`. Contains relationships to `KorisnikORM` and `AlbumORM`.
+  - Pydantic models: `PjesmaBase`, `PjesmaCreate`, `Pjesma` (orm_mode=true).
 
-Savjet: uvijek koristite `orm_mode = True` u Pydantic modelima koji se vraćaju iz DB-a.
+Tip: always use `orm_mode = True` in Pydantic models that are returned from the DB.
 
 ### backend/kontroleri/*
 
-Kontroleri sadrže poslovnu logiku i transakcijske pozive prema DB-u. Kratak pregled:
+Controllers contain the business logic and transactional calls to the DB. A brief overview:
 
-- `PjesmaKontroler.py` — funkcije: `get_all_pjesme`, `get_pjesma_by_id`, `create_pjesma`, `update_pjesma`, `delete_pjesma`.
-  - `create_pjesma` pravi `PjesmaORM` sa `pjesma.dict()` i radi commit + refresh.
-  - `get_all_pjesme` koristi `selectinload(PjesmaORM.korisnik)` da izbjegne N+1 problem.
+- `PjesmaKontroler.py` — functions: `get_all_pjesme`, `get_pjesma_by_id`, `create_pjesma`, `update_pjesma`, `delete_pjesma`.
+  - `create_pjesma` creates a `PjesmaORM` with `pjesma.dict()` and performs a commit + refresh.
+  - `get_all_pjesme` uses `selectinload(PjesmaORM.korisnik)` to avoid the N+1 problem.
 
-- `KorisnikKontroler.py` — sadrži `get_all_korisnici`, `register_korisnik`, `login_korisnik`, `get_korisnik_by_id`, `update_korisnik`, `delete_korisnik`. `register_korisnik` treba heširati lozinku i postaviti početne vrijednosti (datum registracije, status, rola).
+- `KorisnikKontroler.py` — contains `get_all_korisnici`, `register_korisnik`, `login_korisnik`, `get_korisnik_by_id`, `update_korisnik`, `delete_korisnik`. `register_korisnik` should hash the password and set the initial values (registration date, status, role).
 
-Savjet za transakcije: u async okruženju, koristite `async with AsyncSession()` pattern i rollback na izuzetke.
+Transaction tip: in an async environment, use the `async with AsyncSession()` pattern and roll back on exceptions.
 
 ### backend/rute/*
 
-Svaki router iz `rute/` mapira HTTP endpoint-e na kontrolere. Važni primjeri:
+Every router in `rute/` maps HTTP endpoints to controllers. Important examples:
 
 - `PjesmaRuta.py`
-  - GET `/api/pjesme/` — vraća sve pjesme (koristi `get_all_pjesme`).
-  - GET `/api/pjesme/{pjesma_id}` — vraća pjesmu po id.
-  - GET `/api/pjesme/pjesma/search?q=` — koristi se od Discord bota za autocomplete; vraća pjesme koje su `javno` i `odobreno` i koje sadrže `q` u `naziv`.
-  - POST `/api/pjesme/` — multipart endpoint koji prihvata audio/slike/gif; privremeno sprema `UploadFile` u temp file, poziva `servisi.FirebaseStorage.upload_file()` i obriše temp fajl.
+  - GET `/api/pjesme/` — returns all songs (uses `get_all_pjesme`).
+  - GET `/api/pjesme/{pjesma_id}` — returns a song by id.
+  - GET `/api/pjesme/pjesma/search?q=` — used by the Discord bot for autocomplete; returns songs that are `javno` and `odobreno` and that contain `q` in `naziv`.
+  - POST `/api/pjesme/` — multipart endpoint that accepts audio/images/gif; temporarily saves the `UploadFile` to a temp file, calls `servisi.FirebaseStorage.upload_file()` and deletes the temp file.
 
 - `KorisnikRuta.py`
-  - POST `/api/korisnici/register` — registruje korisnika (poziva `register_korisnik`).
-  - POST `/api/korisnici/login` — provjera kredencijala (poziva `login_korisnik`).
-  - PUT `/api/korisnici/slika/{korisnik_id}` — upload profila slike i update putanje u korisniku.
+  - POST `/api/korisnici/register` — registers a user (calls `register_korisnik`).
+  - POST `/api/korisnici/login` — verifies credentials (calls `login_korisnik`).
+  - PUT `/api/korisnici/slika/{korisnik_id}` — uploads a profile image and updates the path on the user.
 
-Test primjeri (cURL) za pjesmu upload:
+Test examples (cURL) for song upload:
 ```bash
 curl -X POST "http://localhost:8000/api/pjesme/" \
   -F "korisnikID=<korisnik-id>" \
@@ -941,55 +941,55 @@ curl -X POST "http://localhost:8000/api/pjesme/" \
 
 ### backend/servisi/FirebaseStorage.py
 
-- Implementira `upload_file(local_path, remote_path)` koji koristi `firebase-admin` za upload u bucket i vraća javni/signed URL. Koristi `FIREBASE_BUCKET` env var.
+- Implements `upload_file(local_path, remote_path)`, which uses `firebase-admin` to upload to the bucket and returns a public/signed URL. Uses the `FIREBASE_BUCKET` env var.
 
-Napomena: za lokalni razvoj morate imati `google-services.json` ili servisni account key postavljen i konfiguriran.
+Note: for local development you must have `google-services.json` or a service account key set up and configured.
 
 ### discordBot / backend/servisi/DiscordBot.py
 
-Ovo je najvažniji fajl vezan uz `/play` komandu. Sadržaj i ponašanje:
+This is the most important file related to the `/play` command. Contents and behavior:
 
-- Registruje slash komande u `setup_hook()` i koristi `app_commands.CommandTree`.
-- `play` komanda radi sljedeće:
-  - Ako `DISABLE_VOICE=true` vraća poruku da je glasovno onemogućeno (korisno za Render/hostinge koji blokiraju UDP).
-  - Provjerava je li korisnik u voice kanalu.
-  - Pokušava `channel.connect()` (ima timeout i reconnect=True). Ako se desi `ConnectionClosed` ili slična greška, bot obavještava korisnika da hosting environment ne podržava voice.
-  - Poziva backend `/api/pjesme/pjesma/search?q=` kako bi dobio `putanjaAudio` i metapodatke.
-  - Reprodukcija se vrši korištenjem `discord.FFmpegPCMAudio(url)`.
-  - Embed poruka se periodično ažurira (progress bar). Također implementiran `View` sa Button-ima (pause/skip/stop).
+- Registers slash commands in `setup_hook()` and uses `app_commands.CommandTree`.
+- The `play` command does the following:
+  - If `DISABLE_VOICE=true` it returns a message that voice is disabled (useful for Render/hosts that block UDP).
+  - Checks whether the user is in a voice channel.
+  - Attempts `channel.connect()` (has a timeout and reconnect=True). If `ConnectionClosed` or a similar error occurs, the bot informs the user that the hosting environment does not support voice.
+  - Calls the backend `/api/pjesme/pjesma/search?q=` to get `putanjaAudio` and metadata.
+  - Playback is done using `discord.FFmpegPCMAudio(url)`.
+  - The embed message is periodically updated (progress bar). A `View` with buttons (pause/skip/stop) is also implemented.
 
-Zašto `/play` često ne radi na Render/Vercel/Koyeb u ovom projektu:
-- Discord voice koristi UDP; većina serverless / managed PaaS servisa blokira ili ne podržavaju outbound UDP iz aplikacije (ili imaju ograničenu implementaciju). Ovo dovodi do `ConnectionClosed` ili nemogućnosti uspostave voice kanala.
+Why `/play` often does not work on Render/Vercel/Koyeb in this project:
+- Discord voice uses UDP; most serverless / managed PaaS services block or do not support outbound UDP from the application (or have a limited implementation). This leads to `ConnectionClosed` or an inability to establish the voice channel.
 
-Preporučeni načini da `play` radi:
-1) Hostajte Discord bota na VPS/VM (DigitalOcean, Linode, Hetzner, AWS EC2, GCP) gdje outbound UDP i pristup internetu nisu ograničeni.
-   - OS: Ubuntu 22.04+ ili Debian
-   - Instalirajte `ffmpeg` (neophodno za `FFmpegPCMAudio`):
+Recommended ways to make `play` work:
+1) Host the Discord bot on a VPS/VM (DigitalOcean, Linode, Hetzner, AWS EC2, GCP) where outbound UDP and internet access are not restricted.
+   - OS: Ubuntu 22.04+ or Debian
+   - Install `ffmpeg` (required for `FFmpegPCMAudio`):
 ```bash
 sudo apt update; sudo apt install -y ffmpeg python3-venv python3-pip
 python3 -m venv venv; source venv/bin/activate
 pip install -r requirements.txt
 python discordBot/main.py
 ```
-2) Ako želite backend na Render-u, držite backend tamo, a Discord bota pokrenite zasebno na VPS koji omogućava UDP. Bot može komunicirati s backend API-jem (`BACKEND_URL`).
-3) Ako imate ograničene budžete i želite besplatan način za development, možete pokrenuti Discord bota lokalno na vašem računaru sa `DISABLE_VOICE=false` i testirati `/play` u lokalnom environmentu.
+2) If you want the backend on Render, keep the backend there and run the Discord bot separately on a VPS that allows UDP. The bot can communicate with the backend API (`BACKEND_URL`).
+3) If you have a limited budget and want a free way to develop, you can run the Discord bot locally on your machine with `DISABLE_VOICE=false` and test `/play` in the local environment.
 
-Specifične konfiguracije i provjere:
-- `DISABLE_VOICE` env var postavite na `false` kada želite omogućiti voice.
-- Provjerite da `TOKEN` env var sadrži validan bot token (i da je bot pozvan u guild s potrebnim privilegijama: CONNECT, SPEAK, USE_APPLICATION_COMMANDS).
-- Provjerite da je `FFmpeg` instaliran na hostu i dostupan u PATH (pokušaj `ffmpeg -version`).
+Specific configurations and checks:
+- Set the `DISABLE_VOICE` env var to `false` when you want to enable voice.
+- Make sure the `TOKEN` env var contains a valid bot token (and that the bot has been invited to the guild with the required privileges: CONNECT, SPEAK, USE_APPLICATION_COMMANDS).
+- Make sure `FFmpeg` is installed on the host and available in PATH (try `ffmpeg -version`).
 
-Napomena o sigurnosti: Discord token NE smije biti u javnom repo-u; koristite platformski secret store.
+Security note: the Discord token must NOT be in a public repo; use a platform secret store.
 
-### frontend/src (pregled)
+### frontend/src (overview)
 
-- `src/api` — Axios instance sa `baseURL` iz `VITE_API_URL`.
-- `src/components` — UI komponente: pjesma kartice, player, playlist komponenta.
-- `src/hooks` — custom hooks za fetching, player state, i18n.
+- `src/api` — Axios instance with `baseURL` from `VITE_API_URL`.
+- `src/components` — UI components: song cards, player, playlist component.
+- `src/hooks` — custom hooks for fetching, player state, i18n.
 
-Ključne prakse:
-- Player na webu koristi HTMLAudioElement ili custom audio engine koji traži `putanjaAudio` i podržava Range zaglavlja za seek.
-- Koristite lazy-loading i `React Query` cache za liste.
+Key practices:
+- The web player uses HTMLAudioElement or a custom audio engine that requests `putanjaAudio` and supports Range headers for seeking.
+- Use lazy loading and `React Query` caching for lists.
 
 Build/Run:
 ```bash
@@ -998,16 +998,16 @@ npm ci
 npm run dev
 ```
 
-Za produkciju:
+For production:
 ```bash
 npm run build
 serve -s dist
 ```
 
-### mobilnaAPP (pregled)
+### mobilnaAPP (overview)
 
-- `app/` koristi Expo Router; `komponente/` sadrže player controls i UI.
-- Koristi `expo-av` za reproduciranje audio fajlova i `expo-file-system` za keširanje.
+- `app/` uses Expo Router; `komponente/` contains the player controls and UI.
+- Uses `expo-av` to play audio files and `expo-file-system` for caching.
 
 Test:
 ```bash
@@ -1016,140 +1016,137 @@ npm ci
 npx expo start
 ```
 
-### desktop (pregled)
+### desktop (overview)
 
-- `main.js` i `preload.js` sugerišu Electron-based desktop client. Desktop client može koristiti iste API endpoint-e kao web/mobile.
+- `main.js` and `preload.js` suggest an Electron-based desktop client. The desktop client can use the same API endpoints as web/mobile.
 
-### baza/ SQL skripte
+### baza/ SQL scripts
 
-- Sadrže utility SQL query-e za playlist redoslijed, statistike itd. Korisno prilikom debugovanja i migracija.
+- Contain utility SQL queries for playlist ordering, statistics, etc. Useful when debugging and migrating.
 
-### Deploy preporuke i checklist (kratko)
+### Deployment recommendations and checklist (brief)
 
 1. Backend:
-   - Secrets u Secret Manager-u (Koyeb/Vercel/Heroku/GCP Secrets)
-   - `alembic upgrade head` prije pokretanja
-   - Health check endpoint za platformu
+   - Secrets in a Secret Manager (Koyeb/Vercel/Heroku/GCP Secrets)
+   - `alembic upgrade head` before starting
+   - Health check endpoint for the platform
 
 2. Frontend:
-   - Vercel ili Netlify
-   - Postavite `VITE_API_URL` u env
+   - Vercel or Netlify
+   - Set `VITE_API_URL` in env
 
 3. Discord bot:
-   - Hostovati na VPS/VM zbog UDP
-   - Instalirati `ffmpeg`
-   - Osigurati da bot ima privilegije u Discord guild-u: CONNECT, SPEAK, USE_APPLICATION_COMMANDS
+   - Host on a VPS/VM because of UDP
+   - Install `ffmpeg`
+   - Ensure the bot has privileges in the Discord guild: CONNECT, SPEAK, USE_APPLICATION_COMMANDS
 
-4. Mobilna:
-   - Expo/EAS build; setovati `EXPO_PUBLIC_API_URL`
+4. Mobile:
+   - Expo/EAS build; set `EXPO_PUBLIC_API_URL`
 
 
 ---
 
-## 13. Frontend — file-level reference 
+## 13. Frontend — file-level reference
 
-Ovaj odjeljak daje tehnički pregled ključnih fajlova u `frontend/src` i objašnjava odgovornosti, input/output i ponašanje važnijih komponenti i stranica.
+This section gives a technical overview of the key files in `frontend/src` and explains the responsibilities, input/output and behavior of the more important components and pages.
 
 - `src/main.tsx`
-  - Inicijalizuje React aplikaciju, registruje `QueryClientProvider` (React Query) i učitava `App`.
+  - Initializes the React application, registers `QueryClientProvider` (React Query) and loads `App`.
 
 - `src/App.tsx`
-  - Glavni router i layout. Sadrži `RequireAuth` wrapper koji provjerava korisničku sesiju, suspendovane/obrisane statuse, i centralni `AudioPlayer` mounting.
-  - Registruje rute za sve glavne stranice: Home, Login, Register, Pjesma, Album, Playlista, AdminPanel, Statistika, itd.
-  - Global event bus: slušanje i emitovanje CustomEvent-ova (`globalAudioPlay`, `globalAudioPlaylist`, `activeSongBg`) koji sinkronizuju player i pozadinske efekte.
+  - Main router and layout. Contains the `RequireAuth` wrapper that checks the user session, suspended/deleted statuses, and the central `AudioPlayer` mounting.
+  - Registers routes for all main pages: Home, Login, Register, Song, Album, Playlist, AdminPanel, Statistics, etc.
+  - Global event bus: listening to and emitting CustomEvents (`globalAudioPlay`, `globalAudioPlaylist`, `activeSongBg`) that synchronize the player and background effects.
 
 - `src/api/*`
-  - Centralni Axios klijent(ka) koji koristi `VITE_API_BASE_URL`/`VITE_API_URL`. Sadrži interceptore za auth header injection i globalno mapiranje grešaka.
-  - Tipizirani wrapperi za pozive prema backend endpoint-ima (songs, users, playlists, stats).
+  - Central Axios client that uses `VITE_API_BASE_URL`/`VITE_API_URL`. Contains interceptors for auth header injection and global error mapping.
+  - Typed wrappers for calls to backend endpoints (songs, users, playlists, stats).
 
 - `src/komponente/AudioPlayer/*`
-  - Implementacija web audio playera. Odgovornosti: play/pause/seek, UI (mini i expanded), progress bar, emitovanje `globalAudioPlay` event-a.
-  - Integracija sa backend-om za increment broja reprodukcija i prikaz metapodataka (putanjaSlika/putanjaGif).
+  - Implementation of the web audio player. Responsibilities: play/pause/seek, UI (mini and expanded), progress bar, emitting the `globalAudioPlay` event.
+  - Integration with the backend for incrementing the play count and displaying metadata (putanjaSlika/putanjaGif).
 
 - `src/komponente/Header`, `Sidebar`, `Footer`
-  - Navigacija, search input, profile menu i prikaz stanja pretplate.
+  - Navigation, search input, profile menu and subscription status display.
 
 - `src/stranice/Pjesma/Pjesma.tsx` (+ `Pjesma.module.css`, `PjesmaWhite.module.css`)
-  - Stranica za detalje pojedinačne pjesme: meta podatci, komentar sekcija, playback kontrola i embed informacije.
-  - Učitava pjesmu preko GET `/api/pjesme/{id}` i prikazuje povezana polja (naziv, izvođač, trajanje, putanjaSlika/Gif).
+  - Page for the details of a single song: metadata, comment section, playback control and embed information.
+  - Loads the song via GET `/api/pjesme/{id}` and displays the related fields (naziv, izvođač, trajanje, putanjaSlika/Gif).
 
 - `src/stranice/Playlista/Playlista.tsx` (+ CSS)
-  - Stranica playliste: lista pjesama, uređivanje redoslijeda (drag/drop u UI), play/queue funkcionalnost.
-  - Pozivi: GET playlist, POST/PUT za promjenu redoslijeda i dodavanje/uklanjanje pjesama.
+  - Playlist page: song list, reordering (drag/drop in the UI), play/queue functionality.
+  - Calls: GET playlist, POST/PUT for reordering and adding/removing songs.
 
 - `src/stranice/SvePjesme/SvePjesme.tsx` (+ CSS)
-  - Lista svih pjesama sa pretragom (`/api/pjesme/pjesma/search?q=`) i paginacijom.
-  - Akcije: play, add-to-playlist, like, edit (role-based).
+  - List of all songs with search (`/api/pjesme/pjesma/search?q=`) and pagination.
+  - Actions: play, add-to-playlist, like, edit (role-based).
 
 - `src/stranice/SviKorisnici/SviKorisnici.tsx` (+ CSS)
-  - Admin lista korisnika: suspend, promjena role, deactivate/reactivate. Poziva korisničke endpoint-e (`/api/korisnici`).
+  - Admin user list: suspend, change role, deactivate/reactivate. Calls user endpoints (`/api/korisnici`).
 
 - `src/stranice/Postavke/Postavke.tsx` (+ CSS)
-  - Korisničke postavke, upload profilne slike (multipart POST), update preferences.
-  - U kodu koristi `import.meta.env.VITE_API_BASE_URL` za formiranje URL-ova pri uploadu.
+  - User settings, profile image upload (multipart POST), update preferences.
+  - In the code it uses `import.meta.env.VITE_API_BASE_URL` to build URLs during upload.
 
 - `src/stranice/Pretplata/Pretplata.tsx`
-  - Prikaz opcija pretplate, checkout ili pokretanje procesa obnove pretplate.
+  - Displays subscription options, checkout or starting the subscription renewal process.
 
 - `src/stranice/Statistika/Statisitka.tsx`
-  - Dashboards i grafovi (Chart.js). Prikaz top lista i vremenske serije; koristi backend statističke endpoint-e.
+  - Dashboards and charts (Chart.js). Displays top lists and time series; uses the backend statistics endpoints.
 
-- CSS modul pattern
-  - Svaka stranica koristi CSS Module (`.module.css` i `*White.module.css`) za tamni/svijetli theme variant. Ova konvencija olakšava teming i izoluje stilove per-component.
+- CSS module pattern
+  - Every page uses a CSS Module (`.module.css` and `*White.module.css`) for the dark/light theme variant. This convention makes theming easier and isolates styles per component.
 
-Dodatne napomene:
-- Sve forme i upload endpointi koriste `multipart/form-data` (frontend šalje `FormData`).
-- Global authentication se čuva u `localStorage` (ključ `korisnik`) i `RequireAuth` provjerava korisnički status na svakoj ruti.
+Additional notes:
+- All forms and upload endpoints use `multipart/form-data` (the frontend sends `FormData`).
+- Global authentication is stored in `localStorage` (key `korisnik`) and `RequireAuth` checks the user status on every route.
 
 ---
 
-## 14. Mobilna aplikacija — file-level reference (detaljno)
+## 14. Mobile application — file-level reference (detailed)
 
-Ovaj odjeljak dokumentuje važnije fajlove iz `mobilnaAPP/` (screens, components, hooks, config, context, types).
+This section documents the more important files from `mobilnaAPP/` (screens, components, hooks, config, context, types).
 
 - `app/` (Expo Router)
-  - Struktura rute mapira se direktno na filesystem (npr. `app/pjesma/[pjesmaId].tsx` otvara `Pjesma` screen). Tab layout definisan u `app/(tabs)/_layout.tsx` i pojedinačne tab stranice (`index.tsx`, `library.tsx`, `search.tsx`).
+  - The route structure maps directly to the filesystem (e.g. `app/pjesma/[pjesmaId].tsx` opens the `Pjesma` screen). The tab layout is defined in `app/(tabs)/_layout.tsx` along with the individual tab pages (`index.tsx`, `library.tsx`, `search.tsx`).
 
-- Screens (u `screens/` folderu)
-  - `Home.tsx` — početni ekran: preporučene liste, top pjesme, promotivni sadržaj. Emituje event za global player kad korisnik pritisne play.
-  - `Biblioteka.tsx` — korisnička biblioteka (prateći izvođači, preuzete pjesme, playliste).
-  - `Pjesma.tsx` — detalji pjesme: komentari, kontekst reprodukcije, slične pjesme.
-  - `Playlista.tsx` — prikaz playliste, uređivanje, playback controls.
-  - `AdminPanel.tsx` — mobilni admin interfejs (songs/albums/playlists tabs) sa moderacijskim akcijama.
+- Screens (in the `screens/` folder)
+  - `Home.tsx` — home screen: recommended lists, top songs, promotional content. Emits an event for the global player when the user presses play.
+  - `Biblioteka.tsx` — user library (followed artists, downloaded songs, playlists).
+  - `Pjesma.tsx` — song details: comments, playback context, similar songs.
+  - `Playlista.tsx` — playlist display, editing, playback controls.
+  - `AdminPanel.tsx` — mobile admin interface (songs/albums/playlists tabs) with moderation actions.
   - `NovaPjesma.tsx`, `NoviAlbum.tsx`, `NovaPlaylista.tsx` — upload/creation workflow (file pickers + multipart upload).
-  - `Offline.tsx` — menadžer preuzetih fajlova i cleanup UI.
+  - `Offline.tsx` — manager of downloaded files and cleanup UI.
 
 - Components
-  - `AudioPlayer.tsx` / `AudioPlayerNew.tsx` — mobilni audio player (expo-av). Podržava rate options, background playback, resumes.
-  - `Header.tsx`, `Sidebar.tsx`, `Tabs.tsx` — navigacioni i layout komponenti za aplikaciju.
+  - `AudioPlayer.tsx` / `AudioPlayerNew.tsx` — mobile audio player (expo-av). Supports rate options, background playback, resumes.
+  - `Header.tsx`, `Sidebar.tsx`, `Tabs.tsx` — navigation and layout components for the application.
 
 - Hooks
-  - `useScreenCleanup.ts` — hook koji briše query cache keys i uklanja event listener-e prilikom unmount-a ekrana.
-  - `usePushNotifications.ts` — inicijalizacija FCM / Expo notifications i obrada token-a.
-  - `handleBackPress.ts` — pomoćna logika za Android back button i custom navigation history.
+  - `useScreenCleanup.ts` — hook that clears query cache keys and removes event listeners when a screen unmounts.
+  - `usePushNotifications.ts` — initialization of FCM / Expo notifications and token handling.
+  - `handleBackPress.ts` — helper logic for the Android back button and custom navigation history.
 
 - Context
-  - `AudioContext.tsx` — centralni kontekst koji dijeli trenutno stanje playera (current track, isPlaying, position) i expose metode (play, pause, seek, download).
+  - `AudioContext.tsx` — central context that shares the current player state (current track, isPlaying, position) and exposes methods (play, pause, seek, download).
 
 - Config
-  - `config/api.ts` — `API_BASE` faza za mobile app; uzima `EXPO_PUBLIC_API_BASE_URL` iz env i aplicira fallback.
-  - `config/queryClient.ts` — centralna inicijalizacija React Query clienta i default options (stale time, retry policy).
+  - `config/api.ts` — `API_BASE` setup for the mobile app; takes `EXPO_PUBLIC_API_BASE_URL` from env and applies a fallback.
+  - `config/queryClient.ts` — central initialization of the React Query client and default options (stale time, retry policy).
 
 - Types
-  - `types/` folder sadrži interfaces za `pjesma`, `playlista`, `korisnik`, `pretplata` i druge entitete; koriste se kroz screens i komponenti za snažnu tipizaciju.
+  - The `types/` folder contains interfaces for `pjesma`, `playlista`, `korisnik`, `pretplata` and other entities; they are used across screens and components for strong typing.
 
 - Locales
-  - `locales/bs|en|de/translation.json` — koristi se i18next; stringovi su već prevedeni za UI.
+  - `locales/bs|en|de/translation.json` — used by i18next; the strings are already translated for the UI.
 
-Specifične ponašanja i integracije:
-- Preuzimanje fajlova: `expo-file-system` + AsyncStorage za metapodatke; implementirana LRU logika (keš size limit konfigurabilan putem env ili konstantni u app config).
-- Background playback: `expo-av` config i aplikacijski setup u `app.json` / EAS build profile zahtijevaju ispravne permisije i capabilities za iOS/Android.
+Specific behaviors and integrations:
+- File downloads: `expo-file-system` + AsyncStorage for metadata; LRU logic implemented (cache size limit configurable via env or a constant in the app config).
+- Background playback: `expo-av` config and the application setup in `app.json` / the EAS build profile require the correct permissions and capabilities for iOS/Android.
 
 CI / build:
-- Lokalno: `npx expo start` za development.
-- EAS: `eas build --platform android|ios` (koristiti preview/profile definisane u `eas.json`).
+- Locally: `npx expo start` for development.
+- EAS: `eas build --platform android|ios` (use the preview/profile defined in `eas.json`).
 
 ---
-
-
-

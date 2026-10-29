@@ -1,12 +1,12 @@
 # Decibel
 
-Decibel je moderna muzička platforma koja omogućava korisnicima da otkrivaju, slušaju i upravljaju pjesmama, albumima i playlistama, kao i da prate druge korisnike i izvođače. Projekat se sastoji iz pet dijelova: backend (FastAPI + MySQL), frontend (React + Vite), mobilne aplikacije (React-native + Expo), discord bota (Python) i desktop aplikacije (Electron).
+Decibel is a modern music platform that allows users to discover, listen to, and manage songs, albums, and playlists, as well as follow other users and artists. The project consists of five components: a backend (FastAPI + MySQL), a frontend (React + Vite), a mobile application (React Native + Expo), a Discord bot (Python), and a desktop application (Electron).
 
-- **Backend**: FastAPI, SQLAlchemy, async MySQL, Firebase Storage za fajlove.
-- **Frontend**: React (TypeScript), Vite, CSS Modules, responzivan dizajn.
-- **Mobilna aplikacija**: React-native i Expo.
-- **Desktop**: Electron. 
-- **Discord Bot**: Python. 
+- **Backend**: FastAPI, SQLAlchemy, async MySQL, Firebase Storage for files.
+- **Frontend**: React (TypeScript), Vite, CSS Modules, responsive design.
+- **Mobile Application**: React Native and Expo.
+- **Desktop**: Electron.
+- **Discord Bot**: Python.
 
 Za više informacija, pogledaj kompletnu [dokumentaciju projekta](dokumentacija/Dokumentacija.md).
 

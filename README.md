@@ -8,29 +8,29 @@ Decibel is a modern music platform that allows users to discover, listen to, and
 - **Desktop**: Electron.
 - **Discord Bot**: Python.
 
-Za više informacija, pogledaj kompletnu [dokumentaciju projekta](dokumentacija/Dokumentacija.md).
+Check this [dokumentaciju projekta](dokumentacija/Dokumentacija.md).
 
 ## Primjeri
 
-**1. Web stranica desktop**
+**1. Web page desktop**
 
 <img src="documentacion/Slika1.png" alt="Web stranica desktop" width="500"/>
 
 ---
 
-**2. Web stranica mobitel**
+**2. Web page mobile**
 
 <img src="documentacion/Slika2.png" alt="Web stranica mobitel" width="300"/>
 
 ---
 
-**3. Desktop aplikacija**
+**3. Desktop app**
 
 <img src="documentacion/Slika3.png" alt="Desktop aplikacija" width="500"/>
 
 ---
 
-**4. Mobilna Aplikacija**
+**4. Mobile App**
 
 <img src="documentacion/Slika6.jpg" alt="Mobilna Aplikacija" width="300"/>
 
